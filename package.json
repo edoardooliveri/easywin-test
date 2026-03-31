@@ -1,0 +1,11 @@
+{
+  "name": "easywin-root",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "install": "cd backend && npm install",
+    "start": "cd backend && npm start"
+  }
+}
