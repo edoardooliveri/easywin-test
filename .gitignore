@@ -4,6 +4,9 @@ node_modules/
 .vscode/
 .DS_Store
 *.log
+schema_parte_*.sql
+run-schema.*
+sql_output/
 !backend/scripts/
 !backend/src/
 !backend/package.json
