@@ -1,0 +1,25 @@
+{
+  "siti_monitorati": {
+    "attivi": 0,
+    "totali": 0,
+    "con_errori": 0,
+    "ultimo_scraping": null
+  },
+  "atti_raw": {
+    "totali": 0,
+    "da_processare": null,
+    "convertiti_in_esiti": null
+  },
+  "esiti_ai": {
+    "nuovi": 1,
+    "in_revisione": 1,
+    "pubblicati": 2,
+    "totali_ai": 3
+  },
+  "configurazione": {
+    "ai_auto_publish_threshold": "90",
+    "ai_review_threshold": "70",
+    "ai_scraping_interval": "24",
+    "ai_max_workers": "10"
+  }
+}

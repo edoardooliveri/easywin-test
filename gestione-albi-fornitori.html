@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Albi Fornitori - easyWin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .page-hero { position: relative; padding: 140px 48px 80px; background: var(--dark); color: #fff; text-align: center; overflow: hidden; }
+        .page-hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(30,45,61,0.95), rgba(30,45,61,0.8)); }
+        .page-hero h1 { position: relative; z-index: 1; font-size: clamp(32px, 4vw, 48px); font-weight: 700; margin-bottom: 16px; font-family: 'Comfortaa', cursive; }
+        .page-hero p { position: relative; z-index: 1; font-size: 18px; opacity: 0.85; max-width: 700px; margin: 0 auto; }
+        .service-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 40px; }
+        .service-box { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; transition: var(--transition); }
+        .service-box:hover { box-shadow: var(--shadow-hover); transform: translateY(-4px); }
+        .service-box .icon { width: 56px; height: 56px; border-radius: 12px; background: var(--gradient); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; margin-bottom: 20px; }
+        .service-box h3 { font-family: 'Comfortaa', cursive; font-size: 18px; margin-bottom: 12px; color: var(--dark); }
+        .service-box p { font-size: 14px; color: var(--text-light); line-height: 1.7; }
+        .how-it-works { counter-reset: step; }
+        .step { display: flex; gap: 24px; margin-bottom: 40px; align-items: flex-start; }
+        .step-number { counter-increment: step; flex-shrink: 0; width: 52px; height: 52px; border-radius: 50%; background: var(--gradient); color: #fff; font-family: 'Comfortaa', cursive; font-weight: 700; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+        .step-content h3 { font-family: 'Comfortaa', cursive; font-size: 18px; margin-bottom: 8px; color: var(--dark); }
+        .step-content p { font-size: 15px; color: var(--text-light); line-height: 1.7; }
+        .highlight-box { background: linear-gradient(135deg, #FFF8E1, #FFF3E0); border-left: 4px solid var(--orange); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 28px 32px; margin: 40px 0; }
+        .highlight-box h3 { font-family: 'Comfortaa', cursive; color: var(--dark); margin-bottom: 12px; }
+        .highlight-box p { color: var(--text); line-height: 1.7; }
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; margin: 40px 0; }
+        .stat-card { text-align: center; padding: 28px 20px; background: var(--dark); border-radius: var(--radius-lg); color: #fff; }
+        .stat-card .num { font-family: 'Comfortaa', cursive; font-size: 36px; font-weight: 700; color: var(--yellow); margin-bottom: 8px; }
+        .stat-card .label { font-size: 14px; opacity: 0.85; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar scrolled">
+    <a href="index.html"><img src="logo.png" alt="easyWin" class="logo-img"></a>
+    <div class="nav-links">
+        <a href="index.html#azienda">Azienda</a>
+        <div class="nav-item">
+            <a href="index.html#bandi">Bandi Di Gara <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="bandi-di-gara.html">Banca dati e Mailing Bandi di Gara</a>
+                <a href="bandi-mepa.html">Bandi MEPA</a>
+                <a href="piattaforme-digitali.html">Iscrizione Piattaforme Digitali</a>
+            </div>
+        </div>
+        <div class="nav-item">
+            <a href="index.html#aggiudicazioni">Aggiudicazioni <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="aggiudicazioni.html">Banca dati e Mailing Esiti</a>
+                <a href="aggiudicazioni-tempo-reale.html">Aggiudicazioni in Tempo Reale</a>
+                <a href="presenza-gara.html">Richiedi Presenza</a>
+                <a href="simulatore-statistico.html">Simulatore Statistico</a>
+                <a href="studio-statistico.html">Studio Statistico</a>
+                <a href="digitalizzazione-aggiudicazioni.html">Digitalizzazione</a>
+                <a href="verifica-conteggi.html">Verifica Conteggi</a>
+                <a href="analisi-concorrenti.html">Analisi Concorrenti</a>
+            </div>
+        </div>
+        <div class="nav-item">
+            <a href="index.html#servizi">Servizi <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="sopralluoghi.html">Sopralluoghi</a>
+                <a href="avvalimenti.html">Avvalimenti</a>
+                <a href="compilazione-gare.html">Compilazione Gare</a>
+                <a href="offerte-vantaggiose.html">Offerte Vantaggiose</a>
+                <a href="presenza-sedute.html">Presenza Sedute</a>
+                <a href="consulenza-legale.html">Consulenza Legale</a>
+                <a href="accesso-atti.html">Accesso Atti</a>
+                <a href="cauzioni.html">Cauzioni</a>
+                <a href="certificazioni-soa.html">Certificazioni SOA</a>
+                <a href="certificazioni-iso.html">Certificazioni ISO</a>
+                <a href="servizi-forniture.html">Servizi e Forniture</a>
+                <a href="gestione-albi-fornitori.html">Gestione Albi Fornitori</a>
+            </div>
+        </div>
+        <a href="formazione.html">Formazione</a>
+        <a href="contattaci.html">Contattaci</a>
+        <a href="abbonamento.html" class="btn-nav btn-bordered">Abbonamento</a>
+        <a href="login.html" class="btn-nav btn-bordered">Login</a>
+    </div>
+    <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<section class="page-hero">
+    <div class="page-hero-overlay"></div>
+    <div class="container">
+        <h1>Gestione Albi Fornitori</h1>
+        <p>Il servizio completo per iscrivere, monitorare e rinnovare la tua presenza negli albi fornitori delle stazioni appaltanti italiane</p>
+    </div>
+</section>
+
+<!-- INTRO -->
+<section class="section">
+    <div class="container">
+        <div class="two-col fade-up">
+            <div>
+                <h2 style="margin-bottom: 20px;">Perché gli Albi Fornitori sono Fondamentali</h2>
+                <p>Gli albi fornitori rappresentano lo strumento principale attraverso il quale le stazioni appaltanti selezionano le imprese da invitare alle procedure negoziate, agli affidamenti diretti e alle richieste di preventivo. Essere iscritti agli albi giusti significa avere accesso a un canale privilegiato di opportunità che non vengono pubblicate nei bandi aperti.</p>
+                <p style="margin-top: 16px;">Con il nuovo Codice degli Appalti (D.Lgs. 36/2023), le procedure negoziate e gli affidamenti sotto soglia sono diventate ancora più frequenti, rendendo l'iscrizione agli albi fornitori una leva strategica per acquisire nuovi lavori.</p>
+            </div>
+            <div>
+                <h2 style="margin-bottom: 20px;">Il Problema</h2>
+                <p>Ogni stazione appaltante gestisce il proprio albo con requisiti, piattaforme e scadenze differenti. Le imprese si trovano spesso a dover navigare decine di portali diversi, ciascuno con le proprie procedure di iscrizione, categorie merceologiche e documenti richiesti.</p>
+                <p style="margin-top: 16px;">Tenere traccia di tutte le iscrizioni attive, delle scadenze di rinnovo e delle nuove aperture è un lavoro che richiede tempo e attenzione costante. Un rinnovo mancato può significare mesi di esclusione dalle opportunità.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- COSA FACCIAMO -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="section-header fade-up" style="text-align: center; margin-bottom: 20px;">
+            <h2>Cosa Facciamo per Te</h2>
+            <p style="color: var(--text-light); max-width: 650px; margin: 12px auto 0;">Un servizio chiavi in mano per massimizzare la tua visibilità presso le pubbliche amministrazioni</p>
+        </div>
+        <div class="service-grid fade-up">
+            <div class="service-box">
+                <div class="icon"><i class="fas fa-search"></i></div>
+                <h3>Ricerca Albi Pertinenti</h3>
+                <p>Analizziamo le categorie SOA, le specializzazioni e la zona geografica della tua azienda per identificare tutti gli albi fornitori a cui dovresti essere iscritto, compresi quelli di comuni, province, ASL, università ed enti pubblici.</p>
+            </div>
+            <div class="service-box">
+                <div class="icon"><i class="fas fa-file-signature"></i></div>
+                <h3>Iscrizione Completa</h3>
+                <p>Gestiamo l'intero processo di iscrizione: registrazione sulle piattaforme, compilazione dei moduli, caricamento dei documenti richiesti (visure, DURC, SOA, bilanci, polizze) e invio della domanda entro i termini.</p>
+            </div>
+            <div class="service-box">
+                <div class="icon"><i class="fas fa-bell"></i></div>
+                <h3>Monitoraggio Nuove Aperture</h3>
+                <p>Monitoriamo quotidianamente le pubblicazioni di nuovi avvisi di apertura albi fornitori su tutto il territorio nazionale. Ti avvisiamo tempestivamente quando un ente apre un albo nelle tue categorie di interesse.</p>
+            </div>
+            <div class="service-box">
+                <div class="icon"><i class="fas fa-sync-alt"></i></div>
+                <h3>Rinnovi e Aggiornamenti</h3>
+                <p>Teniamo traccia di tutte le scadenze dei tuoi albi e ci occupiamo dei rinnovi prima della scadenza. Aggiorniamo i dati aziendali (nuove certificazioni, variazioni di ragione sociale, ampliamento categorie) su tutti gli albi.</p>
+            </div>
+            <div class="service-box">
+                <div class="icon"><i class="fas fa-chart-pie"></i></div>
+                <h3>Report e Statistiche</h3>
+                <p>Ti forniamo un quadro completo delle tue iscrizioni attive, delle procedure ricevute tramite albo e dell'efficacia del servizio. Identifichiamo dove conviene investire per massimizzare gli inviti.</p>
+            </div>
+            <div class="service-box">
+                <div class="icon"><i class="fas fa-headset"></i></div>
+                <h3>Assistenza Dedicata</h3>
+                <p>Un referente dedicato segue tutte le tue iscrizioni e risponde a ogni tua domanda. Ti supportiamo anche nella gestione di eventuali problematiche tecniche con le piattaforme degli enti.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- COME FUNZIONA -->
+<section class="section">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: 50px;">Come Funziona il Servizio</h2>
+        <div class="how-it-works fade-up" style="max-width: 700px; margin: 0 auto;">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Analisi della Tua Azienda</h3>
+                    <p>Valutiamo le tue categorie SOA, le specializzazioni, il fatturato e la copertura geografica per costruire un profilo completo delle opportunità disponibili.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Mappatura degli Albi</h3>
+                    <p>Identifichiamo tutti gli albi fornitori attivi e pertinenti: enti locali, centrali di committenza, aziende sanitarie, società partecipate e altri enti pubblici nel tuo raggio di azione.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Iscrizione e Accreditamento</h3>
+                    <p>Procediamo con le iscrizioni, gestendo per te tutte le fasi: dalla creazione dell'account sulle piattaforme alla compilazione delle domande con la documentazione necessaria.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Monitoraggio Continuo</h3>
+                    <p>Una volta iscritto, monitoriamo costantemente lo stato delle tue iscrizioni, gestiamo i rinnovi e ti segnaliamo le nuove aperture di albi nelle tue aree di competenza.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- HIGHLIGHT -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="highlight-box fade-up">
+            <h3><i class="fas fa-lightbulb" style="color: var(--orange); margin-right: 8px;"></i> Lo sapevi?</h3>
+            <p>Secondo le statistiche ANAC, oltre il 60% degli appalti sotto soglia viene affidato tramite procedure negoziate con invito da albo fornitori. Non essere iscritto significa perdere la maggioranza delle opportunità di lavoro pubbliche nella tua zona.</p>
+        </div>
+
+        <div class="stats-row fade-up">
+            <div class="stat-card">
+                <div class="num">60%+</div>
+                <div class="label">Appalti sotto soglia da albo</div>
+            </div>
+            <div class="stat-card">
+                <div class="num">1.000+</div>
+                <div class="label">Stazioni appaltanti monitorate</div>
+            </div>
+            <div class="stat-card">
+                <div class="num">50+</div>
+                <div class="label">Piattaforme gestite</div>
+            </div>
+            <div class="stat-card">
+                <div class="num">100%</div>
+                <div class="label">Rinnovi gestiti in tempo</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="section">
+    <div class="container" style="text-align: center;">
+        <h2>Vuoi Aumentare gli Inviti alle Gare?</h2>
+        <p style="margin: 16px auto 30px; max-width: 600px; color: var(--text-light);">Contattaci per una consulenza gratuita: analizzeremo la tua situazione e ti proporremo un piano di iscrizioni personalizzato.</p>
+        <a href="contattaci.html" class="btn btn-primary" style="margin-right: 12px;">Richiedi Consulenza <i class="fas fa-arrow-right"></i></a>
+        <a href="abbonamento.html" class="btn btn-bordered" style="border-color: var(--dark); color: var(--dark);">Vedi Abbonamenti</a>
+    </div>
+</section>
+
+<footer>
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <img src="logo.png" alt="easyWin" class="footer-logo">
+            <p><strong>easyWin......</strong></p>
+            <p>Facile Vincere</p>
+            <div class="footer-socials">
+                <a href="https://www.facebook.com/EasyWinAppalti" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://www.linkedin.com/company/easywin-appalti" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                <a href="https://www.instagram.com/easywin_appalti/" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <h4>Chi siamo</h4>
+            <p><strong>Edra Servizi s.r.l.</strong></p>
+            <p>Via Malta 5/9<br>16121 GENOVA (GE)</p>
+            <p style="margin-top:12px;"><strong>PEC:</strong><br>edraservizi@pec.it</p>
+            <p style="margin-top:8px;"><strong>Mail:</strong><br>info@easywin.it</p>
+        </div>
+        <div class="footer-col">
+            <h4>Contatti</h4>
+            <p><strong><i class="fas fa-phone"></i> Tel:</strong> 010.0982610</p>
+            <p><strong><i class="fas fa-fax"></i> Fax:</strong> 010.0982611</p>
+            <p style="margin-top:12px;"><strong>Assistenza Commerciale:</strong><br>348.3934800</p>
+            <p style="margin-top:8px;"><strong>Assistenza Tecnica:</strong><br>345.7088197</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 easyWin. Tutti i diritti riservati.</p>
+    </div>
+</footer>
+
+<script>
+document.querySelectorAll('.nav-item > a').forEach(link => {
+    link.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) {
+            e.preventDefault();
+            this.parentElement.classList.toggle('open');
+        }
+    });
+});
+
+// Fade-up animations
+const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }});
+}, { threshold: 0.01, rootMargin: '0px 0px 50px 0px' });
+document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

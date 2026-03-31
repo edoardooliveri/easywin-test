@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aggiudicazioni in Tempo Reale - easyWin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .page-hero { position: relative; padding: 140px 48px 80px; background: var(--dark); color: #fff; text-align: center; overflow: hidden; }
+        .page-hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(30,45,61,0.95), rgba(30,45,61,0.8)); }
+        .page-hero h1 { position: relative; z-index: 1; font-size: clamp(32px, 4vw, 48px); font-weight: 700; margin-bottom: 16px; font-family: 'Comfortaa', cursive; }
+        .page-hero p { position: relative; z-index: 1; font-size: 18px; opacity: 0.85; max-width: 700px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar scrolled">
+    <a href="index.html"><img src="logo.png" alt="easyWin" class="logo-img"></a>
+    <div class="nav-links">
+        <a href="index.html#azienda">Azienda</a>
+        <div class="nav-item">
+            <a href="index.html#bandi">Bandi Di Gara <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="bandi-di-gara.html">Banca dati e Mailing Bandi di Gara</a>
+                <a href="bandi-mepa.html">Bandi MEPA</a>
+                <a href="piattaforme-digitali.html">Iscrizione Piattaforme Digitali</a>
+            </div>
+        </div>
+        <div class="nav-item">
+            <a href="index.html#aggiudicazioni">Aggiudicazioni <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="aggiudicazioni.html">Banca dati e Mailing Esiti</a>
+                <a href="aggiudicazioni-tempo-reale.html">Aggiudicazioni in Tempo Reale</a>
+                <a href="presenza-gara.html">Richiedi Presenza</a>
+                <a href="simulatore-statistico.html">Simulatore Statistico</a>
+                <a href="studio-statistico.html">Studio Statistico</a>
+                <a href="digitalizzazione-aggiudicazioni.html">Digitalizzazione</a>
+                <a href="verifica-conteggi.html">Verifica Conteggi</a>
+                <a href="analisi-concorrenti.html">Analisi Concorrenti</a>
+            </div>
+        </div>
+        <div class="nav-item">
+            <a href="index.html#servizi">Servizi <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="sopralluoghi.html">Sopralluoghi</a>
+                <a href="avvalimenti.html">Avvalimenti</a>
+                <a href="compilazione-gare.html">Compilazione Gare</a>
+                <a href="offerte-vantaggiose.html">Offerte Vantaggiose</a>
+                <a href="presenza-sedute.html">Presenza Sedute</a>
+                <a href="consulenza-legale.html">Consulenza Legale</a>
+                <a href="accesso-atti.html">Accesso Atti</a>
+                <a href="cauzioni.html">Cauzioni</a>
+                <a href="certificazioni-soa.html">Certificazioni SOA</a>
+                <a href="certificazioni-iso.html">Certificazioni ISO</a>
+                <a href="servizi-forniture.html">Servizi e Forniture</a>
+                <a href="gestione-albi-fornitori.html">Gestione Albi Fornitori</a>
+            </div>
+        </div>
+        <a href="formazione.html">Formazione</a>
+        <a href="contattaci.html">Contattaci</a>
+        <a href="abbonamento.html" class="btn-nav btn-bordered">Abbonamento</a>
+        <a href="login.html" class="btn-nav btn-bordered">Login</a>
+    </div>
+    <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<section class="page-hero">
+    <div class="page-hero-overlay"></div>
+    <div class="container">
+        <h1>Aggiudicazioni in Tempo Reale</h1>
+        <p>Monitoraggio istantaneo degli esiti di gara con notifiche immediate e analisi dettagliate</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: 40px;">Scopri gli Esiti Prima della Concorrenza</h2>
+
+        <div class="two-col fade-up" style="margin-bottom: 60px;">
+            <div>
+                <h3>Notifiche Istantanee</h3>
+                <p>Con il nostro sistema di monitoraggio in tempo reale, ricevi notifiche istantanee non appena viene pubblicato un esito di gara. Non perderai mai nessuna opportunità importante.</p>
+                <p style="margin-top: 15px;">Le notifiche sono personalizzabili in base ai tuoi criteri di interesse, e vengono inviate via email, SMS o push notification.</p>
+            </div>
+            <div>
+                <h3>Analisi Istantanea</h3>
+                <p>Ogni esito viene immediatamente analizzato dai nostri sistemi per estrarre:</p>
+                <ul style="margin: 20px 0; padding-left: 20px;">
+                    <li>Percentuale di ribasso applicata</li>
+                    <li>Azienda aggiudicataria</li>
+                    <li>Numero di partecipanti alla gara</li>
+                    <li>Stima del valore del progetto</li>
+                    <li>Informazioni storiche sui ribassi</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="background: var(--bg-light); padding: 40px; border-radius: 14px; margin-bottom: 60px;">
+            <h3 style="margin-bottom: 20px;">Confronto con le Tue Offerte</h3>
+            <p>Confronta automaticamente i tuoi ribassi offerti con gli esiti pubblicati per valutare la competitività delle tue strategie:</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 30px;">
+                <div>
+                    <div style="font-size: 32px; color: var(--orange); margin-bottom: 10px;"><i class="fas fa-equals"></i></div>
+                    <h4>Confronto Ribassi</h4>
+                    <p>Vedi come i tuoi ribassi si posizionano rispetto alla media</p>
+                </div>
+                <div>
+                    <div style="font-size: 32px; color: var(--orange); margin-bottom: 10px;"><i class="fas fa-history"></i></div>
+                    <h4>Storico Perfor</h4>
+                    <p>Monitora l'andamento dei tuoi esiti nel tempo</p>
+                </div>
+                <div>
+                    <div style="font-size: 32px; color: var(--orange); margin-bottom: 10px;"><i class="fas fa-lightbulb"></i></div>
+                    <h4>Suggerimenti</h4>
+                    <p>Ricevi consigli per migliorare le tue strategie future</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="two-col fade-up">
+            <div>
+                <h3>Dashboard Personalizzata</h3>
+                <p>Accedi a una dashboard che raccoglie tutti gli esiti che ti interessano, organizzati per categoria, regione, importo e periodo.</p>
+                <p style="margin-top: 15px;">Crea filtri salvati per monitorare costantemente i settori più redditizi per la tua azienda.</p>
+            </div>
+            <div>
+                <h3>Report e Export</h3>
+                <p>Scarica report dettagliati in formato PDF o Excel per analisi offline e condivisione con il tuo team.</p>
+                <p style="margin-top: 15px;">Genera statistiche dettagliate, grafici di tendenza e analisi comparative per supportare le tue decisioni strategiche.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section-alt">
+    <div class="container" style="text-align:center;">
+        <h2>Sii Sempre un Passo Avanti</h2>
+        <p style="margin-bottom: 30px;">Attiva il monitoraggio in tempo reale e scopri le opportunità immediatamente</p>
+        <a href="contattaci.html" class="btn btn-primary">Contattaci <i class="fas fa-arrow-right"></i></a>
+    </div>
+</section>
+
+<footer>
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <img src="logo.png" alt="easyWin" class="footer-logo">
+            <p><strong>easyWin......</strong></p>
+            <p>Facile Vincere</p>
+            <div class="footer-socials">
+                <a href="https://www.facebook.com/EasyWinAppalti" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://www.linkedin.com/company/easywin-appalti" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                <a href="https://www.instagram.com/easywin_appalti/" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <h4>Chi siamo</h4>
+            <p><strong>Edra Servizi s.r.l.</strong></p>
+            <p>Via Malta 5/9<br>16121 GENOVA (GE)</p>
+            <p style="margin-top:12px;"><strong>PEC:</strong><br>edraservizi@pec.it</p>
+            <p style="margin-top:8px;"><strong>Mail:</strong><br>info@easywin.it</p>
+        </div>
+        <div class="footer-col">
+            <h4>Contatti</h4>
+            <p><strong><i class="fas fa-phone"></i> Tel:</strong> 010.0982610</p>
+            <p><strong><i class="fas fa-fax"></i> Fax:</strong> 010.0982611</p>
+            <p style="margin-top:12px;"><strong>Assistenza Commerciale:</strong><br>348.3934800</p>
+            <p style="margin-top:8px;"><strong>Assistenza Tecnica:</strong><br>345.7088197</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 easyWin. Tutti i diritti riservati.</p>
+    </div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+    document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 50);
+});
+</script>
+
+<script>
+document.querySelectorAll('.nav-item > a').forEach(link => {
+    link.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) {
+            e.preventDefault();
+            this.parentElement.classList.toggle('open');
+        }
+    });
+});
+</script>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.01, rootMargin: '0px 0px 50px 0px' });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

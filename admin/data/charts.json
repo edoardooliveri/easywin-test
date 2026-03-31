@@ -1,0 +1,32 @@
+{
+  "esiti_per_giorno": [
+    {
+      "giorno": "2026-03-23",
+      "conteggio": 5
+    }
+  ],
+  "bandi_per_tipo": [
+    {
+      "tipo_appalto": "Lavori",
+      "conteggio": 2
+    },
+    {
+      "tipo_appalto": "Forniture",
+      "conteggio": 2
+    },
+    {
+      "tipo_appalto": "Servizi",
+      "conteggio": 1
+    }
+  ],
+  "esiti_per_origine": [
+    {
+      "origine": "ai_albo_pretorio",
+      "conteggio": 3
+    },
+    {
+      "origine": "manuale",
+      "conteggio": 2
+    }
+  ]
+}

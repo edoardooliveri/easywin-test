@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>easyWin - Recupera Password</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar scrolled">
+    <a href="index.html"><img src="logo.png" alt="easyWin" class="logo-img"></a>
+    <div class="nav-links">
+        <a href="index.html#azienda">Azienda</a>
+        <div class="nav-item">
+            <a href="index.html#bandi">Bandi Di Gara <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="bandi-di-gara.html">Banca dati e Mailing Bandi di Gara</a>
+                <a href="bandi-mepa.html">Bandi MEPA</a>
+                <a href="piattaforme-digitali.html">Iscrizione Piattaforme Digitali</a>
+            </div>
+        </div>
+        <div class="nav-item">
+            <a href="index.html#aggiudicazioni">Aggiudicazioni <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="aggiudicazioni.html">Banca dati e Mailing Esiti</a>
+                <a href="aggiudicazioni-tempo-reale.html">Aggiudicazioni in Tempo Reale</a>
+                <a href="presenza-gara.html">Richiedi Presenza</a>
+                <a href="simulatore-statistico.html">Simulatore Statistico</a>
+                <a href="studio-statistico.html">Studio Statistico</a>
+                <a href="digitalizzazione-aggiudicazioni.html">Digitalizzazione</a>
+                <a href="verifica-conteggi.html">Verifica Conteggi</a>
+                <a href="analisi-concorrenti.html">Analisi Concorrenti</a>
+            </div>
+        </div>
+        <div class="nav-item">
+            <a href="index.html#servizi">Servizi <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="sopralluoghi.html">Sopralluoghi</a>
+                <a href="avvalimenti.html">Avvalimenti</a>
+                <a href="compilazione-gare.html">Compilazione Gare</a>
+                <a href="offerte-vantaggiose.html">Offerte Vantaggiose</a>
+                <a href="presenza-sedute.html">Presenza Sedute</a>
+                <a href="consulenza-legale.html">Consulenza Legale</a>
+                <a href="accesso-atti.html">Accesso Atti</a>
+                <a href="cauzioni.html">Cauzioni</a>
+                <a href="certificazioni-soa.html">Certificazioni SOA</a>
+                <a href="certificazioni-iso.html">Certificazioni ISO</a>
+                <a href="servizi-forniture.html">Servizi e Forniture</a>
+                <a href="gestione-albi-fornitori.html">Gestione Albi Fornitori</a>
+            </div>
+        </div>
+        <a href="formazione.html">Formazione</a>
+        <a href="contattaci.html">Contattaci</a>
+        <a href="abbonamento.html" class="btn-nav btn-bordered">Abbonamento</a>
+        <a href="login.html" class="btn-nav btn-bordered">Login</a>
+    </div>
+    <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<section class="page-hero">
+    <div class="page-hero-bg" style="background:linear-gradient(135deg,#1a1a2e,#16213e);"></div>
+    <div class="page-hero-content">
+        <h1>Recupera Password</h1>
+        <p>Reimposta la tua password in pochi passi</p>
+    </div>
+</section>
+
+<section class="section" style="padding:60px 0;">
+    <div class="container">
+        <div class="recovery-container" style="max-width:500px;margin:0 auto;">
+            <div class="recovery-card" style="background:white;padding:40px;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);">
+                <h2 style="margin-bottom:8px;text-align:center;">Hai dimenticato la password?</h2>
+                <p style="text-align:center;color:#777;margin-bottom:32px;">Inserisci il tuo indirizzo email e ti invieremo un link per reimpostare la password.</p>
+
+                <form id="recovery-form" style="display:flex;flex-direction:column;gap:18px;">
+                    <div style="display:flex;flex-direction:column;">
+                        <label style="font-weight:600;font-size:13px;margin-bottom:6px;color:#333;">Indirizzo Email</label>
+                        <input type="email" id="recovery-email" placeholder="Il tuo indirizzo email registrato" required
+                            style="padding:12px 14px;border:1px solid #eee;border-radius:8px;font-size:14px;">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;padding:12px 18px;text-align:center;">
+                        Invia Link di Recupero
+                    </button>
+                    <div id="recovery-message" style="display:none;padding:12px;border-radius:8px;font-size:13px;"></div>
+                </form>
+
+                <hr style="margin:32px 0;border:none;border-top:1px solid #eee;">
+
+                <div style="text-align:center;">
+                    <p style="font-size:13px;color:#777;">
+                        Ricordi la password? <a href="login.html" style="color:#FF8C00;text-decoration:none;font-weight:600;">Accedi qui</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- RESET PASSWORD FORM (shown when token in URL) -->
+            <div id="reset-card" class="recovery-card" style="background:white;padding:40px;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);display:none;">
+                <h2 style="margin-bottom:8px;text-align:center;">Reimposta Password</h2>
+                <p style="text-align:center;color:#777;margin-bottom:32px;">Inserisci la tua nuova password.</p>
+
+                <form id="reset-form" style="display:flex;flex-direction:column;gap:18px;">
+                    <div style="display:flex;flex-direction:column;">
+                        <label style="font-weight:600;font-size:13px;margin-bottom:6px;color:#333;">Nuova Password</label>
+                        <input type="password" id="reset-password" placeholder="Nuova password" required
+                            style="padding:12px 14px;border:1px solid #eee;border-radius:8px;font-size:14px;">
+                    </div>
+                    <div style="display:flex;flex-direction:column;">
+                        <label style="font-weight:600;font-size:13px;margin-bottom:6px;color:#333;">Conferma Password</label>
+                        <input type="password" id="reset-password-confirm" placeholder="Conferma password" required
+                            style="padding:12px 14px;border:1px solid #eee;border-radius:8px;font-size:14px;">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;padding:12px 18px;text-align:center;">
+                        Reimposta Password
+                    </button>
+                    <div id="reset-message" style="display:none;padding:12px;border-radius:8px;font-size:13px;"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <img src="logo.png" alt="easyWin" class="footer-logo">
+            <p><strong>Edra Servizi s.r.l.</strong></p>
+            <p>La chiave del successo nelle gare d'appalto</p>
+            <div class="footer-socials">
+                <a href="https://www.facebook.com/EasyWinAppalti" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://www.linkedin.com/company/easywin-appalti" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                <a href="https://www.instagram.com/easywin_appalti/" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <h4>Contatti</h4>
+            <p><i class="fas fa-phone"></i> <strong>Centralino:</strong> 010.0982610</p>
+            <p><i class="fas fa-envelope"></i> info@easywin.it</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 easyWin. Tutti i diritti riservati.</p>
+    </div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+    document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// Check for reset token on load
+const token = getUrlParam('token');
+if (token) {
+    document.getElementById('recovery-form').parentElement.style.display = 'none';
+    document.getElementById('reset-card').style.display = 'block';
+}
+
+// Recovery form handler
+document.getElementById('recovery-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('recovery-email').value;
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Invio in corso...';
+
+    try {
+        const res = await fetch('/api/pubblico/recupera-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        const msgEl = document.getElementById('recovery-message');
+        msgEl.textContent = data.message || (res.ok ? 'Link inviato all\'email!' : 'Errore nell\'invio');
+        msgEl.style.color = res.ok ? '#4caf50' : '#f44336';
+        msgEl.style.display = 'block';
+        if (res.ok) document.getElementById('recovery-form').reset();
+    } catch (err) {
+        const msgEl = document.getElementById('recovery-message');
+        msgEl.textContent = 'Errore: ' + err.message;
+        msgEl.style.color = '#f44336';
+        msgEl.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Invia Link di Recupero';
+    }
+});
+
+// Reset form handler
+document.getElementById('reset-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const password = document.getElementById('reset-password').value;
+    const confirm = document.getElementById('reset-password-confirm').value;
+
+    if (password !== confirm) {
+        const msgEl = document.getElementById('reset-message');
+        msgEl.textContent = 'Le password non corrispondono';
+        msgEl.style.color = '#f44336';
+        msgEl.style.display = 'block';
+        return;
+    }
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Reimpostazione in corso...';
+
+    try {
+        const res = await fetch('/api/pubblico/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, password })
+        });
+        const data = await res.json();
+        const msgEl = document.getElementById('reset-message');
+        msgEl.textContent = data.message || (res.ok ? 'Password reimpostata! Accedi con la nuova password.' : 'Errore');
+        msgEl.style.color = res.ok ? '#4caf50' : '#f44336';
+        msgEl.style.display = 'block';
+        if (res.ok) {
+            setTimeout(() => window.location.href = 'login.html', 2000);
+        }
+    } catch (err) {
+        const msgEl = document.getElementById('reset-message');
+        msgEl.textContent = 'Errore: ' + err.message;
+        msgEl.style.color = '#f44336';
+        msgEl.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Reimposta Password';
+    }
+});
+
+function getUrlParam(name) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name);
+}
+</script>
+
+<script>
+document.querySelectorAll('.nav-item > a').forEach(link => {
+    link.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) {
+            e.preventDefault();
+            this.parentElement.classList.toggle('open');
+        }
+    });
+});
+</script>
+</body>
+</html>

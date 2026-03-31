@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bandi MEPA - easyWin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .page-hero { position: relative; padding: 140px 48px 80px; background: var(--dark); color: #fff; text-align: center; overflow: hidden; }
+        .page-hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(30,45,61,0.95), rgba(30,45,61,0.8)); }
+        .page-hero h1 { position: relative; z-index: 1; font-size: clamp(32px, 4vw, 48px); font-weight: 700; margin-bottom: 16px; font-family: 'Comfortaa', cursive; }
+        .page-hero p { position: relative; z-index: 1; font-size: 18px; opacity: 0.85; max-width: 700px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar scrolled">
+    <a href="index.html"><img src="logo.png" alt="easyWin" class="logo-img"></a>
+    <div class="nav-links">
+        <a href="index.html#azienda">Azienda</a>
+        <div class="nav-item">
+            <a href="index.html#bandi">Bandi Di Gara <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="bandi-di-gara.html">Banca dati e Mailing Bandi di Gara</a>
+                <a href="bandi-mepa.html">Bandi MEPA</a>
+                <a href="piattaforme-digitali.html">Iscrizione Piattaforme Digitali</a>
+            </div>
+        </div>
+        <div class="nav-item">
+            <a href="index.html#aggiudicazioni">Aggiudicazioni <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="aggiudicazioni.html">Banca dati e Mailing Esiti</a>
+                <a href="aggiudicazioni-tempo-reale.html">Aggiudicazioni in Tempo Reale</a>
+                <a href="presenza-gara.html">Richiedi Presenza</a>
+                <a href="simulatore-statistico.html">Simulatore Statistico</a>
+                <a href="studio-statistico.html">Studio Statistico</a>
+                <a href="digitalizzazione-aggiudicazioni.html">Digitalizzazione</a>
+                <a href="verifica-conteggi.html">Verifica Conteggi</a>
+                <a href="analisi-concorrenti.html">Analisi Concorrenti</a>
+            </div>
+        </div>
+        <div class="nav-item">
+            <a href="index.html#servizi">Servizi <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="sopralluoghi.html">Sopralluoghi</a>
+                <a href="avvalimenti.html">Avvalimenti</a>
+                <a href="compilazione-gare.html">Compilazione Gare</a>
+                <a href="offerte-vantaggiose.html">Offerte Vantaggiose</a>
+                <a href="presenza-sedute.html">Presenza Sedute</a>
+                <a href="consulenza-legale.html">Consulenza Legale</a>
+                <a href="accesso-atti.html">Accesso Atti</a>
+                <a href="cauzioni.html">Cauzioni</a>
+                <a href="certificazioni-soa.html">Certificazioni SOA</a>
+                <a href="certificazioni-iso.html">Certificazioni ISO</a>
+                <a href="servizi-forniture.html">Servizi e Forniture</a>
+                <a href="gestione-albi-fornitori.html">Gestione Albi Fornitori</a>
+            </div>
+        </div>
+        <a href="formazione.html">Formazione</a>
+        <a href="contattaci.html">Contattaci</a>
+        <a href="abbonamento.html" class="btn-nav btn-bordered">Abbonamento</a>
+        <a href="login.html" class="btn-nav btn-bordered">Login</a>
+    </div>
+    <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<section class="page-hero">
+    <div class="page-hero-overlay"></div>
+    <div class="container">
+        <h1>Monitoraggio Bandi MEPA</h1>
+        <p>Monitora e partecipa ai bandi del Mercato Elettronico della Pubblica Amministrazione con facilità</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: 40px;">Il Tuo Partner per le Procedure MEPA</h2>
+
+        <div class="two-col fade-up" style="margin-bottom: 60px;">
+            <div>
+                <h3>Monitoraggio Costante dei Bandi MEPA</h3>
+                <p>Monitoriamo in tempo reale tutti i bandi pubblicati sul MEPA, la piattaforma telematica per gli acquisti della pubblica amministrazione. Ricevi notifiche personalizzate per ogni gara che rientra nel tuo profilo.</p>
+                <p style="margin-top: 15px;">Il servizio include anche l'analisi degli esiti per capire le tendenze di aggiudicazione sul MEPA.</p>
+            </div>
+            <div>
+                <h3>Assistenza nella Partecipazione</h3>
+                <p>Ti guidiamo in ogni fase della procedura MEPA:</p>
+                <ul style="margin: 20px 0; padding-left: 20px;">
+                    <li>Registrazione e gestione account MEPA</li>
+                    <li>Configurazione del profilo aziendale</li>
+                    <li>Upload e gestione della documentazione</li>
+                    <li>Compilazione corretta delle offerte</li>
+                    <li>Supporto nella gestione delle comunicazioni</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="background: var(--bg-light); padding: 40px; border-radius: 14px; margin-bottom: 60px;">
+            <h3 style="margin-bottom: 20px;">Configurazione Catalogo e Offerte</h3>
+            <p>Uno dei principali vantaggi del MEPA è la possibilità di configurare un catalogo prodotti/servizi e ricevere ordini diretti. Ecco come ti aiutiamo:</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 30px;">
+                <div>
+                    <div style="font-size: 32px; color: var(--orange); margin-bottom: 10px;"><i class="fas fa-folder"></i></div>
+                    <h4>Gestione Catalogo</h4>
+                    <p>Configuriamo il tuo catalogo prodotti/servizi sui sistemi MEPA</p>
+                </div>
+                <div>
+                    <div style="font-size: 32px; color: var(--orange); margin-bottom: 10px;"><i class="fas fa-file-invoice"></i></div>
+                    <h4>Gestione Offerte</h4>
+                    <p>Monitoraggio e gestione automatica delle offerte inviate</p>
+                </div>
+                <div>
+                    <div style="font-size: 32px; color: var(--orange); margin-bottom: 10px;"><i class="fas fa-chart-line"></i></div>
+                    <h4>Analisi Risultati</h4>
+                    <p>Rapporti dettagliati su ordini ricevuti e andamenti</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="two-col fade-up">
+            <div>
+                <h3>Vantaggi del MEPA</h3>
+                <p>Il Mercato Elettronico della Pubblica Amministrazione rappresenta un'importante opportunità per le imprese. Con easyWin accedi a:</p>
+                <ul style="margin: 20px 0; padding-left: 20px;">
+                    <li>Accesso diretto a migliaia di bandi pubblici</li>
+                    <li>Procedure semplificate rispetto alle gare tradizionali</li>
+                    <li>Possibilità di ottenere ordini diretti dal catalogo</li>
+                    <li>Visibilità della tua azienda tra i buyer pubblici</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Supporto Specializzato</h3>
+                <p>Il nostro team di esperti MEPA è disponibile per supportarti in tutte le fasi del processo, dalla registrazione alla gestione delle offerte.</p>
+                <p style="margin-top: 15px;">Contattaci per una consulenza gratuita sul potenziale MEPA per la tua azienda.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section-alt">
+    <div class="container" style="text-align:center;">
+        <h2>Inizia a Guadagnare dal MEPA</h2>
+        <p style="margin-bottom: 30px;">Lascia che easyWin gestisca il monitoraggio dei bandi MEPA per te</p>
+        <a href="contattaci.html" class="btn btn-primary">Contattaci <i class="fas fa-arrow-right"></i></a>
+    </div>
+</section>
+
+<footer>
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <img src="logo.png" alt="easyWin" class="footer-logo">
+            <p><strong>easyWin......</strong></p>
+            <p>Facile Vincere</p>
+            <div class="footer-socials">
+                <a href="https://www.facebook.com/EasyWinAppalti" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://www.linkedin.com/company/easywin-appalti" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                <a href="https://www.instagram.com/easywin_appalti/" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <h4>Chi siamo</h4>
+            <p><strong>Edra Servizi s.r.l.</strong></p>
+            <p>Via Malta 5/9<br>16121 GENOVA (GE)</p>
+            <p style="margin-top:12px;"><strong>PEC:</strong><br>edraservizi@pec.it</p>
+            <p style="margin-top:8px;"><strong>Mail:</strong><br>info@easywin.it</p>
+        </div>
+        <div class="footer-col">
+            <h4>Contatti</h4>
+            <p><strong><i class="fas fa-phone"></i> Tel:</strong> 010.0982610</p>
+            <p><strong><i class="fas fa-fax"></i> Fax:</strong> 010.0982611</p>
+            <p style="margin-top:12px;"><strong>Assistenza Commerciale:</strong><br>348.3934800</p>
+            <p style="margin-top:8px;"><strong>Assistenza Tecnica:</strong><br>345.7088197</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 easyWin. Tutti i diritti riservati.</p>
+    </div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+    document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 50);
+});
+</script>
+
+<script>
+document.querySelectorAll('.nav-item > a').forEach(link => {
+    link.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) {
+            e.preventDefault();
+            this.parentElement.classList.toggle('open');
+        }
+    });
+});
+</script>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.01, rootMargin: '0px 0px 50px 0px' });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

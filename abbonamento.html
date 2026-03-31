@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abbonamenti - easyWin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .page-hero { position: relative; padding: 140px 48px 80px; background: var(--dark); color: #fff; text-align: center; overflow: hidden; }
+        .page-hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(30,45,61,0.95), rgba(30,45,61,0.8)); }
+        .page-hero h1 { position: relative; z-index: 1; font-size: clamp(32px, 4vw, 48px); font-weight: 700; margin-bottom: 16px; font-family: 'Comfortaa', cursive; }
+        .page-hero p { position: relative; z-index: 1; font-size: 18px; opacity: 0.85; max-width: 700px; margin: 0 auto; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 60px; }
+        .pricing-card { background: #fff; border: 2px solid var(--border); border-radius: 14px; padding: 30px; text-align: center; transition: all 0.3s ease; }
+        .pricing-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.15); transform: translateY(-5px); border-color: var(--orange); }
+        .pricing-card.featured { border-color: var(--orange); background: linear-gradient(135deg, rgba(255,140,0,0.05), rgba(245,197,24,0.05)); }
+        .price { font-size: 42px; font-weight: 700; color: var(--orange); margin: 20px 0; }
+        .price span { font-size: 18px; color: var(--text-light); }
+        .plan-name { font-size: 24px; font-weight: 600; color: var(--text); margin-bottom: 20px; }
+        .features-list { text-align: left; list-style: none; padding: 0; margin: 20px 0; }
+        .features-list li { padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .features-list li:last-child { border-bottom: none; }
+        .features-list i { color: var(--orange); margin-right: 10px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar scrolled">
+    <a href="index.html"><img src="logo.png" alt="easyWin" class="logo-img"></a>
+    <div class="nav-links">
+        <a href="index.html#azienda">Azienda</a>
+        <div class="nav-item">
+            <a href="index.html#bandi">Bandi Di Gara <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="bandi-di-gara.html">Banca dati e Mailing Bandi di Gara</a>
+                <a href="bandi-mepa.html">Bandi MEPA</a>
+                <a href="piattaforme-digitali.html">Iscrizione Piattaforme Digitali</a>
+            </div>
+        </div>
+        <div class="nav-item">
+            <a href="index.html#aggiudicazioni">Aggiudicazioni <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="aggiudicazioni.html">Banca dati e Mailing Esiti</a>
+                <a href="aggiudicazioni-tempo-reale.html">Aggiudicazioni in Tempo Reale</a>
+                <a href="presenza-gara.html">Richiedi Presenza</a>
+                <a href="simulatore-statistico.html">Simulatore Statistico</a>
+                <a href="studio-statistico.html">Studio Statistico</a>
+                <a href="digitalizzazione-aggiudicazioni.html">Digitalizzazione</a>
+                <a href="verifica-conteggi.html">Verifica Conteggi</a>
+                <a href="analisi-concorrenti.html">Analisi Concorrenti</a>
+            </div>
+        </div>
+        <div class="nav-item">
+            <a href="index.html#servizi">Servizi <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="sopralluoghi.html">Sopralluoghi</a>
+                <a href="avvalimenti.html">Avvalimenti</a>
+                <a href="compilazione-gare.html">Compilazione Gare</a>
+                <a href="offerte-vantaggiose.html">Offerte Vantaggiose</a>
+                <a href="presenza-sedute.html">Presenza Sedute</a>
+                <a href="consulenza-legale.html">Consulenza Legale</a>
+                <a href="accesso-atti.html">Accesso Atti</a>
+                <a href="cauzioni.html">Cauzioni</a>
+                <a href="certificazioni-soa.html">Certificazioni SOA</a>
+                <a href="certificazioni-iso.html">Certificazioni ISO</a>
+                <a href="servizi-forniture.html">Servizi e Forniture</a>
+                <a href="gestione-albi-fornitori.html">Gestione Albi Fornitori</a>
+            </div>
+        </div>
+        <a href="formazione.html">Formazione</a>
+        <a href="contattaci.html">Contattaci</a>
+        <a href="abbonamento.html" class="btn-nav btn-bordered">Abbonamento</a>
+        <a href="login.html" class="btn-nav btn-bordered">Login</a>
+    </div>
+    <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<section class="page-hero">
+    <div class="page-hero-overlay"></div>
+    <div class="container">
+        <h1>Piani di Abbonamento</h1>
+        <p>Scegli il piano perfetto per le tue esigenze e inizia a vincere gare oggi</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: 50px;">Trasparenza nei Prezzi</h2>
+        
+        <div class="pricing-grid fade-up">
+            <div class="pricing-card">
+                <h3 class="plan-name"><i class="fas fa-leaf"></i> Piano Base</h3>
+                <div class="price">99<span>/mese</span></div>
+                <p style="color: var(--text-light); margin-bottom: 20px;">Perfetto per iniziare</p>
+                <ul class="features-list">
+                    <li><i class="fas fa-check"></i> Accesso banca dati bandi</li>
+                    <li><i class="fas fa-check"></i> Filtri personalizzati base</li>
+                    <li><i class="fas fa-check"></i> Notifiche email mailing</li>
+                    <li><i class="fas fa-check"></i> Accesso banca dati esiti</li>
+                    <li><i class="fas fa-check"></i> 5 utenti</li>
+                    <li><i class="fas fa-times"></i> Simulatore statistico</li>
+                    <li><i class="fas fa-times"></i> Supporto prioritario</li>
+                </ul>
+                <a href="contattaci.html" class="btn btn-bordered" style="width: 100%; margin-top: 20px;">Inizia Ora</a>
+            </div>
+
+            <div class="pricing-card featured">
+                <div style="background: var(--orange); color: #fff; padding: 8px 16px; border-radius: 20px; display: inline-block; margin-bottom: 15px; font-size: 12px; font-weight: 700;">CONSIGLIATO</div>
+                <h3 class="plan-name"><i class="fas fa-star"></i> Piano Professional</h3>
+                <div class="price">299<span>/mese</span></div>
+                <p style="color: var(--text-light); margin-bottom: 20px;">La scelta migliore per le aziende</p>
+                <ul class="features-list">
+                    <li><i class="fas fa-check"></i> Tutto del Piano Base</li>
+                    <li><i class="fas fa-check"></i> Simulatore statistico illimitato</li>
+                    <li><i class="fas fa-check"></i> Analisi avanzate</li>
+                    <li><i class="fas fa-check"></i> 20 utenti</li>
+                    <li><i class="fas fa-check"></i> Supporto prioritario</li>
+                    <li><i class="fas fa-check"></i> Report personalizzati</li>
+                    <li><i class="fas fa-check"></i> API per integrazione</li>
+                </ul>
+                <a href="contattaci.html" class="btn btn-primary" style="width: 100%; margin-top: 20px;">Scegli Professional</a>
+            </div>
+
+            <div class="pricing-card">
+                <h3 class="plan-name"><i class="fas fa-rocket"></i> Piano Enterprise</h3>
+                <div class="price">Su Richiesta</div>
+                <p style="color: var(--text-light); margin-bottom: 20px;">Per grandi organizzazioni</p>
+                <ul class="features-list">
+                    <li><i class="fas fa-check"></i> Tutto del Piano Professional</li>
+                    <li><i class="fas fa-check"></i> Illimitati utenti</li>
+                    <li><i class="fas fa-check"></i> Supporto dedicato 24/7</li>
+                    <li><i class="fas fa-check"></i> Consulenza specializzata</li>
+                    <li><i class="fas fa-check"></i> Implementazione custom</li>
+                    <li><i class="fas fa-check"></i> Data center privato</li>
+                    <li><i class="fas fa-check"></i> SLA garantito 99.9%</li>
+                </ul>
+                <a href="contattaci.html" class="btn btn-bordered" style="width: 100%; margin-top: 20px;">Contattaci per Preventivo</a>
+            </div>
+        </div>
+
+        <div style="background: var(--bg-light); padding: 40px; border-radius: 14px; margin-top: 60px;">
+            <h2 style="text-align: center; margin-bottom: 40px;">Servizi Aggiuntivi a La Carte</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
+                <div>
+                    <h4 style="color: var(--orange); margin-bottom: 10px;"><i class="fas fa-briefcase"></i> Consulenza Specializzata</h4>
+                    <p>Sessioni di consulenza 1-a-1 con esperti</p>
+                    <p style="color: var(--orange); font-weight: 700; margin-top: 10px;">€200 per ora</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--orange); margin-bottom: 10px;"><i class="fas fa-file"></i> Compilazione Gara</h4>
+                    <p>Compilazione completa della documentazione</p>
+                    <p style="color: var(--orange); font-weight: 700; margin-top: 10px;">A partire da €500</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--orange); margin-bottom: 10px;"><i class="fas fa-graduation-cap"></i> Formazione Team</h4>
+                    <p>Corso personalizzato per il tuo team</p>
+                    <p style="color: var(--orange); font-weight: 700; margin-top: 10px;">A partire da €1.000</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--orange); margin-bottom: 10px;"><i class="fas fa-chart-bar"></i> Studio Statistico</h4>
+                    <p>Analisi statistiche personalizzate</p>
+                    <p style="color: var(--orange); font-weight: 700; margin-top: 10px;">A partire da €800</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--orange); margin-bottom: 10px;"><i class="fas fa-map"></i> Sopralluoghi</h4>
+                    <p>Sopralluoghi con nostri collaboratori</p>
+                    <p style="color: var(--orange); font-weight: 700; margin-top: 10px;">A partire da €300</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--orange); margin-bottom: 10px;"><i class="fas fa-gavel"></i> Consulenza Legale</h4>
+                    <p>Supporto legale specializzato</p>
+                    <p style="color: var(--orange); font-weight: 700; margin-top: 10px;">A partire da €250/ora</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: var(--yellow); background: rgba(245,197,24,0.1); padding: 40px; border-radius: 14px; margin-top: 60px; border-left: 5px solid var(--orange);">
+            <h3 style="color: var(--orange); margin-bottom: 20px;"><i class="fas fa-info-circle"></i> Prova Gratuita</h3>
+            <p style="margin-bottom: 15px;">Volete provare easyWin senza impegno? Offriamo una prova gratuita di 14 giorni completa di tutte le funzionalità del Piano Professional.</p>
+            <a href="contattaci.html" class="btn btn-primary">Richiedi Prova Gratuita</a>
+        </div>
+    </div>
+</section>
+
+<section class="section section-alt">
+    <div class="container" style="text-align:center;">
+        <h2>Domande Frequenti</h2>
+        <div style="max-width: 700px; margin: 0 auto; text-align: left; margin-top: 30px;">
+            <h4 style="color: var(--orange); margin-top: 20px;">Posso cambiare piano quando voglio?</h4>
+            <p>Sì, puoi aggiornare o downgrade il tuo piano in qualsiasi momento. L'addebito sarà proporzionato ai giorni rimanenti.</p>
+            
+            <h4 style="color: var(--orange); margin-top: 20px;">Come funziona la fatturazione?</h4>
+            <p>Gli abbonamenti vengono addebitati mensilmente. Puoi pagare con carta di credito, bonifico bancario o assegno.</p>
+            
+            <h4 style="color: var(--orange); margin-top: 20px;">Esiste un contratto a lungo termine?</h4>
+            <p>Sì, offriamo sconti speciali per impegni di 6 o 12 mesi. Contattaci per dettagli.</p>
+            
+            <h4 style="color: var(--orange); margin-top: 20px;">Quanto supporto fornite?</h4>
+            <p>Tutti i piani includono supporto via email e telefono. Il Piano Professional ha priorità nei tempi di risposta.</p>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <img src="logo.png" alt="easyWin" class="footer-logo">
+            <p><strong>easyWin......</strong></p>
+            <p>Facile Vincere</p>
+            <div class="footer-socials">
+                <a href="https://www.facebook.com/EasyWinAppalti" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://www.linkedin.com/company/easywin-appalti" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                <a href="https://www.instagram.com/easywin_appalti/" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <h4>Chi siamo</h4>
+            <p><strong>Edra Servizi s.r.l.</strong></p>
+            <p>Via Malta 5/9<br>16121 GENOVA (GE)</p>
+            <p style="margin-top:12px;"><strong>PEC:</strong><br>edraservizi@pec.it</p>
+            <p style="margin-top:8px;"><strong>Mail:</strong><br>info@easywin.it</p>
+        </div>
+        <div class="footer-col">
+            <h4>Contatti</h4>
+            <p><strong><i class="fas fa-phone"></i> Tel:</strong> 010.0982610</p>
+            <p><strong><i class="fas fa-fax"></i> Fax:</strong> 010.0982611</p>
+            <p style="margin-top:12px;"><strong>Assistenza Commerciale:</strong><br>348.3934800</p>
+            <p style="margin-top:8px;"><strong>Assistenza Tecnica:</strong><br>345.7088197</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 easyWin. Tutti i diritti riservati.</p>
+    </div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+    document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 50);
+});
+</script>
+
+<script>
+document.querySelectorAll('.nav-item > a').forEach(link => {
+    link.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) {
+            e.preventDefault();
+            this.parentElement.classList.toggle('open');
+        }
+    });
+});
+</script>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.01, rootMargin: '0px 0px 50px 0px' });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

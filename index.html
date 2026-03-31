@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>easyWin - La chiave del successo nelle Gare D'Appalto</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <a href="index.html"><img src="logo.png" alt="easyWin" class="logo-img"></a>
+    <div class="nav-links">
+        <a href="#azienda">Azienda</a>
+        <div class="nav-item">
+            <a href="javascript:void(0)">Bandi Di Gara <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="bandi-di-gara.html">Banca dati e Mailing Bandi di Gara</a>
+                <a href="bandi-mepa.html">Bandi MEPA</a>
+                <a href="piattaforme-digitali.html">Iscrizione Piattaforme Digitali</a>
+            </div>
+        </div>
+        <div class="nav-item">
+            <a href="javascript:void(0)">Aggiudicazioni <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="aggiudicazioni.html">Banca dati e Mailing Esiti</a>
+                <a href="aggiudicazioni-tempo-reale.html">Aggiudicazioni in Tempo Reale</a>
+                <a href="presenza-gara.html">Richiedi Presenza</a>
+                <a href="simulatore-statistico.html">Simulatore Statistico</a>
+                <a href="studio-statistico.html">Studio Statistico</a>
+                <a href="digitalizzazione-aggiudicazioni.html">Digitalizzazione</a>
+                <a href="verifica-conteggi.html">Verifica Conteggi</a>
+                <a href="analisi-concorrenti.html">Analisi Concorrenti</a>
+            </div>
+        </div>
+        <div class="nav-item">
+            <a href="javascript:void(0)">Servizi <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="sopralluoghi.html">Sopralluoghi</a>
+                <a href="avvalimenti.html">Avvalimenti</a>
+                <a href="compilazione-gare.html">Compilazione Gare</a>
+                <a href="offerte-vantaggiose.html">Offerte Vantaggiose</a>
+                <a href="presenza-sedute.html">Presenza Sedute</a>
+                <a href="consulenza-legale.html">Consulenza Legale</a>
+                <a href="accesso-atti.html">Accesso Atti</a>
+                <a href="cauzioni.html">Cauzioni</a>
+                <a href="certificazioni-soa.html">Certificazioni SOA</a>
+                <a href="certificazioni-iso.html">Certificazioni ISO</a>
+                <a href="servizi-forniture.html">Servizi e Forniture</a>
+                <a href="gestione-albi-fornitori.html">Gestione Albi Fornitori</a>
+            </div>
+        </div>
+        <a href="formazione.html">Formazione</a>
+        <a href="contattaci.html">Contattaci</a>
+        <a href="abbonamento.html" class="btn-nav btn-bordered">Abbonamento</a>
+        <a href="login.html" class="btn-nav btn-bordered">Login</a>
+    </div>
+    <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<!-- HERO SLIDER -->
+<section class="hero-slider">
+    <div class="slide active">
+        <div class="slide-bg"><img src="https://www.easywin.it/application/themes/easywin/images/gare-di-appalto-italia.jpg" alt="Gare d'appalto"></div>
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+            <div class="slide-text">
+                <h1>easyWin <span class="highlight">e sei primo al traguardo</span></h1>
+            </div>
+        </div>
+    </div>
+    <div class="slide">
+        <div class="slide-bg"><img src="https://www.easywin.it/application/themes/easywin/images/appalti-pubblici-strategie.jpg" alt="Strategie appalti"></div>
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+            <div class="slide-text">
+                <h1>easyWin <span class="highlight">lo strumento ideale per le Gare d'Appalto</span></h1>
+                <p>La soluzione completa per trovare, analizzare e vincere le gare pubbliche in Italia.</p>
+            </div>
+        </div>
+    </div>
+    <div class="slide">
+        <div class="slide-bg"><img src="https://www.easywin.it/application/themes/easywin/images/partecipazione-gare-di-appalto.jpg" alt="Partecipazione gare"></div>
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+            <div class="slide-text">
+                <h1>Easywin <span class="highlight">la soluzione semplice per vincere le gare d'appalto</span></h1>
+                <p>Con easyWin gestisci tutto il ciclo di vita delle gare, dalla ricerca alla partecipazione.</p>
+            </div>
+        </div>
+    </div>
+    <div class="slider-indicators">
+        <button class="active" onclick="goSlide(0)">01</button>
+        <button onclick="goSlide(1)">02</button>
+        <button onclick="goSlide(2)">03</button>
+    </div>
+    <div class="slider-progress"><div class="slider-progress-bar"></div></div>
+    <div class="hero-socials">
+        <a href="https://www.facebook.com/EasyWinAppalti" target="_blank"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://www.linkedin.com/company/easywin-appalti" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+        <a href="https://www.instagram.com/easywin_appalti/" target="_blank"><i class="fab fa-instagram"></i></a>
+    </div>
+</section>
+
+<!-- THREE SERVICE CARDS (overlapping hero) -->
+<section class="section service-cards-section">
+    <div class="container">
+        <div class="feature-cards-grid fade-up">
+            <div class="feature-card feature-card-1">
+                <div class="feature-card-icon"><i class="fas fa-hard-hat"></i></div>
+                <h3>Sopralluoghi e Prese Visioni</h3>
+                <p>Il servizio che consente all'azienda di partecipare alle gare d'appalto senza costringere il proprio personale ad estenuanti tour de force e perdite di tempo in giro per l'Italia.</p>
+            </div>
+            <div class="feature-card feature-card-2">
+                <div class="feature-card-icon"><i class="fas fa-file-contract"></i></div>
+                <h3>Compilazione Gare d'Appalto</h3>
+                <p>Il servizio che consente all'azienda di partecipare alle gare d'appalto senza necessità di personale interno addetto alla compilazione delle gare né competenze specifiche.</p>
+            </div>
+            <div class="feature-card feature-card-3">
+                <div class="feature-card-icon"><i class="fas fa-file-signature"></i></div>
+                <h3>Preparazione Offerte Tecniche</h3>
+                <p>Coinvolgiamo i professionisti nel rischio di impresa dell'azienda che partecipa alla gara, mettendo in campo tutte le qualità per arrivare all'obiettivo comune: aggiudicarsi l'appalto.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ABOUT SECTION (CHI SIAMO) -->
+<section id="azienda" class="section">
+    <div class="container">
+        <div class="two-col fade-up">
+            <div>
+                <img src="https://www.easywin.it/application/themes/easywin/images/awesome-feature.png" alt="easyWin servizi" class="about-img">
+            </div>
+            <div class="about-text">
+                <h2>Easywin: <span class="highlight">lo strumento ideale per le Gare d'Appalto</span></h2>
+                <p>Il primo gestionale "attivo" per gestire esiti e bandi delle Gare d'appalto di Lavori Pubblici. Da oltre 25 anni rappresenta in Italia l'archivio più completo ed aggiornato di aggiudicazioni integrali di lavori pubblici presente sul mercato e di Segnalazione Gare, ma non solo...</p>
+                <p>Consente l'utilizzo dinamico di queste informazioni per preparare simulazioni di gara attendibili in modo semplice e automatico. Nato dall'incontro e dall'esperienza di quattro figure professionali accompagna l'utente a identificare il "range di massima probabilità" per una qualsiasi gara d'appalto ed aumenta esponenzialmente le probabilità di vittoria.</p>
+                <a href="contattaci.html" class="btn btn-primary" style="margin-top:20px;">Scopri di più <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- DASHBOARD SERVIZI ANIMATA -->
+<section class="services-marquee-section">
+    <div class="marquee-track">
+        <div class="marquee-content">
+            <a href="bandi-di-gara.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-search"></i></div>
+                <h4>Banca Dati Bandi</h4>
+                <p>Migliaia di bandi di gara aggiornati quotidianamente da tutta Italia.</p>
+            </a>
+            <a href="bandi-mepa.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-store"></i></div>
+                <h4>Bandi MEPA</h4>
+                <p>Segnalazione bandi sul Mercato Elettronico della Pubblica Amministrazione.</p>
+            </a>
+            <a href="albi-fornitori.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-list-check"></i></div>
+                <h4>Albi Fornitori</h4>
+                <p>Iscrizione e gestione degli albi fornitori delle stazioni appaltanti.</p>
+            </a>
+            <a href="piattaforme-digitali.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-laptop"></i></div>
+                <h4>Piattaforme Digitali</h4>
+                <p>Supporto completo per operare sulle piattaforme telematiche di gara.</p>
+            </a>
+            <a href="aggiudicazioni.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-trophy"></i></div>
+                <h4>Esiti di Gara</h4>
+                <p>L'archivio di aggiudicazioni integrali di lavori pubblici più completo d'Italia.</p>
+            </a>
+            <a href="aggiudicazioni-tempo-reale.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-bolt"></i></div>
+                <h4>Aggiudicazioni Tempo Reale</h4>
+                <p>Risultati delle gare disponibili in tempo reale appena pubblicati.</p>
+            </a>
+            <a href="simulatore-statistico.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-chart-line"></i></div>
+                <h4>Simulatore Statistico</h4>
+                <p>Calcola il range di massima probabilità per la tua offerta di gara.</p>
+            </a>
+            <a href="studio-statistico.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-chart-bar"></i></div>
+                <h4>Studio Statistico</h4>
+                <p>Analisi approfondita dei dati storici per strategie di gara vincenti.</p>
+            </a>
+            <a href="sopralluoghi.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-hard-hat"></i></div>
+                <h4>Sopralluoghi</h4>
+                <p>Effettuiamo sopralluoghi e prese visioni in tutta Italia per la tua azienda.</p>
+            </a>
+            <a href="compilazione-gare.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-file-contract"></i></div>
+                <h4>Compilazione Gare</h4>
+                <p>Preparazione completa della documentazione per partecipare alle gare.</p>
+            </a>
+            <a href="offerte-vantaggiose.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-file-signature"></i></div>
+                <h4>Offerte Tecniche</h4>
+                <p>Redazione professionale delle offerte tecniche con i migliori professionisti.</p>
+            </a>
+            <a href="presenza-sedute.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-users"></i></div>
+                <h4>Presenza Sedute</h4>
+                <p>Rappresentanza della tua azienda nelle sedute pubbliche di gara.</p>
+            </a>
+            <a href="avvalimenti.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-handshake"></i></div>
+                <h4>Avvalimenti</h4>
+                <p>Supporto nella ricerca di imprese ausiliarie per i requisiti di gara.</p>
+            </a>
+            <a href="consulenza-legale.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-gavel"></i></div>
+                <h4>Consulenza Legale</h4>
+                <p>Assistenza legale specializzata in appalti pubblici e contenziosi.</p>
+            </a>
+            <a href="accesso-atti.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-folder-open"></i></div>
+                <h4>Accesso Atti</h4>
+                <p>Richiesta e gestione dell'accesso agli atti delle procedure di gara.</p>
+            </a>
+            <a href="cauzioni.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-shield-halved"></i></div>
+                <h4>Cauzioni</h4>
+                <p>Polizze fideiussorie e cauzioni provvisorie e definitive per le gare.</p>
+            </a>
+            <a href="certificazioni-soa.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-certificate"></i></div>
+                <h4>Certificazioni SOA</h4>
+                <p>Assistenza per l'ottenimento e il rinnovo delle attestazioni SOA.</p>
+            </a>
+            <a href="certificazioni-iso.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-award"></i></div>
+                <h4>Certificazioni ISO</h4>
+                <p>Supporto per ottenere le certificazioni ISO richieste nei bandi.</p>
+            </a>
+            <a href="formazione.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-graduation-cap"></i></div>
+                <h4>Formazione</h4>
+                <p>Corsi e workshop specializzati nel mondo degli appalti pubblici.</p>
+            </a>
+            <a href="gestione-albi-fornitori.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-address-book"></i></div>
+                <h4>Gestione Albi Fornitori</h4>
+                <p>Gestione completa delle iscrizioni agli albi fornitori in Italia.</p>
+            </a>
+            <a href="verifica-conteggi.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-calculator"></i></div>
+                <h4>Verifica Conteggi</h4>
+                <p>Controllo e verifica dei conteggi nelle procedure di aggiudicazione.</p>
+            </a>
+            <a href="analisi-concorrenti.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-magnifying-glass-chart"></i></div>
+                <h4>Analisi Concorrenti</h4>
+                <p>Studio del comportamento dei concorrenti per strategie competitive.</p>
+            </a>
+            <a href="digitalizzazione-aggiudicazioni.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-database"></i></div>
+                <h4>Digitalizzazione</h4>
+                <p>Digitalizzazione completa dei verbali e delle aggiudicazioni di gara.</p>
+            </a>
+            <a href="servizi-forniture.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-truck"></i></div>
+                <h4>Servizi e Forniture</h4>
+                <p>Bandi e aggiudicazioni per servizi e forniture della PA.</p>
+            </a>
+        </div>
+        <div class="marquee-content" aria-hidden="true">
+            <a href="bandi-di-gara.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-search"></i></div>
+                <h4>Banca Dati Bandi</h4>
+                <p>Migliaia di bandi di gara aggiornati quotidianamente da tutta Italia.</p>
+            </a>
+            <a href="bandi-mepa.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-store"></i></div>
+                <h4>Bandi MEPA</h4>
+                <p>Segnalazione bandi sul Mercato Elettronico della Pubblica Amministrazione.</p>
+            </a>
+            <a href="albi-fornitori.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-list-check"></i></div>
+                <h4>Albi Fornitori</h4>
+                <p>Iscrizione e gestione degli albi fornitori delle stazioni appaltanti.</p>
+            </a>
+            <a href="piattaforme-digitali.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-laptop"></i></div>
+                <h4>Piattaforme Digitali</h4>
+                <p>Supporto completo per operare sulle piattaforme telematiche di gara.</p>
+            </a>
+            <a href="aggiudicazioni.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-trophy"></i></div>
+                <h4>Esiti di Gara</h4>
+                <p>L'archivio di aggiudicazioni integrali di lavori pubblici più completo d'Italia.</p>
+            </a>
+            <a href="aggiudicazioni-tempo-reale.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-bolt"></i></div>
+                <h4>Aggiudicazioni Tempo Reale</h4>
+                <p>Risultati delle gare disponibili in tempo reale appena pubblicati.</p>
+            </a>
+            <a href="simulatore-statistico.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-chart-line"></i></div>
+                <h4>Simulatore Statistico</h4>
+                <p>Calcola il range di massima probabilità per la tua offerta di gara.</p>
+            </a>
+            <a href="studio-statistico.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-chart-bar"></i></div>
+                <h4>Studio Statistico</h4>
+                <p>Analisi approfondita dei dati storici per strategie di gara vincenti.</p>
+            </a>
+            <a href="sopralluoghi.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-hard-hat"></i></div>
+                <h4>Sopralluoghi</h4>
+                <p>Effettuiamo sopralluoghi e prese visioni in tutta Italia per la tua azienda.</p>
+            </a>
+            <a href="compilazione-gare.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-file-contract"></i></div>
+                <h4>Compilazione Gare</h4>
+                <p>Preparazione completa della documentazione per partecipare alle gare.</p>
+            </a>
+            <a href="offerte-vantaggiose.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-file-signature"></i></div>
+                <h4>Offerte Tecniche</h4>
+                <p>Redazione professionale delle offerte tecniche con i migliori professionisti.</p>
+            </a>
+            <a href="presenza-sedute.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-users"></i></div>
+                <h4>Presenza Sedute</h4>
+                <p>Rappresentanza della tua azienda nelle sedute pubbliche di gara.</p>
+            </a>
+            <a href="avvalimenti.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-handshake"></i></div>
+                <h4>Avvalimenti</h4>
+                <p>Supporto nella ricerca di imprese ausiliarie per i requisiti di gara.</p>
+            </a>
+            <a href="consulenza-legale.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-gavel"></i></div>
+                <h4>Consulenza Legale</h4>
+                <p>Assistenza legale specializzata in appalti pubblici e contenziosi.</p>
+            </a>
+            <a href="accesso-atti.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-folder-open"></i></div>
+                <h4>Accesso Atti</h4>
+                <p>Richiesta e gestione dell'accesso agli atti delle procedure di gara.</p>
+            </a>
+            <a href="cauzioni.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-shield-halved"></i></div>
+                <h4>Cauzioni</h4>
+                <p>Polizze fideiussorie e cauzioni provvisorie e definitive per le gare.</p>
+            </a>
+            <a href="certificazioni-soa.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-certificate"></i></div>
+                <h4>Certificazioni SOA</h4>
+                <p>Assistenza per l'ottenimento e il rinnovo delle attestazioni SOA.</p>
+            </a>
+            <a href="certificazioni-iso.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-award"></i></div>
+                <h4>Certificazioni ISO</h4>
+                <p>Supporto per ottenere le certificazioni ISO richieste nei bandi.</p>
+            </a>
+            <a href="formazione.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-graduation-cap"></i></div>
+                <h4>Formazione</h4>
+                <p>Corsi e workshop specializzati nel mondo degli appalti pubblici.</p>
+            </a>
+            <a href="gestione-albi-fornitori.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-address-book"></i></div>
+                <h4>Gestione Albi Fornitori</h4>
+                <p>Gestione completa delle iscrizioni agli albi fornitori in Italia.</p>
+            </a>
+            <a href="verifica-conteggi.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-calculator"></i></div>
+                <h4>Verifica Conteggi</h4>
+                <p>Controllo e verifica dei conteggi nelle procedure di aggiudicazione.</p>
+            </a>
+            <a href="analisi-concorrenti.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-magnifying-glass-chart"></i></div>
+                <h4>Analisi Concorrenti</h4>
+                <p>Studio del comportamento dei concorrenti per strategie competitive.</p>
+            </a>
+            <a href="digitalizzazione-aggiudicazioni.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-database"></i></div>
+                <h4>Digitalizzazione</h4>
+                <p>Digitalizzazione completa dei verbali e delle aggiudicazioni di gara.</p>
+            </a>
+            <a href="servizi-forniture.html" class="marquee-card">
+                <div class="marquee-card-icon"><i class="fas fa-truck"></i></div>
+                <h4>Servizi e Forniture</h4>
+                <p>Bandi e aggiudicazioni per servizi e forniture della PA.</p>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- STATS COUNTER (PUBLIC STATISTICS) -->
+<section class="stats-section" id="public-stats">
+    <div class="stats-bg"><img src="https://www.easywin.it/application/themes/easywin/images/counter-bg.jpg" alt="" onerror="this.parentElement.style.background='linear-gradient(135deg,#1a1a2e,#16213e)'"></div>
+    <div class="container">
+        <div class="stats-bar fade-up">
+            <div class="stat">
+                <div class="stat-val" id="stat-bandi">0</div>
+                <div class="stat-lbl">Bandi aperti 2026</div>
+            </div>
+            <div class="stat">
+                <div class="stat-val" id="stat-esiti">0</div>
+                <div class="stat-lbl">Appalti lavori</div>
+            </div>
+            <div class="stat">
+                <div class="stat-val" id="stat-stazioni">0</div>
+                <div class="stat-lbl">Appalti forniture</div>
+            </div>
+            <div class="stat">
+                <div class="stat-val" id="stat-aziende">0</div>
+                <div class="stat-lbl">Aziende partecipanti</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ULTIME AGGIUDICAZIONI TABLE -->
+<section id="aggiudicazioni" class="section section-alt">
+    <div class="container">
+        <h2 class="table-title fade-up">Ultime Aggiudicazioni di Gara</h2>
+        <div class="table-wrapper fade-up">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Data Apertura</th>
+                        <th>Stazione Appaltante</th>
+                        <th>Prov.</th>
+                        <th>Oggetto dell'Appalto</th>
+                        <th>Importo</th>
+                        <th>Cat. SOA</th>
+                        <th>Ribasso</th>
+                        <th>N. Partec.</th>
+                        <th>Aggiudicatario</th>
+                    </tr>
+                </thead>
+                <tbody id="aggiudicazioni-tbody">
+                    <tr>
+                        <td>25/03/2026</td>
+                        <td>Comune di Bologna</td>
+                        <td>BO</td>
+                        <td>Lavori di rifacimento piazza San Francesco e vie limitrofe</td>
+                        <td class="col-importo">&euro; 1.250.000</td>
+                        <td class="col-soa"><span class="soa-badge">OG3</span></td>
+                        <td class="col-ribasso">18,725%</td>
+                        <td class="col-partecipanti">23</td>
+                        <td><a href="#" class="visualizza-link">Impresa Rossi S.r.l.</a></td>
+                    </tr>
+                    <tr>
+                        <td>22/03/2026</td>
+                        <td>Provincia di Palermo</td>
+                        <td>PA</td>
+                        <td>Manutenzione straordinaria edifici scolastici del comprensorio</td>
+                        <td class="col-importo">&euro; 890.000</td>
+                        <td class="col-soa"><span class="soa-badge">OG1</span></td>
+                        <td class="col-ribasso">22,340%</td>
+                        <td class="col-partecipanti">18</td>
+                        <td><a href="#" class="visualizza-link">Edil Sud S.p.A.</a></td>
+                    </tr>
+                    <tr>
+                        <td>20/03/2026</td>
+                        <td>Regione Piemonte</td>
+                        <td>TO</td>
+                        <td>Realizzazione impianto fotovoltaico sede regionale</td>
+                        <td class="col-importo">&euro; 2.100.000</td>
+                        <td class="col-soa"><span class="soa-badge">OG9</span></td>
+                        <td class="col-ribasso">15,890%</td>
+                        <td class="col-partecipanti">31</td>
+                        <td><a href="#" class="visualizza-link">Green Energy Soc. Coop.</a></td>
+                    </tr>
+                    <tr>
+                        <td>18/03/2026</td>
+                        <td>Comune di Venezia</td>
+                        <td>VE</td>
+                        <td>Restauro conservativo Palazzo Ducale - Lotto 3</td>
+                        <td class="col-importo">&euro; 3.450.000</td>
+                        <td class="col-soa"><span class="soa-badge">OG2</span></td>
+                        <td class="col-ribasso">12,150%</td>
+                        <td class="col-partecipanti">14</td>
+                        <td><a href="#" class="visualizza-link">Restauri Veneti S.r.l.</a></td>
+                    </tr>
+                    <tr>
+                        <td>15/03/2026</td>
+                        <td>ANAS S.p.A.</td>
+                        <td>GE</td>
+                        <td>Ammodernamento tratto autostradale A12 km 45-52</td>
+                        <td class="col-importo">&euro; 8.750.000</td>
+                        <td class="col-soa"><span class="soa-badge">OG3</span></td>
+                        <td class="col-ribasso">19,450%</td>
+                        <td class="col-partecipanti">9</td>
+                        <td><a href="#" class="visualizza-link">Consorzio Ligure Costruzioni</a></td>
+                    </tr>
+                    <tr>
+                        <td>12/03/2026</td>
+                        <td>ASL Roma 1</td>
+                        <td>RM</td>
+                        <td>Adeguamento antisismico Ospedale San Camillo</td>
+                        <td class="col-importo">&euro; 4.200.000</td>
+                        <td class="col-soa"><span class="soa-badge">OG12</span></td>
+                        <td class="col-ribasso">16,780%</td>
+                        <td class="col-partecipanti">12</td>
+                        <td><a href="#" class="visualizza-link">Tecnoedil Roma S.p.A.</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="table-section-footer fade-up">
+            <a href="aggiudicazioni.html" class="btn-outline">Vedi tutte le aggiudicazioni <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<!-- ULTIMI BANDI TABLE -->
+<section id="bandi" class="section">
+    <div class="container">
+        <h2 class="table-title fade-up">Ultimi Bandi di Gara Pubblicati</h2>
+        <div class="table-wrapper fade-up">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Scadenza</th>
+                        <th>Stazione Appaltante</th>
+                        <th>Prov.</th>
+                        <th>Oggetto dell'Appalto</th>
+                        <th>Importo a base d'asta</th>
+                        <th>Cat. SOA</th>
+                        <th>Criterio</th>
+                        <th>CIG</th>
+                    </tr>
+                </thead>
+                <tbody id="bandi-tbody">
+                    <tr>
+                        <td>15/04/2026</td>
+                        <td>Comune di Milano</td>
+                        <td>MI</td>
+                        <td>Lavori di manutenzione stradale ordinaria e straordinaria - Zone 4-5</td>
+                        <td class="col-importo">&euro; 1.850.000</td>
+                        <td class="col-soa"><span class="soa-badge">OG3</span></td>
+                        <td class="col-criterio"><span class="criterio-tag prezzo">Prezzo più basso</span></td>
+                        <td><a href="#" class="visualizza-link">A04F2B8C91</a></td>
+                    </tr>
+                    <tr>
+                        <td>20/04/2026</td>
+                        <td>Provincia di Roma</td>
+                        <td>RM</td>
+                        <td>Costruzione nuovo polo scolastico Via Tiburtina</td>
+                        <td class="col-importo">&euro; 5.200.000</td>
+                        <td class="col-soa"><span class="soa-badge">OG1</span></td>
+                        <td class="col-criterio"><span class="criterio-tag oepv">OEPV</span></td>
+                        <td><a href="#" class="visualizza-link">B12E3D7A45</a></td>
+                    </tr>
+                    <tr>
+                        <td>28/04/2026</td>
+                        <td>Regione Liguria</td>
+                        <td>GE</td>
+                        <td>Servizi di consulenza tecnica per progettazione porto turistico</td>
+                        <td class="col-importo">&euro; 320.000</td>
+                        <td class="col-soa"><span class="soa-badge">-</span></td>
+                        <td class="col-criterio"><span class="criterio-tag oepv">OEPV</span></td>
+                        <td><a href="#" class="visualizza-link">C78A1F3E22</a></td>
+                    </tr>
+                    <tr>
+                        <td>05/05/2026</td>
+                        <td>Città Metropolitana di Torino</td>
+                        <td>TO</td>
+                        <td>Realizzazione pista ciclabile collegamento Torino-Rivoli</td>
+                        <td class="col-importo">&euro; 2.400.000</td>
+                        <td class="col-soa"><span class="soa-badge">OG3</span></td>
+                        <td class="col-criterio"><span class="criterio-tag prezzo">Prezzo più basso</span></td>
+                        <td><a href="#" class="visualizza-link">D56B9C4E18</a></td>
+                    </tr>
+                    <tr>
+                        <td>10/05/2026</td>
+                        <td>Comune di Firenze</td>
+                        <td>FI</td>
+                        <td>Rifacimento impianto illuminazione pubblica centro storico LED</td>
+                        <td class="col-importo">&euro; 980.000</td>
+                        <td class="col-soa"><span class="soa-badge">OG10</span></td>
+                        <td class="col-criterio"><span class="criterio-tag prezzo">Prezzo più basso</span></td>
+                        <td><a href="#" class="visualizza-link">E23F8A1B67</a></td>
+                    </tr>
+                    <tr>
+                        <td>18/05/2026</td>
+                        <td>Autorità Portuale di Napoli</td>
+                        <td>NA</td>
+                        <td>Dragaggio e consolidamento banchine porto commerciale</td>
+                        <td class="col-importo">&euro; 12.500.000</td>
+                        <td class="col-soa"><span class="soa-badge">OG7</span></td>
+                        <td class="col-criterio"><span class="criterio-tag oepv">OEPV</span></td>
+                        <td><a href="#" class="visualizza-link">F91D2E5C34</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="table-section-footer fade-up">
+            <a href="bandi-di-gara.html" class="btn-outline">Vedi tutti i bandi <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials-section section">
+    <div class="testimonials-bg"><img src="https://www.easywin.it/application/themes/easywin/images/testimonial-bg.jpg" alt="" onerror="this.parentElement.style.background='linear-gradient(135deg,#1a1a2e,#16213e)'"></div>
+    <div class="container">
+        <div class="section-header fade-up" style="text-align:center;">
+            <h2 style="font-family:'Comfortaa',cursive;font-size:clamp(28px,3vw,42px);font-weight:700;color:#fff;margin-bottom:40px;">Il tuo successo inizia con noi <span class="highlight">EasyWin</span></h2>
+        </div>
+        <div class="test-grid fade-up">
+            <div class="test-card">
+                <div class="test-stars">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                </div>
+                <blockquote>"Ho trovato questo sito attraverso un amico ed è stato un grande aiuto per la mia azienda. Abbiamo partecipato a diversi bandi di gara e abbiamo vinto molti di loro grazie alle informazioni che abbiamo trovato. Consiglio vivamente easyWin."</blockquote>
+                <div class="test-author">
+                    <div class="test-avatar-placeholder"><i class="fas fa-user"></i></div>
+                    <div>
+                        <div class="test-name">Sonia</div>
+                        <div class="test-role">Milano</div>
+                    </div>
+                </div>
+            </div>
+            <div class="test-card">
+                <div class="test-stars">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                </div>
+                <blockquote>"Ho trovato questo sito cercando bandi di gara e sono rimasto molto soddisfatto. Il sito è ben organizzato e facile da navigare. Il team di supporto è sempre stato molto utile nell'aiutarmi a trovare le informazioni di cui avevo bisogno."</blockquote>
+                <div class="test-author">
+                    <div class="test-avatar-placeholder"><i class="fas fa-user"></i></div>
+                    <div>
+                        <div class="test-name">Sergio</div>
+                        <div class="test-role">Bergamo</div>
+                    </div>
+                </div>
+            </div>
+            <div class="test-card">
+                <div class="test-stars">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                </div>
+                <blockquote>"Ho utilizzato i servizi di easyWin per cercare bandi di gara per la mia azienda ed è stato molto utile. Il sito offre una vasta gamma di opzioni di ricerca. Gli aggiornamenti sui bandi sono tempestivi e precisi."</blockquote>
+                <div class="test-author">
+                    <div class="test-avatar-placeholder"><i class="fas fa-user"></i></div>
+                    <div>
+                        <div class="test-name">Marco</div>
+                        <div class="test-role">Genova</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CONTATTACI (CONTACT FORM) -->
+<section id="servizi" class="section">
+    <div class="container">
+        <div class="section-header fade-up">
+            <h2 class="section-title">Contattaci</h2>
+            <p class="section-desc">Hai domande? Il nostro team è pronto ad aiutarti. Compila il modulo e ti contatteremo al più presto.</p>
+        </div>
+        <div class="contact-form-wrapper fade-up">
+            <form id="contact-form" class="contact-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" id="contact-nome" placeholder="Nome" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="contact-azienda" placeholder="Azienda" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="email" id="contact-email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" id="contact-telefono" placeholder="Telefono" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <textarea id="contact-messaggio" placeholder="Messaggio" rows="5" required></textarea>
+                </div>
+                <div class="form-group" style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-light);">
+                    <input type="checkbox" id="contact-privacy" required>
+                    <label for="contact-privacy">Accetto la privacy policy</label>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;">Invia <i class="fas fa-paper-plane"></i></button>
+                <div id="contact-message" style="margin-top:12px;display:none;"></div>
+            </form>
+        </div>
+    </div>
+</section>
+
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <img src="logo.png" alt="easyWin" class="footer-logo">
+            <p><strong>easyWin......</strong></p>
+            <p>Facile Vincere</p>
+            <div class="footer-socials">
+                <a href="https://www.facebook.com/EasyWinAppalti" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://www.linkedin.com/company/easywin-appalti" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                <a href="https://www.instagram.com/easywin_appalti/" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <h4>Chi siamo</h4>
+            <p><strong>Edra Servizi s.r.l.</strong></p>
+            <p>Via Malta 5/9<br>16121 GENOVA (GE)</p>
+            <p style="margin-top:12px;"><strong>PEC:</strong><br>edraservizi@pec.it</p>
+            <p style="margin-top:8px;"><strong>Mail:</strong><br>info@easywin.it</p>
+        </div>
+        <div class="footer-col">
+            <h4>Contatti</h4>
+            <p><strong><i class="fas fa-phone"></i> Tel:</strong> 010.0982610</p>
+            <p><strong><i class="fas fa-fax"></i> Fax:</strong> 010.0982611</p>
+            <p style="margin-top:12px;"><strong>Assistenza Commerciale:</strong><br>348.3934800</p>
+            <p style="margin-top:8px;"><strong>Assistenza Tecnica:</strong><br>345.7088197</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 easyWin. Tutti i diritti riservati.</p>
+    </div>
+</footer>
+
+<!-- MODALS & HIDDEN SECTIONS -->
+
+<!-- PASSWORD RECOVERY MODAL -->
+<div id="recovery-modal" class="modal" style="display:none;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeRecovery()"><i class="fas fa-times"></i></button>
+        <h2>Recupera Password</h2>
+        <form id="recovery-form" class="recovery-form">
+            <div class="form-group">
+                <label>Indirizzo Email</label>
+                <input type="email" id="recovery-email" placeholder="Il tuo indirizzo email" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">Invia Link di Recupero</button>
+            <div id="recovery-message" style="margin-top:12px;display:none;"></div>
+        </form>
+    </div>
+</div>
+
+<!-- RESET PASSWORD MODAL -->
+<div id="reset-modal" class="modal" style="display:none;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeReset()"><i class="fas fa-times"></i></button>
+        <h2>Reimposta Password</h2>
+        <form id="reset-form" class="reset-form">
+            <div class="form-group">
+                <label>Nuova Password</label>
+                <input type="password" id="reset-password" placeholder="Nuova password" required>
+            </div>
+            <div class="form-group">
+                <label>Conferma Password</label>
+                <input type="password" id="reset-password-confirm" placeholder="Conferma password" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">Reimposta Password</button>
+            <div id="reset-message" style="margin-top:12px;display:none;"></div>
+        </form>
+    </div>
+</div>
+
+
+<!-- SEARCH RESULTS MODAL -->
+<div id="search-results-modal" class="modal" style="display:none;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content modal-lg">
+        <button class="modal-close" onclick="closeSearchResults()"><i class="fas fa-times"></i></button>
+        <h2>Risultati di Ricerca</h2>
+        <div class="search-results-tabs">
+            <button class="tab-btn active" onclick="switchTab('bandi-results')">Bandi</button>
+            <button class="tab-btn" onclick="switchTab('esiti-results')">Esiti</button>
+        </div>
+        <div id="bandi-results" class="search-results-panel active"></div>
+        <div id="esiti-results" class="search-results-panel" style="display:none;"></div>
+    </div>
+</div>
+
+<script>
+// Navbar scroll
+window.addEventListener('scroll', () => {
+    document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// Slider
+let current = 0;
+const slides = document.querySelectorAll('.slide');
+const indicators = document.querySelectorAll('.slider-indicators button');
+const progressBar = document.querySelector('.slider-progress-bar');
+const INTERVAL = 6000;
+let timer;
+
+function goSlide(n) {
+    slides[current].classList.remove('active');
+    indicators[current].classList.remove('active');
+    current = n;
+    slides[current].classList.add('active');
+    indicators[current].classList.add('active');
+    resetProgress();
+}
+function nextSlide() { goSlide((current + 1) % slides.length); }
+function resetProgress() {
+    if (!progressBar) return;
+    progressBar.style.transition = 'none';
+    progressBar.style.width = '0%';
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            progressBar.style.transition = `width ${INTERVAL}ms linear`;
+            progressBar.style.width = '100%';
+        });
+    });
+    clearInterval(timer);
+    timer = setInterval(nextSlide, INTERVAL);
+}
+if (slides.length && indicators.length) resetProgress();
+
+// Fade-up observer
+const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }});
+}, { threshold: 0.01, rootMargin: '0px 0px 50px 0px' });
+document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+
+// Also trigger on scroll as backup
+window.addEventListener('scroll', function fadeCheck() {
+    document.querySelectorAll('.fade-up:not(.visible)').forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight - 30) {
+            el.classList.add('visible');
+        }
+    });
+    if (!document.querySelectorAll('.fade-up:not(.visible)').length) {
+        window.removeEventListener('scroll', fadeCheck);
+    }
+}, { passive: true });
+
+// Fallback: force visible elements above fold on load
+setTimeout(() => {
+    document.querySelectorAll('.fade-up').forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 200) el.classList.add('visible');
+    });
+}, 300);
+
+// PASSWORD RECOVERY
+document.getElementById('recovery-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('recovery-email').value;
+    try {
+        const res = await fetch('/api/pubblico/recupera-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        showMessage('recovery-message', data.message || 'Link inviato!', res.ok);
+        if (res.ok) document.getElementById('recovery-form').reset();
+    } catch (err) {
+        showMessage('recovery-message', 'Errore: ' + err.message, false);
+    }
+});
+
+document.getElementById('reset-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const token = getUrlParam('token');
+    const password = document.getElementById('reset-password').value;
+    const confirm = document.getElementById('reset-password-confirm').value;
+    if (password !== confirm) {
+        showMessage('reset-message', 'Le password non corrispondono', false);
+        return;
+    }
+    try {
+        const res = await fetch('/api/pubblico/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, password })
+        });
+        const data = await res.json();
+        showMessage('reset-message', data.message || 'Password reimpostata!', res.ok);
+    } catch (err) {
+        showMessage('reset-message', 'Errore: ' + err.message, false);
+    }
+});
+
+// AREA RISERVATA (LOGIN)
+document.getElementById('area-riservata-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('area-username').value;
+    const password = document.getElementById('area-password').value;
+    try {
+        const res = await fetch(API_BASE + '/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            localStorage.setItem('easywin_token', data.token);
+            localStorage.setItem('auth_token', data.token);
+            localStorage.setItem('easywin_user', JSON.stringify(data.user));
+            showMessage('area-riservata-message', 'Login eseguito! Reindirizzamento...', true);
+            setTimeout(() => window.location.href = 'admin/index.html', 800);
+        } else {
+            showMessage('area-riservata-message', data.error || 'Credenziali non valide', false);
+        }
+    } catch (err) {
+        showMessage('area-riservata-message', 'Errore: ' + err.message, false);
+    }
+});
+
+// CONTACT FORM
+document.getElementById('contact-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nome = document.getElementById('contact-nome').value;
+    const azienda = document.getElementById('contact-azienda').value;
+    const email = document.getElementById('contact-email').value;
+    const telefono = document.getElementById('contact-telefono').value;
+    const messaggio = document.getElementById('contact-messaggio').value;
+    try {
+        const res = await fetch('/api/pubblico/contatti', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, azienda, email, telefono, messaggio })
+        });
+        const data = await res.json();
+        showMessage('contact-message', data.message || 'Messaggio inviato!', res.ok);
+        if (res.ok) document.getElementById('contact-form').reset();
+    } catch (err) {
+        showMessage('contact-message', 'Errore: ' + err.message, false);
+    }
+});
+
+function showRecovery(e) { e.preventDefault(); document.getElementById('recovery-modal').style.display='flex'; }
+function closeRecovery() { document.getElementById('recovery-modal').style.display='none'; }
+function closeReset() { document.getElementById('reset-modal').style.display='none'; }
+function showMessage(id, msg, success) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.style.color = success ? '#4caf50' : '#f44336';
+    el.style.display = 'block';
+}
+
+// GEOLOCATION
+function findNearbyTenders() {
+    if (!navigator.geolocation) { alert('Geolocalizzazione non supportata'); return; }
+    document.getElementById('geo-loading').style.display='block';
+    document.getElementById('nearby-results').style.display='none';
+    navigator.geolocation.getCurrentPosition(
+        pos => fetchNearbyData('bandi', pos.coords.latitude, pos.coords.longitude),
+        err => { alert('Errore geolocalizzazione'); document.getElementById('geo-loading').style.display='none'; }
+    );
+}
+
+function findNearbyAwards() {
+    if (!navigator.geolocation) { alert('Geolocalizzazione non supportata'); return; }
+    document.getElementById('geo-loading').style.display='block';
+    document.getElementById('nearby-results').style.display='none';
+    navigator.geolocation.getCurrentPosition(
+        pos => fetchNearbyData('esiti', pos.coords.latitude, pos.coords.longitude),
+        err => { alert('Errore geolocalizzazione'); document.getElementById('geo-loading').style.display='none'; }
+    );
+}
+
+async function fetchNearbyData(type, lat, lon) {
+    const radius = document.getElementById('radius-select').value || 50;
+    try {
+        const endpoint = type === 'bandi' ?
+            `/api/pubblico/ultimi-bandi?lat=${lat}&lon=${lon}&raggio_km=${radius}` :
+            `/api/pubblico/ultimi-esiti?lat=${lat}&lon=${lon}&raggio_km=${radius}`;
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        displayNearbyResults(data, type);
+    } catch (err) {
+        console.error('Errore fetch nearby:', err);
+    } finally {
+        document.getElementById('geo-loading').style.display='none';
+    }
+}
+
+function displayNearbyResults(data, type) {
+    const resultsDiv = document.getElementById('nearby-results');
+    if (!data.results || data.results.length === 0) {
+        resultsDiv.innerHTML = `<p style="text-align:center;color:var(--text-light);">Nessun ${type} trovato nelle vicinanze.</p>`;
+    } else {
+        const html = data.results.map(item => `
+            <div class="nearby-item">
+                <strong>${item.titolo || item.title}</strong>
+                <p>${item.stazione_appaltante || item.stazione} - ${item.provincia} (${item.distanza_km || '?'} km)</p>
+                <p style="font-size:12px;color:var(--text-light);">${item.scadenza || item.data_apertura}</p>
+            </div>
+        `).join('');
+        resultsDiv.innerHTML = html;
+    }
+    resultsDiv.style.display='block';
+}
+
+// PUBLIC STATISTICS - animated counter
+function animateCounter(el, target, duration) {
+    let start = 0;
+    const step = timestamp => {
+        if (!start) start = timestamp;
+        const progress = Math.min((timestamp - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.floor(eased * target).toLocaleString('it-IT') + '+';
+        if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+}
+
+const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '';
+
+async function loadPublicStatistics() {
+    const defaults = { bandi: 14850, esiti: 127340, stazioni: 8920, aziende: 3450 };
+    try {
+        const controller = new AbortController();
+        setTimeout(() => controller.abort(), 3000);
+        const res = await fetch(API_BASE + '/api/pubblico/statistiche', { signal: controller.signal });
+        const stats = await res.json();
+        if (stats.total_bandi) defaults.bandi = stats.total_bandi;
+        if (stats.total_esiti) defaults.esiti = stats.total_esiti;
+        if (stats.total_stazioni) defaults.stazioni = stats.total_stazioni;
+        if (stats.total_aziende) defaults.aziende = stats.total_aziende;
+    } catch (err) { /* use defaults if backend unavailable */ }
+    const statsObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                animateCounter(document.getElementById('stat-bandi'), defaults.bandi, 2000);
+                animateCounter(document.getElementById('stat-esiti'), defaults.esiti, 2500);
+                animateCounter(document.getElementById('stat-stazioni'), defaults.stazioni, 2000);
+                animateCounter(document.getElementById('stat-aziende'), defaults.aziende, 2000);
+                statsObs.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.3 });
+    const statsSection = document.getElementById('public-stats');
+    if (statsSection) statsObs.observe(statsSection);
+}
+document.addEventListener('DOMContentLoaded', loadPublicStatistics);
+
+// SEARCH FUNCTIONALITY
+function performDualSearch() {
+    const query = document.getElementById('search-query').value;
+    if (!query.trim()) { alert('Inserisci un termine di ricerca'); return; }
+    performSearchWithQuery(query);
+}
+
+function performNavbarSearch() {
+    const query = document.getElementById('navbar-search').value;
+    if (!query.trim()) { alert('Inserisci un termine di ricerca'); return; }
+    performSearchWithQuery(query);
+}
+
+async function performSearchWithQuery(query) {
+    document.getElementById('search-results-modal').style.display='flex';
+    document.getElementById('bandi-results').innerHTML = '<p style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Ricerca in corso...</p>';
+    document.getElementById('esiti-results').innerHTML = '<p style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Ricerca in corso...</p>';
+    try {
+        const res = await fetch(`/api/ricerca-doppia?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        displaySearchResults(data.bandi || [], 'bandi-results');
+        displaySearchResults(data.esiti || [], 'esiti-results');
+    } catch (err) {
+        document.getElementById('bandi-results').innerHTML = '<p style="color:red;">Errore ricerca: ' + err.message + '</p>';
+        document.getElementById('esiti-results').innerHTML = '<p style="color:red;">Errore ricerca: ' + err.message + '</p>';
+    }
+}
+
+function displaySearchResults(items, elementId) {
+    const el = document.getElementById(elementId);
+    if (!items || items.length === 0) {
+        el.innerHTML = '<p style="text-align:center;color:var(--text-light);">Nessun risultato trovato.</p>';
+    } else {
+        const html = items.map(item => `
+            <div class="search-result-item">
+                <h4>${item.titolo || item.title}</h4>
+                <p><strong>${item.stazione_appaltante || item.stazione}</strong> - ${item.provincia}</p>
+                <p style="font-size:12px;color:var(--text-light);">${item.scadenza || item.data_apertura || ''}</p>
+                <p>${item.descrizione || item.description || ''}</p>
+            </div>
+        `).join('');
+        el.innerHTML = html;
+    }
+}
+
+function switchTab(tabId) {
+    document.querySelectorAll('.search-results-panel').forEach(p => p.style.display='none');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId).style.display='block';
+    event.target.classList.add('active');
+}
+
+function closeSearchResults() {
+    document.getElementById('search-results-modal').style.display='none';
+}
+
+// UTILITY FUNCTIONS
+function getUrlParam(name) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name);
+}
+
+// Check for password reset token on load
+if (getUrlParam('token')) {
+    document.getElementById('reset-modal').style.display='flex';
+}
+
+
+// Modal close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+        e.target.closest('.modal').style.display='none';
+    });
+});
+
+// Mobile dropdown toggles
+document.querySelectorAll('.nav-item > a').forEach(link => {
+    link.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) {
+            e.preventDefault();
+            this.parentElement.classList.toggle('open');
+        }
+    });
+});
+</script>
+
+</body>
+</html>

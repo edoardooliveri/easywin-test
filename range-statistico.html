@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>easyWin - Range Statistico</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="auth-guard.js"></script>
+</head>
+<body>
+
+<nav class="navbar scrolled">
+    <a href="index.html"><img src="logo.png" alt="easyWin" class="logo-img"></a>
+    <div class="nav-links">
+        <a href="index.html#azienda">Azienda</a>
+        <div class="nav-item">
+            <a href="index.html#bandi">Bandi Di Gara <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="bandi-di-gara.html">Banca dati e Mailing Bandi di Gara</a>
+                <a href="bandi-mepa.html">Bandi MEPA</a>
+                <a href="piattaforme-digitali.html">Iscrizione Piattaforme Digitali</a>
+            </div>
+        </div>
+        <div class="nav-item">
+            <a href="index.html#aggiudicazioni">Aggiudicazioni <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="aggiudicazioni.html">Banca dati e Mailing Esiti</a>
+                <a href="aggiudicazioni-tempo-reale.html">Aggiudicazioni in Tempo Reale</a>
+                <a href="presenza-gara.html">Richiedi Presenza</a>
+                <a href="simulatore-statistico.html">Simulatore Statistico</a>
+                <a href="studio-statistico.html">Studio Statistico</a>
+                <a href="digitalizzazione-aggiudicazioni.html">Digitalizzazione</a>
+                <a href="verifica-conteggi.html">Verifica Conteggi</a>
+                <a href="analisi-concorrenti.html">Analisi Concorrenti</a>
+            </div>
+        </div>
+        <div class="nav-item">
+            <a href="index.html#servizi">Servizi <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <a href="sopralluoghi.html">Sopralluoghi</a>
+                <a href="avvalimenti.html">Avvalimenti</a>
+                <a href="compilazione-gare.html">Compilazione Gare</a>
+                <a href="offerte-vantaggiose.html">Offerte Vantaggiose</a>
+                <a href="presenza-sedute.html">Presenza Sedute</a>
+                <a href="consulenza-legale.html">Consulenza Legale</a>
+                <a href="accesso-atti.html">Accesso Atti</a>
+                <a href="cauzioni.html">Cauzioni</a>
+                <a href="certificazioni-soa.html">Certificazioni SOA</a>
+                <a href="certificazioni-iso.html">Certificazioni ISO</a>
+                <a href="servizi-forniture.html">Servizi e Forniture</a>
+                <a href="gestione-albi-fornitori.html">Gestione Albi Fornitori</a>
+            </div>
+        </div>
+        <a href="formazione.html">Formazione</a>
+        <a href="contattaci.html">Contattaci</a>
+        <a href="abbonamento.html" class="btn-nav btn-bordered">Abbonamento</a>
+        <a href="login.html" class="btn-nav btn-bordered">Login</a>
+    </div>
+    <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<section class="page-hero">
+    <div class="page-hero-bg"><img src="https://www.easywin.it/application/themes/easywin/images/analisi-dati.jpg" alt=""></div>
+    <div class="page-hero-overlay"></div>
+    <div class="page-hero-content">
+        <h1>Range Statistico</h1>
+        <p>Calcola il range di ribasso vincente basato sullo storico degli esiti</p>
+    </div>
+</section>
+<div class="breadcrumb-bar">
+    <h2>Range Statistico</h2>
+    <nav><a href="index.html">Home</a> / Range Statistico</nav>
+</div>
+
+<section class="section">
+    <div class="container">
+        <!-- Filters -->
+        <div class="filters-bar fade-up">
+            <select id="rs-regione" class="filter-select"><option value="">Tutte le regioni</option></select>
+            <select id="rs-soa" class="filter-select"><option value="">Tutte le SOA</option></select>
+            <select id="rs-criterio" class="filter-select"><option value="">Tutti i criteri</option></select>
+            <input type="text" id="rs-stazione" class="filter-input" placeholder="Stazione appaltante..." style="min-width:180px;">
+            <button class="btn-primary" onclick="calcolaRange()"><i class="fas fa-chart-bar"></i> Calcola Range</button>
+        </div>
+
+        <!-- Loading -->
+        <div id="rs-loading" style="display:none;text-align:center;padding:40px;">
+            <i class="fas fa-spinner fa-spin fa-3x" style="color:var(--orange);"></i>
+            <p style="margin-top:12px;">Analisi statistica in corso...</p>
+        </div>
+
+        <!-- Results -->
+        <div id="rs-results" style="display:none;">
+            <!-- Range Visual -->
+            <div class="ai-upload-panel fade-up" style="margin-top:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                    <div>
+                        <h3 style="font-family:Comfortaa;margin:0;">Range Ribasso Vincente</h3>
+                        <p id="rs-subtitle" style="font-size:0.9rem;color:var(--text-light);margin-top:4px;"></p>
+                    </div>
+                    <span id="rs-gare-count" style="background:var(--gradient);color:white;padding:6px 16px;border-radius:20px;font-size:0.85rem;font-weight:600;"></span>
+                </div>
+
+                <!-- Visual bar -->
+                <div style="position:relative;height:60px;margin:24px 0;">
+                    <div style="position:absolute;top:20px;left:0;right:0;height:20px;background:#eee;border-radius:10px;"></div>
+                    <div id="rs-bar-fill" style="position:absolute;top:20px;height:20px;background:var(--gradient);border-radius:10px;transition:all 0.5s;"></div>
+                    <div id="rs-marker-min" style="position:absolute;top:0;text-align:center;transition:left 0.5s;">
+                        <div style="width:3px;height:40px;background:var(--orange);margin:0 auto;"></div>
+                        <span style="font-size:0.75rem;font-weight:700;" id="rs-min-label"></span>
+                    </div>
+                    <div id="rs-marker-med" style="position:absolute;top:0;text-align:center;transition:left 0.5s;">
+                        <div style="width:3px;height:40px;background:#333;margin:0 auto;"></div>
+                        <span style="font-size:0.75rem;font-weight:700;" id="rs-med-label"></span>
+                    </div>
+                    <div id="rs-marker-max" style="position:absolute;top:0;text-align:center;transition:left 0.5s;">
+                        <div style="width:3px;height:40px;background:var(--orange);margin:0 auto;"></div>
+                        <span style="font-size:0.75rem;font-weight:700;" id="rs-max-label"></span>
+                    </div>
+                </div>
+
+                <!-- Stats grid -->
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px;" id="rs-stats-grid"></div>
+            </div>
+
+            <!-- AI Insight -->
+            <div class="ai-upload-panel fade-up" style="margin-top:16px;" id="rs-ai-box">
+                <h4 style="font-family:Comfortaa;margin-bottom:12px;"><i class="fas fa-lightbulb" style="color:var(--orange);"></i> Insight AI</h4>
+                <p id="rs-ai-text" style="line-height:1.7;"></p>
+            </div>
+
+            <!-- Distribution -->
+            <div class="ai-upload-panel fade-up" style="margin-top:16px;">
+                <h4 style="font-family:Comfortaa;margin-bottom:16px;"><i class="fas fa-chart-bar" style="color:var(--orange);"></i> Distribuzione Ribassi</h4>
+                <div id="rs-distribution" style="display:flex;align-items:flex-end;gap:4px;height:150px;padding:0 8px;"></div>
+            </div>
+
+            <!-- Trend -->
+            <div class="ai-upload-panel fade-up" style="margin-top:16px;">
+                <h4 style="font-family:Comfortaa;margin-bottom:12px;">
+                    <i class="fas fa-chart-line" style="color:var(--orange);"></i> Trend Temporale
+                    <span id="rs-trend-dir" style="font-size:0.8rem;padding:3px 10px;border-radius:12px;margin-left:8px;"></span>
+                </h4>
+                <div class="data-table-wrap">
+                    <table class="data-table" style="font-size:0.85rem;">
+                        <thead><tr><th>Periodo</th><th>Media Ribasso</th><th>Min</th><th>Max</th><th>N. Gare</th></tr></thead>
+                        <tbody id="rs-trend-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sample -->
+            <div class="ai-upload-panel fade-up" style="margin-top:16px;">
+                <h4 style="font-family:Comfortaa;margin-bottom:12px;"><i class="fas fa-list" style="color:var(--orange);"></i> Campione esiti analizzati</h4>
+                <div class="data-table-wrap">
+                    <table class="data-table" style="font-size:0.85rem;">
+                        <thead><tr><th>Data</th><th>Ribasso</th><th>Partecipanti</th><th>Importo</th><th>Stazione</th></tr></thead>
+                        <tbody id="rs-sample-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Heatmap by SOA -->
+            <div class="ai-upload-panel fade-up" style="margin-top:16px;">
+                <h4 style="font-family:Comfortaa;margin-bottom:16px;"><i class="fas fa-th" style="color:var(--orange);"></i> Mappa Calore per Categoria SOA</h4>
+                <p style="font-size:0.9rem;color:var(--text-light);margin-bottom:16px;">Visualizza i range per tutte le categorie SOA disponibili nel database</p>
+                <button class="btn-secondary" onclick="caricaHeatmap()" style="margin-bottom:16px;"><i class="fas fa-sync-alt"></i> Carica Heatmap</button>
+                <div id="rs-heatmap-container" style="display:none;">
+                    <div class="data-table-wrap">
+                        <table class="data-table" style="font-size:0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>Categoria SOA</th>
+                                    <th style="text-align:center;">N. Gare</th>
+                                    <th style="text-align:center;">Media Ribasso</th>
+                                    <th style="text-align:center;">Mediana</th>
+                                    <th style="text-align:center;">Range 25-75°</th>
+                                    <th style="text-align:center;">Range Consigliato</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rs-heatmap-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How it works -->
+        <div class="section-header fade-up" style="margin-top:48px;">
+            <span class="section-tag">Analisi Statistica</span>
+            <h2 class="section-title">Come funziona il <span class="highlight">Range Statistico</span></h2>
+        </div>
+        <div class="cards-grid fade-up">
+            <div class="card">
+                <div class="card-icon"><i class="fas fa-database"></i></div>
+                <h3>Dati Reali</h3>
+                <p>Basato su migliaia di esiti storici certificati. Analizziamo le gare chiuse per estrarre pattern statistici affidabili e verificati nel tempo.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon"><i class="fas fa-filter"></i></div>
+                <h3>Filtri Intelligenti</h3>
+                <p>Personalizza l'analisi per regione, stazione appaltante, categoria SOA e criterio di aggiudicazione.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon"><i class="fas fa-trophy"></i></div>
+                <h3>Vantaggio Competitivo</h3>
+                <p>Sai in anticipo il range vincente. Presenta offerte strategiche massimizzando le probabilità di vittoria.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <img src="logo.png" alt="easyWin" class="footer-logo">
+            <p>La chiave del successo nelle gare d'appalto. Servizi professionali per imprese che vogliono vincere.</p>
+            <div class="footer-socials">
+                <a href="https://www.facebook.com/EasyWinAppalti" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://www.linkedin.com/company/easywin-appalti" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                <a href="https://www.instagram.com/easywin_appalti/" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <h4>Pagine</h4>
+            <a href="bandi-di-gara.html">Bandi di Gara</a>
+            <a href="aggiudicazioni.html">Aggiudicazioni</a>
+            <a href="servizi.html">Servizi</a>
+            <a href="formazione.html">Formazione</a>
+            <a href="contattaci.html">Contattaci</a>
+        </div>
+        <div class="footer-col">
+            <h4>Contatti</h4>
+            <p><strong>Edra Servizi s.r.l.</strong></p>
+            <p><i class="fas fa-map-marker-alt"></i> Via Malta 5/9, 16121 GENOVA</p>
+            <p><i class="fas fa-envelope"></i> info@easywin.it</p>
+            <p><i class="fas fa-phone"></i> 010.0982610 - Fax: 010.0982611</p>
+            <p><i class="fas fa-phone"></i> Comm.: 348.3934800 | Tec.: 345.7088197</p>
+            <p><i class="fas fa-envelope"></i> PEC: edraservizi@pec.it</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 easyWin. Tutti i diritti riservati.</p>
+        <p>P.IVA 00000000000</p>
+    </div>
+</footer>
+
+<script>
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3001/api'
+    : '/api';
+
+document.addEventListener('DOMContentLoaded', loadLookups);
+
+async function loadLookups() {
+    try {
+        const [regioni, soa, criteri] = await Promise.all([
+            fetch(`${API}/lookups/regioni`).then(r=>r.json()),
+            fetch(`${API}/lookups/soa`).then(r=>r.json()),
+            fetch(`${API}/lookups/criteri`).then(r=>r.json())
+        ]);
+        const rSel = document.getElementById('rs-regione');
+        regioni.forEach(r => { const o=document.createElement('option'); o.value=r.id; o.textContent=r.nome; rSel.appendChild(o); });
+        const sSel = document.getElementById('rs-soa');
+        soa.forEach(s => { const o=document.createElement('option'); o.value=s.id; o.textContent=`${s.codice} - ${s.descrizione}`; sSel.appendChild(o); });
+        const cSel = document.getElementById('rs-criterio');
+        criteri.forEach(c => { const o=document.createElement('option'); o.value=c.id; o.textContent=c.nome; cSel.appendChild(o); });
+    } catch(e) { console.warn('Lookups non disponibili'); }
+}
+
+async function calcolaRange() {
+    document.getElementById('rs-loading').style.display = 'block';
+    document.getElementById('rs-results').style.display = 'none';
+
+    const body = {};
+    const v = id => document.getElementById(id).value || null;
+    if (v('rs-regione')) body.id_regione = parseInt(v('rs-regione'));
+    if (v('rs-soa')) body.id_soa = parseInt(v('rs-soa'));
+    if (v('rs-criterio')) body.id_criterio = parseInt(v('rs-criterio'));
+
+    try {
+        // Also try to find stazione by name
+        const staz = document.getElementById('rs-stazione').value.trim();
+        if (staz) {
+            const stRes = await fetch(`${API}/lookups/stazioni?search=${encodeURIComponent(staz)}`);
+            const stazioni = await stRes.json();
+            if (stazioni.length > 0) body.id_stazione = stazioni[0].id;
+        }
+
+        const res = await fetch(`${API}/range-statistico/calcola`, {
+            method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+        });
+        const json = await res.json();
+        document.getElementById('rs-loading').style.display = 'none';
+
+        if (json.error) { alert(json.error + (json.suggestion ? '\n' + json.suggestion : '')); return; }
+        renderRange(json);
+    } catch(e) {
+        document.getElementById('rs-loading').style.display = 'none';
+        alert('Errore di connessione. Verifica che il backend sia avviato.');
+    }
+}
+
+function renderRange(data) {
+    document.getElementById('rs-results').style.display = 'block';
+    const range = data.range_vincente;
+
+    // Subtitle
+    const filters = [];
+    if(document.getElementById('rs-soa').selectedOptions[0]?.textContent !== 'Tutte le SOA') filters.push(document.getElementById('rs-soa').selectedOptions[0]?.textContent);
+    if(document.getElementById('rs-regione').selectedOptions[0]?.textContent !== 'Tutte le regioni') filters.push(document.getElementById('rs-regione').selectedOptions[0]?.textContent);
+    if(document.getElementById('rs-criterio').selectedOptions[0]?.textContent !== 'Tutti i criteri') filters.push(document.getElementById('rs-criterio').selectedOptions[0]?.textContent);
+    document.getElementById('rs-subtitle').textContent = filters.join(' • ') || 'Tutti i filtri';
+    document.getElementById('rs-gare-count').textContent = `${data.n_gare_analizzate} esiti analizzati`;
+
+    // Visual bar
+    const maxVal = Math.max(range.massimo * 1.2, 50);
+    const minPct = (range.range_consigliato.min / maxVal) * 100;
+    const maxPct = (range.range_consigliato.max / maxVal) * 100;
+    const medPct = (range.mediana / maxVal) * 100;
+
+    document.getElementById('rs-bar-fill').style.left = minPct + '%';
+    document.getElementById('rs-bar-fill').style.width = (maxPct - minPct) + '%';
+    document.getElementById('rs-marker-min').style.left = minPct + '%';
+    document.getElementById('rs-marker-med').style.left = medPct + '%';
+    document.getElementById('rs-marker-max').style.left = maxPct + '%';
+    document.getElementById('rs-min-label').textContent = range.range_consigliato.min + '%';
+    document.getElementById('rs-med-label').textContent = range.mediana + '%';
+    document.getElementById('rs-max-label').textContent = range.range_consigliato.max + '%';
+
+    // Stats
+    document.getElementById('rs-stats-grid').innerHTML = `
+        <div style="text-align:center;padding:16px;background:var(--bg-alt);border-radius:var(--radius-sm);">
+            <div style="font-size:0.8rem;color:var(--text-light);">Range Consigliato</div>
+            <div style="font-size:1.3rem;font-weight:700;color:var(--orange);">${range.range_consigliato.label}</div>
+        </div>
+        <div style="text-align:center;padding:16px;background:var(--bg-alt);border-radius:var(--radius-sm);">
+            <div style="font-size:0.8rem;color:var(--text-light);">Media</div>
+            <div style="font-size:1.3rem;font-weight:700;">${range.media}%</div>
+        </div>
+        <div style="text-align:center;padding:16px;background:var(--bg-alt);border-radius:var(--radius-sm);">
+            <div style="font-size:0.8rem;color:var(--text-light);">Mediana</div>
+            <div style="font-size:1.3rem;font-weight:700;">${range.mediana}%</div>
+        </div>
+        <div style="text-align:center;padding:16px;background:var(--bg-alt);border-radius:var(--radius-sm);">
+            <div style="font-size:0.8rem;color:var(--text-light);">Dev. Standard</div>
+            <div style="font-size:1.3rem;font-weight:700;">${range.deviazione_standard}%</div>
+        </div>
+    `;
+
+    // AI insight
+    if (data.ai_insight) {
+        document.getElementById('rs-ai-box').style.display = 'block';
+        document.getElementById('rs-ai-text').textContent = data.ai_insight;
+    } else document.getElementById('rs-ai-box').style.display = 'none';
+
+    // Distribution chart
+    const dist = data.distribuzione || [];
+    const maxCount = Math.max(...dist.map(d => d.count), 1);
+    document.getElementById('rs-distribution').innerHTML = dist.map(d => `
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <span style="font-size:0.7rem;color:var(--text-light);">${d.count}</span>
+            <div style="width:100%;height:${(d.count/maxCount)*120}px;background:var(--gradient);border-radius:4px 4px 0 0;min-height:4px;"></div>
+            <span style="font-size:0.65rem;color:var(--text-light);white-space:nowrap;">${d.range}</span>
+        </div>
+    `).join('');
+
+    // Trend
+    const trend = data.trend || {};
+    const trendDir = document.getElementById('rs-trend-dir');
+    const dirMap = { in_aumento: ['In aumento','#f44336'], in_diminuzione: ['In diminuzione','#4caf50'], stabile: ['Stabile','#2196f3'] };
+    const [dirLabel, dirColor] = dirMap[trend.direzione] || ['N/D','#999'];
+    trendDir.textContent = dirLabel;
+    trendDir.style.background = dirColor;
+    trendDir.style.color = 'white';
+
+    document.getElementById('rs-trend-tbody').innerHTML = (trend.dati || []).map(t => `
+        <tr>
+            <td>${t.periodo}</td>
+            <td style="font-weight:600;color:var(--orange);">${t.media}%</td>
+            <td>${t.min}%</td>
+            <td>${t.max}%</td>
+            <td style="text-align:center">${t.n_gare}</td>
+        </tr>
+    `).join('');
+
+    // Sample
+    document.getElementById('rs-sample-tbody').innerHTML = (data.campione || []).map(g => `
+        <tr>
+            <td>${g.data ? new Date(g.data).toLocaleDateString('it-IT') : '-'}</td>
+            <td style="font-weight:600;color:var(--orange);">${g.ribasso ? parseFloat(g.ribasso).toFixed(3)+'%' : '-'}</td>
+            <td style="text-align:center">${g.n_partecipanti || '-'}</td>
+            <td style="text-align:right">${g.importo ? new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(g.importo) : '-'}</td>
+            <td>${g.stazione || '-'}</td>
+        </tr>
+    `).join('');
+}
+
+async function caricaHeatmap() {
+    try {
+        const res = await fetch(`${API}/range-statistico/heatmap`);
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+            alert('Nessun dato disponibile per la heatmap');
+            return;
+        }
+
+        // Color intensity based on count
+        const minCount = Math.min(...data.map(d => d.n_gare));
+        const maxCount = Math.max(...data.map(d => d.n_gare));
+
+        const html = data.map(soa => {
+            // Calculate intensity (0-100)
+            const intensity = maxCount > minCount
+                ? ((soa.n_gare - minCount) / (maxCount - minCount)) * 100
+                : 50;
+
+            // Calculate suggested range (between p25 and p75)
+            const suggestedMin = Math.max(soa.p25 - (soa.p75 - soa.p25) * 0.1, soa.min_ribasso);
+            const suggestedMax = Math.min(soa.p75 + (soa.p75 - soa.p25) * 0.1, soa.media_ribasso + 5);
+
+            return `<tr style="background:rgba(255,107,53,${intensity/400});">
+                <td style="font-weight:600;">${soa.Descrizione || 'N/D'}</td>
+                <td style="text-align:center;"><span style="background:var(--bg-alt);padding:4px 8px;border-radius:6px;">${soa.n_gare}</span></td>
+                <td style="text-align:center;color:var(--orange);font-weight:600;">${soa.media_ribasso}%</td>
+                <td style="text-align:center;">${soa.mediana}%</td>
+                <td style="text-align:center;font-size:0.9rem;">${soa.p25}% - ${soa.p75}%</td>
+                <td style="text-align:center;font-weight:600;color:#2196f3;">${suggestedMin.toFixed(2)}% - ${suggestedMax.toFixed(2)}%</td>
+            </tr>`;
+        }).join('');
+
+        document.getElementById('rs-heatmap-tbody').innerHTML = html;
+        document.getElementById('rs-heatmap-container').style.display = 'block';
+    } catch(e) {
+        console.error('Errore caricamento heatmap:', e);
+        alert('Errore nel caricamento della heatmap: ' + e.message);
+    }
+}
+
+window.addEventListener('scroll', () => { document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 50); });
+const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);} });
+}, { threshold: 0.12 });
+document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+</script>
+<script>
+document.querySelectorAll('.nav-item > a').forEach(link => {
+    link.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) {
+            e.preventDefault();
+            this.parentElement.classList.toggle('open');
+        }
+    });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{
+  "aziende": {
+    "totali": 8,
+    "attive": 8,
+    "premium": 4
+  },
+  "bandi": {
+    "totali": 5,
+    "pubblicati": 3,
+    "in_corso": 1,
+    "attivi": 0,
+    "importo_totale": 1030000.0
+  },
+  "esiti": {
+    "totali": 5,
+    "pubblicati": 2,
+    "in_revisione": 1,
+    "nuovi": 1,
+    "ultimi_7gg": 5
+  },
+  "stazioni": {
+    "totali": 6,
+    "monitorate": 4
+  },
+  "ai": {
+    "siti_attivi": 0,
+    "con_errori": 0,
+    "atti_da_processare": 0
+  },
+  "email": {
+    "totali": 0,
+    "inviate": null,
+    "errori": null,
+    "in_coda": null
+  },
+  "attivita_recente": []
+}

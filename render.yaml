@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: easywin-staging
+    env: node
+    region: frankfurt # Ottimale per l'Italia
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: ~20
+      - key: PORT
+        value: 10000 # Render spesso inietta il suo PORT, diamo un default
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false # Questo andrà incollato manualmente nella dashboard Render
+      - key: JWT_SECRET
+        generateValue: true # Render genererà automaticamente una stringa sicura
