@@ -9,9 +9,9 @@ export default async function authRoutes(fastify, opts) {
       DO $$ BEGIN
         IF NOT EXISTS (
           SELECT 1 FROM information_schema.columns
-          WHERE table_name = 'users' AND column_name = 'PasswordHash'
+          WHERE table_name = 'users' AND column_name = 'password_hash'
         ) THEN
-          ALTER TABLE users ADD COLUMN "PasswordHash" VARCHAR(255);
+          ALTER TABLE users ADD COLUMN "password_hash" VARCHAR(255);
         END IF;
       END $$;
     `);
@@ -32,10 +32,10 @@ export default async function authRoutes(fastify, opts) {
       }
 
       const result = await query(
-        `SELECT "UserName", "Email", "FirstName", "LastName", "Company",
-                "PartitaIva", "IsApproved", "Expire", "ExpireBandi", "PasswordHash"
+        `SELECT "id" AS user_id, "username", "email", "nome", "cognome", 
+                "attivo", "data_scadenza", "password_hash"
          FROM users
-         WHERE "UserName" = $1 OR "Email" = $1
+         WHERE "username" = $1 OR "email" = $1
          LIMIT 1`,
         [username]
       );
@@ -47,14 +47,14 @@ export default async function authRoutes(fastify, opts) {
       const user = result.rows[0];
 
       // Check if user is approved
-      if (user.IsApproved === false) {
-        return reply.status(403).send({ error: 'Account non ancora approvato' });
+      if (user.attivo === false) {
+        return reply.status(403).send({ error: 'Account non attivo' });
       }
 
       // Password validation: handle legacy migration from ASP.NET Membership
-      if (user.PasswordHash) {
+      if (user.password_hash) {
         // User already has a password hash (migrated or first-login from new register endpoint)
-        const passwordMatch = await bcrypt.compare(password, user.PasswordHash);
+        const passwordMatch = await bcrypt.compare(password, user.password_hash);
         if (!passwordMatch) {
           return reply.status(401).send({ error: 'Credenziali non valide' });
         }
@@ -64,8 +64,8 @@ export default async function authRoutes(fastify, opts) {
         try {
           const hashedPassword = await bcrypt.hash(password, 10);
           await query(
-            `UPDATE users SET "PasswordHash" = $1 WHERE "UserName" = $2`,
-            [hashedPassword, user.UserName]
+            `UPDATE users SET "password_hash" = $1 WHERE "username" = $2`,
+            [hashedPassword, user.username]
           );
         } catch (hashErr) {
           fastify.log.error({ err: hashErr.message }, 'Password hash error on first login');
@@ -74,20 +74,21 @@ export default async function authRoutes(fastify, opts) {
       }
 
       const token = fastify.jwt.sign({
-        username: user.UserName,
-        email: user.Email,
-        company: user.Company
+        userId: user.user_id,
+        username: user.username,
+        email: user.email,
+        nome: user.nome,
+        cognome: user.cognome
       }, { expiresIn: '24h' });
 
       return {
         token,
         user: {
-          username: user.UserName,
-          email: user.Email,
-          nome: user.FirstName,
-          cognome: user.LastName,
-          azienda: user.Company,
-          partita_iva: user.PartitaIva
+          id: user.user_id,
+          username: user.username,
+          email: user.email,
+          nome: user.nome,
+          cognome: user.cognome
         }
       };
     } catch (err) {
@@ -100,12 +101,10 @@ export default async function authRoutes(fastify, opts) {
   fastify.get('/me', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     try {
       const result = await query(
-        `SELECT "UserName", "Email", "FirstName", "LastName", "Company",
-                "PartitaIva", "CodiceFiscale", "Citta", "Provincia",
-                "Telefono", "IsApproved", "Expire", "ExpireBandi",
-                "ExpirePresidia"
+        `SELECT "id" AS user_id, "username", "email", "nome", "cognome", 
+                "ruolo", "attivo", "data_scadenza"
          FROM users
-         WHERE "UserName" = $1`,
+         WHERE "username" = $1`,
         [request.user.username]
       );
 
@@ -115,20 +114,14 @@ export default async function authRoutes(fastify, opts) {
 
       const u = result.rows[0];
       return {
-        username: u.UserName,
-        email: u.Email,
-        nome: u.FirstName,
-        cognome: u.LastName,
-        azienda: u.Company,
-        partita_iva: u.PartitaIva,
-        codice_fiscale: u.CodiceFiscale,
-        citta: u.Citta,
-        provincia: u.Provincia,
-        telefono: u.Telefono,
-        approvato: u.IsApproved,
-        scadenza_esiti: u.Expire,
-        scadenza_bandi: u.ExpireBandi,
-        scadenza_presidia: u.ExpirePresidia
+        id: u.user_id,
+        username: u.username,
+        email: u.email,
+        nome: u.nome,
+        cognome: u.cognome,
+        ruolo: u.ruolo,
+        approvato: u.attivo,
+        scadenza: u.data_scadenza
       };
     } catch (err) {
       fastify.log.error({ err: err.message }, '/me error');
@@ -148,7 +141,7 @@ export default async function authRoutes(fastify, opts) {
 
       // Check if user already exists
       const existingUser = await query(
-        `SELECT "UserName" FROM users WHERE "UserName" = $1 OR "Email" = $2 LIMIT 1`,
+        `SELECT "username" FROM users WHERE "username" = $1 OR "email" = $2 LIMIT 1`,
         [username, email]
       );
 
@@ -168,23 +161,21 @@ export default async function authRoutes(fastify, opts) {
       // Insert new user
       const insertResult = await query(
         `INSERT INTO users (
-          "UserName", "Email", "FirstName", "LastName", "Company",
-          "PartitaIva", "PasswordHash", "IsApproved", "CreatedDate"
-         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-         RETURNING "UserName", "Email", "FirstName", "LastName", "Company", "PartitaIva"`,
-        [username, email, first_name || null, last_name || null, company || null, partita_iva || null, hashedPassword, true]
+          "username", "email", "nome", "cognome", "password_hash", "attivo", "created_at"
+         ) VALUES ($1, $2, $3, $4, $5, $6, NOW())
+         RETURNING "id" AS user_id, "username", "email", "nome", "cognome"`,
+        [username, email, first_name || null, last_name || null, hashedPassword, true]
       );
 
       const newUser = insertResult.rows[0];
       return reply.status(201).send({
         message: 'Utente creato con successo',
         user: {
-          username: newUser.UserName,
-          email: newUser.Email,
-          nome: newUser.FirstName,
-          cognome: newUser.LastName,
-          azienda: newUser.Company,
-          partita_iva: newUser.PartitaIva
+          id: newUser.user_id,
+          username: newUser.username,
+          email: newUser.email,
+          nome: newUser.nome,
+          cognome: newUser.cognome
         }
       });
     } catch (err) {
@@ -204,7 +195,7 @@ export default async function authRoutes(fastify, opts) {
 
       // Fetch current user with password hash
       const userResult = await query(
-        `SELECT "UserName", "PasswordHash" FROM users WHERE "UserName" = $1 LIMIT 1`,
+        `SELECT "username", "password_hash" FROM users WHERE "username" = $1 LIMIT 1`,
         [request.user.username]
       );
 
@@ -215,8 +206,8 @@ export default async function authRoutes(fastify, opts) {
       const user = userResult.rows[0];
 
       // If user has no password hash yet, current_password can be anything (first migration case)
-      if (user.PasswordHash) {
-        const passwordMatch = await bcrypt.compare(current_password, user.PasswordHash);
+      if (user.password_hash) {
+        const passwordMatch = await bcrypt.compare(current_password, user.password_hash);
         if (!passwordMatch) {
           return reply.status(401).send({ error: 'Password corrente non valida' });
         }
@@ -233,8 +224,8 @@ export default async function authRoutes(fastify, opts) {
 
       // Update password
       await query(
-        `UPDATE users SET "PasswordHash" = $1 WHERE "UserName" = $2`,
-        [hashedNewPassword, user.UserName]
+        `UPDATE users SET "password_hash" = $1 WHERE "username" = $2`,
+        [hashedNewPassword, user.username]
       );
 
       return { message: 'Password aggiornata con successo' };
