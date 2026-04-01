@@ -17,12 +17,12 @@ export default async function albiFornitoRoutes(fastify) {
     let idx = 1;
 
     if (search) {
-      conditions.push(`(s."Nome" ILIKE $${idx} OR s."Città" ILIKE $${idx} OR COALESCE(s."RagioneSociale",'') ILIKE $${idx})`);
+      conditions.push(`(s."nome" ILIKE $${idx} OR s."citta" ILIKE $${idx} OR COALESCE(s."ragione_sociale",'') ILIKE $${idx})`);
       params.push(`%${search}%`);
       idx++;
     }
     if (regione) {
-      conditions.push(`r."Regione" = $${idx}`);
+      conditions.push(`r."regione" = $${idx}`);
       params.push(regione);
       idx++;
     }
@@ -42,11 +42,11 @@ export default async function albiFornitoRoutes(fastify) {
     const dataParams = [...params, parseInt(limit), offset];
     const result = await query(`
       SELECT
-        s."id", s."Nome" AS nome_stazione, s."Città" AS citta,
-        p."Provincia" AS provincia, p."siglaprovincia" AS sigla_provincia,
-        r."Regione" AS regione,
-        s."Email" AS email, s."Tel" AS telefono, s."Indirizzo" AS indirizzo,
-        (SELECT COUNT(*) FROM bandi b WHERE b."id_stazione" = s."id" AND b."Annullato" = false) AS n_bandi,
+        s."id", s."nome" AS nome_stazione, s."citta" AS citta,
+        p."provincia" AS provincia, p."siglaprovincia" AS sigla_provincia,
+        r."regione" AS regione,
+        s."email" AS email, s."telefono" AS telefono, s."indirizzo" AS indirizzo,
+        (SELECT COUNT(*) FROM bandi b WHERE b."id_stazione" = s."id" AND b."annullato" = false) AS n_bandi,
         af.id AS albo_id,
         af.nome_albo,
         af.url_albo,
@@ -58,7 +58,7 @@ export default async function albiFornitoRoutes(fastify) {
       LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
       LEFT JOIN albi_fornitori af ON af.id_stazione = s."id" AND af.attivo = true
       WHERE ${where}
-      ORDER BY af.id IS NOT NULL DESC, s."Nome" ASC
+      ORDER BY af.id IS NOT NULL DESC, s."nome" ASC
       LIMIT $${idx} OFFSET $${idx + 1}
     `, dataParams);
 
@@ -93,15 +93,15 @@ export default async function albiFornitoRoutes(fastify) {
     `);
 
     const regioniRes = await query(`
-      SELECT r."Regione" AS regione,
+      SELECT r."regione" AS regione,
         COUNT(DISTINCT s."id") AS n_stazioni,
         COUNT(DISTINCT af.id) AS n_albi
       FROM stazioni s
       LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
       LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
       LEFT JOIN albi_fornitori af ON af.id_stazione = s."id" AND af.attivo = true
-      WHERE s."eliminata" = false AND r."Regione" IS NOT NULL
-      GROUP BY r."Regione"
+      WHERE s."eliminata" = false AND r."regione" IS NOT NULL
+      GROUP BY r."regione"
       ORDER BY n_albi DESC, n_stazioni DESC
     `);
 
@@ -115,12 +115,12 @@ export default async function albiFornitoRoutes(fastify) {
     const { id } = request.params;
 
     const staRes = await query(`
-      SELECT s."id", s."Nome" AS nome_stazione, s."RagioneSociale" AS ragione_sociale,
-        s."Indirizzo", s."Cap" AS cap, s."Città" AS citta, s."Tel" AS telefono,
-        s."Email" AS email, s."Pec" AS pec, s."PartitaIva" AS partita_iva,
-        s."SitoWeb" AS sito_web,
-        p."Provincia" AS provincia, p."siglaprovincia" AS sigla_provincia,
-        r."Regione" AS regione
+      SELECT s."id", s."nome" AS nome_stazione, s."ragione_sociale" AS ragione_sociale,
+        s."indirizzo", s."cap" AS cap, s."citta" AS citta, s."telefono" AS telefono,
+        s."email" AS email, s."pec" AS pec, s."partita_iva" AS partita_iva,
+        s."sito_web" AS sito_web,
+        p."provincia" AS provincia, p."siglaprovincia" AS sigla_provincia,
+        r."regione" AS regione
       FROM stazioni s
       LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
       LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
@@ -136,20 +136,20 @@ export default async function albiFornitoRoutes(fastify) {
 
     // Recent bandi
     const bandiRes = await query(`
-      SELECT "id_bando" AS id, "Titolo" AS titolo, "DataPubblicazione" AS data_pubblicazione,
-        "DataOfferta" AS data_offerta, "CodiceCIG" AS cig,
-        COALESCE("ImportoSO",0) + COALESCE("ImportoCO",0) AS importo_totale
-      FROM bandi WHERE "id_stazione" = $1 AND "Annullato" = false
-      ORDER BY "DataPubblicazione" DESC NULLS LAST LIMIT 20
+      SELECT "id" AS id, "titolo" AS titolo, "data_pubblicazione" AS data_pubblicazione,
+        "data_offerta" AS data_offerta, "codice_cig" AS cig,
+        COALESCE("importo_so",0) + COALESCE("importo_co",0) AS importo_totale
+      FROM bandi WHERE "id_stazione" = $1 AND "annullato" = false
+      ORDER BY "data_pubblicazione" DESC NULLS LAST LIMIT 20
     `, [id]);
 
     // Recent esiti (gare aggiudicate)
     const esitiRes = await query(`
-      SELECT g."id", g."Titolo" AS titolo, g."Data" AS data_esito,
-        g."Importo" AS importo, g."NPartecipanti" AS n_partecipanti
+      SELECT g."id", g."titolo" AS titolo, g."data" AS data_esito,
+        g."importo" AS importo, g."n_partecipanti" AS n_partecipanti
       FROM gare g
       WHERE g."id_stazione" = $1
-      ORDER BY g."Data" DESC NULLS LAST LIMIT 10
+      ORDER BY g."data" DESC NULLS LAST LIMIT 10
     `, [id]);
 
     return {
@@ -247,7 +247,7 @@ export default async function albiFornitoRoutes(fastify) {
     if (conditions.length === 0) return { data: [] };
 
     const result = await query(`
-      SELECT r.*, af.nome_albo, s."Nome" AS stazione_nome, s."Città" AS stazione_citta
+      SELECT r.*, af.nome_albo, s."nome" AS stazione_nome, s."citta" AS stazione_citta
       FROM richieste_servizio_albi r
       JOIN albi_fornitori af ON r.id_albo = af.id
       JOIN stazioni s ON af.id_stazione = s."id"
@@ -299,8 +299,8 @@ export default async function albiFornitoRoutes(fastify) {
 
     // Recent requests
     const recentReqs = await query(`
-      SELECT r.*, af.nome_albo, s."Nome" AS stazione_nome,
-        a."RagioneSociale" AS azienda_nome
+      SELECT r.*, af.nome_albo, s."nome" AS stazione_nome,
+        a."ragione_sociale" AS azienda_nome
       FROM richieste_servizio_albi r
       JOIN albi_fornitori af ON r.id_albo = af.id
       JOIN stazioni s ON af.id_stazione = s."id"
@@ -410,9 +410,9 @@ export default async function albiFornitoRoutes(fastify) {
     params.push(parseInt(limit), offset);
 
     const result = await query(`
-      SELECT r.*, af.nome_albo, s."Nome" AS stazione_nome, s."Città" AS stazione_citta,
-        a."RagioneSociale" AS azienda_nome, a."PartitaIva" AS azienda_piva,
-        a."Tel" AS azienda_tel, a."Email" AS azienda_email
+      SELECT r.*, af.nome_albo, s."nome" AS stazione_nome, s."citta" AS stazione_citta,
+        a."ragione_sociale" AS azienda_nome, a."partita_iva" AS azienda_piva,
+        a."telefono" AS azienda_tel, a."email" AS azienda_email
       FROM richieste_servizio_albi r
       JOIN albi_fornitori af ON r.id_albo = af.id
       JOIN stazioni s ON af.id_stazione = s."id"
@@ -602,9 +602,9 @@ export default async function albiFornitoRoutes(fastify) {
 
     // Find tipologia_bando ID for "Procedura Negoziata"
     const tipoRes = await query(`
-      SELECT "id_tipologia_bando" FROM tipologiabandi WHERE "Tipologia" ILIKE '%negoziata%' LIMIT 1
+      SELECT "id" FROM tipologia_bandi WHERE "nome" ILIKE '%negoziata%' LIMIT 1
     `);
-    const negoziataId = tipoRes.rows[0]?.id_tipologia_bando;
+    const negoziataId = tipoRes.rows[0]?.id;
 
     let negoziataParamIdx = null;
     let negoziataCondition = '';
@@ -621,10 +621,10 @@ export default async function albiFornitoRoutes(fastify) {
     const result = await query(`
       SELECT
         s."id",
-        s."Nome" AS nome_stazione,
-        s."Città" AS citta,
-        r."Regione" AS regione,
-        p."Provincia" AS provincia,
+        s."nome" AS nome_stazione,
+        s."citta" AS citta,
+        r."regione" AS regione,
+        p."provincia" AS provincia,
         af.id AS albo_id,
         af.nome_albo,
         af.piattaforma,
@@ -634,7 +634,7 @@ export default async function albiFornitoRoutes(fastify) {
         (SELECT COUNT(*)
          FROM bandi b
          WHERE b."id_stazione" = s."id"
-         AND b."Annullato" = false
+         AND b."annullato" = false
          ${soaCondition}
         ) AS bandi_matching_soa,
 
@@ -642,7 +642,7 @@ export default async function albiFornitoRoutes(fastify) {
         (SELECT COUNT(*)
          FROM bandi b
          WHERE b."id_stazione" = s."id"
-         AND b."Annullato" = false
+         AND b."annullato" = false
          ${soaCondition}
          ${negoziataCondition}
         ) AS procedure_negoziate,
@@ -651,16 +651,16 @@ export default async function albiFornitoRoutes(fastify) {
         (SELECT COUNT(*)
          FROM bandi b
          WHERE b."id_stazione" = s."id"
-         AND b."Annullato" = false
-         AND b."DataPubblicazione" >= NOW() - INTERVAL '12 months'
+         AND b."annullato" = false
+         AND b."data_pubblicazione" >= NOW() - INTERVAL '12 months'
         ) AS bandi_recenti,
 
         -- SOA matching per questa stazione
-        (SELECT array_agg(DISTINCT soa."cod" ORDER BY soa."cod")
+        (SELECT array_agg(DISTINCT soa."codice" ORDER BY soa."codice")
          FROM bandi b
          JOIN soa ON b."id_soa" = soa."id"
          WHERE b."id_stazione" = s."id"
-         AND b."Annullato" = false
+         AND b."annullato" = false
          ${soaParamIdx ? `AND b."id_soa" = ANY($${soaParamIdx})` : ''}
         ) AS soa_matching
 
@@ -673,16 +673,16 @@ export default async function albiFornitoRoutes(fastify) {
       -- Ordine: più procedure negoziate → più bandi SOA → più bandi recenti
       ORDER BY
         (SELECT COUNT(*) FROM bandi b
-         WHERE b."id_stazione" = s."id" AND b."Annullato" = false
+         WHERE b."id_stazione" = s."id" AND b."annullato" = false
          ${soaCondition} ${negoziataCondition}
         ) DESC,
         (SELECT COUNT(*) FROM bandi b
-         WHERE b."id_stazione" = s."id" AND b."Annullato" = false
+         WHERE b."id_stazione" = s."id" AND b."annullato" = false
          ${soaCondition}
         ) DESC,
         (SELECT COUNT(*) FROM bandi b
-         WHERE b."id_stazione" = s."id" AND b."Annullato" = false
-         AND b."DataPubblicazione" >= NOW() - INTERVAL '12 months'
+         WHERE b."id_stazione" = s."id" AND b."annullato" = false
+         AND b."data_pubblicazione" >= NOW() - INTERVAL '12 months'
         ) DESC
       LIMIT $${limitParamIdx}
     `, params);
@@ -691,7 +691,7 @@ export default async function albiFornitoRoutes(fastify) {
     let soaNames = [];
     if (clientSoaIds.length > 0) {
       const soaNamesRes = await query(
-        `SELECT "cod", "Descrizione" FROM soa WHERE "id" = ANY($1) ORDER BY "cod"`,
+        `SELECT "codice", "descrizione" FROM soa WHERE "id" = ANY($1) ORDER BY "codice"`,
         [clientSoaIds]
       );
       soaNames = soaNamesRes.rows;
@@ -700,10 +700,10 @@ export default async function albiFornitoRoutes(fastify) {
     let regioniNames = [];
     if (clientRegioniIds.length > 0) {
       const regNamesRes = await query(
-        `SELECT "Regione" FROM regioni WHERE id = ANY($1) ORDER BY "Regione"`,
+        `SELECT "regione" FROM regioni WHERE id = ANY($1) ORDER BY "regione"`,
         [clientRegioniIds]
       );
-      regioniNames = regNamesRes.rows.map(r => r.Regione);
+      regioniNames = regNamesRes.rows.map(r => r.regione);
     }
 
     return {
@@ -722,12 +722,12 @@ export default async function albiFornitoRoutes(fastify) {
   // ============================================================
   fastify.get('/regioni/lista', async () => {
     const result = await query(`
-      SELECT DISTINCT r."Regione" AS regione
+      SELECT DISTINCT r."regione" AS regione
       FROM stazioni s
       JOIN province p ON s."id_provincia" = p."id_provincia"
       JOIN regioni r ON p."id_regione" = r."id_regione"
-      WHERE s."eliminata" = false AND r."Regione" IS NOT NULL
-      ORDER BY r."Regione"
+      WHERE s."eliminata" = false AND r."regione" IS NOT NULL
+      ORDER BY r."regione"
     `);
     return result.rows.map(r => r.regione);
   });

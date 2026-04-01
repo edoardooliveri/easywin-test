@@ -100,48 +100,48 @@ export default async function apiPubblicaRoutes(fastify, opts) {
       } = request.query;
 
       const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
-      const conditions = ['b."Abilitato" = true', 'b."Annullato" = false'];
+      const conditions = ['b.abilitato = true', 'b.annullato = false'];
       const params = [];
       let paramIdx = 1;
 
       if (provincia) {
-        conditions.push(`b."Regione" = $${paramIdx}`);
+        conditions.push(`b.regione = $${paramIdx}`);
         params.push(provincia);
         paramIdx++;
       }
 
       if (id_soa) {
-        conditions.push(`b."id_soa" = $${paramIdx}`);
+        conditions.push(`b.id_soa = $${paramIdx}`);
         params.push(id_soa);
         paramIdx++;
       }
 
       if (tipologia) {
-        conditions.push(`b."id_tipologia" = $${paramIdx}`);
+        conditions.push(`b.id_tipologia = $${paramIdx}`);
         params.push(tipologia);
         paramIdx++;
       }
 
       if (data_da) {
-        conditions.push(`b."DataPubblicazione" >= $${paramIdx}`);
+        conditions.push(`b.data_pubblicazione >= $${paramIdx}`);
         params.push(data_da);
         paramIdx++;
       }
 
       if (data_a) {
-        conditions.push(`b."DataPubblicazione" <= $${paramIdx}`);
+        conditions.push(`b.data_pubblicazione <= $${paramIdx}`);
         params.push(data_a);
         paramIdx++;
       }
 
       if (importo_min) {
-        conditions.push(`b."ImportoSO" >= $${paramIdx}`);
+        conditions.push(`b.importo_so >= $${paramIdx}`);
         params.push(importo_min);
         paramIdx++;
       }
 
       if (importo_max) {
-        conditions.push(`b."ImportoSO" <= $${paramIdx}`);
+        conditions.push(`b.importo_so <= $${paramIdx}`);
         params.push(importo_max);
         paramIdx++;
       }
@@ -149,8 +149,9 @@ export default async function apiPubblicaRoutes(fastify, opts) {
       const whereClause = `WHERE ${conditions.join(' AND ')}`;
 
       // Validate sort column
-      const allowedSorts = ['DataPubblicazione', 'Titolo', 'ImportoSO'];
-      const sortCol = allowedSorts.includes(sort) ? `b."${sort}"` : 'b."DataPubblicazione"';
+      const allowedSorts = ['data_pubblicazione', 'titolo', 'importo_so'];
+      const sortColMap = { 'DataPubblicazione': 'b.data_pubblicazione', 'Titolo': 'b.titolo', 'ImportoSO': 'b.importo_so' };
+      const sortCol = sortColMap[sort] || 'b.data_pubblicazione';
       const sortOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
       // Count total
@@ -163,17 +164,17 @@ export default async function apiPubblicaRoutes(fastify, opts) {
       // Get paginated results
       const result = await query(
         `SELECT
-          b."id_bando" AS id,
-          b."Titolo" AS titolo,
-          b."CodiceCIG" AS codice_cig,
-          b."DataPubblicazione" AS data_pubblicazione,
-          b."ImportoSO" AS importo,
-          b."Regione" AS provincia,
-          COALESCE(s."Nome", b."Stazione") AS stazione,
-          b."id_tipologia" AS id_tipologia,
-          b."id_soa" AS id_soa
+          b.id_bando AS id,
+          b.titolo AS titolo,
+          b.codice_cig AS codice_cig,
+          b.data_pubblicazione AS data_pubblicazione,
+          b.importo_so AS importo,
+          b.regione AS provincia,
+          COALESCE(s.nome, b.stazione) AS stazione,
+          b.id_tipologia AS id_tipologia,
+          b.id_soa AS id_soa
          FROM bandi b
-         LEFT JOIN stazioni s ON b."id_stazione" = s."id"
+         LEFT JOIN stazioni s ON b.id_stazione = s.id
          ${whereClause}
          ORDER BY ${sortCol} ${sortOrder}
          LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
@@ -203,21 +204,21 @@ export default async function apiPubblicaRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          b."id_bando" AS id,
-          b."Titolo" AS titolo,
-          b."CodiceCIG" AS codice_cig,
-          b."CodiceCUP" AS codice_cup,
-          b."DataPubblicazione" AS data_pubblicazione,
-          b."DataOfferta" AS data_offerta,
-          b."DataApertura" AS data_apertura,
-          b."ImportoSO" AS importo,
-          b."Regione" AS provincia,
-          b."Stazione" AS stazione,
-          b."id_tipologia" AS id_tipologia,
-          b."id_soa" AS id_soa,
-          b."Descrizione" AS descrizione
+          b.id_bando AS id,
+          b.titolo AS titolo,
+          b.codice_cig AS codice_cig,
+          b.codice_cup AS codice_cup,
+          b.data_pubblicazione AS data_pubblicazione,
+          b.data_offerta AS data_offerta,
+          b.data_apertura AS data_apertura,
+          b.importo_so AS importo,
+          b.regione AS provincia,
+          b.stazione AS stazione,
+          b.id_tipologia AS id_tipologia,
+          b.id_soa AS id_soa,
+          b.descrizione AS descrizione
          FROM bandi b
-         WHERE b."id_bando" = $1 AND b."Abilitato" = true AND b."Annullato" = false
+         WHERE b.id_bando = $1 AND b.abilitato = true AND b.annullato = false
          LIMIT 1`,
         [id]
       );
@@ -257,42 +258,42 @@ export default async function apiPubblicaRoutes(fastify, opts) {
       } = request.query;
 
       const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
-      const conditions = ['g."Abilitato" = true', 'g."Annullato" = false'];
+      const conditions = ['g.abilitato = true', 'g.annullato = false'];
       const params = [];
       let paramIdx = 1;
 
       if (provincia) {
-        conditions.push(`g."Regione" = $${paramIdx}`);
+        conditions.push(`g.regione = $${paramIdx}`);
         params.push(provincia);
         paramIdx++;
       }
 
       if (id_soa) {
-        conditions.push(`g."id_soa" = $${paramIdx}`);
+        conditions.push(`g.id_soa = $${paramIdx}`);
         params.push(id_soa);
         paramIdx++;
       }
 
       if (data_da) {
-        conditions.push(`g."Data" >= $${paramIdx}`);
+        conditions.push(`g.data >= $${paramIdx}`);
         params.push(data_da);
         paramIdx++;
       }
 
       if (data_a) {
-        conditions.push(`g."Data" <= $${paramIdx}`);
+        conditions.push(`g.data <= $${paramIdx}`);
         params.push(data_a);
         paramIdx++;
       }
 
       if (importo_min) {
-        conditions.push(`g."Importo" >= $${paramIdx}`);
+        conditions.push(`g.importo >= $${paramIdx}`);
         params.push(importo_min);
         paramIdx++;
       }
 
       if (importo_max) {
-        conditions.push(`g."Importo" <= $${paramIdx}`);
+        conditions.push(`g.importo <= $${paramIdx}`);
         params.push(importo_max);
         paramIdx++;
       }
@@ -307,23 +308,24 @@ export default async function apiPubblicaRoutes(fastify, opts) {
       const total = parseInt(countResult.rows[0].total);
 
       // Validate sort column
-      const allowedSorts = ['Data', 'Titolo', 'Importo'];
-      const sortCol = allowedSorts.includes(sort) ? `g."${sort}"` : 'g."Data"';
+      const allowedSorts = ['data', 'titolo', 'importo'];
+      const sortColMap = { 'Data': 'g.data', 'Titolo': 'g.titolo', 'Importo': 'g.importo' };
+      const sortCol = sortColMap[sort] || 'g.data';
       const sortOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
       // Get paginated results
       const result = await query(
         `SELECT
-          g."id" AS id,
-          g."Titolo" AS titolo,
-          g."Data" AS data,
-          g."Importo" AS importo,
-          g."Regione" AS provincia,
-          COALESCE(s."Nome", g."Stazione") AS stazione,
-          g."id_soa" AS id_soa,
-          (SELECT COUNT(*) FROM dettagliogara WHERE "id_gara" = g."id") AS n_partecipanti
+          g.id AS id,
+          g.titolo AS titolo,
+          g.data AS data,
+          g.importo AS importo,
+          g.regione AS provincia,
+          COALESCE(s.nome, g.stazione) AS stazione,
+          g.id_soa AS id_soa,
+          (SELECT COUNT(*) FROM dettaglio_gara WHERE id_gara = g.id) AS n_partecipanti
          FROM gare g
-         LEFT JOIN stazioni s ON g."id_stazione" = s."id"
+         LEFT JOIN stazioni s ON g.id_stazione = s.id
          ${whereClause}
          ORDER BY ${sortCol} ${sortOrder}
          LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
@@ -353,17 +355,17 @@ export default async function apiPubblicaRoutes(fastify, opts) {
 
       const garaResult = await query(
         `SELECT
-          g."id" AS id,
-          g."Titolo" AS titolo,
-          g."Data" AS data,
-          g."Importo" AS importo,
-          g."Regione" AS provincia,
-          g."Stazione" AS stazione,
-          g."NPartecipanti" AS n_partecipanti,
-          g."Ribasso" AS ribasso_medio,
-          g."id_soa" AS id_soa
+          g.id AS id,
+          g.titolo AS titolo,
+          g.data AS data,
+          g.importo AS importo,
+          g.regione AS provincia,
+          g.stazione AS stazione,
+          g.n_partecipanti AS n_partecipanti,
+          g.ribasso AS ribasso_medio,
+          g.id_soa AS id_soa
          FROM gare g
-         WHERE g."id" = $1 AND g."Abilitato" = true AND g."Annullato" = false
+         WHERE g.id = $1 AND g.abilitato = true AND g.annullato = false
          LIMIT 1`,
         [id]
       );
@@ -377,15 +379,15 @@ export default async function apiPubblicaRoutes(fastify, opts) {
       // Get graduatoria
       const graduatoriaResult = await query(
         `SELECT
-          dg."Posizione" AS posizione,
-          dg."RagioneSociale" AS ragione_sociale,
-          dg."Ribasso" AS ribasso,
-          dg."Vincitrice" AS vincitrice,
-          dg."Esclusa" AS esclusa,
-          dg."Anomala" AS anomala
-         FROM dettagliogara dg
-         WHERE dg."id_gara" = $1
-         ORDER BY dg."Posizione" ASC`,
+          dg.posizione AS posizione,
+          dg.ragione_sociale AS ragione_sociale,
+          dg.ribasso AS ribasso,
+          dg.vincitrice AS vincitrice,
+          dg.esclusa AS esclusa,
+          dg.anomala AS anomala
+         FROM dettaglio_gara dg
+         WHERE dg.id_gara = $1
+         ORDER BY dg.posizione ASC`,
         [id]
       );
 
@@ -418,12 +420,12 @@ export default async function apiPubblicaRoutes(fastify, opts) {
       } = request.query;
 
       const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
-      const conditions = ['a."Abilitato" = true', 'a."Annullato" = false'];
+      const conditions = ['a.abilitato = true', 'a.annullato = false'];
       const params = [];
       let paramIdx = 1;
 
       if (search) {
-        conditions.push(`(a."RagioneSociale" ILIKE $${paramIdx} OR a."PartitaIva" ILIKE $${paramIdx})`);
+        conditions.push(`(a.ragione_sociale ILIKE $${paramIdx} OR a.partita_iva ILIKE $${paramIdx})`);
         params.push(`%${search}%`);
         paramIdx++;
       }
@@ -438,17 +440,19 @@ export default async function apiPubblicaRoutes(fastify, opts) {
       const total = parseInt(countResult.rows[0].total);
 
       // Get results
+      const sortColMap = { 'RagioneSociale': 'a.ragione_sociale', 'PartitaIva': 'a.partita_iva' };
+      const sortCol = sortColMap[sort] || 'a.ragione_sociale';
       const result = await query(
         `SELECT
-          a."id" AS id,
-          a."RagioneSociale" AS ragione_sociale,
-          a."PartitaIva" AS partita_iva,
-          a."Provincia" AS provincia,
-          a."Citta" AS citta,
-          a."Email" AS email
+          a.id AS id,
+          a.ragione_sociale AS ragione_sociale,
+          a.partita_iva AS partita_iva,
+          a.provincia AS provincia,
+          a.citta AS citta,
+          a.email AS email
          FROM aziende a
          ${whereClause}
-         ORDER BY a."${sort}" ${order.toUpperCase()}
+         ORDER BY ${sortCol} ${order.toUpperCase()}
          LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
         [...params, limit, offset]
       );
@@ -476,17 +480,17 @@ export default async function apiPubblicaRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          a."id" AS id,
-          a."RagioneSociale" AS ragione_sociale,
-          a."PartitaIva" AS partita_iva,
-          a."CodiceFiscale" AS codice_fiscale,
-          a."Provincia" AS provincia,
-          a."Citta" AS citta,
-          a."Indirizzo" AS indirizzo,
-          a."Telefono" AS telefono,
-          a."Email" AS email
+          a.id AS id,
+          a.ragione_sociale AS ragione_sociale,
+          a.partita_iva AS partita_iva,
+          a.codice_fiscale AS codice_fiscale,
+          a.provincia AS provincia,
+          a.citta AS citta,
+          a.indirizzo AS indirizzo,
+          a.telefono AS telefono,
+          a.email AS email
          FROM aziende a
-         WHERE a."id" = $1 AND a."Abilitato" = true AND a."Annullato" = false
+         WHERE a.id = $1 AND a.abilitato = true AND a.annullato = false
          LIMIT 1`,
         [id]
       );
@@ -500,10 +504,10 @@ export default async function apiPubblicaRoutes(fastify, opts) {
       // Get statistics
       const statsResult = await query(
         `SELECT
-          (SELECT COUNT(*) FROM dettagliogara WHERE id_azienda = $1) AS total_partecipazioni,
-          (SELECT COUNT(*) FROM dettagliogara WHERE id_azienda = $1 AND "Vincitrice" = true) AS total_vittorie,
-          (SELECT COUNT(*) FROM dettagliogara WHERE id_azienda = $1 AND "Esclusa" = true) AS total_esclusioni,
-          (SELECT AVG("Ribasso") FROM dettagliogara WHERE id_azienda = $1) AS ribasso_medio
+          (SELECT COUNT(*) FROM dettaglio_gara WHERE id_azienda = $1) AS total_partecipazioni,
+          (SELECT COUNT(*) FROM dettaglio_gara WHERE id_azienda = $1 AND vincitrice = true) AS total_vittorie,
+          (SELECT COUNT(*) FROM dettaglio_gara WHERE id_azienda = $1 AND esclusa = true) AS total_esclusioni,
+          (SELECT AVG(ribasso) FROM dettaglio_gara WHERE id_azienda = $1) AS ribasso_medio
          FROM aziende WHERE id = $1`,
         [id]
       );
@@ -544,12 +548,12 @@ export default async function apiPubblicaRoutes(fastify, opts) {
       } = request.query;
 
       const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
-      const conditions = ['s."Abilitato" = true', 's."Annullato" = false'];
+      const conditions = ['s.abilitato = true', 's.annullato = false'];
       const params = [];
       let paramIdx = 1;
 
       if (search) {
-        conditions.push(`(s."Nome" ILIKE $${paramIdx} OR s."CodiceEnte" ILIKE $${paramIdx})`);
+        conditions.push(`(s.nome ILIKE $${paramIdx} OR s.codice_ente ILIKE $${paramIdx})`);
         params.push(`%${search}%`);
         paramIdx++;
       }
@@ -564,18 +568,20 @@ export default async function apiPubblicaRoutes(fastify, opts) {
       const total = parseInt(countResult.rows[0].total);
 
       // Get results
+      const sortColMap = { 'Nome': 's.nome', 'CodiceEnte': 's.codice_ente' };
+      const sortCol = sortColMap[sort] || 's.nome';
       const result = await query(
         `SELECT
-          s."id" AS id,
-          s."Nome" AS nome,
-          s."CodiceEnte" AS codice_ente,
-          s."Provincia" AS provincia,
-          s."Citta" AS citta,
-          s."Regione" AS regione,
-          s."Email" AS email
+          s.id AS id,
+          s.nome AS nome,
+          s.codice_ente AS codice_ente,
+          s.provincia AS provincia,
+          s.citta AS citta,
+          s.regione AS regione,
+          s.email AS email
          FROM stazioni s
          ${whereClause}
-         ORDER BY s."${sort}" ${order.toUpperCase()}
+         ORDER BY ${sortCol} ${order.toUpperCase()}
          LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
         [...params, limit, offset]
       );
@@ -603,19 +609,19 @@ export default async function apiPubblicaRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          s."id" AS id,
-          s."Nome" AS nome,
-          s."CodiceEnte" AS codice_ente,
-          s."Provincia" AS provincia,
-          s."Citta" AS citta,
-          s."Regione" AS regione,
-          s."Indirizzo" AS indirizzo,
-          s."Telefono" AS telefono,
-          s."Email" AS email,
-          s."Latitudine" AS latitudine,
-          s."Longitudine" AS longitudine
+          s.id AS id,
+          s.nome AS nome,
+          s.codice_ente AS codice_ente,
+          s.provincia AS provincia,
+          s.citta AS citta,
+          s.regione AS regione,
+          s.indirizzo AS indirizzo,
+          s.telefono AS telefono,
+          s.email AS email,
+          s.latitudine AS latitudine,
+          s.longitudine AS longitudine
          FROM stazioni s
-         WHERE s."id" = $1 AND s."Abilitato" = true AND s."Annullato" = false
+         WHERE s.id = $1 AND s.abilitato = true AND s.annullato = false
          LIMIT 1`,
         [id]
       );

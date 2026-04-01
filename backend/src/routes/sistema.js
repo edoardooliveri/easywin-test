@@ -181,7 +181,7 @@ export default async function sistemaRoutes(fastify, opts) {
             g."Importo" AS importo,
             g."Regione" AS provincia,
             COALESCE(s."Nome", g."Stazione") AS stazione,
-            (SELECT COUNT(*) FROM dettagliogara WHERE "id_gara" = g."id") AS n_partecipanti
+            (SELECT COUNT(*) FROM dettaglio_gara WHERE "id_gara" = g."id") AS n_partecipanti
            FROM gare g
            LEFT JOIN stazioni s ON g."id_stazione" = s."id"
            WHERE g."Abilitato" = true AND g."Annullato" = false
@@ -194,15 +194,15 @@ export default async function sistemaRoutes(fastify, opts) {
         const result = await query(
           `SELECT
             a."id" AS id,
-            a."RagioneSociale" AS ragione_sociale,
-            a."PartitaIva" AS partita_iva,
-            a."Citta" AS citta,
-            a."Provincia" AS provincia,
-            a."Email" AS email,
-            a."Telefono" AS telefono
+            a."ragione_sociale" AS ragione_sociale,
+            a."partita_iva" AS partita_iva,
+            a."citta" AS citta,
+            a."provincia" AS provincia,
+            a."email" AS email,
+            a."telefono" AS telefono
            FROM aziende a
-           WHERE a."Abilitato" = true AND a."Annullato" = false
-           ORDER BY a."RagioneSociale" ASC`,
+           WHERE a."eliminata" != true AND a."annullato" != true
+           ORDER BY a."ragione_sociale" ASC`,
           []
         );
         data = result.rows;
@@ -211,15 +211,15 @@ export default async function sistemaRoutes(fastify, opts) {
         const result = await query(
           `SELECT
             s."id" AS id,
-            s."Nome" AS nome,
-            s."CodiceEnte" AS codice_ente,
-            s."Citta" AS citta,
-            s."Provincia" AS provincia,
-            s."Regione" AS regione,
-            s."Email" AS email
+            s."nome" AS nome,
+            s."codice_ente" AS codice_ente,
+            s."citta" AS citta,
+            s."provincia" AS provincia,
+            s."regione" AS regione,
+            s."email" AS email
            FROM stazioni s
-           WHERE s."Abilitato" = true AND s."Annullato" = false
-           ORDER BY s."Nome" ASC`,
+           WHERE s."eliminata" != true AND s."annullato" != true
+           ORDER BY s."nome" ASC`,
           []
         );
         data = result.rows;

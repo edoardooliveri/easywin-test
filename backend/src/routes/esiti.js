@@ -103,7 +103,7 @@ export default async function esitiRoutes(fastify) {
           g."variante" AS variante,
           g."codice_cig" AS codice_cig,
           s."nome" AS stazione_nome,
-          soa."cod" AS soa_categoria,
+          soa."codice" AS soa_categoria,
           soa."descrizione" AS soa_descrizione,
           tg."nome" AS tipologia,
           c."nome" AS criterio,
@@ -111,7 +111,7 @@ export default async function esitiRoutes(fastify) {
           r."regione" AS regione_nome,
           az."ragione_sociale" AS vincitore_nome,
           az."partita_iva" AS vincitore_piva,
-          (SELECT COUNT(*) FROM dettagliogara dg WHERE dg."id_gara" = g."id") AS n_dettagli
+          (SELECT COUNT(*) FROM dettaglio_gara dg WHERE dg."id_gara" = g."id") AS n_dettagli
         ${joinClause}
         LEFT JOIN soa ON g."id_soa" = soa."id"
         LEFT JOIN tipologia_gare tg ON g."id_tipologia" = tg."id"
@@ -168,7 +168,7 @@ export default async function esitiRoutes(fastify) {
         g."data_inserimento" AS data_inserimento,
         g."data_modifica" AS data_modifica,
         s."nome" AS stazione_nome,
-        soa."cod" AS soa_categoria,
+        soa."codice" AS soa_categoria,
         soa."descrizione" AS soa_descrizione,
         tg."nome" AS tipologia,
         c."nome" AS criterio,
@@ -207,7 +207,7 @@ export default async function esitiRoutes(fastify) {
         dg."note" AS note,
         az."ragione_sociale" AS ragione_sociale,
         az."partita_iva" AS partita_iva
-      FROM dettagliogara dg
+      FROM dettaglio_gara dg
       LEFT JOIN aziende az ON dg."id_azienda" = az."id"
       WHERE dg."id_gara" = $1
       ORDER BY dg."posizione" ASC NULLS LAST
@@ -284,11 +284,11 @@ export default async function esitiRoutes(fastify) {
 
       const garaId = garaResult.rows[0].id;
 
-      // Insert graduatoria (dettagliogara)
+      // Insert graduatoria (dettaglio_gara)
       if (data.graduatoria && data.graduatoria.length > 0) {
         for (const det of data.graduatoria) {
           await client.query(`
-            INSERT INTO dettagliogara (
+            INSERT INTO dettaglio_gara (
               "id_gara", "variante", "id_azienda", "posizione", "ribasso", "importo_offerta",
               "taglio_ali", "m_media_arit", "anomala",
               "vincitrice", "ammessa", "ammessa_riserva", "esclusa",
@@ -413,7 +413,7 @@ export default async function esitiRoutes(fastify) {
         az."ragione_sociale" AS azienda_nome,
         az."partita_iva" AS azienda_piva,
         az."codice_fiscale" AS azienda_cf
-      FROM dettagliogara dg
+      FROM dettaglio_gara dg
       LEFT JOIN aziende az ON dg."id_azienda" = az."id"
       WHERE dg."id_gara" = $1 AND dg."variante" = $2
       ORDER BY dg."posizione" ASC NULLS LAST
@@ -430,7 +430,7 @@ export default async function esitiRoutes(fastify) {
     const det = request.body;
 
     const result = await query(`
-      INSERT INTO dettagliogara (
+      INSERT INTO dettaglio_gara (
         "id_gara", "variante", "id_azienda", "posizione", "ribasso", "importo_offerta",
         "taglio_ali", "anomala", "vincitrice", "ammessa", "esclusa",
         "da_verificare", "sconosciuto", "ragione_sociale", "partita_iva",
@@ -1167,17 +1167,17 @@ export default async function esitiRoutes(fastify) {
 
         // Clone dettagli_gara
         await trx(
-          `INSERT INTO dettagliogara (
-            "id_gara", "Variante", "id_azienda", "Posizione", "Ribasso", "ImportoOfferta",
-            "TaglioAli", "Anomala", "Vincitrice", "Ammessa", "Esclusa",
-            "DaVerificare", "Sconosciuto", "RagioneSociale", "PartitaIva",
-            "PunteggioTecnico", "PunteggioEconomico", "PunteggioTotale", "Inserimento", "Note"
+          `INSERT INTO dettaglio_gara (
+            id_gara, variante, id_azienda, posizione, ribasso, importo_offerta,
+            taglio_ali, anomala, vincitrice, ammessa, esclusa,
+            da_verificare, sconosciuto, ragione_sociale, partita_iva,
+            punteggio_tecnico, punteggio_economico, punteggio_totale, inserimento, note
           )
-           SELECT $1, "Variante", "id_azienda", "Posizione", "Ribasso", "ImportoOfferta",
-            "TaglioAli", "Anomala", "Vincitrice", "Ammessa", "Esclusa",
-            "DaVerificare", "Sconosciuto", "RagioneSociale", "PartitaIva",
-            "PunteggioTecnico", "PunteggioEconomico", "PunteggioTotale", "Inserimento", "Note"
-           FROM dettagliogara WHERE "id_gara" = $2`,
+           SELECT $1, variante, id_azienda, posizione, ribasso, importo_offerta,
+            taglio_ali, anomala, vincitrice, ammessa, esclusa,
+            da_verificare, sconosciuto, ragione_sociale, partita_iva,
+            punteggio_tecnico, punteggio_economico, punteggio_totale, inserimento, note
+           FROM dettaglio_gara WHERE id_gara = $2`,
           [newId, id]
         );
 
@@ -1206,11 +1206,11 @@ export default async function esitiRoutes(fastify) {
     const { id } = request.params;
     const result = await query(`
       SELECT ag."id", ag."id_gara", ag."id_azienda" AS id_mandataria,
-        az."RagioneSociale" AS mandataria_nome,
+        az."ragione_sociale" AS mandataria_nome,
         json_agg(
           json_build_object(
             'id_mandante', m."id_azienda",
-            'mandante_nome', m_az."RagioneSociale",
+            'mandante_nome', m_az."ragione_sociale",
             'quota', m."quota"
           )
         ) AS mandanti
@@ -1219,7 +1219,7 @@ export default async function esitiRoutes(fastify) {
       LEFT JOIN mandanti m ON ag."id" = m."id_ati"
       LEFT JOIN aziende m_az ON m."id_azienda" = m_az."id"
       WHERE ag."id_gara" = $1
-      GROUP BY ag."id", ag."id_gara", ag."id_azienda", az."RagioneSociale"
+      GROUP BY ag."id", ag."id_gara", ag."id_azienda", az."ragione_sociale"
     `, [id]);
     return result.rows;
   });
@@ -1299,7 +1299,7 @@ export default async function esitiRoutes(fastify) {
     const { id, idAzienda } = request.params;
     const result = await query(`
       SELECT m."id", m."id_ati", m."id_azienda", m."quota",
-        az."RagioneSociale" AS azienda_nome
+        az."ragione_sociale" AS azienda_nome
       FROM mandanti m
       JOIN ati_gare ag ON m."id_ati" = ag."id"
       JOIN aziende az ON m."id_azienda" = az."id"
@@ -1353,7 +1353,7 @@ export default async function esitiRoutes(fastify) {
     const result = await query(`
       SELECT p."id", p."id_gara", p."id_azienda", p."punteggio_tecnico",
         p."punteggio_economico", p."punteggio_totale",
-        az."RagioneSociale" AS azienda_nome
+        az."ragione_sociale" AS azienda_nome
       FROM punteggi p
       LEFT JOIN aziende az ON p."id_azienda" = az."id"
       WHERE p."id_gara" = $1
@@ -1473,7 +1473,7 @@ export default async function esitiRoutes(fastify) {
     const result = await query(`
       SELECT r."id", r."id_gara", r."id_azienda", r."tipo", r."data_ricorso",
         r."esito_ricorso", r."note",
-        az."RagioneSociale" AS azienda_nome
+        az."ragione_sociale" AS azienda_nome
       FROM gare_ricorsi r
       LEFT JOIN aziende az ON r."id_azienda" = az."id"
       WHERE r."id_gara" = $1
@@ -1609,20 +1609,20 @@ export default async function esitiRoutes(fastify) {
       await transaction(async (trx) => {
         // Get source ordering
         const sourceOrder = await trx(
-          `SELECT "id", "Posizione" FROM dettagliogara WHERE "id_gara" = $1 ORDER BY "Posizione" ASC NULLS LAST`,
+          `SELECT "id", posizione FROM dettaglio_gara WHERE "id_gara" = $1 ORDER BY posizione ASC NULLS LAST`,
           [id_esito_sorgente]
         );
 
         // Get target details
         const targetDetails = await trx(
-          `SELECT "id" FROM dettagliogara WHERE "id_gara" = $1 ORDER BY "id" ASC`,
+          `SELECT "id" FROM dettaglio_gara WHERE "id_gara" = $1 ORDER BY "id" ASC`,
           [id]
         );
 
         // Apply ordering to target (1:1 match by sequence)
         for (let i = 0; i < Math.min(sourceOrder.rows.length, targetDetails.rows.length); i++) {
           await trx(
-            `UPDATE dettagliogara SET "Posizione" = $1 WHERE "id" = $2`,
+            `UPDATE dettaglio_gara SET posizione = $1 WHERE "id" = $2`,
             [sourceOrder.rows[i].Posizione, targetDetails.rows[i].id]
           );
         }
@@ -1642,13 +1642,13 @@ export default async function esitiRoutes(fastify) {
     try {
       await transaction(async (trx) => {
         const details = await trx(
-          `SELECT "id" FROM dettagliogara WHERE "id_gara" = $1 ORDER BY "Posizione" DESC NULLS LAST`,
+          `SELECT "id" FROM dettaglio_gara WHERE "id_gara" = $1 ORDER BY posizione DESC NULLS LAST`,
           [id]
         );
 
         for (let i = 0; i < details.rows.length; i++) {
           await trx(
-            `UPDATE dettagliogara SET "Posizione" = $1 WHERE "id" = $2`,
+            `UPDATE dettaglio_gara SET posizione = $1 WHERE "id" = $2`,
             [i + 1, details.rows[i].id]
           );
         }
@@ -1673,7 +1673,7 @@ export default async function esitiRoutes(fastify) {
     try {
       await transaction(async (trx) => {
         const detail = await trx(
-          `SELECT "Posizione" FROM dettagliogara WHERE "id" = $1`,
+          `SELECT posizione FROM dettaglio_gara WHERE "id" = $1`,
           [id_dettaglio]
         );
 
@@ -1687,22 +1687,22 @@ export default async function esitiRoutes(fastify) {
         if (oldPos < newPos) {
           // Moving down: decrement positions between oldPos+1 and newPos
           await trx(
-            `UPDATE dettagliogara SET "Posizione" = "Posizione" - 1
-             WHERE "id_gara" = $1 AND "Posizione" > $2 AND "Posizione" <= $3`,
+            `UPDATE dettaglio_gara SET posizione = posizione - 1
+             WHERE "id_gara" = $1 AND posizione > $2 AND posizione <= $3`,
             [id, oldPos, newPos]
           );
         } else if (oldPos > newPos) {
           // Moving up: increment positions between newPos and oldPos-1
           await trx(
-            `UPDATE dettagliogara SET "Posizione" = "Posizione" + 1
-             WHERE "id_gara" = $1 AND "Posizione" >= $2 AND "Posizione" < $3`,
+            `UPDATE dettaglio_gara SET posizione = posizione + 1
+             WHERE "id_gara" = $1 AND posizione >= $2 AND posizione < $3`,
             [id, newPos, oldPos]
           );
         }
 
         // Set the detail to new position
         await trx(
-          `UPDATE dettagliogara SET "Posizione" = $1 WHERE "id" = $2`,
+          `UPDATE dettaglio_gara SET posizione = $1 WHERE "id" = $2`,
           [newPos, id_dettaglio]
         );
       });
@@ -1727,7 +1727,7 @@ export default async function esitiRoutes(fastify) {
       }
 
       const esito = eR.rows[0];
-      const dettagli = await query(`SELECT * FROM dettagliogara WHERE "id_gara" = $1 ORDER BY "Posizione"`, [id]);
+      const dettagli = await query(`SELECT * FROM dettaglio_gara WHERE "id_gara" = $1 ORDER BY posizione`, [id]);
 
       let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
       xml += '<Esito>\n';
@@ -2020,9 +2020,9 @@ export default async function esitiRoutes(fastify) {
   // ============================================================
   fastify.get('/tipologie', { preHandler: [fastify.authenticate] }, async () => {
     const result = await query(`
-      SELECT "id_tipologia" AS id, "Tipologia" AS tipologia, "Descrizione" AS descrizione
+      SELECT id, nome AS tipologia, descrizione
       FROM tipologia_gare
-      ORDER BY "Tipologia" ASC
+      ORDER BY nome ASC
     `);
     return result.rows;
   });
@@ -2083,8 +2083,8 @@ export default async function esitiRoutes(fastify) {
     const result = await query(`
       SELECT a."id", a."id_gara", a."id_azienda_principale", a."id_azienda_ausiliaria",
         a."tipo",
-        az_p."RagioneSociale" AS azienda_principale_nome,
-        az_a."RagioneSociale" AS azienda_ausiliaria_nome
+        az_p."ragione_sociale" AS azienda_principale_nome,
+        az_a."ragione_sociale" AS azienda_ausiliaria_nome
       FROM avvalimenti a
       LEFT JOIN aziende az_p ON a."id_azienda_principale" = az_p."id"
       LEFT JOIN aziende az_a ON a."id_azienda_ausiliaria" = az_a."id"

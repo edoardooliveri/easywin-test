@@ -184,10 +184,10 @@ export default async function adminDashboardRoutes(fastify, opts) {
   fastify.get('/dashboard/ultimi-inserimenti', async (request, reply) => {
     try {
       const result = await query(`
-        SELECT 'bando' AS tipo, id, titolo, data, codice_cig AS cig
+        SELECT 'bando' AS tipo, id, titolo, data_pubblicazione AS data, codice_cig AS cig
         FROM bandi
         UNION ALL
-        SELECT 'esito' AS tipo, id, oggetto AS titolo, data, codice_cig AS cig
+        SELECT 'esito' AS tipo, id, titolo AS titolo, data, codice_cig AS cig
         FROM gare
         ORDER BY data DESC
         LIMIT 20
@@ -227,10 +227,10 @@ export default async function adminDashboardRoutes(fastify, opts) {
   fastify.get('/dashboard/attivita-recente', async (request, reply) => {
     try {
       const result = await query(`
-        SELECT 'bando' AS tipo, id, data AS data_modifica, modificato_da AS modified_by, codice_cig AS riferimento
+        SELECT 'bando' AS tipo, id, data_modifica AS data_modifica, modified_by AS modified_by, codice_cig AS riferimento
         FROM bandi_modifiche
         UNION ALL
-        SELECT 'esito' AS tipo, id, data AS data_modifica, modificato_da AS modified_by, codice_cig AS riferimento
+        SELECT 'esito' AS tipo, id, data_modifica AS data_modifica, modified_by AS modified_by, codice_cig AS riferimento
         FROM gare_modifiche
         ORDER BY data_modifica DESC
         LIMIT 50

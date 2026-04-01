@@ -187,7 +187,7 @@ export default async function simulazioniEngineRoutes(fastify) {
     }
 
     // Build query for matching historical esiti
-    const conditions = ['"eliminata" = false', '"NPartecipanti" > 0', '"Ribasso" IS NOT NULL'];
+    const conditions = ['"eliminata" = false', '"n_partecipanti" > 0', '"ribasso" IS NOT NULL'];
     const values = [];
     let idx = 1;
 
@@ -196,17 +196,17 @@ export default async function simulazioniEngineRoutes(fastify) {
     if (id_provincia) { conditions.push(`s."id_provincia" = $${idx}`); values.push(id_provincia); idx++; }
     if (id_tipologia) { conditions.push(`g."id_tipologia" = $${idx}`); values.push(id_tipologia); idx++; }
     if (id_criterio) { conditions.push(`b."id_criterio" = $${idx}`); values.push(id_criterio); idx++; }
-    if (data_min) { conditions.push(`g."Data" >= $${idx}`); values.push(data_min); idx++; }
-    if (data_max) { conditions.push(`g."Data" <= $${idx}`); values.push(data_max); idx++; }
-    if (importo_min) { conditions.push(`g."Importo" >= $${idx}`); values.push(importo_min); idx++; }
-    if (importo_max) { conditions.push(`g."Importo" <= $${idx}`); values.push(importo_max); idx++; }
+    if (data_min) { conditions.push(`g."data" >= $${idx}`); values.push(data_min); idx++; }
+    if (data_max) { conditions.push(`g."data" <= $${idx}`); values.push(data_max); idx++; }
+    if (importo_min) { conditions.push(`g."importo" >= $${idx}`); values.push(importo_min); idx++; }
+    if (importo_max) { conditions.push(`g."importo" <= $${idx}`); values.push(importo_max); idx++; }
 
     const gareResult = await query(`
-      SELECT g."id", g."Data", g."Titolo", g."Importo", g."NPartecipanti",
-        g."Ribasso", g."MediaAr", g."SogliaAn", g."MediaSc", g."NDecimali",
-        g."CodiceCIG", g."id_vincitore", g."id_tipologia",
-        s."Nome" AS stazione_nome,
-        soa."Descrizione" AS soa_desc
+      SELECT g."id", g."data", g."titolo", g."importo", g."n_partecipanti",
+        g."ribasso", g."media_ar", g."soglia_an", g."media_sc", g."n_decimali",
+        g."codice_cig", g."id_vincitore", g."id_tipologia",
+        s."nome" AS stazione_nome,
+        soa."descrizione" AS soa_desc
       FROM gare g
       LEFT JOIN stazioni s ON g."id_stazione" = s."id"
       LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
@@ -214,7 +214,7 @@ export default async function simulazioniEngineRoutes(fastify) {
       LEFT JOIN soa ON g."id_soa" = soa."id"
       LEFT JOIN bandi b ON g."id_bando" = b."id_bando"
       WHERE ${conditions.join(' AND ')}
-      ORDER BY g."Data" DESC
+      ORDER BY g."data" DESC
       LIMIT 1000
     `, values);
 
@@ -251,14 +251,14 @@ export default async function simulazioniEngineRoutes(fastify) {
       message: 'Simulazione creata. Prossimo step: selezionare esiti storici',
       gare_sample: gare.slice(0, 20).map(g => ({
         id: g.id,
-        data: g.Data,
-        titolo: g.Titolo,
-        importo: g.Importo,
-        ribasso: g.Ribasso,
-        n_partecipanti: g.NPartecipanti,
+        data: g.data,
+        titolo: g.titolo,
+        importo: g.importo,
+        ribasso: g.ribasso,
+        n_partecipanti: g.n_partecipanti,
         stazione: g.stazione_nome,
-        media_ar: g.MediaAr,
-        soglia_an: g.SogliaAn
+        media_ar: g.media_ar,
+        soglia_an: g.soglia_an
       }))
     };
   });
@@ -293,8 +293,8 @@ export default async function simulazioniEngineRoutes(fastify) {
 
     const gareDetailsResult = await query(`
       SELECT g.*,
-        s."Nome" AS stazione_nome,
-        soa."Descrizione" AS soa_desc
+        s."nome" AS stazione_nome,
+        soa."descrizione" AS soa_desc
       FROM gare g
       LEFT JOIN stazioni s ON g."id_stazione" = s."id"
       LEFT JOIN soa ON g."id_soa" = soa."id"
@@ -321,9 +321,9 @@ export default async function simulazioniEngineRoutes(fastify) {
         message: 'Esiti storici selezionati. Prossimo step: conferma e calcolo iniziale',
         esiti: gareDetails.slice(0, 10).map(g => ({
           id: g.id,
-          data: g.Data,
-          titolo: g.Titolo,
-          ribasso: g.Ribasso
+          data: g.data,
+          titolo: g.titolo,
+          ribasso: g.ribasso
         }))
       };
     });
@@ -408,7 +408,7 @@ export default async function simulazioniEngineRoutes(fastify) {
     const { id, idAzienda } = request.params;
 
     const detailRes = await query(`
-      SELECT d.*, a."Denominazione" as azienda_nome
+      SELECT d.*, a."ragione_sociale" as azienda_nome
       FROM dettagli_simulazione d
       LEFT JOIN aziende a ON d.id_azienda = a.id
       WHERE d.id_simulazione = $1 AND d.id_azienda = $2

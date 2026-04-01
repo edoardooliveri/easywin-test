@@ -19,7 +19,7 @@ export default async function adminAziendeRoutes(fastify, opts) {
   fastify.get('/', async (request, reply) => {
     try {
       const {
-        page = 1, limit = 50, sort = 'RagioneSociale', order = 'ASC',
+        page = 1, limit = 50, sort = 'ragione_sociale', order = 'ASC',
         search, provincia, soa, tipo_attestazione, active = null, deleted = false
       } = request.query;
 
@@ -30,15 +30,15 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       // Base condition: exclude or include deleted based on deleted param
       if (deleted === 'true' || deleted === true) {
-        conditions.push('a."eliminata" = true');
+        conditions.push('a.eliminata = true');
       } else {
-        conditions.push('a."eliminata" = false');
+        conditions.push('a.eliminata = false');
       }
 
       // Search by name, P.IVA, CF, email
       if (search) {
         conditions.push(
-          `(a."RagioneSociale" ILIKE $${paramIdx} OR a."PartitaIva" ILIKE $${paramIdx} OR a."CodiceFiscale" ILIKE $${paramIdx} OR a."Email" ILIKE $${paramIdx})`
+          `(a.ragione_sociale ILIKE $${paramIdx} OR a.partita_iva ILIKE $${paramIdx} OR a.codice_fiscale ILIKE $${paramIdx} OR a.email ILIKE $${paramIdx})`
         );
         params.push(`%${search}%`);
         paramIdx++;
@@ -46,71 +46,77 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       // Filter by province
       if (provincia) {
-        conditions.push(`p."Provincia" ILIKE $${paramIdx}`);
+        conditions.push(`p.provincia ILIKE $${paramIdx}`);
         params.push(`%${provincia}%`);
         paramIdx++;
       }
 
       // Filter by SOA type
       if (soa) {
-        conditions.push(`a."TipologiaAttestazione" ILIKE $${paramIdx}`);
+        conditions.push(`a.tipo_attestazione ILIKE $${paramIdx}`);
         params.push(`%${soa}%`);
         paramIdx++;
       }
 
       // Filter by certification type
       if (tipo_attestazione) {
-        conditions.push(`a."TipologiaAttestazione" ILIKE $${paramIdx}`);
+        conditions.push(`a.tipo_attestazione ILIKE $${paramIdx}`);
         params.push(`%${tipo_attestazione}%`);
         paramIdx++;
       }
 
       // Filter by active status (non-cessata)
       if (active === 'true') {
-        conditions.push('a."Cessata" = false');
+        conditions.push('a.cessata = false');
       } else if (active === 'false') {
-        conditions.push('a."Cessata" = true');
+        conditions.push('a.cessata = true');
       }
 
       const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
 
       // Count total
       const countRes = await query(
-        `SELECT COUNT(*) as total FROM aziende a LEFT JOIN province p ON a."id_provincia" = p."id_provincia" ${whereClause}`,
+        `SELECT COUNT(*) as total FROM aziende a LEFT JOIN province p ON a.id_provincia = p.id_provincia ${whereClause}`,
         params
       );
 
       const total = parseInt(countRes.rows[0].total);
 
       // Allowed sort columns
-      const allowedSort = ['RagioneSociale', 'DataCreazione', 'PartitaIva', 'Città'];
-      const sortCol = allowedSort.includes(sort) ? `a."${sort}"` : 'a."RagioneSociale"';
+      const allowedSort = ['ragione_sociale', 'data_creazione', 'partita_iva', 'citta'];
+      const sortMap = {
+        'ragione_sociale': 'a.ragione_sociale',
+        'data_creazione': 'a.data_creazione',
+        'partita_iva': 'a.partita_iva',
+        'citta': 'a.citta'
+      };
+      const sortCol = sortMap[sort] || 'a.ragione_sociale';
       const sortDir = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
       params.push(limit, offset);
       const dataRes = await query(`
-        SELECT a."id", a."RagioneSociale" AS ragione_sociale, a."Nome" AS nome,
-               a."Indirizzo" AS indirizzo, a."Cap" AS cap, a."Città" AS citta,
-               a."PartitaIva" AS partita_iva, a."CodiceFiscale" AS codice_fiscale,
-               a."Email" AS email, a."Tel" AS telefono, a."Note" AS note,
-               a."eliminata", a."Cessata" AS cessata,
-               a."IndirizzoPEC" AS pec, a."CodiceSDI" AS codice_sdi,
-               a."TipologiaAttestazione" AS tipo_attestazione,
-               a."SocAttestatriceSoa" AS soc_attestatrice,
-               a."DataRilascioAttestazioneInCorso" AS data_rilascio_soa,
-               a."ValiditàQuinquennale" AS validita_quinquennale,
-               a."ValiditàTriennale" AS validita_triennale,
-               a."ScadenzaEsiti" AS scadenza_esiti, a."ScadenzaBandi" AS scadenza_bandi,
-               a."Referente" AS referente, a."TelefonoReferente" AS tel_referente,
-               a."UsernameResponsabile" AS username_responsabile,
-               a."AbbonatoSopralluoghi" AS abbonato_sopralluoghi,
-               a."AbbonatoAperture" AS abbonato_aperture,
-               a."DataCreazione" AS created_at, a."DataModifica" AS updated_at,
-               p."Provincia" AS provincia_nome, p."id_provincia" AS id_provincia,
-               r."Regione" AS regione_nome
+        SELECT a.id, a.ragione_sociale, a.nome,
+               a.indirizzo, a.cap, a.citta,
+               a.partita_iva, a.codice_fiscale,
+               a.email, a.tel AS telefono, a.note,
+               a.eliminata, a.cessata,
+               a.indirizzo_pec AS pec, a.codice_sdi,
+               a.tipo_attestazione,
+               a.soc_attestatrice,
+               a.data_rilascio_attestazione_in_corso AS data_rilascio_soa,
+               a.validita_quinquennale,
+               a.validita_triennale,
+               a.scadenza_esiti, a.scadenza_bandi,
+               a.referente, a.telefono_referente AS tel_referente,
+               a.username_responsabile,
+               a.abbonato_sopralluoghi,
+               a.abbonato_aperture,
+               a.data_creazione AS created_at, a.data_modifica AS updated_at,
+               p.provincia AS provincia_nome, p.id_provincia,
+               r.regione AS regione_nome
         FROM aziende a
-        LEFT JOIN province p ON a."id_provincia" = p."id_provincia"
-        LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
+        LEFT JOIN province p ON a.id_provincia = p.id_provincia
+        LEFT JOIN regioni r ON p.id_regione = r.id_regione
         ${whereClause}
         ORDER BY ${sortCol} ${sortDir}
         LIMIT $${params.length - 1} OFFSET $${params.length}
@@ -138,11 +144,11 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       // Company details
       const azRes = await query(`
-        SELECT a.*, p."Provincia" AS provincia_nome, r."Regione" AS regione_nome
+        SELECT a.*, p.provincia AS provincia_nome, r.regione AS regione_nome
         FROM aziende a
-        LEFT JOIN province p ON a."id_provincia" = p."id_provincia"
-        LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
-        WHERE a."id" = $1
+        LEFT JOIN province p ON a.id_provincia = p.id_provincia
+        LEFT JOIN regioni r ON p.id_regione = r.id_regione
+        WHERE a.id = $1
       `, [id]);
 
       if (azRes.rows.length === 0) {
@@ -153,56 +159,56 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       // Attestazioni/SOA
       const attestazioniRes = await query(`
-        SELECT aa."id", aa."IdSoa", aa."id_attestazione", aa."Anno",
-               s."cod" AS codice_soa, s."Descrizione" AS descrizione_soa,
-               att."Attestazione" AS classifica, att."Importo" AS importo_classifica,
-               aa."DataInserimento" AS data_inserimento, aa."scadenza"
+        SELECT aa.id, aa.id_soa, aa.id_attestazione, aa.anno,
+               s.cod AS codice_soa, s.descrizione AS descrizione_soa,
+               att.attestazione AS classifica, att.importo AS importo_classifica,
+               aa.data_inserimento, aa.scadenza
         FROM attestazioniaziende aa
-        LEFT JOIN soa s ON aa."IdSoa" = s."id"
-        LEFT JOIN attestazioni att ON aa."id_attestazione" = att."id_Attestazione"
-        WHERE aa."IdAzienda" = $1
-        ORDER BY aa."Anno" DESC
+        LEFT JOIN soa s ON aa.id_soa = s.id
+        LEFT JOIN attestazioni att ON aa.id_attestazione = att.id_attestazione
+        WHERE aa.id_azienda = $1
+        ORDER BY aa.anno DESC
       `, [id]);
 
       // Personnel (soggetti art. 94)
       const personaleRes = await query(`
-        SELECT "id", "Nome" AS nome, "Ruolo" AS ruolo, "CodiceFiscale" AS codice_fiscale,
-               "DataInserimento" AS data_inserimento
+        SELECT id, nome, ruolo, codice_fiscale,
+               data_inserimento
         FROM aziendapersonale
-        WHERE "IdAzienda" = $1
-        ORDER BY "DataInserimento" DESC
+        WHERE id_azienda = $1
+        ORDER BY data_inserimento DESC
       `, [id]);
 
       // Notes
       const noteRes = await query(`
-        SELECT "id", "Data" AS data, "UserName" AS username, "Nota" AS nota, "DataAlert" AS data_alert
+        SELECT id, data, username, nota, data_alert
         FROM noteaziende
-        WHERE "IDAzienda" = $1
-        ORDER BY "Data" DESC
+        WHERE id_azienda = $1
+        ORDER BY data DESC
         LIMIT 50
       `, [id]);
 
       // Events
       const eventiRes = await query(`
-        SELECT "id", "Data" AS data, "Tipo" AS tipo, "Descrizione" AS descrizione,
-               "UserName" AS username
+        SELECT id, data, tipo, descrizione,
+               username
         FROM eventiaziende
-        WHERE "IDAzienda" = $1
-        ORDER BY "Data" DESC
+        WHERE id_azienda = $1
+        ORDER BY data DESC
         LIMIT 50
       `, [id]);
 
       // Recent esiti/gare
       const gareRes = await query(`
-        SELECT g."id", g."Data" AS data, g."Titolo" AS titolo, g."Importo" AS importo,
-               dg."Ribasso" AS ribasso, dg."Posizione" AS posizione,
-               dg."Vincitrice" AS vincitrice, dg."Anomalia" AS anomalia,
-               s."RagioneSociale" AS stazione
-        FROM dettagliogara dg
-        JOIN gare g ON dg."id_gara" = g."id"
-        LEFT JOIN stazioni s ON g."id_stazione" = s."id"
-        WHERE dg."id_azienda" = $1
-        ORDER BY g."Data" DESC
+        SELECT g.id, g.data, g.titolo, g.importo,
+               dg.ribasso, dg.posizione,
+               dg.vincitrice, dg.anomala,
+               s.nome AS stazione
+        FROM dettaglio_gara dg
+        JOIN gare g ON dg.id_gara = g.id
+        LEFT JOIN stazioni s ON g.id_stazione = s.id
+        WHERE dg.id_azienda = $1
+        ORDER BY g.data DESC
         LIMIT 40
       `, [id]);
 
@@ -239,11 +245,11 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       const res = await query(`
         INSERT INTO aziende (
-          "RagioneSociale", "Nome", "Indirizzo", "Cap", "Città", "id_provincia",
-          "PartitaIva", "CodiceFiscale", "Email", "Tel",
-          "IndirizzoPEC", "CodiceSDI", "TipologiaAttestazione", "SocAttestatriceSoa",
-          "Referente", "TelefonoReferente", "UsernameResponsabile",
-          "DataCreazione", "DataModifica", "eliminata", "Cessata"
+          ragione_sociale, nome, indirizzo, cap, citta, id_provincia,
+          partita_iva, codice_fiscale, email, tel,
+          indirizzo_pec, codice_sdi, tipo_attestazione, soc_attestatrice,
+          referente, telefono_referente, username_responsabile,
+          data_creazione, data_modifica, eliminata, cessata
         ) VALUES (
           $1, $2, $3, $4, $5, $6,
           $7, $8, $9, $10,
@@ -251,7 +257,7 @@ export default async function adminAziendeRoutes(fastify, opts) {
           $15, $16, $17,
           NOW(), NOW(), false, false
         )
-        RETURNING "id"
+        RETURNING id
       `, [
         ragione_sociale, nome, indirizzo, cap, citta, provincia_id,
         partita_iva, codice_fiscale, email, telefono,
@@ -285,11 +291,11 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       // Build dynamic update query
       const allowedFields = [
-        'RagioneSociale', 'Nome', 'Indirizzo', 'Cap', 'Città', 'id_provincia',
-        'PartitaIva', 'CodiceFiscale', 'Email', 'Tel',
-        'IndirizzoPEC', 'CodiceSDI', 'TipologiaAttestazione', 'SocAttestatriceSoa',
-        'Referente', 'TelefonoReferente', 'UsernameResponsabile',
-        'AbbonatoSopralluoghi', 'AbbonatoAperture', 'Cessata'
+        'ragione_sociale', 'nome', 'indirizzo', 'cap', 'citta', 'id_provincia',
+        'partita_iva', 'codice_fiscale', 'email', 'tel',
+        'indirizzo_pec', 'codice_sdi', 'tipo_attestazione', 'soc_attestatrice',
+        'referente', 'telefono_referente', 'username_responsabile',
+        'abbonato_sopralluoghi', 'abbonato_aperture', 'cessata'
       ];
 
       const setClauses = [];
@@ -297,10 +303,9 @@ export default async function adminAziendeRoutes(fastify, opts) {
       let paramIdx = 1;
 
       for (const field of allowedFields) {
-        const snakeCase = field.replace(/([A-Z])/g, '_$1').toLowerCase();
-        if (snakeCase in updates || field in updates) {
-          setClauses.push(`"${field}" = $${paramIdx}`);
-          params.push(updates[snakeCase] || updates[field]);
+        if (field in updates) {
+          setClauses.push(`${field} = $${paramIdx}`);
+          params.push(updates[field]);
           paramIdx++;
         }
       }
@@ -309,12 +314,12 @@ export default async function adminAziendeRoutes(fastify, opts) {
         return reply.status(400).send({ error: 'No fields to update' });
       }
 
-      setClauses.push(`"DataModifica" = NOW()`);
+      setClauses.push(`data_modifica = NOW()`);
       params.push(id);
 
       await query(`
         UPDATE aziende SET ${setClauses.join(', ')}
-        WHERE "id" = $${paramIdx}
+        WHERE id = $${paramIdx}
       `, params);
 
       // Log in audit trail
@@ -339,8 +344,8 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { id } = request.params;
 
       await query(`
-        UPDATE aziende SET "eliminata" = true, "DataModifica" = NOW()
-        WHERE "id" = $1
+        UPDATE aziende SET eliminata = true, data_modifica = NOW()
+        WHERE id = $1
       `, [id]);
 
       await query(`
@@ -367,12 +372,12 @@ export default async function adminAziendeRoutes(fastify, opts) {
     try {
       const { page = 1, limit = 50, search } = request.query;
       const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
-      const conditions = ['a."eliminata" = true'];
+      const conditions = ['a.eliminata = true'];
       const params = [];
       let paramIdx = 1;
 
       if (search) {
-        conditions.push(`a."RagioneSociale" ILIKE $${paramIdx}`);
+        conditions.push(`a.ragione_sociale ILIKE $${paramIdx}`);
         params.push(`%${search}%`);
         paramIdx++;
       }
@@ -388,11 +393,11 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       params.push(limit, offset);
       const dataRes = await query(`
-        SELECT a."id", a."RagioneSociale" AS ragione_sociale, a."PartitaIva" AS partita_iva,
-               a."DataModifica" AS deleted_at
+        SELECT a.id, a.ragione_sociale, a.partita_iva,
+               a.data_modifica AS deleted_at
         FROM aziende a
         ${whereClause}
-        ORDER BY a."DataModifica" DESC
+        ORDER BY a.data_modifica DESC
         LIMIT $${params.length - 1} OFFSET $${params.length}
       `, params);
 
@@ -417,8 +422,8 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { id } = request.params;
 
       await query(`
-        UPDATE aziende SET "eliminata" = false, "DataModifica" = NOW()
-        WHERE "id" = $1
+        UPDATE aziende SET eliminata = false, data_modifica = NOW()
+        WHERE id = $1
       `, [id]);
 
       await query(`
@@ -443,14 +448,14 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       // Delete related records first
       await Promise.all([
-        query('DELETE FROM noteaziende WHERE "IDAzienda" = $1', [id]),
-        query('DELETE FROM eventiaziende WHERE "IDAzienda" = $1', [id]),
-        query('DELETE FROM aziendapersonale WHERE "IdAzienda" = $1', [id]),
-        query('DELETE FROM attestazioniaziende WHERE "IdAzienda" = $1', [id])
+        query('DELETE FROM noteaziende WHERE id_azienda = $1', [id]),
+        query('DELETE FROM eventiaziende WHERE id_azienda = $1', [id]),
+        query('DELETE FROM aziendapersonale WHERE id_azienda = $1', [id]),
+        query('DELETE FROM attestazioniaziende WHERE id_azienda = $1', [id])
       ]);
 
       // Delete company
-      await query('DELETE FROM aziende WHERE "id" = $1', [id]);
+      await query('DELETE FROM aziende WHERE id = $1', [id]);
 
       // No need to log since record is deleted
       return reply.send({ message: 'Azienda eliminata permanentemente' });
@@ -473,16 +478,16 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { id } = request.params;
 
       const res = await query(`
-        SELECT aa."id", aa."IdSoa", aa."id_attestazione", aa."Anno",
-               s."cod" AS codice_soa, s."Descrizione" AS descrizione_soa,
-               att."Attestazione" AS classifica, att."Importo" AS importo_classifica,
-               aa."DataInserimento" AS data_inserimento, aa."scadenza",
-               aa."note"
+        SELECT aa.id, aa.id_soa, aa.id_attestazione, aa.anno,
+               s.cod AS codice_soa, s.descrizione AS descrizione_soa,
+               att.attestazione AS classifica, att.importo AS importo_classifica,
+               aa.data_inserimento, aa.scadenza,
+               aa.note
         FROM attestazioniaziende aa
-        LEFT JOIN soa s ON aa."IdSoa" = s."id"
-        LEFT JOIN attestazioni att ON aa."id_attestazione" = att."id_Attestazione"
-        WHERE aa."IdAzienda" = $1
-        ORDER BY aa."Anno" DESC
+        LEFT JOIN soa s ON aa.id_soa = s.id
+        LEFT JOIN attestazioni att ON aa.id_attestazione = att.id_attestazione
+        WHERE aa.id_azienda = $1
+        ORDER BY aa.anno DESC
       `, [id]);
 
       return { attestazioni: res.rows };
@@ -507,10 +512,10 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       const res = await query(`
         INSERT INTO attestazioniaziende (
-          "IdAzienda", "IdSoa", "id_attestazione", "Anno", "scadenza", "note",
-          "DataInserimento"
+          id_azienda, id_soa, id_attestazione, anno, scadenza, note,
+          data_inserimento
         ) VALUES ($1, $2, $3, $4, $5, $6, NOW())
-        RETURNING "id"
+        RETURNING id
       `, [id, id_soa, id_attestazione, anno, scadenza, note]);
 
       await query(`
@@ -535,21 +540,21 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { id_soa, id_attestazione, anno, scadenza, note } = request.body;
 
       // Get azienda_id for audit log
-      const aziendaRes = await query('SELECT "IdAzienda" FROM attestazioniaziende WHERE "id" = $1', [id]);
+      const aziendaRes = await query('SELECT id_azienda FROM attestazioniaziende WHERE id = $1', [id]);
       if (aziendaRes.rows.length === 0) {
         return reply.status(404).send({ error: 'Attestazione not found' });
       }
 
-      const aziendaId = aziendaRes.rows[0].IdAzienda;
+      const aziendaId = aziendaRes.rows[0].id_azienda;
 
       await query(`
         UPDATE attestazioniaziende
-        SET "IdSoa" = COALESCE($2, "IdSoa"),
-            "id_attestazione" = COALESCE($3, "id_attestazione"),
-            "Anno" = COALESCE($4, "Anno"),
-            "scadenza" = COALESCE($5, "scadenza"),
-            "note" = COALESCE($6, "note")
-        WHERE "id" = $1
+        SET id_soa = COALESCE($2, id_soa),
+            id_attestazione = COALESCE($3, id_attestazione),
+            anno = COALESCE($4, anno),
+            scadenza = COALESCE($5, scadenza),
+            note = COALESCE($6, note)
+        WHERE id = $1
       `, [id, id_soa, id_attestazione, anno, scadenza, note]);
 
       await query(`
@@ -572,14 +577,14 @@ export default async function adminAziendeRoutes(fastify, opts) {
     try {
       const { id } = request.params;
 
-      const aziendaRes = await query('SELECT "IdAzienda" FROM attestazioniaziende WHERE "id" = $1', [id]);
+      const aziendaRes = await query('SELECT id_azienda FROM attestazioniaziende WHERE id = $1', [id]);
       if (aziendaRes.rows.length === 0) {
         return reply.status(404).send({ error: 'Attestazione not found' });
       }
 
-      const aziendaId = aziendaRes.rows[0].IdAzienda;
+      const aziendaId = aziendaRes.rows[0].id_azienda;
 
-      await query('DELETE FROM attestazioniaziende WHERE "id" = $1', [id]);
+      await query('DELETE FROM attestazioniaziende WHERE id = $1', [id]);
 
       await query(`
         INSERT INTO modifiche_azienda (id_azienda, tipo_modifica, descrizione, username)
@@ -606,11 +611,11 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { id } = request.params;
 
       const res = await query(`
-        SELECT "id", "Nome" AS nome, "Ruolo" AS ruolo, "CodiceFiscale" AS codice_fiscale,
-               "DataInserimento" AS data_inserimento
+        SELECT id, nome, ruolo, codice_fiscale,
+               data_inserimento
         FROM aziendapersonale
-        WHERE "IdAzienda" = $1
-        ORDER BY "DataInserimento" DESC
+        WHERE id_azienda = $1
+        ORDER BY data_inserimento DESC
       `, [id]);
 
       return { personale: res.rows };
@@ -635,9 +640,9 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       const res = await query(`
         INSERT INTO aziendapersonale (
-          "IdAzienda", "Nome", "Ruolo", "CodiceFiscale", "DataInserimento"
+          id_azienda, nome, ruolo, codice_fiscale, data_inserimento
         ) VALUES ($1, $2, $3, $4, NOW())
-        RETURNING "id"
+        RETURNING id
       `, [id, nome, ruolo, codice_fiscale]);
 
       await query(`
@@ -661,19 +666,19 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { id } = request.params;
       const { nome, ruolo, codice_fiscale } = request.body;
 
-      const aziendaRes = await query('SELECT "IdAzienda" FROM aziendapersonale WHERE "id" = $1', [id]);
+      const aziendaRes = await query('SELECT id_azienda FROM aziendapersonale WHERE id = $1', [id]);
       if (aziendaRes.rows.length === 0) {
         return reply.status(404).send({ error: 'Personale not found' });
       }
 
-      const aziendaId = aziendaRes.rows[0].IdAzienda;
+      const aziendaId = aziendaRes.rows[0].id_azienda;
 
       await query(`
         UPDATE aziendapersonale
-        SET "Nome" = COALESCE($2, "Nome"),
-            "Ruolo" = COALESCE($3, "Ruolo"),
-            "CodiceFiscale" = COALESCE($4, "CodiceFiscale")
-        WHERE "id" = $1
+        SET nome = COALESCE($2, nome),
+            ruolo = COALESCE($3, ruolo),
+            codice_fiscale = COALESCE($4, codice_fiscale)
+        WHERE id = $1
       `, [id, nome, ruolo, codice_fiscale]);
 
       await query(`
@@ -696,14 +701,14 @@ export default async function adminAziendeRoutes(fastify, opts) {
     try {
       const { id } = request.params;
 
-      const aziendaRes = await query('SELECT "IdAzienda" FROM aziendapersonale WHERE "id" = $1', [id]);
+      const aziendaRes = await query('SELECT id_azienda FROM aziendapersonale WHERE id = $1', [id]);
       if (aziendaRes.rows.length === 0) {
         return reply.status(404).send({ error: 'Personale not found' });
       }
 
-      const aziendaId = aziendaRes.rows[0].IdAzienda;
+      const aziendaId = aziendaRes.rows[0].id_azienda;
 
-      await query('DELETE FROM aziendapersonale WHERE "id" = $1', [id]);
+      await query('DELETE FROM aziendapersonale WHERE id = $1', [id]);
 
       await query(`
         INSERT INTO modifiche_azienda (id_azienda, tipo_modifica, descrizione, username)
@@ -730,10 +735,10 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { id } = request.params;
 
       const res = await query(`
-        SELECT "id", "Data" AS data, "UserName" AS username, "Nota" AS nota, "DataAlert" AS data_alert
+        SELECT id, data, username, nota, data_alert
         FROM noteaziende
-        WHERE "IDAzienda" = $1
-        ORDER BY "Data" DESC
+        WHERE id_azienda = $1
+        ORDER BY data DESC
         LIMIT 100
       `, [id]);
 
@@ -759,9 +764,9 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       const res = await query(`
         INSERT INTO noteaziende (
-          "IDAzienda", "Data", "UserName", "Nota", "DataAlert"
+          id_azienda, data, username, nota, data_alert
         ) VALUES ($1, NOW(), $2, $3, $4)
-        RETURNING "id"
+        RETURNING id
       `, [id, request.session.user.username, nota, data_alert]);
 
       return reply.status(201).send({ id: res.rows[0].id, message: 'Nota aggiunta' });
@@ -779,7 +784,7 @@ export default async function adminAziendeRoutes(fastify, opts) {
     try {
       const { id } = request.params;
 
-      await query('DELETE FROM noteaziende WHERE "id" = $1', [id]);
+      await query('DELETE FROM noteaziende WHERE id = $1', [id]);
 
       return reply.send({ message: 'Nota eliminata' });
     } catch (err) {
@@ -797,11 +802,11 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { id } = request.params;
 
       const res = await query(`
-        SELECT "id", "Data" AS data, "Tipo" AS tipo, "Descrizione" AS descrizione,
-               "UserName" AS username
+        SELECT id, data, tipo, descrizione,
+               username
         FROM eventiaziende
-        WHERE "IDAzienda" = $1
-        ORDER BY "Data" DESC
+        WHERE id_azienda = $1
+        ORDER BY data DESC
         LIMIT 100
       `, [id]);
 
@@ -827,9 +832,9 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       const res = await query(`
         INSERT INTO eventiaziende (
-          "IDAzienda", "Data", "Tipo", "Descrizione", "UserName"
+          id_azienda, data, tipo, descrizione, username
         ) VALUES ($1, NOW(), $2, $3, $4)
-        RETURNING "id"
+        RETURNING id
       `, [id, tipo, descrizione, request.session.user.username]);
 
       return reply.status(201).send({ id: res.rows[0].id, message: 'Evento aggiunto' });
@@ -847,7 +852,7 @@ export default async function adminAziendeRoutes(fastify, opts) {
     try {
       const { id } = request.params;
 
-      await query('DELETE FROM eventiaziende WHERE "id" = $1', [id]);
+      await query('DELETE FROM eventiaziende WHERE id = $1', [id]);
 
       return reply.send({ message: 'Evento eliminato' });
     } catch (err) {
@@ -869,16 +874,16 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { id } = request.params;
 
       const res = await query(`
-        SELECT ag."id", ag."id_gara", ag."id_azienda_mandataria", ag."id_azienda_mandante",
-               ag."tipo_partecipazione", g."Titolo" AS titolo_gara, g."Data" AS data_gara,
-               am."RagioneSociale" AS ragione_sociale_mandataria,
-               an."RagioneSociale" AS ragione_sociale_mandante
+        SELECT ag.id, ag.id_gara, ag.id_azienda_mandataria, ag.id_azienda_mandante,
+               ag.tipo_partecipazione, g.titolo AS titolo_gara, g.data AS data_gara,
+               am.ragione_sociale AS ragione_sociale_mandataria,
+               an.ragione_sociale AS ragione_sociale_mandante
         FROM ati_gare ag
-        JOIN gare g ON ag."id_gara" = g."id"
-        LEFT JOIN aziende am ON ag."id_azienda_mandataria" = am."id"
-        LEFT JOIN aziende an ON ag."id_azienda_mandante" = an."id"
-        WHERE ag."id_azienda_mandataria" = $1 OR ag."id_azienda_mandante" = $1
-        ORDER BY g."Data" DESC
+        JOIN gare g ON ag.id_gara = g.id
+        LEFT JOIN aziende am ON ag.id_azienda_mandataria = am.id
+        LEFT JOIN aziende an ON ag.id_azienda_mandante = an.id
+        WHERE ag.id_azienda_mandataria = $1 OR ag.id_azienda_mandante = $1
+        ORDER BY g.data DESC
       `, [id]);
 
       return { ati: res.rows };
@@ -897,19 +902,19 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { id } = request.params;
 
       const res = await query(`
-        SELECT DISTINCT g."id", g."Data" AS data, g."Titolo" AS titolo, g."Importo" AS importo,
-               dg."Ribasso" AS ribasso, dg."Posizione" AS posizione, dg."Vincitrice" AS vincitrice,
-               a."RagioneSociale" AS ragione_sociale_lead,
-               string_agg(DISTINCT a2."RagioneSociale", ', ') AS mandanti
+        SELECT DISTINCT g.id, g.data, g.titolo, g.importo,
+               dg.ribasso, dg.posizione, dg.vincitrice,
+               a.ragione_sociale AS ragione_sociale_lead,
+               string_agg(DISTINCT a2.ragione_sociale, ', ') AS mandanti
         FROM gare g
-        JOIN dettagliogara dg ON dg."id_gara" = g."id"
-        JOIN aziende a ON dg."id_azienda" = a."id"
-        LEFT JOIN ati_gare ag ON g."id" = ag."id_gara" AND (ag."id_azienda_mandataria" = dg."id_azienda" OR ag."id_azienda_mandante" = dg."id_azienda")
-        LEFT JOIN aziende a2 ON (ag."id_azienda_mandante" = a2."id" AND ag."id_azienda_mandataria" = dg."id_azienda")
-                             OR (ag."id_azienda_mandataria" = a2."id" AND ag."id_azienda_mandante" = dg."id_azienda")
-        WHERE dg."id_azienda" = $1 OR ag."id_azienda_mandante" = $1 OR ag."id_azienda_mandataria" = $1
-        GROUP BY g."id", dg."Ribasso", dg."Posizione", dg."Vincitrice", a."RagioneSociale"
-        ORDER BY g."Data" DESC
+        JOIN dettaglio_gara dg ON dg.id_gara = g.id
+        JOIN aziende a ON dg.id_azienda = a.id
+        LEFT JOIN ati_gare ag ON g.id = ag.id_gara AND (ag.id_azienda_mandataria = dg.id_azienda OR ag.id_azienda_mandante = dg.id_azienda)
+        LEFT JOIN aziende a2 ON (ag.id_azienda_mandante = a2.id AND ag.id_azienda_mandataria = dg.id_azienda)
+                             OR (ag.id_azienda_mandataria = a2.id AND ag.id_azienda_mandante = dg.id_azienda)
+        WHERE dg.id_azienda = $1 OR ag.id_azienda_mandante = $1 OR ag.id_azienda_mandataria = $1
+        GROUP BY g.id, dg.ribasso, dg.posizione, dg.vincitrice, a.ragione_sociale
+        ORDER BY g.data DESC
         LIMIT 100
       `, [id]);
 
@@ -933,9 +938,9 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { term = '' } = request.query;
 
       const res = await query(`
-        SELECT "id", "RagioneSociale" AS ragione_sociale, "PartitaIva" AS partita_iva
+        SELECT id, ragione_sociale, partita_iva
         FROM aziende
-        WHERE "eliminata" = false AND "RagioneSociale" ILIKE $1
+        WHERE eliminata = false AND ragione_sociale ILIKE $1
         LIMIT 20
       `, [`%${term}%`]);
 
@@ -955,9 +960,9 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { term = '' } = request.query;
 
       const res = await query(`
-        SELECT "id", "RagioneSociale" AS ragione_sociale, "PartitaIva" AS partita_iva
+        SELECT id, ragione_sociale, partita_iva
         FROM aziende
-        WHERE "eliminata" = false AND "PartitaIva" ILIKE $1
+        WHERE eliminata = false AND partita_iva ILIKE $1
         LIMIT 20
       `, [`%${term}%`]);
 
@@ -977,12 +982,12 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { term = '' } = request.query;
 
       const res = await query(`
-        SELECT DISTINCT a."id", a."RagioneSociale" AS ragione_sociale,
-               COUNT(dg."id") AS n_partecipazioni
+        SELECT DISTINCT a.id, a.ragione_sociale,
+               COUNT(dg.id) AS n_partecipazioni
         FROM aziende a
-        JOIN dettagliogara dg ON a."id" = dg."id_azienda"
-        WHERE a."eliminata" = false AND a."RagioneSociale" ILIKE $1
-        GROUP BY a."id", a."RagioneSociale"
+        JOIN dettaglio_gara dg ON a.id = dg.id_azienda
+        WHERE a.eliminata = false AND a.ragione_sociale ILIKE $1
+        GROUP BY a.id, a.ragione_sociale
         ORDER BY n_partecipazioni DESC
         LIMIT 20
       `, [`%${term}%`]);
@@ -1008,19 +1013,19 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       // Total esiti participated
       const totalRes = await query(`
-        SELECT COUNT(*) as total, COUNT(CASE WHEN "Vincitrice" = true THEN 1 END) as vinti
-        FROM dettagliogara
-        WHERE "id_azienda" = $1
+        SELECT COUNT(*) as total, COUNT(CASE WHEN vincitrice = true THEN 1 END) as vinti
+        FROM dettaglio_gara
+        WHERE id_azienda = $1
       `, [id]);
 
       // Average discount
       const avgRes = await query(`
-        SELECT AVG("Ribasso") as media_ribasso,
-               MIN("Ribasso") as min_ribasso,
-               MAX("Ribasso") as max_ribasso,
-               STDDEV("Ribasso") as stddev_ribasso
-        FROM dettagliogara
-        WHERE "id_azienda" = $1 AND "Ribasso" IS NOT NULL
+        SELECT AVG(ribasso) as media_ribasso,
+               MIN(ribasso) as min_ribasso,
+               MAX(ribasso) as max_ribasso,
+               STDDEV(ribasso) as stddev_ribasso
+        FROM dettaglio_gara
+        WHERE id_azienda = $1 AND ribasso IS NOT NULL
       `, [id]);
 
       // Winner percentage
@@ -1056,13 +1061,13 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { id } = request.params;
 
       const res = await query(`
-        SELECT dg."id", g."Data" AS data, g."Titolo" AS titolo,
-               dg."Ribasso" AS ribasso, dg."Posizione" AS posizione,
-               dg."Vincitrice" AS vincitrice
-        FROM dettagliogara dg
-        JOIN gare g ON dg."id_gara" = g."id"
-        WHERE dg."id_azienda" = $1 AND dg."Ribasso" IS NOT NULL
-        ORDER BY g."Data" DESC
+        SELECT dg.id, g.data, g.titolo,
+               dg.ribasso, dg.posizione,
+               dg.vincitrice
+        FROM dettaglio_gara dg
+        JOIN gare g ON dg.id_gara = g.id
+        WHERE dg.id_azienda = $1 AND dg.ribasso IS NOT NULL
+        ORDER BY g.data DESC
         LIMIT 40
       `, [id]);
 
@@ -1120,13 +1125,13 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { id } = request.params;
 
       const res = await query(`
-        SELECT dg."id", g."Data" AS data, g."Titolo" AS titolo,
-               dg."Ribasso" AS ribasso,
-               g."Importo" AS importo, g."MediaAr" AS media_ar
-        FROM dettagliogara dg
-        JOIN gare g ON dg."id_gara" = g."id"
-        WHERE dg."id_azienda" = $1 AND dg."Vincitrice" = true AND dg."Ribasso" IS NOT NULL
-        ORDER BY g."Data" DESC
+        SELECT dg.id, g.data, g.titolo,
+               dg.ribasso,
+               g.importo, g.media_ar
+        FROM dettaglio_gara dg
+        JOIN gare g ON dg.id_gara = g.id
+        WHERE dg.id_azienda = $1 AND dg.vincitrice = true AND dg.ribasso IS NOT NULL
+        ORDER BY g.data DESC
         LIMIT 40
       `, [id]);
 
@@ -1162,13 +1167,13 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       const res = await query(`
         SELECT
-          dg."Vincitrice" as vincitrice,
-          dg."Anomalia" as anomalia,
-          dg."Esclusa" as esclusa,
+          dg.vincitrice,
+          dg.anomala,
+          dg.esclusa,
           COUNT(*) as count
-        FROM dettagliogara dg
-        WHERE dg."id_azienda" = $1
-        GROUP BY dg."Vincitrice", dg."Anomalia", dg."Esclusa"
+        FROM dettaglio_gara dg
+        WHERE dg.id_azienda = $1
+        GROUP BY dg.vincitrice, dg.anomala, dg.esclusa
       `, [id]);
 
       const results = {
@@ -1182,7 +1187,7 @@ export default async function adminAziendeRoutes(fastify, opts) {
       res.rows.forEach(row => {
         if (row.vincitrice === true) {
           results.vittorie = parseInt(row.count);
-        } else if (row.anomalia === true) {
+        } else if (row.anomala === true) {
           results.anomalie = parseInt(row.count);
         } else if (row.esclusa === true) {
           results.escluse = parseInt(row.count);
@@ -1219,17 +1224,17 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       const res = await query(`
         SELECT
-          COUNT(*) FILTER (WHERE ag."id" IS NULL) as singolo,
-          COUNT(*) FILTER (WHERE ag."id_azienda_mandataria" = $1) as mandataria,
-          COUNT(*) FILTER (WHERE ag."id_azienda_mandante" = $1) as mandante,
-          COUNT(*) FILTER (WHERE dg."id_azienda" = $1 AND EXISTS (
-            SELECT 1 FROM ati_gare ag2 WHERE ag2."id_gara" = dg."id_gara"
+          COUNT(*) FILTER (WHERE ag.id IS NULL) as singolo,
+          COUNT(*) FILTER (WHERE ag.id_azienda_mandataria = $1) as mandataria,
+          COUNT(*) FILTER (WHERE ag.id_azienda_mandante = $1) as mandante,
+          COUNT(*) FILTER (WHERE dg.id_azienda = $1 AND EXISTS (
+            SELECT 1 FROM ati_gare ag2 WHERE ag2.id_gara = dg.id_gara
           )) as con_ati
-        FROM dettagliogara dg
-        LEFT JOIN ati_gare ag ON dg."id_gara" = ag."id_gara" AND (
-          ag."id_azienda_mandataria" = dg."id_azienda" OR ag."id_azienda_mandante" = dg."id_azienda"
+        FROM dettaglio_gara dg
+        LEFT JOIN ati_gare ag ON dg.id_gara = ag.id_gara AND (
+          ag.id_azienda_mandataria = dg.id_azienda OR ag.id_azienda_mandante = dg.id_azienda
         )
-        WHERE dg."id_azienda" = $1
+        WHERE dg.id_azienda = $1
       `, [id, id, id, id, id]);
 
       const breakdown = res.rows[0] || {};
@@ -1265,10 +1270,10 @@ export default async function adminAziendeRoutes(fastify, opts) {
       const { id } = request.params;
 
       const res = await query(`
-        SELECT "id", "id_azienda", "tipo_modifica", "descrizione", "username", "data_modifica"
+        SELECT id, id_azienda, tipo_modifica, descrizione, username, data_modifica
         FROM modifiche_azienda
-        WHERE "id_azienda" = $1
-        ORDER BY "data_modifica" DESC
+        WHERE id_azienda = $1
+        ORDER BY data_modifica DESC
         LIMIT 100
       `, [id]);
 

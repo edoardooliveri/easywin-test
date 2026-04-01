@@ -44,8 +44,8 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
     if (id_provincia) {
       const bandoProvincia = paramIdx;
       const esitiProvincia = paramIdx + 1;
-      bandiConditions.push(`EXISTS (SELECT 1 FROM bandiprovince bp WHERE bp.id_bando = b.id AND bp.id_provincia = $${bandoProvincia})`);
-      esitiConditions.push(`EXISTS (SELECT 1 FROM esitiprovince ep WHERE ep.id_esito = e.id AND ep.id_provincia = $${esitiProvincia})`);
+      bandiConditions.push(`EXISTS (SELECT 1 FROM bandi_province bp WHERE bp.id_bando = b.id AND bp.id_provincia = $${bandoProvincia})`);
+      esitiConditions.push(`EXISTS (SELECT 1 FROM esiti_province ep WHERE ep.id_esito = e.id AND ep.id_provincia = $${esitiProvincia})`);
       params.push(id_provincia, id_provincia);
       paramIdx += 2;
     }

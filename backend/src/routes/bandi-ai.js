@@ -303,7 +303,7 @@ REGOLE:
              b."DataPubblicazione", b."ImportoSO",
              COUNT(a."id") AS n_allegati_pdf
       FROM bandi b
-      INNER JOIN allegatibando a ON a."id_bando" = b."id_bando" AND a."NomeFile" ILIKE '%.pdf'
+      INNER JOIN allegati_bando a ON a."id_bando" = b."id_bando" AND a."NomeFile" ILIKE '%.pdf'
       WHERE b."Provenienza" = 'Presidia'
         AND (b."ai_processed" IS NULL OR b."ai_processed" = false)
         AND b."Annullato" = false
@@ -316,7 +316,7 @@ REGOLE:
     const pendingNoPdf = await query(`
       SELECT b."id_bando", b."Titolo", b."CodiceCIG", b."Stazione", b."DataPubblicazione"
       FROM bandi b
-      LEFT JOIN allegatibando a ON a."id_bando" = b."id_bando" AND a."NomeFile" ILIKE '%.pdf'
+      LEFT JOIN allegati_bando a ON a."id_bando" = b."id_bando" AND a."NomeFile" ILIKE '%.pdf'
       WHERE b."Provenienza" = 'Presidia'
         AND (b."ai_processed" IS NULL OR b."ai_processed" = false)
         AND b."Annullato" = false
@@ -357,7 +357,7 @@ REGOLE:
 
     // Get PDF allegati
     const allegatiRes = await query(
-      `SELECT "NomeFile", "Documento" FROM allegatibando
+      `SELECT "NomeFile", "Documento" FROM allegati_bando
        WHERE "id_bando" = $1 AND "NomeFile" ILIKE '%.pdf'
        ORDER BY "LastUpdate" DESC LIMIT 3`,
       [id]
@@ -403,7 +403,7 @@ REGOLE:
 
     // Get PDF allegati for this bando
     const allegatiRes = await query(
-      `SELECT "NomeFile", "Documento" FROM allegatibando
+      `SELECT "NomeFile", "Documento" FROM allegati_bando
        WHERE "id_bando" = $1 AND "NomeFile" ILIKE '%.pdf'
        ORDER BY "LastUpdate" DESC LIMIT 3`,
       [bando_id]
@@ -468,7 +468,7 @@ REGOLE:
     const bandiRes = await query(
       `SELECT DISTINCT b."id_bando", b."Titolo", b."CodiceCIG"
        FROM bandi b
-       INNER JOIN allegatibando a ON a."id_bando" = b."id_bando" AND a."NomeFile" ILIKE '%.pdf'
+       INNER JOIN allegati_bando a ON a."id_bando" = b."id_bando" AND a."NomeFile" ILIKE '%.pdf'
        WHERE b."Provenienza" = 'Presidia' AND (b."ai_processed" IS NULL OR b."ai_processed" = false)
        ORDER BY b."DataPubblicazione" DESC
        LIMIT $1`,
@@ -481,7 +481,7 @@ REGOLE:
       try {
         // Get PDF
         const pdfRes = await query(
-          `SELECT "NomeFile", "Documento" FROM allegatibando
+          `SELECT "NomeFile", "Documento" FROM allegati_bando
            WHERE "id_bando" = $1 AND "NomeFile" ILIKE '%.pdf' LIMIT 1`,
           [bando.id_bando]
         );

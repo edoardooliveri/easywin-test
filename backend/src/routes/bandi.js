@@ -109,17 +109,17 @@ export default async function bandiRoutes(fastify, opts) {
         b.external_code AS external_code,
         COALESCE(b.stazione_nome, s.nome) AS stazione,
         s.sito_web AS stazione_sito_web,
-        soa.cod AS soa_codice,
+        soa.codice AS soa_codice,
         soa.descrizione AS soa_descrizione,
         tg.nome AS tipologia,
-        c.criterio AS criterio,
-        p2.piattaforma AS piattaforma_nome,
+        c.nome AS criterio,
+        p2.nome AS piattaforma_nome,
         p2.url AS piattaforma_url
        FROM bandi b
        LEFT JOIN stazioni s ON b.id_stazione = s.id
        LEFT JOIN soa ON b.id_soa = soa.id
        LEFT JOIN tipologia_gare tg ON b.id_tipologia = tg.id
-       LEFT JOIN criteri c ON b.id_criterio = c.id_criterio
+       LEFT JOIN criteri c ON b.id_criterio = c.id
        LEFT JOIN piattaforme p2 ON b.id_piattaforma = p2.id
        ${whereClause}
        ORDER BY ${sortCol} ${sortOrder}
@@ -148,17 +148,17 @@ export default async function bandiRoutes(fastify, opts) {
       `SELECT b.*,
         s.nome AS stazione_rel_nome, s.citta AS stazione_citta,
         s.sito_web AS stazione_sito_web, s.email AS stazione_email, s.tel AS stazione_tel,
-        soa.cod AS soa_codice, soa.descrizione AS soa_descrizione,
+        soa.codice AS soa_codice, soa.descrizione AS soa_descrizione,
         tg.nome AS tipologia_nome,
-        tb.tipologia AS tipologia_bando_nome,
-        c.criterio AS criterio_nome,
-        p.piattaforma AS piattaforma_nome, p.url AS piattaforma_url
+        tb.nome AS tipologia_bando_nome,
+        c.nome AS criterio_nome,
+        p.nome AS piattaforma_nome, p.url AS piattaforma_url
        FROM bandi b
        LEFT JOIN stazioni s ON b.id_stazione = s.id
        LEFT JOIN soa ON b.id_soa = soa.id
        LEFT JOIN tipologia_gare tg ON b.id_tipologia = tg.id
-       LEFT JOIN tipologiabandi tb ON b.id_tipologia_bando = tb.id_tipologia_bando
-       LEFT JOIN criteri c ON b.id_criterio = c.id_criterio
+       LEFT JOIN tipologia_bandi tb ON b.id_tipologia_bando = tb.id
+       LEFT JOIN criteri c ON b.id_criterio = c.id
        LEFT JOIN piattaforme p ON b.id_piattaforma = p.id
        WHERE b.id = $1`,
       [id]
@@ -170,12 +170,12 @@ export default async function bandiRoutes(fastify, opts) {
 
     // Fetch related data in parallel
     const [soaSec, soaAlt, soaApp, allegati, province, sopralluoghiDate] = await Promise.all([
-      query(`SELECT bs.id_bando, bs.id_soa, s.cod, s.descrizione FROM bandisoasec bs JOIN soa s ON bs.id_soa = s.id WHERE bs.id_bando = $1`, [id]),
-      query(`SELECT bs.id_bando, bs.id_soa, s.cod, s.descrizione FROM bandisoaalt bs JOIN soa s ON bs.id_soa = s.id WHERE bs.id_bando = $1`, [id]),
-      query(`SELECT bs.id_bando, bs.id_soa, s.cod, s.descrizione FROM bandisoaapp bs JOIN soa s ON bs.id_soa = s.id WHERE bs.id_bando = $1`, [id]),
-      query(`SELECT id_bando, nome_file, documento, last_update, user_name FROM allegatibando WHERE id_bando = $1 ORDER BY last_update DESC`, [id]),
-      query(`SELECT bp.id_bando, bp.id_provincia, p.provincia, p.siglaprovincia FROM bandiprovince bp JOIN province p ON bp.id_provincia = p.id_provincia WHERE bp.id_bando = $1`, [id]),
-      query(`SELECT id_bando FROM datesopralluoghi WHERE id_bando = $1`, [id]),
+      query(`SELECT bs.id_bando, bs.id_soa, s.codice, s.descrizione FROM bandi_soa_sec bs JOIN soa s ON bs.id_soa = s.id WHERE bs.id_bando = $1`, [id]),
+      query(`SELECT bs.id_bando, bs.id_soa, s.codice, s.descrizione FROM bandi_soa_alt bs JOIN soa s ON bs.id_soa = s.id WHERE bs.id_bando = $1`, [id]),
+      query(`SELECT bs.id_bando, bs.id_soa, s.codice, s.descrizione FROM bandi_soa_app bs JOIN soa s ON bs.id_soa = s.id WHERE bs.id_bando = $1`, [id]),
+      query(`SELECT id_bando, nome_file, documento, last_update, user_name FROM allegati_bando WHERE id_bando = $1 ORDER BY last_update DESC`, [id]),
+      query(`SELECT bp.id_bando, bp.id_provincia, p.nome, p.sigla FROM bandi_province bp JOIN province p ON bp.id_provincia = p.id WHERE bp.id_bando = $1`, [id]),
+      query(`SELECT id_bando FROM date_sopralluoghi WHERE id_bando = $1`, [id]),
     ]);
 
     return {
@@ -246,7 +246,7 @@ export default async function bandiRoutes(fastify, opts) {
       if (data.soa_sec?.length) {
         for (const soa of data.soa_sec) {
           await client.query(
-            'INSERT INTO bandisoasec (id_bando, id_soa) VALUES ($1, $2)',
+            'INSERT INTO bandi_soa_sec (id_bando, id_soa) VALUES ($1, $2)',
             [bandoId, soa.id_soa]
           );
         }
@@ -254,7 +254,7 @@ export default async function bandiRoutes(fastify, opts) {
       if (data.soa_alt?.length) {
         for (const soa of data.soa_alt) {
           await client.query(
-            'INSERT INTO bandisoaalt (id_bando, id_soa) VALUES ($1, $2)',
+            'INSERT INTO bandi_soa_alt (id_bando, id_soa) VALUES ($1, $2)',
             [bandoId, soa.id_soa]
           );
         }
@@ -262,7 +262,7 @@ export default async function bandiRoutes(fastify, opts) {
       if (data.soa_app?.length) {
         for (const soa of data.soa_app) {
           await client.query(
-            'INSERT INTO bandisoaapp (id_bando, id_soa) VALUES ($1, $2)',
+            'INSERT INTO bandi_soa_app (id_bando, id_soa) VALUES ($1, $2)',
             [bandoId, soa.id_soa]
           );
         }
@@ -272,7 +272,7 @@ export default async function bandiRoutes(fastify, opts) {
       if (data.province?.length) {
         for (const prov of data.province) {
           await client.query(
-            'INSERT INTO bandiprovince (id_bando, id_provincia) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            'INSERT INTO bandi_province (id_bando, id_provincia) VALUES ($1, $2) ON CONFLICT DO NOTHING',
             [bandoId, prov]
           );
         }
@@ -414,7 +414,7 @@ export default async function bandiRoutes(fastify, opts) {
     const result = await query(
       `SELECT id_bando, nome_file, documento, last_update, user_name,
               LENGTH(documento) AS file_size
-       FROM allegatibando WHERE id_bando = $1 ORDER BY last_update DESC`,
+       FROM allegati_bando WHERE id_bando = $1 ORDER BY last_update DESC`,
       [id]
     );
     return result.rows;
@@ -433,7 +433,7 @@ export default async function bandiRoutes(fastify, opts) {
       if (part.type === 'file') {
         const buffer = await part.toBuffer();
         const result = await query(
-          `INSERT INTO allegatibando (id_bando, nome_file, documento, last_update, user_name)
+          `INSERT INTO allegati_bando (id_bando, nome_file, documento, last_update, user_name)
            VALUES ($1, $2, $3, NOW(), $4) RETURNING id_bando, nome_file`,
           [id, part.filename, buffer, user.username]
         );
@@ -562,7 +562,7 @@ export default async function bandiRoutes(fastify, opts) {
         // Copy provinces from bando to gara (BandiProvince → GareProvince)
         try {
           const provRows = await client.query(
-            `SELECT id_provincia FROM bandiprovince WHERE id_bando = $1`, [id]
+            `SELECT id_provincia FROM bandi_province WHERE id_bando = $1`, [id]
           );
           for (const row of provRows.rows) {
             await client.query(
@@ -574,7 +574,7 @@ export default async function bandiRoutes(fastify, opts) {
 
         // Copy SOA categories from bando to gara (sec, alt, app)
         // Exact copy from stored procedure: BandiSoaApp→GareSoaApp, BandiSoaSec→GareSoaSec, BandiSoaAlt→GareSoaAlt
-        const soaTypes = ['bandisoaapp', 'bandisoasec', 'bandisoaalt'];
+        const soaTypes = ['bandi_soa_app', 'bandi_soa_sec', 'bandi_soa_alt'];
         const garasoaTypes = ['garesoaapp', 'garesoasec', 'garesoaalt'];
         for (let i = 0; i < soaTypes.length; i++) {
           try {
@@ -704,22 +704,22 @@ export default async function bandiRoutes(fastify, opts) {
 
         // Copy provinces
         const provRes = await client.query(
-          `SELECT id_provincia FROM bandiprovince WHERE id_bando = $1`,
+          `SELECT id_provincia FROM bandi_province WHERE id_bando = $1`,
           [id]
         );
         for (const row of provRes.rows) {
           await client.query(
-            `INSERT INTO bandiprovince (id_bando, id_provincia) VALUES ($1, $2)`,
+            `INSERT INTO bandi_province (id_bando, id_provincia) VALUES ($1, $2)`,
             [newBandoId, row.id_provincia]
           );
         }
 
         // Copy SOA categories
         const soaTypes = [
-          { table: 'bandisoasec', col: 'id_soa' },
-          { table: 'bandisoaalt', col: 'id_soa' },
-          { table: 'bandisoaapp', col: 'id_soa' },
-          { table: 'bandisoasost', col: 'id_soa' }
+          { table: 'bandi_soa_sec', col: 'id_soa' },
+          { table: 'bandi_soa_alt', col: 'id_soa' },
+          { table: 'bandi_soa_app', col: 'id_soa' },
+          { table: 'bandi_soa_sost', col: 'id_soa' }
         ];
         for (const soaType of soaTypes) {
           const soaRes = await client.query(
@@ -1163,32 +1163,32 @@ export default async function bandiRoutes(fastify, opts) {
 
     const [prevalente, secondarie, alternative, subappaltabili, scorporabili] = await Promise.all([
       query(
-        `SELECT b.id_soa, s.cod, s.descrizione
+        `SELECT b.id_soa, s.codice, s.descrizione
          FROM bandi b
          LEFT JOIN soa s ON b.id_soa = s.id
          WHERE b.id = $1`,
         [id]
       ),
       query(
-        `SELECT bs.id_soa, s.cod, s.descrizione FROM bandisoasec bs
+        `SELECT bs.id_soa, s.codice, s.descrizione FROM bandi_soa_sec bs
          JOIN soa s ON bs.id_soa = s.id
          WHERE bs.id_bando = $1`,
         [id]
       ),
       query(
-        `SELECT bs.id_soa, s.cod, s.descrizione FROM bandisoaalt bs
+        `SELECT bs.id_soa, s.codice, s.descrizione FROM bandi_soa_alt bs
          JOIN soa s ON bs.id_soa = s.id
          WHERE bs.id_bando = $1`,
         [id]
       ),
       query(
-        `SELECT bs.id_soa, s.cod, s.descrizione FROM bandisoaapp bs
+        `SELECT bs.id_soa, s.codice, s.descrizione FROM bandi_soa_app bs
          JOIN soa s ON bs.id_soa = s.id
          WHERE bs.id_bando = $1`,
         [id]
       ),
       query(
-        `SELECT bs.id_soa, s.cod, s.descrizione FROM bandisoasost bs
+        `SELECT bs.id_soa, s.codice, s.descrizione FROM bandi_soa_sost bs
          JOIN soa s ON bs.id_soa = s.id
          WHERE bs.id_bando = $1`,
         [id]
@@ -1223,7 +1223,7 @@ export default async function bandiRoutes(fastify, opts) {
 
       await transaction(async (client) => {
         const result = await client.query(
-          `INSERT INTO bandisoasec (id_bando, id_soa, classifica)
+          `INSERT INTO bandi_soa_sec (id_bando, id_soa, classifica)
            VALUES ($1, $2, $3) ON CONFLICT DO NOTHING RETURNING *`,
           [id, soa_id, classifica || null]
         );
@@ -1253,7 +1253,7 @@ export default async function bandiRoutes(fastify, opts) {
     try {
       await transaction(async (client) => {
         await client.query(
-          `DELETE FROM bandisoasec WHERE id_bando = $1 AND id_soa = $2`,
+          `DELETE FROM bandi_soa_sec WHERE id_bando = $1 AND id_soa = $2`,
           [id, idSoa]
         );
 
@@ -1288,7 +1288,7 @@ export default async function bandiRoutes(fastify, opts) {
 
       await transaction(async (client) => {
         const result = await client.query(
-          `INSERT INTO bandisoaalt (id_bando, id_soa, classifica)
+          `INSERT INTO bandi_soa_alt (id_bando, id_soa, classifica)
            VALUES ($1, $2, $3) ON CONFLICT DO NOTHING RETURNING *`,
           [id, soa_id, classifica || null]
         );
@@ -1318,7 +1318,7 @@ export default async function bandiRoutes(fastify, opts) {
     try {
       await transaction(async (client) => {
         await client.query(
-          `DELETE FROM bandisoaalt WHERE id_bando = $1 AND id_soa = $2`,
+          `DELETE FROM bandi_soa_alt WHERE id_bando = $1 AND id_soa = $2`,
           [id, idSoa]
         );
 
@@ -1353,7 +1353,7 @@ export default async function bandiRoutes(fastify, opts) {
 
       await transaction(async (client) => {
         const result = await client.query(
-          `INSERT INTO bandisoaapp (id_bando, id_soa, classifica)
+          `INSERT INTO bandi_soa_app (id_bando, id_soa, classifica)
            VALUES ($1, $2, $3) ON CONFLICT DO NOTHING RETURNING *`,
           [id, soa_id, classifica || null]
         );
@@ -1383,7 +1383,7 @@ export default async function bandiRoutes(fastify, opts) {
     try {
       await transaction(async (client) => {
         await client.query(
-          `DELETE FROM bandisoaapp WHERE id_bando = $1 AND id_soa = $2`,
+          `DELETE FROM bandi_soa_app WHERE id_bando = $1 AND id_soa = $2`,
           [id, idSoa]
         );
 
@@ -1418,7 +1418,7 @@ export default async function bandiRoutes(fastify, opts) {
 
       await transaction(async (client) => {
         const result = await client.query(
-          `INSERT INTO bandisoasost (id_bando, id_soa, classifica)
+          `INSERT INTO bandi_soa_sost (id_bando, id_soa, classifica)
            VALUES ($1, $2, $3) ON CONFLICT DO NOTHING RETURNING *`,
           [id, soa_id, classifica || null]
         );
@@ -1448,7 +1448,7 @@ export default async function bandiRoutes(fastify, opts) {
     try {
       await transaction(async (client) => {
         await client.query(
-          `DELETE FROM bandisoasost WHERE id_bando = $1 AND id_soa = $2`,
+          `DELETE FROM bandi_soa_sost WHERE id_bando = $1 AND id_soa = $2`,
           [id, idSoa]
         );
 
@@ -1470,7 +1470,7 @@ export default async function bandiRoutes(fastify, opts) {
   // ============================================================
   fastify.get('/tipologie', async (request, reply) => {
     const result = await query(
-      `SELECT id_tipologia_bando AS id, tipologia AS tipologia FROM tipologiabandi ORDER BY tipologia`
+      `SELECT id, nome AS tipologia FROM tipologia_bandi ORDER BY nome`
     );
     return result.rows;
   });

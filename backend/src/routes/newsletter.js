@@ -244,22 +244,22 @@ export default async function newsletterRoutes(fastify, opts) {
       const result = await query(
         `SELECT
           b.id,
-          b."Titolo" AS titolo,
-          b."CIG" AS cig,
-          b."Importo" AS importo,
-          b."Data" AS data,
-          r."Regione" AS regione,
-          p."Provincia" AS provincia,
-          s."RagioneSociale" AS stazione,
-          soa."cod" AS soa
+          b."titolo" AS titolo,
+          b."codice_cig" AS cig,
+          b."importo_so" AS importo,
+          b."data_pubblicazione" AS data,
+          r."regione" AS regione,
+          p."provincia" AS provincia,
+          s."nome" AS stazione,
+          soa."codice" AS soa
         FROM bandi b
         LEFT JOIN regioni r ON b."id_regione" = r.id
         LEFT JOIN province p ON b."id_provincia" = p.id
         LEFT JOIN stazioni s ON b."id_stazione" = s.id
         LEFT JOIN soa ON b."id_soa" = soa.id
-        WHERE b."Data" >= $1 AND b."Data" <= $2
-        AND (b."Abilitato" = true OR b."Abilitato" IS NOT NULL)
-        ORDER BY r."Regione", p."Provincia", b."Titolo"`,
+        WHERE b."data_pubblicazione" >= $1 AND b."data_pubblicazione" <= $2
+        AND (b."abilitato" = true OR b."abilitato" IS NOT NULL)
+        ORDER BY r."regione", p."provincia", b."titolo"`,
         [data_da, data_a]
       );
 
@@ -313,25 +313,26 @@ export default async function newsletterRoutes(fastify, opts) {
       const result = await query(
         `SELECT
           g.id,
-          g."Titolo" AS titolo,
-          g."CIG" AS cig,
-          g."Importo" AS importo,
-          g."Data" AS data,
-          r."Regione" AS regione,
-          p."Provincia" AS provincia,
-          s."RagioneSociale" AS stazione,
-          soa."cod" AS soa,
-          g."Ribasso" AS ribasso,
-          dg."Aziende"."RagioneSociale" AS vincitore
+          g."titolo" AS titolo,
+          g."codice_cig" AS cig,
+          g."importo" AS importo,
+          g."data" AS data,
+          r."regione" AS regione,
+          p."provincia" AS provincia,
+          s."nome" AS stazione,
+          soa."codice" AS soa,
+          g."ribasso" AS ribasso,
+          a."ragione_sociale" AS vincitore
         FROM gare g
         LEFT JOIN regioni r ON g."id_regione" = r.id
         LEFT JOIN province p ON g."id_provincia" = p.id
         LEFT JOIN stazioni s ON g."id_stazione" = s.id
         LEFT JOIN soa ON g."id_soa" = soa.id
-        LEFT JOIN "DettaglioGara" dg ON g.id = dg."id_gara" AND dg."Vincitrice" = true
-        WHERE g."Data" >= $1 AND g."Data" <= $2
-        AND (g."Abilitato" = true OR g."Abilitato" IS NOT NULL)
-        ORDER BY r."Regione", p."Provincia", g."Titolo"`,
+        LEFT JOIN dettaglio_gara dg ON g.id = dg.id_gara AND dg.vincitrice = true
+        LEFT JOIN aziende a ON dg.id_azienda = a.id
+        WHERE g."data" >= $1 AND g."data" <= $2
+        AND (g."abilitato" = true OR g."abilitato" IS NOT NULL)
+        ORDER BY r."regione", p."provincia", g."titolo"`,
         [data_da, data_a]
       );
 
@@ -385,17 +386,17 @@ export default async function newsletterRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          b.id, b."Titolo" AS titolo, b."CIG" AS cig, b."Importo" AS importo, b."Data" AS data,
-          r."Regione" AS regione, p."Provincia" AS provincia, s."RagioneSociale" AS stazione,
-          soa."cod" AS soa
+          b.id, b."titolo" AS titolo, b."codice_cig" AS cig, b."importo_so" AS importo, b."data_pubblicazione" AS data,
+          r."regione" AS regione, p."provincia" AS provincia, s."nome" AS stazione,
+          soa."codice" AS soa
         FROM bandi b
         LEFT JOIN regioni r ON b."id_regione" = r.id
         LEFT JOIN province p ON b."id_provincia" = p.id
         LEFT JOIN stazioni s ON b."id_stazione" = s.id
         LEFT JOIN soa ON b."id_soa" = soa.id
-        WHERE b."Data" >= $1 AND b."Data" <= $2
-        AND (b."Abilitato" = true OR b."Abilitato" IS NOT NULL)
-        ORDER BY r."Regione", p."Provincia"`,
+        WHERE b."data_pubblicazione" >= $1 AND b."data_pubblicazione" <= $2
+        AND (b."abilitato" = true OR b."abilitato" IS NOT NULL)
+        ORDER BY r."regione", p."provincia"`,
         [data_da, data_a]
       );
 
@@ -434,17 +435,17 @@ export default async function newsletterRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          g.id, g."Titolo" AS titolo, g."CIG" AS cig, g."Importo" AS importo, g."Data" AS data,
-          r."Regione" AS regione, p."Provincia" AS provincia, s."RagioneSociale" AS stazione,
-          soa."cod" AS soa, g."Ribasso" AS ribasso
+          g.id, g."titolo" AS titolo, g."codice_cig" AS cig, g."importo" AS importo, g."data" AS data,
+          r."regione" AS regione, p."provincia" AS provincia, s."nome" AS stazione,
+          soa."codice" AS soa, g."ribasso" AS ribasso
         FROM gare g
         LEFT JOIN regioni r ON g."id_regione" = r.id
         LEFT JOIN province p ON g."id_provincia" = p.id
         LEFT JOIN stazioni s ON g."id_stazione" = s.id
         LEFT JOIN soa ON g."id_soa" = soa.id
-        WHERE g."Data" >= $1 AND g."Data" <= $2
-        AND (g."Abilitato" = true OR g."Abilitato" IS NOT NULL)
-        ORDER BY r."Regione", p."Provincia"`,
+        WHERE g."data" >= $1 AND g."data" <= $2
+        AND (g."abilitato" = true OR g."abilitato" IS NOT NULL)
+        ORDER BY r."regione", p."provincia"`,
         [data_da, data_a]
       );
 
@@ -486,15 +487,15 @@ export default async function newsletterRoutes(fastify, opts) {
 
       // Fetch bandi
       const bandi = await query(
-        `SELECT b.id, b."Titolo" AS titolo, b."CIG" AS cig, b."Importo" AS importo, b."Data" AS data,
-                r."Regione" AS regione, p."Provincia" AS provincia, s."RagioneSociale" AS stazione, soa."cod" AS soa
+        `SELECT b.id, b."titolo" AS titolo, b."codice_cig" AS cig, b."importo_so" AS importo, b."data_pubblicazione" AS data,
+                r."regione" AS regione, p."provincia" AS provincia, s."nome" AS stazione, soa."codice" AS soa
          FROM bandi b
          LEFT JOIN regioni r ON b."id_regione" = r.id
          LEFT JOIN province p ON b."id_provincia" = p.id
          LEFT JOIN stazioni s ON b."id_stazione" = s.id
          LEFT JOIN soa ON b."id_soa" = soa.id
-         WHERE b."Data" >= $1 AND b."Data" <= $2 AND (b."Abilitato" = true OR b."Abilitato" IS NOT NULL)
-         ORDER BY r."Regione"`,
+         WHERE b."data_pubblicazione" >= $1 AND b."data_pubblicazione" <= $2 AND (b."abilitato" = true OR b."abilitato" IS NOT NULL)
+         ORDER BY r."regione"`,
         [data_da, data_a]
       );
 
@@ -575,15 +576,15 @@ export default async function newsletterRoutes(fastify, opts) {
 
       // Fetch esiti
       const esiti = await query(
-        `SELECT g.id, g."Titolo" AS titolo, g."CIG" AS cig, g."Importo" AS importo, g."Data" AS data,
-                r."Regione" AS regione, p."Provincia" AS provincia, s."RagioneSociale" AS stazione, soa."cod" AS soa, g."Ribasso" AS ribasso
+        `SELECT g.id, g."titolo" AS titolo, g."codice_cig" AS cig, g."importo" AS importo, g."data" AS data,
+                r."regione" AS regione, p."provincia" AS provincia, s."nome" AS stazione, soa."codice" AS soa, g."ribasso" AS ribasso
          FROM gare g
          LEFT JOIN regioni r ON g."id_regione" = r.id
          LEFT JOIN province p ON g."id_provincia" = p.id
          LEFT JOIN stazioni s ON g."id_stazione" = s.id
          LEFT JOIN soa ON g."id_soa" = soa.id
-         WHERE g."Data" >= $1 AND g."Data" <= $2 AND (g."Abilitato" = true OR g."Abilitato" IS NOT NULL)
-         ORDER BY r."Regione"`,
+         WHERE g."data" >= $1 AND g."data" <= $2 AND (g."abilitato" = true OR g."abilitato" IS NOT NULL)
+         ORDER BY r."regione"`,
         [data_da, data_a]
       );
 
@@ -664,14 +665,14 @@ export default async function newsletterRoutes(fastify, opts) {
       }
 
       const bandi = await query(
-        `SELECT b.id, b."Titolo" AS titolo, b."CIG" AS cig, b."Importo" AS importo, b."Data" AS data,
-                r."Regione" AS regione, p."Provincia" AS provincia, s."RagioneSociale" AS stazione, soa."cod" AS soa
+        `SELECT b.id, b."titolo" AS titolo, b."codice_cig" AS cig, b."importo_so" AS importo, b."data_pubblicazione" AS data,
+                r."regione" AS regione, p."provincia" AS provincia, s."nome" AS stazione, soa."codice" AS soa
          FROM bandi b
          LEFT JOIN regioni r ON b."id_regione" = r.id
          LEFT JOIN province p ON b."id_provincia" = p.id
          LEFT JOIN stazioni s ON b."id_stazione" = s.id
          LEFT JOIN soa ON b."id_soa" = soa.id
-         WHERE b."Data" >= $1 AND b."Data" <= $2 LIMIT 50`,
+         WHERE b."data_pubblicazione" >= $1 AND b."data_pubblicazione" <= $2 LIMIT 50`,
         [data_da, data_a]
       );
 
@@ -719,14 +720,14 @@ export default async function newsletterRoutes(fastify, opts) {
       }
 
       const esiti = await query(
-        `SELECT g.id, g."Titolo" AS titolo, g."CIG" AS cig, g."Importo" AS importo, g."Data" AS data,
-                r."Regione" AS regione, p."Provincia" AS provincia, s."RagioneSociale" AS stazione, soa."cod" AS soa, g."Ribasso" AS ribasso
+        `SELECT g.id, g."titolo" AS titolo, g."codice_cig" AS cig, g."importo" AS importo, g."data" AS data,
+                r."regione" AS regione, p."provincia" AS provincia, s."nome" AS stazione, soa."codice" AS soa, g."ribasso" AS ribasso
          FROM gare g
          LEFT JOIN regioni r ON g."id_regione" = r.id
          LEFT JOIN province p ON g."id_provincia" = p.id
          LEFT JOIN stazioni s ON g."id_stazione" = s.id
          LEFT JOIN soa ON g."id_soa" = soa.id
-         WHERE g."Data" >= $1 AND g."Data" <= $2 LIMIT 50`,
+         WHERE g."data" >= $1 AND g."data" <= $2 LIMIT 50`,
         [data_da, data_a]
       );
 

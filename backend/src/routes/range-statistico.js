@@ -16,35 +16,35 @@ export default async function rangeStatisticoRoutes(fastify) {
     } = request.body;
 
     // Build query to fetch matching historical esiti
-    const conditions = ['"eliminata" = false', '"Ribasso" IS NOT NULL', '"NPartecipanti" > 2'];
+    const conditions = ['eliminata = false', 'g.ribasso IS NOT NULL', 'g.n_partecipanti > 2'];
     const params = [];
     let idx = 1;
 
-    if (id_regione) { conditions.push(`p."id_regione" = $${idx}`); params.push(id_regione); idx++; }
-    if (id_stazione) { conditions.push(`g."id_stazione" = $${idx}`); params.push(id_stazione); idx++; }
-    if (id_soa) { conditions.push(`g."id_soa" = $${idx}`); params.push(id_soa); idx++; }
-    if (id_criterio) { conditions.push(`b."id_criterio" = $${idx}`); params.push(id_criterio); idx++; }
-    if (importo_min) { conditions.push(`g."Importo" >= $${idx}`); params.push(importo_min); idx++; }
-    if (importo_max) { conditions.push(`g."Importo" <= $${idx}`); params.push(importo_max); idx++; }
-    if (data_min) { conditions.push(`g."Data" >= $${idx}`); params.push(data_min); idx++; }
-    if (data_max) { conditions.push(`g."Data" <= $${idx}`); params.push(data_max); idx++; }
+    if (id_regione) { conditions.push(`p.id_regione = $${idx}`); params.push(id_regione); idx++; }
+    if (id_stazione) { conditions.push(`g.id_stazione = $${idx}`); params.push(id_stazione); idx++; }
+    if (id_soa) { conditions.push(`g.id_soa = $${idx}`); params.push(id_soa); idx++; }
+    if (id_criterio) { conditions.push(`b.id_criterio = $${idx}`); params.push(id_criterio); idx++; }
+    if (importo_min) { conditions.push(`g.importo >= $${idx}`); params.push(importo_min); idx++; }
+    if (importo_max) { conditions.push(`g.importo <= $${idx}`); params.push(importo_max); idx++; }
+    if (data_min) { conditions.push(`g.data >= $${idx}`); params.push(data_min); idx++; }
+    if (data_max) { conditions.push(`g.data <= $${idx}`); params.push(data_max); idx++; }
 
     const result = await query(`
-      SELECT g."id", g."Data", g."Importo", g."Ribasso", g."NPartecipanti",
-        g."MediaAr", g."SogliaAn", g."CodiceCIG",
-        s."Nome" AS stazione_nome,
-        soa."Descrizione" AS soa_categoria,
-        c."Criterio" AS criterio,
-        r."Regione" AS regione_nome
+      SELECT g.id, g.data, g.importo, g.ribasso, g.n_partecipanti,
+        g.media_ar, g.soglia_an, g.codice_cig,
+        s.nome AS stazione_nome,
+        soa.descrizione AS soa_categoria,
+        c.nome AS criterio,
+        r.regione AS regione_nome
       FROM gare g
-      LEFT JOIN stazioni s ON g."id_stazione" = s."id"
-      LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
-      LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
-      LEFT JOIN bandi b ON g."id_bando" = b."id_bando"
-      LEFT JOIN soa ON g."id_soa" = soa."id"
-      LEFT JOIN criteri c ON b."id_criterio" = c."id_criterio"
+      LEFT JOIN stazioni s ON g.id_stazione = s.id
+      LEFT JOIN province p ON s.id_provincia = p.id_provincia
+      LEFT JOIN regioni r ON p.id_regione = r.id_regione
+      LEFT JOIN bandi b ON g.id_bando = b.id_bando
+      LEFT JOIN soa ON g.id_soa = soa.id
+      LEFT JOIN criteri c ON b.id_criterio = c.id
       WHERE ${conditions.join(' AND ')}
-      ORDER BY g."Data" DESC
+      ORDER BY g.data DESC
       LIMIT 500
     `, params);
 
@@ -59,7 +59,7 @@ export default async function rangeStatisticoRoutes(fastify) {
     }
 
     // Calculate statistical range
-    const ribassi = gare.map(g => parseFloat(g.Ribasso)).filter(r => !isNaN(r));
+    const ribassi = gare.map(g => parseFloat(g.ribasso)).filter(r => !isNaN(r));
     const range = calculateRange(ribassi);
 
     // Distribution analysis
@@ -86,10 +86,10 @@ export default async function rangeStatisticoRoutes(fastify) {
       trend,
       ai_insight: aiInsight,
       campione: gare.slice(0, 20).map(g => ({
-        data: g.Data,
-        ribasso: g.Ribasso,
-        n_partecipanti: g.NPartecipanti,
-        importo: g.Importo,
+        data: g.data,
+        ribasso: g.ribasso,
+        n_partecipanti: g.n_partecipanti,
+        importo: g.importo,
         stazione: g.stazione_nome
       }))
     };
@@ -107,7 +107,7 @@ export default async function rangeStatisticoRoutes(fastify) {
 
     // Find SOA id
     const soaResult = await query(
-      `SELECT "id" FROM soa WHERE "Descrizione" ILIKE $1 LIMIT 1`,
+      `SELECT id FROM soa WHERE descrizione ILIKE $1 LIMIT 1`,
       [`%${soa_categoria}%`]
     );
 
@@ -115,30 +115,30 @@ export default async function rangeStatisticoRoutes(fastify) {
       return { error: `SOA ${soa_categoria} non trovata` };
     }
 
-    const conditions = ['"eliminata" = false', '"Ribasso" IS NOT NULL', '"NPartecipanti" > 2',
-      `g."id_soa" = $1`];
+    const conditions = ['eliminata = false', 'g.ribasso IS NOT NULL', 'g.n_partecipanti > 2',
+      `g.id_soa = $1`];
     const params = [soaResult.rows[0].id];
 
     if (criterio) {
       const critResult = await query(
-        `SELECT "id_criterio" FROM criteri WHERE "Criterio" ILIKE $1 LIMIT 1`,
+        `SELECT id_criterio FROM criteri WHERE nome ILIKE $1 LIMIT 1`,
         [`%${criterio}%`]
       );
       if (critResult.rows.length > 0) {
-        conditions.push(`b."id_criterio" = $2`);
+        conditions.push(`b.id_criterio = $2`);
         params.push(critResult.rows[0].id_criterio);
       }
     }
 
     const result = await query(`
-      SELECT g."Ribasso"
+      SELECT g.ribasso
       FROM gare g
-      LEFT JOIN bandi b ON g."id_bando" = b."id_bando"
+      LEFT JOIN bandi b ON g.id_bando = b.id_bando
       WHERE ${conditions.join(' AND ')}
-      ORDER BY g."Data" DESC LIMIT 200
+      ORDER BY g.data DESC LIMIT 200
     `, params);
 
-    const ribassi = result.rows.map(r => parseFloat(r.Ribasso)).filter(r => !isNaN(r));
+    const ribassi = result.rows.map(r => parseFloat(r.ribasso)).filter(r => !isNaN(r));
 
     if (ribassi.length < 3) {
       return { error: 'Dati insufficienti', n_gare: ribassi.length };
@@ -158,19 +158,19 @@ export default async function rangeStatisticoRoutes(fastify) {
   fastify.get('/heatmap', async () => {
     const result = await query(`
       SELECT
-        soa."Descrizione",
-        soa."Tipologia",
+        soa.descrizione,
+        soa.tipo,
         COUNT(*) AS n_gare,
-        AVG(g."Ribasso")::DECIMAL(10,3) AS media_ribasso,
-        MIN(g."Ribasso")::DECIMAL(10,3) AS min_ribasso,
-        MAX(g."Ribasso")::DECIMAL(10,3) AS max_ribasso,
-        PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY g."Ribasso")::DECIMAL(10,3) AS p25,
-        PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY g."Ribasso")::DECIMAL(10,3) AS mediana,
-        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY g."Ribasso")::DECIMAL(10,3) AS p75
+        AVG(g.ribasso)::DECIMAL(10,3) AS media_ribasso,
+        MIN(g.ribasso)::DECIMAL(10,3) AS min_ribasso,
+        MAX(g.ribasso)::DECIMAL(10,3) AS max_ribasso,
+        PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY g.ribasso)::DECIMAL(10,3) AS p25,
+        PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY g.ribasso)::DECIMAL(10,3) AS mediana,
+        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY g.ribasso)::DECIMAL(10,3) AS p75
       FROM gare g
-      JOIN soa ON g."id_soa" = soa."id"
-      WHERE "eliminata" = false AND g."Ribasso" IS NOT NULL AND g."NPartecipanti" > 2
-      GROUP BY soa."Descrizione", soa."Tipologia"
+      JOIN soa ON g.id_soa = soa.id
+      WHERE eliminata = false AND g.ribasso IS NOT NULL AND g.n_partecipanti > 2
+      GROUP BY soa.descrizione, soa.tipo
       HAVING COUNT(*) >= 3
       ORDER BY COUNT(*) DESC
     `);
@@ -248,11 +248,11 @@ function calculateTrend(gare) {
   // Group by quarter
   const byQuarter = {};
   for (const g of gare) {
-    if (!g.Data || !g.Ribasso) continue;
-    const d = new Date(g.Data);
+    if (!g.data || !g.ribasso) continue;
+    const d = new Date(g.data);
     const q = `${d.getFullYear()}-Q${Math.ceil((d.getMonth() + 1) / 3)}`;
     if (!byQuarter[q]) byQuarter[q] = [];
-    byQuarter[q].push(parseFloat(g.Ribasso));
+    byQuarter[q].push(parseFloat(g.ribasso));
   }
 
   const quarters = Object.keys(byQuarter).sort();

@@ -535,7 +535,7 @@ async function createEsitoFromAiData(aiData, pdfBuffer, filename) {
         const hasSuggestions = match.method === 'soa_geographic_suggestion';
 
         await client.query(`
-          INSERT INTO dettagliogara (
+          INSERT INTO dettaglio_gara (
             "id_gara", "id_azienda", "Posizione", "Ribasso",
             "Anomala", "Vincitrice", "Esclusa",
             "DaVerificare", "Sconosciuto", "RagioneSociale", "PartitaIva",

@@ -79,10 +79,10 @@ export default async function pubblicoRoutes(fastify, opts) {
           g."id" AS id,
           g."Titolo" AS titolo,
           g."Data" AS data,
-          COALESCE(s."Nome", g."Stazione") AS stazione,
-          g."Regione" AS provincia,
-          g."Importo" AS importo,
-          (SELECT "RagioneSociale" FROM dettagliogara WHERE "id_gara" = g."id" AND "Vincitrice" = true LIMIT 1) AS vincitore
+          COALESCE(s."nome", g."Stazione") AS stazione,
+          g."regione" AS provincia,
+          g."importo" AS importo,
+          (SELECT a."ragione_sociale" FROM dettaglio_gara dg JOIN aziende a ON dg.id_azienda = a.id WHERE dg.id_gara = g."id" AND dg.vincitrice = true LIMIT 1) AS vincitore
          FROM gare g
          LEFT JOIN stazioni s ON g."id_stazione" = s."id"
          WHERE g."Abilitato" = true AND g."Annullato" = false
