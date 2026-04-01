@@ -38,9 +38,9 @@ function buildNewsletterHtml(type, title, items, testo_aggiuntivo = '') {
       return `
         <tr style="border-bottom: 1px solid #eee;">
           <td style="padding: 12px;">
-            <strong>${item.Titolo || item.CIG}</strong><br/>
-            <small>CIG: ${item.CIG || 'N/D'} | Regione: ${item.Regione || 'N/D'}</small><br/>
-            <small>Importo: €${(item.Importo || 0).toLocaleString('it-IT')}</small>
+            <strong>${item.titolo || item.codice_cig}</strong><br/>
+            <small>CIG: ${item.codice_cig || 'N/D'} | Regione: ${item.regione || 'N/D'}</small><br/>
+            <small>Importo: €${(item.importo || 0).toLocaleString('it-IT')}</small>
           </td>
         </tr>
       `;
@@ -49,9 +49,9 @@ function buildNewsletterHtml(type, title, items, testo_aggiuntivo = '') {
       return `
         <tr style="border-bottom: 1px solid #eee;">
           <td style="padding: 12px;">
-            <strong>${item.Oggetto || item.CIG}</strong><br/>
-            <small>CIG: ${item.CIG || 'N/D'} | Data: ${item.Data || 'N/D'}</small><br/>
-            <small>Tipologia: ${item.Tipologia || 'N/D'}</small>
+            <strong>${item.oggetto || item.codice_cig}</strong><br/>
+            <small>CIG: ${item.codice_cig || 'N/D'} | Data: ${item.data || 'N/D'}</small><br/>
+            <small>Tipologia: ${item.tipologia || 'N/D'}</small>
           </td>
         </tr>
       `;
@@ -111,13 +111,13 @@ export default async function adminDashboardRoutes(fastify, opts) {
         query(`SELECT COUNT(*) AS total FROM aziende WHERE eliminata IS NULL OR eliminata = false`),
         query(`SELECT COUNT(*) AS total FROM stazioni WHERE eliminata IS NULL OR eliminata = false`),
         query(`SELECT COUNT(*) AS total FROM users`),
-        query(`SELECT COUNT(*) AS total FROM bandi WHERE EXTRACT(YEAR FROM "Data") = EXTRACT(YEAR FROM NOW()) AND EXTRACT(MONTH FROM "Data") = EXTRACT(MONTH FROM NOW())`),
-        query(`SELECT COUNT(*) AS total FROM gare WHERE EXTRACT(YEAR FROM "Data") = EXTRACT(YEAR FROM NOW()) AND EXTRACT(MONTH FROM "Data") = EXTRACT(MONTH FROM NOW())`),
-        query(`SELECT COUNT(*) AS total FROM bandi WHERE "Abilitato" = false OR "Abilitato" IS NULL`),
-        query(`SELECT COUNT(*) AS total FROM gare WHERE "Abilitato" = false OR "Abilitato" IS NULL`),
-        query(`SELECT COUNT(*) AS total FROM gare WHERE "Completo" = false OR "Completo" IS NULL`),
-        query(`SELECT COUNT(*) AS total FROM users WHERE "DataScadenza" IS NOT NULL AND "DataScadenza" <= NOW() + INTERVAL '30 days' AND "DataScadenza" > NOW()`),
-        query(`SELECT COUNT(*) AS total FROM abbonamenti WHERE "Attivo" = true`)
+        query(`SELECT COUNT(*) AS total FROM bandi WHERE EXTRACT(YEAR FROM data) = EXTRACT(YEAR FROM NOW()) AND EXTRACT(MONTH FROM data) = EXTRACT(MONTH FROM NOW())`),
+        query(`SELECT COUNT(*) AS total FROM gare WHERE EXTRACT(YEAR FROM data) = EXTRACT(YEAR FROM NOW()) AND EXTRACT(MONTH FROM data) = EXTRACT(MONTH FROM NOW())`),
+        query(`SELECT COUNT(*) AS total FROM bandi WHERE abilitato = false OR abilitato IS NULL`),
+        query(`SELECT COUNT(*) AS total FROM gare WHERE abilitato = false OR abilitato IS NULL`),
+        query(`SELECT COUNT(*) AS total FROM gare WHERE completo = false OR completo IS NULL`),
+        query(`SELECT COUNT(*) AS total FROM users WHERE data_scadenza IS NOT NULL AND data_scadenza <= NOW() + INTERVAL '30 days' AND data_scadenza > NOW()`),
+        query(`SELECT COUNT(*) AS total FROM abbonamenti WHERE attivo = true`)
       ]);
 
       return {
@@ -150,22 +150,22 @@ export default async function adminDashboardRoutes(fastify, opts) {
       if (userRole === 'Agent') {
         // Agent sees only their region
         const userRegion = await query(
-          `SELECT "Regione" FROM users WHERE "Username" = $1 LIMIT 1`,
+          `SELECT regione FROM users WHERE username = $1 LIMIT 1`,
           [username]
         );
         if (userRegion.rows.length > 0) {
-          filters = ` AND "Regione" = '${userRegion.rows[0].Regione}'`;
+          filters = ` AND regione = '${userRegion.rows[0].regione}'`;
         }
       } else if (userRole === 'Publisher') {
         // Publisher sees only their insertions
-        filters = ` AND "CreatedBy" = '${username}'`;
+        filters = ` AND created_by = '${username}'`;
       }
 
       const stats = await Promise.all([
         query(`SELECT COUNT(*) AS total FROM bandi WHERE 1=1 ${filters}`),
         query(`SELECT COUNT(*) AS total FROM gare WHERE 1=1 ${filters}`),
-        query(`SELECT COUNT(*) AS total FROM bandi WHERE "Abilitato" = false ${filters}`),
-        query(`SELECT COUNT(*) AS total FROM gare WHERE "Abilitato" = false ${filters}`)
+        query(`SELECT COUNT(*) AS total FROM bandi WHERE abilitato = false ${filters}`),
+        query(`SELECT COUNT(*) AS total FROM gare WHERE abilitato = false ${filters}`)
       ]);
 
       return {
@@ -184,10 +184,10 @@ export default async function adminDashboardRoutes(fastify, opts) {
   fastify.get('/dashboard/ultimi-inserimenti', async (request, reply) => {
     try {
       const result = await query(`
-        SELECT 'bando' AS tipo, "id" AS id, "Titolo" AS titolo, "Data" AS data, "CIG" AS cig
+        SELECT 'bando' AS tipo, id, titolo, data, codice_cig AS cig
         FROM bandi
         UNION ALL
-        SELECT 'esito' AS tipo, "id" AS id, "Oggetto" AS titolo, "Data" AS data, "CIG" AS cig
+        SELECT 'esito' AS tipo, id, oggetto AS titolo, data, codice_cig AS cig
         FROM gare
         ORDER BY data DESC
         LIMIT 20
@@ -206,12 +206,12 @@ export default async function adminDashboardRoutes(fastify, opts) {
   fastify.get('/dashboard/scadenze-abbonamenti', async (request, reply) => {
     try {
       const result = await query(`
-        SELECT u."Username", u."Email", u."Nome", u."DataScadenza", u."DataScadenza"::interval AS giorni_rimanenti
+        SELECT u.username, u.email, u.nome, u.data_scadenza, u.data_scadenza::interval AS giorni_rimanenti
         FROM users u
-        WHERE u."DataScadenza" IS NOT NULL
-          AND u."DataScadenza" <= NOW() + INTERVAL '30 days'
-          AND u."DataScadenza" > NOW()
-        ORDER BY u."DataScadenza" ASC
+        WHERE u.data_scadenza IS NOT NULL
+          AND u.data_scadenza <= NOW() + INTERVAL '30 days'
+          AND u.data_scadenza > NOW()
+        ORDER BY u.data_scadenza ASC
       `);
 
       return {
@@ -227,10 +227,10 @@ export default async function adminDashboardRoutes(fastify, opts) {
   fastify.get('/dashboard/attivita-recente', async (request, reply) => {
     try {
       const result = await query(`
-        SELECT 'bando' AS tipo, "id", "Data" AS data_modifica, "ModificatoDA" AS modified_by, "CIG" AS riferimento
+        SELECT 'bando' AS tipo, id, data AS data_modifica, modificato_da AS modified_by, codice_cig AS riferimento
         FROM bandi_modifiche
         UNION ALL
-        SELECT 'esito' AS tipo, "id", "Data" AS data_modifica, "ModificatoDA" AS modified_by, "CIG" AS riferimento
+        SELECT 'esito' AS tipo, id, data AS data_modifica, modificato_da AS modified_by, codice_cig AS riferimento
         FROM gare_modifiche
         ORDER BY data_modifica DESC
         LIMIT 50
@@ -254,23 +254,23 @@ export default async function adminDashboardRoutes(fastify, opts) {
 
       let query_bandi = `SELECT * FROM bandi WHERE 1=1`;
       if (filtro_regioni && filtro_regioni.length > 0) {
-        query_bandi += ` AND "Regione" IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
+        query_bandi += ` AND regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
       }
-      if (data_da) query_bandi += ` AND "Data" >= '${data_da}'`;
-      if (data_a) query_bandi += ` AND "Data" <= '${data_a}'`;
+      if (data_da) query_bandi += ` AND data >= '${data_da}'`;
+      if (data_a) query_bandi += ` AND data <= '${data_a}'`;
 
       const bandi_result = await query(query_bandi + ` LIMIT 50`);
 
       // Find recipients
-      let query_recipients = `SELECT DISTINCT u."Email" FROM users u
-        INNER JOIN abbonamenti a ON u."id" = a."user_id"
-        WHERE a."Attivo" = true AND a."TipoAbbonam" = 'bandi'`;
+      let query_recipients = `SELECT DISTINCT u.email FROM users u
+        INNER JOIN abbonamenti a ON u.id = a.user_id
+        WHERE a.attivo = true AND a.tipo_abbonamento = 'bandi'`;
 
       if (filtro_regioni && filtro_regioni.length > 0) {
-        query_recipients += ` AND u."Regione" IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
+        query_recipients += ` AND u.regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
       }
       if (filtro_soa && filtro_soa.length > 0) {
-        query_recipients += ` AND u."SOA" IN (${filtro_soa.map(s => `'${s}'`).join(',')})`;
+        query_recipients += ` AND u.soa IN (${filtro_soa.map(s => `'${s}'`).join(',')})`;
       }
 
       const recipients_result = await query(query_recipients);
@@ -281,7 +281,7 @@ export default async function adminDashboardRoutes(fastify, opts) {
         preview_html: html,
         recipient_count: recipients_result.rows.length,
         bandi_count: bandi_result.rows.length,
-        recipients: recipients_result.rows.map(r => r.Email)
+        recipients: recipients_result.rows.map(r => r.email)
       };
     } catch (err) {
       fastify.log.error(err, 'Preview bandi newsletter error');
@@ -296,22 +296,22 @@ export default async function adminDashboardRoutes(fastify, opts) {
 
       let query_esiti = `SELECT * FROM gare WHERE 1=1`;
       if (filtro_regioni && filtro_regioni.length > 0) {
-        query_esiti += ` AND "Regione" IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
+        query_esiti += ` AND regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
       }
-      if (data_da) query_esiti += ` AND "Data" >= '${data_da}'`;
-      if (data_a) query_esiti += ` AND "Data" <= '${data_a}'`;
+      if (data_da) query_esiti += ` AND data >= '${data_da}'`;
+      if (data_a) query_esiti += ` AND data <= '${data_a}'`;
 
       const esiti_result = await query(query_esiti + ` LIMIT 50`);
 
-      let query_recipients = `SELECT DISTINCT u."Email" FROM users u
-        INNER JOIN abbonamenti a ON u."id" = a."user_id"
-        WHERE a."Attivo" = true AND a."TipoAbbonam" = 'esiti'`;
+      let query_recipients = `SELECT DISTINCT u.email FROM users u
+        INNER JOIN abbonamenti a ON u.id = a.user_id
+        WHERE a.attivo = true AND a.tipo_abbonamento = 'esiti'`;
 
       if (filtro_regioni && filtro_regioni.length > 0) {
-        query_recipients += ` AND u."Regione" IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
+        query_recipients += ` AND u.regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
       }
       if (filtro_soa && filtro_soa.length > 0) {
-        query_recipients += ` AND u."SOA" IN (${filtro_soa.map(s => `'${s}'`).join(',')})`;
+        query_recipients += ` AND u.soa IN (${filtro_soa.map(s => `'${s}'`).join(',')})`;
       }
 
       const recipients_result = await query(query_recipients);
@@ -321,7 +321,7 @@ export default async function adminDashboardRoutes(fastify, opts) {
         preview_html: html,
         recipient_count: recipients_result.rows.length,
         esiti_count: esiti_result.rows.length,
-        recipients: recipients_result.rows.map(r => r.Email)
+        recipients: recipients_result.rows.map(r => r.email)
       };
     } catch (err) {
       fastify.log.error(err, 'Preview esiti newsletter error');
@@ -337,22 +337,22 @@ export default async function adminDashboardRoutes(fastify, opts) {
 
       let query_bandi = `SELECT * FROM bandi WHERE 1=1`;
       if (filtro_regioni && filtro_regioni.length > 0) {
-        query_bandi += ` AND "Regione" IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
+        query_bandi += ` AND regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
       }
-      if (data_da) query_bandi += ` AND "Data" >= '${data_da}'`;
-      if (data_a) query_bandi += ` AND "Data" <= '${data_a}'`;
+      if (data_da) query_bandi += ` AND data >= '${data_da}'`;
+      if (data_a) query_bandi += ` AND data <= '${data_a}'`;
 
       const bandi_result = await query(query_bandi);
 
-      let query_recipients = `SELECT DISTINCT u."Email" FROM users u
-        INNER JOIN abbonamenti a ON u."id" = a."user_id"
-        WHERE a."Attivo" = true AND a."TipoAbbonam" = 'bandi'`;
+      let query_recipients = `SELECT DISTINCT u.email FROM users u
+        INNER JOIN abbonamenti a ON u.id = a.user_id
+        WHERE a.attivo = true AND a.tipo_abbonamento = 'bandi'`;
 
       if (filtro_regioni && filtro_regioni.length > 0) {
-        query_recipients += ` AND u."Regione" IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
+        query_recipients += ` AND u.regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
       }
       if (filtro_soa && filtro_soa.length > 0) {
-        query_recipients += ` AND u."SOA" IN (${filtro_soa.map(s => `'${s}'`).join(',')})`;
+        query_recipients += ` AND u.soa IN (${filtro_soa.map(s => `'${s}'`).join(',')})`;
       }
 
       const recipients_result = await query(query_recipients);
@@ -365,13 +365,13 @@ export default async function adminDashboardRoutes(fastify, opts) {
         try {
           await transporter.sendMail({
             from: process.env.SMTP_FROM || 'noreply@easywin.it',
-            to: recipient.Email,
+            to: recipient.email,
             subject: oggetto || 'Newsletter Bandi EasyWin',
             html: html
           });
           sent_count++;
         } catch (err) {
-          fastify.log.error(err, `Failed to send to ${recipient.Email}`);
+          fastify.log.error(err, `Failed to send to ${recipient.email}`);
           failed_count++;
         }
       }
@@ -403,22 +403,22 @@ export default async function adminDashboardRoutes(fastify, opts) {
 
       let query_esiti = `SELECT * FROM gare WHERE 1=1`;
       if (filtro_regioni && filtro_regioni.length > 0) {
-        query_esiti += ` AND "Regione" IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
+        query_esiti += ` AND regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
       }
-      if (data_da) query_esiti += ` AND "Data" >= '${data_da}'`;
-      if (data_a) query_esiti += ` AND "Data" <= '${data_a}'`;
+      if (data_da) query_esiti += ` AND data >= '${data_da}'`;
+      if (data_a) query_esiti += ` AND data <= '${data_a}'`;
 
       const esiti_result = await query(query_esiti);
 
-      let query_recipients = `SELECT DISTINCT u."Email" FROM users u
-        INNER JOIN abbonamenti a ON u."id" = a."user_id"
-        WHERE a."Attivo" = true AND a."TipoAbbonam" = 'esiti'`;
+      let query_recipients = `SELECT DISTINCT u.email FROM users u
+        INNER JOIN abbonamenti a ON u.id = a.user_id
+        WHERE a.attivo = true AND a.tipo_abbonamento = 'esiti'`;
 
       if (filtro_regioni && filtro_regioni.length > 0) {
-        query_recipients += ` AND u."Regione" IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
+        query_recipients += ` AND u.regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
       }
       if (filtro_soa && filtro_soa.length > 0) {
-        query_recipients += ` AND u."SOA" IN (${filtro_soa.map(s => `'${s}'`).join(',')})`;
+        query_recipients += ` AND u.soa IN (${filtro_soa.map(s => `'${s}'`).join(',')})`;
       }
 
       const recipients_result = await query(query_recipients);
@@ -431,13 +431,13 @@ export default async function adminDashboardRoutes(fastify, opts) {
         try {
           await transporter.sendMail({
             from: process.env.SMTP_FROM || 'noreply@easywin.it',
-            to: recipient.Email,
+            to: recipient.email,
             subject: oggetto || 'Newsletter Esiti EasyWin',
             html: html
           });
           sent_count++;
         } catch (err) {
-          fastify.log.error(err, `Failed to send to ${recipient.Email}`);
+          fastify.log.error(err, `Failed to send to ${recipient.email}`);
           failed_count++;
         }
       }
@@ -484,13 +484,13 @@ export default async function adminDashboardRoutes(fastify, opts) {
     try {
       const { filtro_regioni, filtro_soa, tipo } = request.query;
 
-      let query_str = `SELECT COUNT(DISTINCT u."Email") AS total FROM users u
-        INNER JOIN abbonamenti a ON u."id" = a."user_id"
-        WHERE a."Attivo" = true`;
+      let query_str = `SELECT COUNT(DISTINCT u.email) AS total FROM users u
+        INNER JOIN abbonamenti a ON u.id = a.user_id
+        WHERE a.attivo = true`;
 
-      if (tipo) query_str += ` AND a."TipoAbbonam" = '${tipo}'`;
-      if (filtro_regioni) query_str += ` AND u."Regione" = '${filtro_regioni}'`;
-      if (filtro_soa) query_str += ` AND u."SOA" = '${filtro_soa}'`;
+      if (tipo) query_str += ` AND a.tipo_abbonamento = '${tipo}'`;
+      if (filtro_regioni) query_str += ` AND u.regione = '${filtro_regioni}'`;
+      if (filtro_soa) query_str += ` AND u.soa = '${filtro_soa}'`;
 
       const result = await query(query_str);
 
@@ -561,13 +561,13 @@ export default async function adminDashboardRoutes(fastify, opts) {
 
       const table_da = da_tipo === 'bando' ? 'bandi' : 'gare';
       const table_a = a_tipo === 'bando' ? 'bandi' : 'gare';
-      const column = tipo === 'CIG' ? 'CIG' : 'CUP';
+      const column = tipo === 'CIG' ? 'codice_cig' : 'cup';
 
       // Remove from source
-      await query(`UPDATE ${table_da} SET "${column}" = NULL WHERE "id" = $1`, [da_id]);
+      await query(`UPDATE ${table_da} SET ${column} = NULL WHERE id = $1`, [da_id]);
 
       // Add to destination
-      await query(`UPDATE ${table_a} SET "${column}" = $1 WHERE "id" = $2`, [valore, a_id]);
+      await query(`UPDATE ${table_a} SET ${column} = $1 WHERE id = $2`, [valore, a_id]);
 
       return {
         success: true,
@@ -589,7 +589,7 @@ export default async function adminDashboardRoutes(fastify, opts) {
       const ruoli_with_counts = await Promise.all(
         roles.map(async (ruolo) => {
           const result = await query(
-            `SELECT COUNT(*) AS total FROM user_roles WHERE "ruolo" = $1`,
+            `SELECT COUNT(*) AS total FROM user_roles WHERE ruolo = $1`,
             [ruolo]
           );
           return {
@@ -611,10 +611,10 @@ export default async function adminDashboardRoutes(fastify, opts) {
     try {
       const { nome } = request.params;
       const result = await query(
-        `SELECT u."Username", u."Email", u."Nome" FROM users u
-         INNER JOIN user_roles ur ON u."id" = ur."user_id"
-         WHERE ur."ruolo" = $1
-         ORDER BY u."Username"`,
+        `SELECT u.username, u.email, u.nome FROM users u
+         INNER JOIN user_roles ur ON u.id = ur.user_id
+         WHERE ur.ruolo = $1
+         ORDER BY u.username`,
         [nome]
       );
 
@@ -631,7 +631,7 @@ export default async function adminDashboardRoutes(fastify, opts) {
       const { username, ruolo } = request.body;
 
       const user = await query(
-        `SELECT "id" FROM users WHERE "Username" = $1`,
+        `SELECT id FROM users WHERE username = $1`,
         [username]
       );
 
@@ -640,8 +640,8 @@ export default async function adminDashboardRoutes(fastify, opts) {
       }
 
       await query(
-        `INSERT INTO user_roles ("user_id", "ruolo") VALUES ($1, $2)
-         ON CONFLICT ("user_id", "ruolo") DO NOTHING`,
+        `INSERT INTO user_roles (user_id, ruolo) VALUES ($1, $2)
+         ON CONFLICT (user_id, ruolo) DO NOTHING`,
         [user.rows[0].id, ruolo]
       );
 
@@ -661,7 +661,7 @@ export default async function adminDashboardRoutes(fastify, opts) {
       const { username, ruolo } = request.body;
 
       const user = await query(
-        `SELECT "id" FROM users WHERE "Username" = $1`,
+        `SELECT id FROM users WHERE username = $1`,
         [username]
       );
 
@@ -670,7 +670,7 @@ export default async function adminDashboardRoutes(fastify, opts) {
       }
 
       await query(
-        `DELETE FROM user_roles WHERE "user_id" = $1 AND "ruolo" = $2`,
+        `DELETE FROM user_roles WHERE user_id = $1 AND ruolo = $2`,
         [user.rows[0].id, ruolo]
       );
 
@@ -690,9 +690,9 @@ export default async function adminDashboardRoutes(fastify, opts) {
       const { username } = request.params;
 
       const result = await query(
-        `SELECT ur."ruolo" FROM user_roles ur
-         INNER JOIN users u ON ur."user_id" = u."id"
-         WHERE u."Username" = $1`,
+        `SELECT ur.ruolo FROM user_roles ur
+         INNER JOIN users u ON ur.user_id = u.id
+         WHERE u.username = $1`,
         [username]
       );
 
@@ -712,10 +712,10 @@ export default async function adminDashboardRoutes(fastify, opts) {
   fastify.get('/accessi-recenti', async (request, reply) => {
     try {
       const result = await query(`
-        SELECT u."Username", u."Email", u."UltimoAccesso" AS ultimo_accesso
+        SELECT u.username, u.email, u.ultimo_accesso
         FROM users u
-        WHERE u."UltimoAccesso" IS NOT NULL
-        ORDER BY u."UltimoAccesso" DESC
+        WHERE u.ultimo_accesso IS NOT NULL
+        ORDER BY u.ultimo_accesso DESC
         LIMIT 50
       `);
 
@@ -732,14 +732,14 @@ export default async function adminDashboardRoutes(fastify, opts) {
   fastify.get('/doppie-login', async (request, reply) => {
     try {
       const result = await query(`
-        SELECT u."Username", u."Email", COUNT(*) AS login_count,
-               STRING_AGG(DISTINCT ua."ip_address", ', ') AS ip_addresses,
-               MAX(ua."created_at") AS ultimo_accesso
+        SELECT u.username, u.email, COUNT(*) AS login_count,
+               STRING_AGG(DISTINCT ua.ip_address, ', ') AS ip_addresses,
+               MAX(ua.created_at) AS ultimo_accesso
         FROM users u
-        INNER JOIN user_activity ua ON u."id" = ua."user_id"
-        WHERE ua."action" = 'login'
-          AND ua."created_at" >= NOW() - INTERVAL '1 hour'
-        GROUP BY u."id", u."Username", u."Email"
+        INNER JOIN user_activity ua ON u.id = ua.user_id
+        WHERE ua.action = 'login'
+          AND ua.created_at >= NOW() - INTERVAL '1 hour'
+        GROUP BY u.id, u.username, u.email
         HAVING COUNT(*) > 1
         ORDER BY login_count DESC
       `);
@@ -760,24 +760,24 @@ export default async function adminDashboardRoutes(fastify, opts) {
     try {
       const [esitiPerMese, bandiPerRegione, esitiPerTipologia] = await Promise.all([
         query(`
-          SELECT TO_CHAR("Data", 'YYYY-MM') AS mese, COUNT(*) AS conteggio
+          SELECT TO_CHAR(data, 'YYYY-MM') AS mese, COUNT(*) AS conteggio
           FROM gare
-          WHERE "Data" >= NOW() - INTERVAL '12 months'
-          GROUP BY TO_CHAR("Data", 'YYYY-MM')
+          WHERE data >= NOW() - INTERVAL '12 months'
+          GROUP BY TO_CHAR(data, 'YYYY-MM')
           ORDER BY mese
         `),
         query(`
-          SELECT COALESCE("Regione", 'N/D') AS regione, COUNT(*) AS conteggio
+          SELECT COALESCE(regione, 'N/D') AS regione, COUNT(*) AS conteggio
           FROM bandi
-          GROUP BY "Regione"
+          GROUP BY regione
           ORDER BY conteggio DESC
           LIMIT 10
         `),
         query(`
-          SELECT COALESCE(tg."Tipologia", 'N/D') AS tipologia, COUNT(*) AS conteggio
+          SELECT COALESCE(tg.nome, 'N/D') AS tipologia, COUNT(*) AS conteggio
           FROM gare g
-          LEFT JOIN tipologiagare tg ON g."id_tipologia" = tg."id_tipologia"
-          GROUP BY tg."Tipologia"
+          LEFT JOIN tipologia_gare tg ON g.id_tipologia = tg.id
+          GROUP BY tg.nome
           ORDER BY conteggio DESC
           LIMIT 8
         `)

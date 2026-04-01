@@ -19,7 +19,7 @@ export default async function esitiRoutes(fastify) {
     let paramIdx = 1;
 
     if (search) {
-      conditions.push(`(g."Titolo" ILIKE $${paramIdx} OR g."CodiceCIG" ILIKE $${paramIdx} OR s."Nome" ILIKE $${paramIdx})`);
+      conditions.push(`(g."titolo" ILIKE $${paramIdx} OR g."codice_cig" ILIKE $${paramIdx} OR s."nome" ILIKE $${paramIdx})`);
       params.push(`%${search}%`);
       paramIdx++;
     }
@@ -65,13 +65,13 @@ export default async function esitiRoutes(fastify) {
       paramIdx++;
     }
     if (min_partecipanti) {
-      conditions.push(`g."NPartecipanti" >= $${paramIdx}`);
+      conditions.push(`g."n_partecipanti" >= $${paramIdx}`);
       params.push(parseInt(min_partecipanti));
       paramIdx++;
     }
 
-    const allowedSort = ['Data', 'Titolo', 'Importo', 'NPartecipanti', 'Ribasso'];
-    const sortCol = allowedSort.includes(sort) ? `g."${sort}"` : 'g."Data"';
+    const allowedSort = ['data', 'titolo', 'importo', 'n_partecipanti', 'ribasso'];
+    const sortCol = allowedSort.includes(sort.toLowerCase()) ? `g."${sort.toLowerCase()}"` : 'g."data"';
     const sortDir = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
     const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
@@ -82,7 +82,7 @@ export default async function esitiRoutes(fastify) {
       LEFT JOIN stazioni s ON g."id_stazione" = s."id"
       LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
       LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
-      LEFT JOIN bandi b ON g."id_bando" = b."id_bando"
+      LEFT JOIN bandi b ON g."id_bando" = b."id"
     `;
 
     const [countResult, dataResult] = await Promise.all([
@@ -93,29 +93,29 @@ export default async function esitiRoutes(fastify) {
       `, params),
       query(`
         SELECT g."id",
-          g."Data" AS data,
-          g."Titolo" AS titolo,
-          g."NPartecipanti" AS n_partecipanti,
-          g."Importo" AS importo,
-          g."MediaAr" AS media_ar,
-          g."Ribasso" AS ribasso,
-          g."SogliaAn" AS soglia_an,
-          g."Variante" AS variante,
-          g."CodiceCIG" AS codice_cig,
-          s."RagioneSociale" AS stazione_nome,
+          g."data" AS data,
+          g."titolo" AS titolo,
+          g."n_partecipanti" AS n_partecipanti,
+          g."importo" AS importo,
+          g."media_ar" AS media_ar,
+          g."ribasso" AS ribasso,
+          g."soglia_an" AS soglia_an,
+          g."variante" AS variante,
+          g."codice_cig" AS codice_cig,
+          s."nome" AS stazione_nome,
           soa."cod" AS soa_categoria,
-          soa."Descrizione" AS soa_descrizione,
-          tg."Tipologia" AS tipologia,
-          c."Criterio" AS criterio,
-          p."Provincia" AS provincia_nome,
-          r."Regione" AS regione_nome,
-          az."RagioneSociale" AS vincitore_nome,
-          az."PartitaIva" AS vincitore_piva,
+          soa."descrizione" AS soa_descrizione,
+          tg."nome" AS tipologia,
+          c."nome" AS criterio,
+          p."provincia" AS provincia_nome,
+          r."regione" AS regione_nome,
+          az."ragione_sociale" AS vincitore_nome,
+          az."partita_iva" AS vincitore_piva,
           (SELECT COUNT(*) FROM dettagliogara dg WHERE dg."id_gara" = g."id") AS n_dettagli
         ${joinClause}
         LEFT JOIN soa ON g."id_soa" = soa."id"
-        LEFT JOIN tipologiagare tg ON g."id_tipologia" = tg."id_tipologia"
-        LEFT JOIN criteri c ON b."id_criterio" = c."id_criterio"
+        LEFT JOIN tipologia_gare tg ON g."id_tipologia" = tg."id"
+        LEFT JOIN criteri c ON b."id_criterio" = c."id"
         LEFT JOIN aziende az ON g."id_vincitore" = az."id"
         ${whereClause}
         ORDER BY ${sortCol} ${sortDir} NULLS LAST
@@ -140,51 +140,51 @@ export default async function esitiRoutes(fastify) {
   fastify.get('/:id', async (request, reply) => {
     const { id } = request.params;
 
-    // Main gara query — includes workflow fields: temp, enabled, DataAbilitazione, Bloccato, id_bando
+    // Main gara query — includes workflow fields: temp, enabled, data_abilitazione, bloccato, id_bando
     const garaResult = await query(`
       SELECT g."id",
-        g."Data" AS data,
-        g."Titolo" AS titolo,
-        g."CodiceCIG" AS codice_cig,
-        g."Importo" AS importo,
-        g."NPartecipanti" AS n_partecipanti,
-        g."Ribasso" AS ribasso,
-        g."MediaAr" AS media_ar,
-        g."SogliaAn" AS soglia_an,
-        g."MediaSc" AS media_sc,
-        g."NDecimali" AS n_decimali,
-        g."Variante" AS variante,
-        g."Citta" AS citta,
+        g."data" AS data,
+        g."titolo" AS titolo,
+        g."codice_cig" AS codice_cig,
+        g."importo" AS importo,
+        g."n_partecipanti" AS n_partecipanti,
+        g."ribasso" AS ribasso,
+        g."media_ar" AS media_ar,
+        g."soglia_an" AS soglia_an,
+        g."media_sc" AS media_sc,
+        g."n_decimali" AS n_decimali,
+        g."variante" AS variante,
+        g."citta" AS citta,
         g."temp" AS temp,
         g."enabled" AS enabled,
-        g."Bloccato" AS bloccato,
-        g."EnableToAll" AS enable_to_all,
-        g."DataAbilitazione" AS data_abilitazione,
+        g."bloccato" AS bloccato,
+        g."enable_to_all" AS enable_to_all,
+        g."data_abilitazione" AS data_abilitazione,
         g."id_bando" AS id_bando,
-        g."id_tipoDatiGara" AS id_tipo_dati_gara,
-        g."Note" AS note,
-        g."NoteInterne" AS note_interne,
+        g."id_tipo_dati_gara" AS id_tipo_dati_gara,
+        g."note" AS note,
+        g."note_interne" AS note_interne,
         g."username" AS username_inserimento,
-        g."DataInserimento" AS data_inserimento,
-        g."DataModifica" AS data_modifica,
-        s."RagioneSociale" AS stazione_nome,
+        g."data_inserimento" AS data_inserimento,
+        g."data_modifica" AS data_modifica,
+        s."nome" AS stazione_nome,
         soa."cod" AS soa_categoria,
-        soa."Descrizione" AS soa_descrizione,
-        tg."Tipologia" AS tipologia,
-        c."Criterio" AS criterio,
-        p."Provincia" AS provincia_nome,
-        r."Regione" AS regione_nome,
-        az."RagioneSociale" AS vincitore_nome,
-        az."PartitaIva" AS vincitore_piva,
+        soa."descrizione" AS soa_descrizione,
+        tg."nome" AS tipologia,
+        c."nome" AS criterio,
+        p."provincia" AS provincia_nome,
+        r."regione" AS regione_nome,
+        az."ragione_sociale" AS vincitore_nome,
+        az."partita_iva" AS vincitore_piva,
         (SELECT COUNT(*) FROM gareinvii gi WHERE gi."id_gara" = g."id") AS n_invii
       FROM gare g
       LEFT JOIN stazioni s ON g."id_stazione" = s."id"
       LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
       LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
-      LEFT JOIN bandi b_ref ON g."id_bando" = b_ref."id_bando"
+      LEFT JOIN bandi b_ref ON g."id_bando" = b_ref."id"
       LEFT JOIN soa ON g."id_soa" = soa."id"
-      LEFT JOIN tipologiagare tg ON g."id_tipologia" = tg."id_tipologia"
-      LEFT JOIN criteri c ON b_ref."id_criterio" = c."id_criterio"
+      LEFT JOIN tipologia_gare tg ON g."id_tipologia" = tg."id"
+      LEFT JOIN criteri c ON b_ref."id_criterio" = c."id"
       LEFT JOIN aziende az ON g."id_vincitore" = az."id"
       WHERE g."id" = $1
     `, [id]);
@@ -196,21 +196,21 @@ export default async function esitiRoutes(fastify) {
     // Graduatoria query
     const dettagliResult = await query(`
       SELECT
-        dg."Posizione" AS posizione,
-        dg."Ribasso" AS ribasso,
-        dg."Vincitrice" AS vincitrice,
-        dg."Anomala" AS anomala,
-        dg."Esclusa" AS esclusa,
-        dg."Ammessa" AS ammessa,
-        dg."TaglioAli" AS taglio_ali,
-        dg."MMediaArit" AS m_media_arit,
-        dg."Note" AS note,
-        az."RagioneSociale" AS ragione_sociale,
-        az."PartitaIva" AS partita_iva
+        dg."posizione" AS posizione,
+        dg."ribasso" AS ribasso,
+        dg."vincitrice" AS vincitrice,
+        dg."anomala" AS anomala,
+        dg."esclusa" AS esclusa,
+        dg."ammessa" AS ammessa,
+        dg."taglio_ali" AS taglio_ali,
+        dg."m_media_arit" AS m_media_arit,
+        dg."note" AS note,
+        az."ragione_sociale" AS ragione_sociale,
+        az."partita_iva" AS partita_iva
       FROM dettagliogara dg
       LEFT JOIN aziende az ON dg."id_azienda" = az."id"
       WHERE dg."id_gara" = $1
-      ORDER BY dg."Posizione" ASC NULLS LAST
+      ORDER BY dg."posizione" ASC NULLS LAST
     `, [id]);
 
     // ATI query (may fail if table structure differs)
@@ -218,8 +218,8 @@ export default async function esitiRoutes(fastify) {
     try {
       const atiResult = await query(`
         SELECT ag.*,
-          m."RagioneSociale" AS mandataria_nome,
-          mn."RagioneSociale" AS mandante_nome
+          m."ragione_sociale" AS mandataria_nome,
+          mn."ragione_sociale" AS mandante_nome
         FROM atigare01 ag
         LEFT JOIN aziende m ON ag."id_mandataria" = m."id"
         LEFT JOIN aziende mn ON ag."id_mandante" = mn."id"
@@ -245,17 +245,17 @@ export default async function esitiRoutes(fastify) {
       // Insert main gara — only columns that exist in the gare table
       const garaResult = await client.query(`
         INSERT INTO gare (
-          "id_bando", "Data", "Titolo", "CodiceCIG",
-          "Cap", "Citta", "Indirizzo", "lat", "lon",
+          "id_bando", "data", "titolo", "codice_cig",
+          "cap", "citta", "indirizzo", "lat", "lon",
           "id_stazione",
-          "id_soa", "SoaVal", "id_tipologia",
-          "Importo", "ImportoSoaPrevalente",
-          "NPartecipanti", "NSorteggio", "NDecimali",
-          "id_vincitore", "Ribasso",
-          "MediaAr", "SogliaAn", "MediaSc", "SogliaRiferimento",
-          "AccorpaAli", "TipoAccorpaALI", "LimitMinMedia",
-          "Variante", "Note", "username",
-          "DataInserimento", "eliminata", "enabled", "temp"
+          "id_soa", "soa_val", "id_tipologia",
+          "importo", "importo_soa_prevalente",
+          "n_partecipanti", "n_sorteggio", "n_decimali",
+          "id_vincitore", "ribasso",
+          "media_ar", "soglia_an", "media_sc", "soglia_riferimento",
+          "acorpa_ali", "tipo_acorpa_ali", "limit_min_media",
+          "variante", "note", "username",
+          "data_inserimento", "eliminata", "enabled", "temp"
         ) VALUES (
           $1, $2, $3, $4,
           $5, $6, $7, $8, $9,
@@ -270,16 +270,16 @@ export default async function esitiRoutes(fastify) {
           NOW(), false, false, true
         ) RETURNING *
       `, [
-        data.id_bando, data.Data, data.Titolo, data.CodiceCIG,
-        data.CAP, data.Citta, data.Indirizzo, data.Lat, data.Lon,
+        data.id_bando, data.data || data.Data, data.titolo || data.Titolo, data.codice_cig || data.CodiceCIG,
+        data.cap || data.CAP, data.citta || data.Citta, data.indirizzo || data.Indirizzo, data.lat || data.Lat, data.lon || data.Lon,
         data.id_stazione,
-        data.id_soa, data.SoaVal, data.id_tipologia,
-        data.Importo, data.ImportoSoaPrevalente,
-        data.NPartecipanti || 0, data.NSorteggio || 0, data.NDecimali || 3,
-        data.id_vincitore, data.Ribasso,
-        data.MediaAr, data.SogliaAn, data.MediaSc, data.SogliaRiferimento,
-        data.AccorpaAli || false, data.TipoAccorpaALI, data.LimitMinMedia,
-        data.Variante || 'BASE', data.Note, data.username || 'web'
+        data.id_soa, data.soa_val || data.SoaVal, data.id_tipologia,
+        data.importo || data.Importo, data.importo_soa_prevalente || data.ImportoSoaPrevalente,
+        data.n_partecipanti || data.NPartecipanti || 0, data.n_sorteggio || data.NSorteggio || 0, data.n_decimali || data.NDecimali || 3,
+        data.id_vincitore, data.ribasso || data.Ribasso,
+        data.media_ar || data.MediaAr, data.soglia_an || data.SogliaAn, data.media_sc || data.MediaSc, data.soglia_riferimento || data.SogliaRiferimento,
+        data.acorpa_ali || data.AccorpaAli || false, data.tipo_acorpa_ali || data.TipoAccorpaALI, data.limit_min_media || data.LimitMinMedia,
+        data.variante || data.Variante || 'BASE', data.note || data.Note, data.username || 'web'
       ]);
 
       const garaId = garaResult.rows[0].id;
@@ -289,22 +289,22 @@ export default async function esitiRoutes(fastify) {
         for (const det of data.graduatoria) {
           await client.query(`
             INSERT INTO dettagliogara (
-              "id_gara", "Variante", "id_azienda", "Posizione", "Ribasso", "ImportoOfferta",
-              "TaglioAli", "MMediaArit", "Anomala",
-              "Vincitrice", "Ammessa", "AmmessaRiserva", "Esclusa",
-              "DaVerificare", "Sconosciuto", "PariMerito",
-              "RagioneSociale", "PartitaIva", "CodiceFiscale",
-              "PunteggioTecnico", "PunteggioEconomico", "PunteggioTotale",
-              "Inserimento", "Note"
+              "id_gara", "variante", "id_azienda", "posizione", "ribasso", "importo_offerta",
+              "taglio_ali", "m_media_arit", "anomala",
+              "vincitrice", "ammessa", "ammessa_riserva", "esclusa",
+              "da_verificare", "sconosciuto", "pari_merito",
+              "ragione_sociale", "partita_iva", "codice_fiscale",
+              "punteggio_tecnico", "punteggio_economico", "punteggio_totale",
+              "inserimento", "note"
             ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
           `, [
-            garaId, det.Variante || 'BASE', det.id_azienda, det.Posizione, det.Ribasso, det.ImportoOfferta,
-            det.TaglioAli || false, det.MMediaArit, det.Anomala || false,
-            det.Vincitrice || false, det.Ammessa !== false, det.AmmessaRiserva || false, det.Esclusa || false,
-            det.DaVerificare || false, det.Sconosciuto || false, det.PariMerito || false,
-            det.RagioneSociale, det.PartitaIva, det.CodiceFiscale,
-            det.PunteggioTecnico, det.PunteggioEconomico, det.PunteggioTotale,
-            det.Inserimento || 0, det.Note
+            garaId, det.variante || det.Variante || 'BASE', det.id_azienda, det.posizione || det.Posizione, det.ribasso || det.Ribasso, det.importo_offerta || det.ImportoOfferta,
+            det.taglio_ali || det.TaglioAli || false, det.m_media_arit || det.MMediaArit, det.anomala || det.Anomala || false,
+            det.vincitrice || det.Vincitrice || false, det.ammessa !== false || det.Ammessa !== false, det.ammessa_riserva || det.AmmessaRiserva || false, det.esclusa || det.Esclusa || false,
+            det.da_verificare || det.DaVerificare || false, det.sconosciuto || det.Sconosciuto || false, det.pari_merito || det.PariMerito || false,
+            det.ragione_sociale || det.RagioneSociale, det.partita_iva || det.PartitaIva, det.codice_fiscale || det.CodiceFiscale,
+            det.punteggio_tecnico || det.PunteggioTecnico, det.punteggio_economico || det.PunteggioEconomico, det.punteggio_totale || det.PunteggioTotale,
+            det.inserimento || det.Inserimento || 0, det.note || det.Note
           ]);
         }
       }
@@ -333,22 +333,35 @@ export default async function esitiRoutes(fastify) {
     const updateValues = [];
     let idx = 1;
 
-    const allowedFields = [
-      'Data', 'Titolo', 'CodiceCIG', 'CodiceCUP',
-      'CAP', 'Citta', 'Indirizzo', 'id_provincia', 'Regione', 'Lat', 'Lon',
-      'id_stazione', 'Stazione',
-      'id_soa', 'SoaVal', 'id_tipologia', 'id_criterio', 'id_piattaforma',
-      'Importo', 'ImportoSO', 'ImportoCO', 'ImportoEco', 'OneriProgettazione',
-      'NPartecipanti', 'NAmmessi', 'NEsclusi', 'NSorteggio', 'NDecimali',
-      'id_vincitore', 'Ribasso', 'RibassoVincitore', 'ImportoVincitore',
-      'MediaAr', 'SogliaAn', 'MediaSc', 'SogliaRiferimento',
-      'AccorpaAli', 'Variante', 'Note', 'Provenienza'
-    ];
+    const allowedFields = {
+      'data': 'data', 'titolo': 'titolo', 'codice_cig': 'codice_cig', 'codice_cup': 'codice_cup',
+      'cap': 'cap', 'citta': 'citta', 'indirizzo': 'indirizzo', 'id_provincia': 'id_provincia', 'regione': 'regione', 'lat': 'lat', 'lon': 'lon',
+      'id_stazione': 'id_stazione', 'stazione_nome': 'stazione_nome',
+      'id_soa': 'id_soa', 'soa_val': 'soa_val', 'id_tipologia': 'id_tipologia', 'id_criterio': 'id_criterio', 'id_piattaforma': 'id_piattaforma',
+      'importo': 'importo', 'importo_so': 'importo_so', 'importo_co': 'importo_co', 'importo_eco': 'importo_eco', 'oneri_progettazione': 'oneri_progettazione',
+      'n_partecipanti': 'n_partecipanti', 'n_ammessi': 'n_ammessi', 'n_esclusi': 'n_esclusi', 'n_sorteggio': 'n_sorteggio', 'n_decimali': 'n_decimali',
+      'id_vincitore': 'id_vincitore', 'ribasso': 'ribasso', 'ribasso_vincitore': 'ribasso_vincitore', 'importo_vincitore': 'importo_vincitore',
+      'media_ar': 'media_ar', 'soglia_an': 'soglia_an', 'media_sc': 'media_sc', 'soglia_riferimento': 'soglia_riferimento',
+      'acorpa_ali': 'acorpa_ali', 'variante': 'variante', 'note': 'note', 'provenienza': 'provenienza'
+    };
 
-    for (const field of allowedFields) {
-      if (data[field] !== undefined) {
-        updateFields.push(`"${field}" = $${idx}`);
-        updateValues.push(data[field]);
+    // Support both snake_case and PascalCase input
+    const mappingPascalToSnake = {
+      'Data': 'data', 'Titolo': 'titolo', 'CodiceCIG': 'codice_cig', 'CodiceCUP': 'codice_cup',
+      'CAP': 'cap', 'Citta': 'citta', 'Indirizzo': 'indirizzo', 'Regione': 'regione', 'Lat': 'lat', 'Lon': 'lon',
+      'Stazione': 'stazione_nome',
+      'SoaVal': 'soa_val', 'ImportoSO': 'importo_so', 'ImportoCO': 'importo_co', 'ImportoEco': 'importo_eco', 'OneriProgettazione': 'oneri_progettazione',
+      'NPartecipanti': 'n_partecipanti', 'NAmmessi': 'n_ammessi', 'NEsclusi': 'n_esclusi', 'NSorteggio': 'n_sorteggio', 'NDecimali': 'n_decimali',
+      'Ribasso': 'ribasso', 'RibassoVincitore': 'ribasso_vincitore', 'ImportoVincitore': 'importo_vincitore',
+      'MediaAr': 'media_ar', 'SogliaAn': 'soglia_an', 'MediaSc': 'media_sc', 'SogliaRiferimento': 'soglia_riferimento',
+      'AccorpaAli': 'acorpa_ali', 'Variante': 'variante', 'Note': 'note', 'Provenienza': 'provenienza'
+    };
+
+    for (const [key, value] of Object.entries(data)) {
+      let dbField = allowedFields[key] || mappingPascalToSnake[key];
+      if (dbField) {
+        updateFields.push(`"${dbField}" = $${idx}`);
+        updateValues.push(value);
         idx++;
       }
     }
@@ -357,10 +370,10 @@ export default async function esitiRoutes(fastify) {
       return reply.status(400).send({ error: 'Nessun campo da aggiornare' });
     }
 
-    updateFields.push(`"DataModifica" = NOW()`);
-    if (data.ModificatoDa) {
-      updateFields.push(`"ModificatoDa" = $${idx}`);
-      updateValues.push(data.ModificatoDa);
+    updateFields.push(`"data_modifica" = NOW()`);
+    if (data.ModificatoDa || data.modificato_da) {
+      updateFields.push(`"modificato_da" = $${idx}`);
+      updateValues.push(data.ModificatoDa || data.modificato_da);
       idx++;
     }
 
@@ -379,7 +392,7 @@ export default async function esitiRoutes(fastify) {
   fastify.delete('/:id', async (request, reply) => {
     const { id } = request.params;
     const result = await query(
-      `UPDATE gare SET "eliminata" = true, "DataModifica" = NOW() WHERE "id" = $1 RETURNING "id"`,
+      `UPDATE gare SET "eliminata" = true, "data_modifica" = NOW() WHERE "id" = $1 RETURNING "id"`,
       [id]
     );
     if (result.rows.length === 0) {
@@ -397,13 +410,13 @@ export default async function esitiRoutes(fastify) {
 
     const result = await query(`
       SELECT dg.*,
-        az."RagioneSociale" AS azienda_nome,
-        az."PartitaIva" AS azienda_piva,
-        az."CodiceFiscale" AS azienda_cf
+        az."ragione_sociale" AS azienda_nome,
+        az."partita_iva" AS azienda_piva,
+        az."codice_fiscale" AS azienda_cf
       FROM dettagliogara dg
       LEFT JOIN aziende az ON dg."id_azienda" = az."id"
-      WHERE dg."id_gara" = $1 AND dg."Variante" = $2
-      ORDER BY dg."Posizione" ASC NULLS LAST
+      WHERE dg."id_gara" = $1 AND dg."variante" = $2
+      ORDER BY dg."posizione" ASC NULLS LAST
     `, [id, variante]);
 
     return result.rows;
@@ -418,21 +431,21 @@ export default async function esitiRoutes(fastify) {
 
     const result = await query(`
       INSERT INTO dettagliogara (
-        "id_gara", "Variante", "id_azienda", "Posizione", "Ribasso", "ImportoOfferta",
-        "TaglioAli", "Anomala", "Vincitrice", "Ammessa", "Esclusa",
-        "DaVerificare", "Sconosciuto", "RagioneSociale", "PartitaIva",
-        "PunteggioTecnico", "PunteggioEconomico", "PunteggioTotale",
-        "Inserimento", "Note"
+        "id_gara", "variante", "id_azienda", "posizione", "ribasso", "importo_offerta",
+        "taglio_ali", "anomala", "vincitrice", "ammessa", "esclusa",
+        "da_verificare", "sconosciuto", "ragione_sociale", "partita_iva",
+        "punteggio_tecnico", "punteggio_economico", "punteggio_totale",
+        "inserimento", "note"
       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
       RETURNING *
     `, [
-      id, det.Variante || 'BASE', det.id_azienda, det.Posizione, det.Ribasso, det.ImportoOfferta,
-      det.TaglioAli || false, det.Anomala || false, det.Vincitrice || false,
-      det.Ammessa !== false, det.Esclusa || false,
-      det.DaVerificare || false, det.Sconosciuto || false,
-      det.RagioneSociale, det.PartitaIva,
-      det.PunteggioTecnico, det.PunteggioEconomico, det.PunteggioTotale,
-      det.Inserimento || 0, det.Note
+      id, det.variante || det.Variante || 'BASE', det.id_azienda, det.posizione || det.Posizione, det.ribasso || det.Ribasso, det.importo_offerta || det.ImportoOfferta,
+      det.taglio_ali || det.TaglioAli || false, det.anomala || det.Anomala || false, det.vincitrice || det.Vincitrice || false,
+      det.ammessa !== false || det.Ammessa !== false, det.esclusa || det.Esclusa || false,
+      det.da_verificare || det.DaVerificare || false, det.sconosciuto || det.Sconosciuto || false,
+      det.ragione_sociale || det.RagioneSociale, det.partita_iva || det.PartitaIva,
+      det.punteggio_tecnico || det.PunteggioTecnico, det.punteggio_economico || det.PunteggioEconomico, det.punteggio_totale || det.PunteggioTotale,
+      det.inserimento || det.Inserimento || 0, det.note || det.Note
     ]);
 
     return reply.status(201).send(result.rows[0]);
@@ -447,29 +460,29 @@ export default async function esitiRoutes(fastify) {
     const result = await query(`
       SELECT
         COUNT(*) FILTER (WHERE "eliminata" = false) AS totale,
-        AVG("NPartecipanti") FILTER (WHERE "eliminata" = false AND "NPartecipanti" > 0) AS media_partecipanti,
-        AVG("Ribasso") FILTER (WHERE "eliminata" = false AND "Ribasso" IS NOT NULL) AS media_ribasso,
-        COUNT(*) FILTER (WHERE "Data" >= NOW() - INTERVAL '30 days' AND "eliminata" = false) AS ultimi_30_giorni,
-        SUM("Importo") FILTER (WHERE "eliminata" = false) AS importo_totale
+        AVG("n_partecipanti") FILTER (WHERE "eliminata" = false AND "n_partecipanti" > 0) AS media_partecipanti,
+        AVG("ribasso") FILTER (WHERE "eliminata" = false AND "ribasso" IS NOT NULL) AS media_ribasso,
+        COUNT(*) FILTER (WHERE "data" >= NOW() - INTERVAL '30 days' AND "eliminata" = false) AS ultimi_30_giorni,
+        SUM("importo") FILTER (WHERE "eliminata" = false) AS importo_totale
       FROM gare
     `);
 
     const perRegione = await query(`
-      SELECT r."Regione", COUNT(*) as totale
+      SELECT r."regione", COUNT(*) as totale
       FROM gare g
       JOIN stazioni s ON g."id_stazione" = s."id"
       JOIN province p ON s."id_provincia" = p."id_provincia"
       JOIN regioni r ON p."id_regione" = r."id_regione"
       WHERE g."eliminata" = false
-      GROUP BY r."Regione" ORDER BY totale DESC LIMIT 10
+      GROUP BY r."regione" ORDER BY totale DESC LIMIT 10
     `);
 
     const perTipologia = await query(`
-      SELECT tg."Tipologia", COUNT(*) as totale
+      SELECT tg."nome", COUNT(*) as totale
       FROM gare g
-      JOIN tipologiagare tg ON g."id_tipologia" = tg."id_tipologia"
+      JOIN tipologia_gare tg ON g."id_tipologia" = tg."id"
       WHERE g."eliminata" = false
-      GROUP BY tg."Tipologia" ORDER BY totale DESC
+      GROUP BY tg."nome" ORDER BY totale DESC
     `);
 
     return {
@@ -2008,7 +2021,7 @@ export default async function esitiRoutes(fastify) {
   fastify.get('/tipologie', { preHandler: [fastify.authenticate] }, async () => {
     const result = await query(`
       SELECT "id_tipologia" AS id, "Tipologia" AS tipologia, "Descrizione" AS descrizione
-      FROM tipologiagare
+      FROM tipologia_gare
       ORDER BY "Tipologia" ASC
     `);
     return result.rows;

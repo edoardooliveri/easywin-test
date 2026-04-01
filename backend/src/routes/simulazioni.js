@@ -18,7 +18,7 @@ export default async function simulazioniRoutes(fastify) {
     } = params;
 
     // Step 1: Fetch matching historical gare
-    const conditions = ['"eliminata" = false', '"NPartecipanti" > 0', '"Ribasso" IS NOT NULL'];
+    const conditions = ['"eliminata" = false', '"n_partecipanti" > 0', '"ribasso" IS NOT NULL'];
     const values = [];
     let idx = 1;
 
@@ -29,25 +29,25 @@ export default async function simulazioniRoutes(fastify) {
     if (id_provincia) { conditions.push(`s."id_provincia" = $${idx}`); values.push(id_provincia); idx++; }
     if (id_tipologia) { conditions.push(`g."id_tipologia" = $${idx}`); values.push(id_tipologia); idx++; }
     if (id_criterio) { conditions.push(`b."id_criterio" = $${idx}`); values.push(id_criterio); idx++; }
-    if (data_min) { conditions.push(`g."Data" >= $${idx}`); values.push(data_min); idx++; }
-    if (data_max) { conditions.push(`g."Data" <= $${idx}`); values.push(data_max); idx++; }
-    if (importo_min) { conditions.push(`g."Importo" >= $${idx}`); values.push(importo_min); idx++; }
-    if (importo_max) { conditions.push(`g."Importo" <= $${idx}`); values.push(importo_max); idx++; }
+    if (data_min) { conditions.push(`g."data" >= $${idx}`); values.push(data_min); idx++; }
+    if (data_max) { conditions.push(`g."data" <= $${idx}`); values.push(data_max); idx++; }
+    if (importo_min) { conditions.push(`g."importo" >= $${idx}`); values.push(importo_min); idx++; }
+    if (importo_max) { conditions.push(`g."importo" <= $${idx}`); values.push(importo_max); idx++; }
 
     const gareResult = await query(`
-      SELECT g."id", g."Data", g."Titolo", g."Importo", g."NPartecipanti",
-        g."Ribasso", g."MediaAr", g."SogliaAn", g."MediaSc", g."NDecimali",
-        g."CodiceCIG", g."id_vincitore",
-        s."Nome" AS stazione_nome,
-        soa."Descrizione" AS soa_desc
+      SELECT g."id", g."data", g."titolo", g."importo", g."n_partecipanti",
+        g."ribasso", g."media_ar", g."soglia_an", g."media_sc", g."n_decimali",
+        g."codice_cig", g."id_vincitore",
+        s."nome" AS stazione_nome,
+        soa."descrizione" AS soa_desc
       FROM gare g
       LEFT JOIN stazioni s ON g."id_stazione" = s."id"
       LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
       LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
       LEFT JOIN soa ON g."id_soa" = soa."id"
-      LEFT JOIN bandi b ON g."id_bando" = b."id_bando"
+      LEFT JOIN bandi b ON g."id_bando" = b."id"
       WHERE ${conditions.join(' AND ')}
-      ORDER BY g."Data" DESC
+      ORDER BY g."data" DESC
       LIMIT 200
     `, values);
 
@@ -61,7 +61,7 @@ export default async function simulazioniRoutes(fastify) {
     }
 
     // Step 2: Calculate statistics
-    const ribassi = gare.map(g => parseFloat(g.Ribasso)).filter(r => !isNaN(r));
+    const ribassi = gare.map(g => parseFloat(g.ribasso)).filter(r => !isNaN(r));
     const stats = calculateStats(ribassi, n_decimali);
 
     // Step 3: Simulate with proposed ribasso
@@ -117,9 +117,9 @@ export default async function simulazioniRoutes(fastify) {
       ai_explanation: aiExplanation,
       ai_suggestions: aiSuggestions,
       gare_sample: gare.slice(0, 10).map(g => ({
-        id: g.id, data: g.Data, titolo: g.Titolo,
-        importo: g.Importo, ribasso: g.Ribasso,
-        n_partecipanti: g.NPartecipanti, stazione: g.stazione_nome
+        id: g.id, data: g.data, titolo: g.titolo,
+        importo: g.importo, ribasso: g.ribasso,
+        n_partecipanti: g.n_partecipanti, stazione: g.stazione_nome
       }))
     };
   });
@@ -146,7 +146,7 @@ export default async function simulazioniRoutes(fastify) {
     const [countRes, dataRes] = await Promise.all([
       query(`SELECT COUNT(*) as total FROM simulazioni s ${where}`, params),
       query(`
-        SELECT s.*, soa."Descrizione" AS soa_desc, r."Regione" AS regione_nome
+        SELECT s.*, soa."descrizione" AS soa_desc, r."regione" AS regione_nome
         FROM simulazioni s
         LEFT JOIN soa ON s."id_soa" = soa."id"
         LEFT JOIN regioni r ON s."id_regione" = r."id_regione"
@@ -174,14 +174,14 @@ export default async function simulazioniRoutes(fastify) {
     const { id } = request.params;
 
     const simRes = await query(`
-      SELECT s.*, soa."Descrizione" AS soa_desc,
-        r."Regione" AS regione_nome, p."Provincia" AS provincia_nome,
-        tg."Tipologia"
+      SELECT s.*, soa."descrizione" AS soa_desc,
+        r."regione" AS regione_nome, p."provincia" AS provincia_nome,
+        tg."nome"
       FROM simulazioni s
       LEFT JOIN soa ON s."id_soa" = soa."id"
       LEFT JOIN regioni r ON s."id_regione" = r."id_regione"
       LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
-      LEFT JOIN tipologiagare tg ON s."id_tipologia" = tg."id_tipologia"
+      LEFT JOIN tipologia_gare tg ON s."id_tipologia" = tg."id"
       WHERE s."id" = $1
     `, [id]);
 

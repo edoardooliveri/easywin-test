@@ -53,7 +53,7 @@ export default async function presidiaRoutes(fastify, opts) {
         try {
           // Check if already imported (deduplica via external_code)
           const existing = await query(
-            'SELECT "id_bando" FROM bandi WHERE "ExternalCode" = $1 AND "Provenienza" = $2',
+            'SELECT "id" FROM bandi WHERE "external_code" = $1 AND "provenienza" = $2',
             [bandoPresidia.codice, 'Presidia']
           );
 
@@ -87,11 +87,11 @@ export default async function presidiaRoutes(fastify, opts) {
           let id_tipologia = null;
           if (mapped.tipologia_nome) {
             const tipResult = await query(
-              'SELECT "id_tipologia" FROM tipologiagare WHERE "Tipologia" ILIKE $1',
+              'SELECT "id" FROM tipologia_gare WHERE "nome" ILIKE $1',
               [`%${mapped.tipologia_nome}%`]
             );
             if (tipResult.rows.length > 0) {
-              id_tipologia = tipResult.rows[0].id_tipologia;
+              id_tipologia = tipResult.rows[0].id;
             }
           }
 
@@ -99,25 +99,25 @@ export default async function presidiaRoutes(fastify, opts) {
           let id_criterio = null;
           if (mapped.criterio_nome) {
             const critResult = await query(
-              'SELECT "id_criterio" FROM criteri WHERE "Criterio" ILIKE $1',
+              'SELECT "id" FROM criteri WHERE "nome" ILIKE $1',
               [`%${mapped.criterio_nome}%`]
             );
             if (critResult.rows.length > 0) {
-              id_criterio = critResult.rows[0].id_criterio;
+              id_criterio = critResult.rows[0].id;
             }
           }
 
           // Insert bando with RETURNING to get the id
           const insertResult = await query(
             `INSERT INTO bandi (
-              "Titolo", "id_stazione", "Stazione", "DataPubblicazione",
-              "CodiceCIG", "id_soa", "ImportoSO", "ImportoCO",
-              "id_tipologia", "id_criterio", "DataOfferta",
-              "Indirizzo", "CAP", "Citta", "Regione",
-              "Provenienza", "ExternalCode",
-              "InseritoDa", "Note"
+              "titolo", "id_stazione", "stazione_nome", "data_pubblicazione",
+              "codice_cig", "id_soa", "importo_so", "importo_co",
+              "id_tipologia", "id_criterio", "data_offerta",
+              "indirizzo", "cap", "citta", "regione",
+              "provenienza", "external_code",
+              "inserito_da", "note"
             ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
-            RETURNING "id_bando"`,
+            RETURNING id`,
             [
               mapped.titolo, id_stazione, mapped.stazione_nome, mapped.data_pubblicazione,
               mapped.codice_cig, id_soa, mapped.importo_so, mapped.importo_co,
@@ -128,11 +128,11 @@ export default async function presidiaRoutes(fastify, opts) {
             ]
           );
 
-          const newBandoId = insertResult.rows[0].id_bando;
+          const newBandoId = insertResult.rows[0].id;
 
           // Save original Presidia data for comparison
           await query(
-            `UPDATE bandi SET "ai_extracted_data" = $1 WHERE "id_bando" = $2`,
+            `UPDATE bandi SET "ai_extracted_data" = $1 WHERE "id" = $2`,
             [JSON.stringify({ presidia_original: bandoPresidia, mapped: mapped }), newBandoId]
           );
 
@@ -182,11 +182,11 @@ export default async function presidiaRoutes(fastify, opts) {
     // Last import stats
     const lastImport = await query(
       `SELECT
-        MAX("DataPubblicazione") as ultimo_import,
-        COUNT(*) FILTER (WHERE "DataPubblicazione" > NOW() - INTERVAL '24 hours') as ultimi_24h,
-        COUNT(*) FILTER (WHERE "DataPubblicazione" > NOW() - INTERVAL '7 days') as ultimi_7_giorni,
+        MAX("data_pubblicazione") as ultimo_import,
+        COUNT(*) FILTER (WHERE "data_pubblicazione" > NOW() - INTERVAL '24 hours') as ultimi_24h,
+        COUNT(*) FILTER (WHERE "data_pubblicazione" > NOW() - INTERVAL '7 days') as ultimi_7_giorni,
         COUNT(*) as totale
-       FROM bandi WHERE "Provenienza" = 'Presidia'`
+       FROM bandi WHERE "provenienza" = 'Presidia'`
     );
 
     return {
@@ -339,7 +339,7 @@ async function findOrCreateStazione(stazioneData) {
   // Try to find by name (fuzzy match)
   if (stazioneData.nome) {
     const existing = await query(
-      `SELECT "id" FROM stazioni WHERE "Nome" ILIKE $1 LIMIT 1`,
+      `SELECT "id" FROM stazioni WHERE "nome" ILIKE $1 LIMIT 1`,
       [stazioneData.nome]
     );
     if (existing.rows.length > 0) return existing.rows[0].id;
@@ -347,7 +347,7 @@ async function findOrCreateStazione(stazioneData) {
 
   // Create new
   const result = await query(
-    `INSERT INTO stazioni ("Nome", "Città")
+    `INSERT INTO stazioni ("nome", "citta")
      VALUES ($1, $2) RETURNING "id"`,
     [stazioneData.nome, stazioneData.citta]
   );

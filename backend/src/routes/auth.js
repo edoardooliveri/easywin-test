@@ -32,8 +32,8 @@ export default async function authRoutes(fastify, opts) {
       }
 
       const result = await query(
-        `SELECT "id" AS user_id, "username", "email", "nome", "cognome", 
-                "attivo", "data_scadenza", "password_hash"
+        `SELECT "id" AS user_id, "username", "email", "nome", "cognome",
+                "attivo", "password_hash"
          FROM users
          WHERE "username" = $1 OR "email" = $1
          LIMIT 1`,
@@ -101,8 +101,8 @@ export default async function authRoutes(fastify, opts) {
   fastify.get('/me', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     try {
       const result = await query(
-        `SELECT "id" AS user_id, "username", "email", "nome", "cognome", 
-                "ruolo", "attivo", "data_scadenza"
+        `SELECT "id" AS user_id, "username", "email", "nome", "cognome",
+                "ruolo", "attivo"
          FROM users
          WHERE "username" = $1`,
         [request.user.username]
@@ -120,8 +120,7 @@ export default async function authRoutes(fastify, opts) {
         nome: u.nome,
         cognome: u.cognome,
         ruolo: u.ruolo,
-        approvato: u.attivo,
-        scadenza: u.data_scadenza
+        approvato: u.attivo
       };
     } catch (err) {
       fastify.log.error({ err: err.message }, '/me error');

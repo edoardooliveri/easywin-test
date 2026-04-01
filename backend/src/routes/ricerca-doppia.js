@@ -20,23 +20,23 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
       limit = 20
     } = request.query;
 
-    const bandiConditions = ['b."Annullato" = false'];
-    const esitiConditions = ['e."Annullato" = false'];
+    const bandiConditions = ['b.annullato = false'];
+    const esitiConditions = ['e.annullato = false'];
     const params = [];
     let paramIdx = 1;
 
     // Search text - applied to both bandi and esiti
     if (q) {
       const searchParam = `%${q}%`;
-      bandiConditions.push(`(b."Titolo" ILIKE $${paramIdx} OR b."CodiceCIG" ILIKE $${paramIdx})`);
-      esitiConditions.push(`(e."Titolo" ILIKE $${paramIdx} OR e."CodiceCIG" ILIKE $${paramIdx})`);
+      bandiConditions.push(`(b.titolo ILIKE $${paramIdx} OR b.codice_cig ILIKE $${paramIdx})`);
+      esitiConditions.push(`(e.titolo ILIKE $${paramIdx} OR e.codice_cig ILIKE $${paramIdx})`);
       params.push(searchParam);
       paramIdx++;
     }
 
     if (id_stazione) {
-      bandiConditions.push(`b."id_stazione" = $${paramIdx}`);
-      esitiConditions.push(`e."id_stazione" = $${paramIdx}`);
+      bandiConditions.push(`b.id_stazione = $${paramIdx}`);
+      esitiConditions.push(`e.id_stazione = $${paramIdx}`);
       params.push(id_stazione);
       paramIdx++;
     }
@@ -44,60 +44,60 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
     if (id_provincia) {
       const bandoProvincia = paramIdx;
       const esitiProvincia = paramIdx + 1;
-      bandiConditions.push(`EXISTS (SELECT 1 FROM bandiprovince bp WHERE bp."id_bando" = b."id_bando" AND bp."id_provincia" = $${bandoProvincia})`);
-      esitiConditions.push(`EXISTS (SELECT 1 FROM esitiprovince ep WHERE ep."id_esito" = e."id_esito" AND ep."id_provincia" = $${esitiProvincia})`);
+      bandiConditions.push(`EXISTS (SELECT 1 FROM bandiprovince bp WHERE bp.id_bando = b.id AND bp.id_provincia = $${bandoProvincia})`);
+      esitiConditions.push(`EXISTS (SELECT 1 FROM esitiprovince ep WHERE ep.id_esito = e.id AND ep.id_provincia = $${esitiProvincia})`);
       params.push(id_provincia, id_provincia);
       paramIdx += 2;
     }
 
     if (codice_soa) {
-      bandiConditions.push(`b."id_soa" = $${paramIdx}`);
-      esitiConditions.push(`e."id_soa" = $${paramIdx}`);
+      bandiConditions.push(`b.id_soa = $${paramIdx}`);
+      esitiConditions.push(`e.id_soa = $${paramIdx}`);
       params.push(codice_soa);
       paramIdx++;
     }
 
     if (data_da) {
-      bandiConditions.push(`b."DataPubblicazione" >= $${paramIdx}`);
-      esitiConditions.push(`e."DataPubblicazione" >= $${paramIdx}`);
+      bandiConditions.push(`b.data_pubblicazione >= $${paramIdx}`);
+      esitiConditions.push(`e.data >= $${paramIdx}`);
       params.push(data_da);
       paramIdx++;
     }
 
     if (data_a) {
-      bandiConditions.push(`b."DataPubblicazione" <= $${paramIdx}`);
-      esitiConditions.push(`e."DataPubblicazione" <= $${paramIdx}`);
+      bandiConditions.push(`b.data_pubblicazione <= $${paramIdx}`);
+      esitiConditions.push(`e.data <= $${paramIdx}`);
       params.push(data_a);
       paramIdx++;
     }
 
     if (importo_min) {
       const importoParam = parseFloat(importo_min);
-      bandiConditions.push(`(COALESCE(b."ImportoSO", 0) + COALESCE(b."ImportoCO", 0) + COALESCE(b."ImportoEco", 0)) >= $${paramIdx}`);
-      esitiConditions.push(`(COALESCE(e."ImportoSO", 0) + COALESCE(e."ImportoCO", 0) + COALESCE(e."ImportoEco", 0)) >= $${paramIdx}`);
+      bandiConditions.push(`(COALESCE(b.importo_so, 0) + COALESCE(b.importo_co, 0) + COALESCE(b.importo_eco, 0)) >= $${paramIdx}`);
+      esitiConditions.push(`(COALESCE(e.importo_so, 0) + COALESCE(e.importo_co, 0) + COALESCE(e.importo_eco, 0)) >= $${paramIdx}`);
       params.push(importoParam);
       paramIdx++;
     }
 
     if (importo_max) {
       const importoParam = parseFloat(importo_max);
-      bandiConditions.push(`(COALESCE(b."ImportoSO", 0) + COALESCE(b."ImportoCO", 0) + COALESCE(b."ImportoEco", 0)) <= $${paramIdx}`);
-      esitiConditions.push(`(COALESCE(e."ImportoSO", 0) + COALESCE(e."ImportoCO", 0) + COALESCE(e."ImportoEco", 0)) <= $${paramIdx}`);
+      bandiConditions.push(`(COALESCE(b.importo_so, 0) + COALESCE(b.importo_co, 0) + COALESCE(b.importo_eco, 0)) <= $${paramIdx}`);
+      esitiConditions.push(`(COALESCE(e.importo_so, 0) + COALESCE(e.importo_co, 0) + COALESCE(e.importo_eco, 0)) <= $${paramIdx}`);
       params.push(importoParam);
       paramIdx++;
     }
 
     if (id_tipologia) {
-      bandiConditions.push(`b."id_tipologia" = $${paramIdx}`);
-      esitiConditions.push(`e."id_tipologia" = $${paramIdx}`);
+      bandiConditions.push(`b.id_tipologia = $${paramIdx}`);
+      esitiConditions.push(`e.id_tipologia = $${paramIdx}`);
       params.push(id_tipologia);
       paramIdx++;
     }
 
     if (codice_cig) {
       const cigParam = `%${codice_cig}%`;
-      bandiConditions.push(`b."CodiceCIG" ILIKE $${paramIdx}`);
-      esitiConditions.push(`e."CodiceCIG" ILIKE $${paramIdx}`);
+      bandiConditions.push(`b.codice_cig ILIKE $${paramIdx}`);
+      esitiConditions.push(`e.codice_cig ILIKE $${paramIdx}`);
       params.push(cigParam);
       paramIdx++;
     }
@@ -108,21 +108,21 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
     // Fetch bandi
     const bandiResult = await query(
       `SELECT
-        b."id_bando" AS id,
-        b."Titolo" AS titolo,
+        b.id AS id,
+        b.titolo AS titolo,
         'bando' AS tipo,
-        COALESCE(b."Stazione", s."Nome") AS stazione,
-        b."Regione" AS provincia,
-        b."DataPubblicazione" AS data,
-        (COALESCE(b."ImportoSO", 0) + COALESCE(b."ImportoCO", 0) + COALESCE(b."ImportoEco", 0)) AS importo,
-        b."CodiceCIG" AS cig,
-        tg."Tipologia" AS tipologia,
+        COALESCE(b.stazione_nome, s.nome) AS stazione,
+        b.regione AS provincia,
+        b.data_pubblicazione AS data,
+        (COALESCE(b.importo_so, 0) + COALESCE(b.importo_co, 0) + COALESCE(b.importo_eco, 0)) AS importo,
+        b.codice_cig AS cig,
+        tg.nome AS tipologia,
         'pubblicato' AS stato
        FROM bandi b
-       LEFT JOIN stazioni s ON b."id_stazione" = s."id"
-       LEFT JOIN tipologiagare tg ON b."id_tipologia" = tg."id_tipologia"
+       LEFT JOIN stazioni s ON b.id_stazione = s.id
+       LEFT JOIN tipologia_gare tg ON b.id_tipologia = tg.id
        ${bandiWhere}
-       ORDER BY b."DataPubblicazione" DESC
+       ORDER BY b.data_pubblicazione DESC
        LIMIT $${paramIdx}`,
       [...params, Math.min(parseInt(limit), 100)]
     );
@@ -130,21 +130,21 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
     // Fetch esiti
     const esitiResult = await query(
       `SELECT
-        e."id_esito" AS id,
-        e."Titolo" AS titolo,
+        e.id AS id,
+        e.titolo AS titolo,
         'esito' AS tipo,
-        COALESCE(e."Stazione", s."Nome") AS stazione,
-        e."Regione" AS provincia,
-        e."DataPubblicazione" AS data,
-        (COALESCE(e."ImportoSO", 0) + COALESCE(e."ImportoCO", 0) + COALESCE(e."ImportoEco", 0)) AS importo,
-        e."CodiceCIG" AS cig,
-        tg."Tipologia" AS tipologia,
-        CASE WHEN e."DataOfferta" IS NOT NULL THEN 'concluso' ELSE 'pubblicato' END AS stato
+        COALESCE(e.stazione, s.nome) AS stazione,
+        e.regione AS provincia,
+        e.data AS data,
+        (COALESCE(e.importo_so, 0) + COALESCE(e.importo_co, 0) + COALESCE(e.importo_eco, 0)) AS importo,
+        e.codice_cig AS cig,
+        tg.nome AS tipologia,
+        CASE WHEN e.data_offerta IS NOT NULL THEN 'concluso' ELSE 'pubblicato' END AS stato
        FROM esiti e
-       LEFT JOIN stazioni s ON e."id_stazione" = s."id"
-       LEFT JOIN tipologiagare tg ON e."id_tipologia" = tg."id_tipologia"
+       LEFT JOIN stazioni s ON e.id_stazione = s.id
+       LEFT JOIN tipologia_gare tg ON e.id_tipologia = tg.id
        ${esitiWhere}
-       ORDER BY e."DataPubblicazione" DESC
+       ORDER BY e.data DESC
        LIMIT $${paramIdx}`,
       [...params, Math.min(parseInt(limit), 100)]
     );
@@ -169,41 +169,41 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
 
     const bandiResult = await query(
       `SELECT
-        b."id_bando" AS id,
-        b."Titolo" AS titolo,
+        b.id AS id,
+        b.titolo AS titolo,
         'bando' AS tipo,
-        COALESCE(b."Stazione", s."Nome") AS stazione,
-        b."Regione" AS provincia,
-        b."DataPubblicazione" AS data,
-        (COALESCE(b."ImportoSO", 0) + COALESCE(b."ImportoCO", 0) + COALESCE(b."ImportoEco", 0)) AS importo,
-        b."CodiceCIG" AS cig,
-        tg."Tipologia" AS tipologia,
+        COALESCE(b.stazione_nome, s.nome) AS stazione,
+        b.regione AS provincia,
+        b.data_pubblicazione AS data,
+        (COALESCE(b.importo_so, 0) + COALESCE(b.importo_co, 0) + COALESCE(b.importo_eco, 0)) AS importo,
+        b.codice_cig AS cig,
+        tg.nome AS tipologia,
         'pubblicato' AS stato
        FROM bandi b
-       LEFT JOIN stazioni s ON b."id_stazione" = s."id"
-       LEFT JOIN tipologiagare tg ON b."id_tipologia" = tg."id_tipologia"
-       WHERE b."CodiceCIG" = $1 AND b."Annullato" = false
-       ORDER BY b."DataPubblicazione" ASC`,
+       LEFT JOIN stazioni s ON b.id_stazione = s.id
+       LEFT JOIN tipologia_gare tg ON b.id_tipologia = tg.id
+       WHERE b.codice_cig = $1 AND b.annullato = false
+       ORDER BY b.data_pubblicazione ASC`,
       [cig]
     );
 
     const esitiResult = await query(
       `SELECT
-        e."id_esito" AS id,
-        e."Titolo" AS titolo,
+        e.id AS id,
+        e.titolo AS titolo,
         'esito' AS tipo,
-        COALESCE(e."Stazione", s."Nome") AS stazione,
-        e."Regione" AS provincia,
-        e."DataPubblicazione" AS data,
-        (COALESCE(e."ImportoSO", 0) + COALESCE(e."ImportoCO", 0) + COALESCE(e."ImportoEco", 0)) AS importo,
-        e."CodiceCIG" AS cig,
-        tg."Tipologia" AS tipologia,
-        CASE WHEN e."DataOfferta" IS NOT NULL THEN 'concluso' ELSE 'pubblicato' END AS stato
+        COALESCE(e.stazione, s.nome) AS stazione,
+        e.regione AS provincia,
+        e.data AS data,
+        (COALESCE(e.importo_so, 0) + COALESCE(e.importo_co, 0) + COALESCE(e.importo_eco, 0)) AS importo,
+        e.codice_cig AS cig,
+        tg.nome AS tipologia,
+        CASE WHEN e.data_offerta IS NOT NULL THEN 'concluso' ELSE 'pubblicato' END AS stato
        FROM esiti e
-       LEFT JOIN stazioni s ON e."id_stazione" = s."id"
-       LEFT JOIN tipologiagare tg ON e."id_tipologia" = tg."id_tipologia"
-       WHERE e."CodiceCIG" = $1 AND e."Annullato" = false
-       ORDER BY e."DataPubblicazione" ASC`,
+       LEFT JOIN stazioni s ON e.id_stazione = s.id
+       LEFT JOIN tipologia_gare tg ON e.id_tipologia = tg.id
+       WHERE e.codice_cig = $1 AND e.annullato = false
+       ORDER BY e.data ASC`,
       [cig]
     );
 
@@ -226,7 +226,7 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
 
     // Get stazione info first
     const stazioneResult = await query(
-      `SELECT "id" AS id, "Nome" AS nome FROM stazioni WHERE "id" = $1`,
+      `SELECT id, nome FROM stazioni WHERE id = $1`,
       [id]
     );
 
@@ -239,12 +239,12 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
     // Count totals
     const countResult = await query(
       `SELECT
-        COUNT(DISTINCT CASE WHEN b."id_bando" IS NOT NULL THEN b."id_bando" END) as bandi,
-        COUNT(DISTINCT CASE WHEN e."id_esito" IS NOT NULL THEN e."id_esito" END) as esiti
+        COUNT(DISTINCT CASE WHEN b.id IS NOT NULL THEN b.id END) as bandi,
+        COUNT(DISTINCT CASE WHEN e.id IS NOT NULL THEN e.id END) as esiti
        FROM stazioni s
-       LEFT JOIN bandi b ON s."id" = b."id_stazione" AND b."Annullato" = false
-       LEFT JOIN esiti e ON s."id" = e."id_stazione" AND e."Annullato" = false
-       WHERE s."id" = $1`,
+       LEFT JOIN bandi b ON s.id = b.id_stazione AND b.annullato = false
+       LEFT JOIN esiti e ON s.id = e.id_stazione AND e.annullato = false
+       WHERE s.id = $1`,
       [id]
     );
 
@@ -254,21 +254,21 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
     // Fetch bandi
     const bandiResult = await query(
       `SELECT
-        b."id_bando" AS id,
-        b."Titolo" AS titolo,
+        b.id AS id,
+        b.titolo AS titolo,
         'bando' AS tipo,
-        s."Nome" AS stazione,
-        b."Regione" AS provincia,
-        b."DataPubblicazione" AS data,
-        (COALESCE(b."ImportoSO", 0) + COALESCE(b."ImportoCO", 0) + COALESCE(b."ImportoEco", 0)) AS importo,
-        b."CodiceCIG" AS cig,
-        tg."Tipologia" AS tipologia,
+        s.nome AS stazione,
+        b.regione AS provincia,
+        b.data_pubblicazione AS data,
+        (COALESCE(b.importo_so, 0) + COALESCE(b.importo_co, 0) + COALESCE(b.importo_eco, 0)) AS importo,
+        b.codice_cig AS cig,
+        tg.nome AS tipologia,
         'pubblicato' AS stato
        FROM bandi b
-       LEFT JOIN stazioni s ON b."id_stazione" = s."id"
-       LEFT JOIN tipologiagare tg ON b."id_tipologia" = tg."id_tipologia"
-       WHERE b."id_stazione" = $1 AND b."Annullato" = false
-       ORDER BY b."DataPubblicazione" DESC
+       LEFT JOIN stazioni s ON b.id_stazione = s.id
+       LEFT JOIN tipologia_gare tg ON b.id_tipologia = tg.id
+       WHERE b.id_stazione = $1 AND b.annullato = false
+       ORDER BY b.data_pubblicazione DESC
        LIMIT $2 OFFSET $3`,
       [id, parseInt(limit), offset]
     );
@@ -276,21 +276,21 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
     // Fetch esiti
     const esitiResult = await query(
       `SELECT
-        e."id_esito" AS id,
-        e."Titolo" AS titolo,
+        e.id AS id,
+        e.titolo AS titolo,
         'esito' AS tipo,
-        s."Nome" AS stazione,
-        e."Regione" AS provincia,
-        e."DataPubblicazione" AS data,
-        (COALESCE(e."ImportoSO", 0) + COALESCE(e."ImportoCO", 0) + COALESCE(e."ImportoEco", 0)) AS importo,
-        e."CodiceCIG" AS cig,
-        tg."Tipologia" AS tipologia,
-        CASE WHEN e."DataOfferta" IS NOT NULL THEN 'concluso' ELSE 'pubblicato' END AS stato
+        s.nome AS stazione,
+        e.regione AS provincia,
+        e.data AS data,
+        (COALESCE(e.importo_so, 0) + COALESCE(e.importo_co, 0) + COALESCE(e.importo_eco, 0)) AS importo,
+        e.codice_cig AS cig,
+        tg.nome AS tipologia,
+        CASE WHEN e.data_offerta IS NOT NULL THEN 'concluso' ELSE 'pubblicato' END AS stato
        FROM esiti e
-       LEFT JOIN stazioni s ON e."id_stazione" = s."id"
-       LEFT JOIN tipologiagare tg ON e."id_tipologia" = tg."id_tipologia"
-       WHERE e."id_stazione" = $1 AND e."Annullato" = false
-       ORDER BY e."DataPubblicazione" DESC
+       LEFT JOIN stazioni s ON e.id_stazione = s.id
+       LEFT JOIN tipologia_gare tg ON e.id_tipologia = tg.id
+       WHERE e.id_stazione = $1 AND e.annullato = false
+       ORDER BY e.data DESC
        LIMIT $2 OFFSET $3`,
       [id, parseInt(limit), offset]
     );
@@ -317,51 +317,51 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
     // Fetch bando info
     const bandiResult = await query(
       `SELECT
-        b."id_bando" AS id,
+        b.id AS id,
         'pubblicazione_bando' AS evento,
-        b."DataPubblicazione" AS timestamp,
-        b."Titolo" AS titolo,
+        b.data_pubblicazione AS timestamp,
+        b.titolo AS titolo,
         'bando' AS tipo,
-        (COALESCE(b."ImportoSO", 0) + COALESCE(b."ImportoCO", 0) + COALESCE(b."ImportoEco", 0)) AS importo,
-        COALESCE(b."Stazione", s."Nome") AS stazione,
+        (COALESCE(b.importo_so, 0) + COALESCE(b.importo_co, 0) + COALESCE(b.importo_eco, 0)) AS importo,
+        COALESCE(b.stazione_nome, s.nome) AS stazione,
         NULL::text AS aggiudicatario
        FROM bandi b
-       LEFT JOIN stazioni s ON b."id_stazione" = s."id"
-       WHERE b."CodiceCIG" = $1 AND b."Annullato" = false`,
+       LEFT JOIN stazioni s ON b.id_stazione = s.id
+       WHERE b.codice_cig = $1 AND b.annullato = false`,
       [cig]
     );
 
     // Fetch apertura date
     const apertureResult = await query(
       `SELECT
-        b."id_bando" AS id,
+        b.id AS id,
         'apertura_offerte' AS evento,
-        b."DataApertura" AS timestamp,
-        b."Titolo" AS titolo,
+        b.data_apertura AS timestamp,
+        b.titolo AS titolo,
         'bando' AS tipo,
-        (COALESCE(b."ImportoSO", 0) + COALESCE(b."ImportoCO", 0) + COALESCE(b."ImportoEco", 0)) AS importo,
-        COALESCE(b."Stazione", s."Nome") AS stazione,
+        (COALESCE(b.importo_so, 0) + COALESCE(b.importo_co, 0) + COALESCE(b.importo_eco, 0)) AS importo,
+        COALESCE(b.stazione_nome, s.nome) AS stazione,
         NULL::text AS aggiudicatario
        FROM bandi b
-       LEFT JOIN stazioni s ON b."id_stazione" = s."id"
-       WHERE b."CodiceCIG" = $1 AND b."Annullato" = false AND b."DataApertura" IS NOT NULL`,
+       LEFT JOIN stazioni s ON b.id_stazione = s.id
+       WHERE b.codice_cig = $1 AND b.annullato = false AND b.data_apertura IS NOT NULL`,
       [cig]
     );
 
     // Fetch esiti
     const esitiResult = await query(
       `SELECT
-        e."id_esito" AS id,
-        CASE WHEN e."DataOfferta" IS NOT NULL THEN 'esito_pubblicato' ELSE 'risultato_gara' END AS evento,
-        CASE WHEN e."DataOfferta" IS NOT NULL THEN e."DataOfferta" ELSE e."DataPubblicazione" END AS timestamp,
-        e."Titolo" AS titolo,
+        e.id AS id,
+        CASE WHEN e.data_offerta IS NOT NULL THEN 'esito_pubblicato' ELSE 'risultato_gara' END AS evento,
+        CASE WHEN e.data_offerta IS NOT NULL THEN e.data_offerta ELSE e.data END AS timestamp,
+        e.titolo AS titolo,
         'esito' AS tipo,
-        (COALESCE(e."ImportoSO", 0) + COALESCE(e."ImportoCO", 0) + COALESCE(e."ImportoEco", 0)) AS importo,
-        COALESCE(e."Stazione", s."Nome") AS stazione,
-        e."RagioneSocialeDittoGagliardini" AS aggiudicatario
+        (COALESCE(e.importo_so, 0) + COALESCE(e.importo_co, 0) + COALESCE(e.importo_eco, 0)) AS importo,
+        COALESCE(e.stazione, s.nome) AS stazione,
+        e.ragione_sociale_ditto_gagliardini AS aggiudicatario
        FROM esiti e
-       LEFT JOIN stazioni s ON e."id_stazione" = s."id"
-       WHERE e."CodiceCIG" = $1 AND e."Annullato" = false`,
+       LEFT JOIN stazioni s ON e.id_stazione = s.id
+       WHERE e.codice_cig = $1 AND e.annullato = false`,
       [cig]
     );
 

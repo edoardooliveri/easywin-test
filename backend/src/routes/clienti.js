@@ -14,16 +14,16 @@ export default async function clientiRoutes(fastify, opts) {
 
       // Get user's region/province/SOA assignments
       const userRegioni = await query(
-        `SELECT DISTINCT "idRegione" FROM users_regioni WHERE "UserName" = $1`,
+        `SELECT DISTINCT id_regione FROM users_regioni WHERE username = $1`,
         [username]
       );
 
       const userSoa = await query(
-        `SELECT DISTINCT "id_soa" FROM users_soa WHERE "UserName" = $1`,
+        `SELECT DISTINCT id_soa FROM users_soa WHERE username = $1`,
         [username]
       );
 
-      const regioniList = userRegioni.rows.map(r => r.idRegione);
+      const regioniList = userRegioni.rows.map(r => r.id_regione);
       const soaList = userSoa.rows.map(s => s.id_soa);
 
       if (regioniList.length === 0 && soaList.length === 0) {
@@ -37,28 +37,28 @@ export default async function clientiRoutes(fastify, opts) {
 
       // Build filter condition - user sees bandi if they're subscribed to the region OR the SOA
       const filterCondition = regioniList.length > 0
-        ? `(b."Regione" = ANY($1) OR b."id_soa" = ANY($2))`
-        : `b."id_soa" = ANY($2)`;
+        ? `(b.regione = ANY($1) OR b.id_soa = ANY($2))`
+        : `b.id_soa = ANY($2)`;
 
       // Get recent 50 bandi
       const bandiResult = await query(
         `SELECT
-          b."id_bando" AS id,
-          b."Titolo" AS titolo,
-          b."CodiceCIG" AS codice_cig,
-          b."CodiceCUP" AS codice_cup,
-          b."DataPubblicazione" AS data_pubblicazione,
-          b."DataOfferta" AS data_offerta,
-          b."ImportoSO" AS importo_so,
-          b."Regione" AS regione,
-          b."Provincia" AS provincia,
-          b."id_soa" AS id_soa,
-          b."Stazione" AS stazione,
-          b."Annullato" AS annullato
+          b.id AS id,
+          b.titolo AS titolo,
+          b.codice_cig AS codice_cig,
+          b.codice_cup AS codice_cup,
+          b.data_pubblicazione AS data_pubblicazione,
+          b.data_offerta AS data_offerta,
+          b.importo_so AS importo_so,
+          b.regione AS regione,
+          b.provincia AS provincia,
+          b.id_soa AS id_soa,
+          b.stazione_nome AS stazione,
+          b.annullato AS annullato
          FROM bandi b
          WHERE ${filterCondition}
-           AND b."Annullato" = false
-         ORDER BY b."DataPubblicazione" DESC
+           AND b.annullato = false
+         ORDER BY b.data_pubblicazione DESC
          LIMIT 50`,
         [regioniList.length > 0 ? regioniList : [], soaList.length > 0 ? soaList : []]
       );
@@ -66,16 +66,16 @@ export default async function clientiRoutes(fastify, opts) {
       // Get recent 50 esiti
       const esitiResult = await query(
         `SELECT
-          e."id_gara" AS id,
-          e."NumGara" AS numero_gara,
-          e."DataPubblicazione" AS data_pubblicazione,
-          e."Regione" AS regione,
-          e."Provincia" AS provincia,
-          e."id_soa" AS id_soa,
-          e."Stazione" AS stazione
+          e.id_gara AS id,
+          e.numero_gara AS numero_gara,
+          e.data_pubblicazione AS data_pubblicazione,
+          e.regione AS regione,
+          e.provincia AS provincia,
+          e.id_soa AS id_soa,
+          e.stazione AS stazione
          FROM gare e
          WHERE ${filterCondition}
-         ORDER BY e."DataPubblicazione" DESC
+         ORDER BY e.data_pubblicazione DESC
          LIMIT 50`,
         [regioniList.length > 0 ? regioniList : [], soaList.length > 0 ? soaList : []]
       );
@@ -99,12 +99,12 @@ export default async function clientiRoutes(fastify, opts) {
   fastify.get('/profilo', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     try {
       const result = await query(
-        `SELECT "UserName", "Email", "FirstName", "LastName", "Company",
-                "PartitaIva", "CodiceFiscale", "Citta", "Provincia",
-                "Telefono", "IsApproved", "Expire", "ExpireBandi",
-                "ExpirePresidia", "CreatedDate"
+        `SELECT username, email, nome, cognome, azienda,
+                partita_iva, codice_fiscale, citta, provincia,
+                telefono, approvato, expire, expire_bandi,
+                expire_presidia, data_creazione
          FROM users
-         WHERE "UserName" = $1`,
+         WHERE username = $1`,
         [request.user.username]
       );
 
@@ -114,21 +114,21 @@ export default async function clientiRoutes(fastify, opts) {
 
       const u = result.rows[0];
       return {
-        username: u.UserName,
-        email: u.Email,
-        nome: u.FirstName,
-        cognome: u.LastName,
-        azienda: u.Company,
-        partita_iva: u.PartitaIva,
-        codice_fiscale: u.CodiceFiscale,
-        citta: u.Citta,
-        provincia: u.Provincia,
-        telefono: u.Telefono,
-        approvato: u.IsApproved,
-        scadenza_esiti: u.Expire,
-        scadenza_bandi: u.ExpireBandi,
-        scadenza_presidia: u.ExpirePresidia,
-        data_creazione: u.CreatedDate
+        username: u.username,
+        email: u.email,
+        nome: u.nome,
+        cognome: u.cognome,
+        azienda: u.azienda,
+        partita_iva: u.partita_iva,
+        codice_fiscale: u.codice_fiscale,
+        citta: u.citta,
+        provincia: u.provincia,
+        telefono: u.telefono,
+        approvato: u.approvato,
+        scadenza_esiti: u.expire,
+        scadenza_bandi: u.expire_bandi,
+        scadenza_presidia: u.expire_presidia,
+        data_creazione: u.data_creazione
       };
     } catch (err) {
       fastify.log.error({ err: err.message }, 'GET /profilo error');
@@ -147,27 +147,27 @@ export default async function clientiRoutes(fastify, opts) {
       let paramIdx = 2;
 
       if (nome !== undefined) {
-        updateFields.push(`"FirstName" = $${paramIdx++}`);
+        updateFields.push(`nome = $${paramIdx++}`);
         params.push(nome);
       }
       if (cognome !== undefined) {
-        updateFields.push(`"LastName" = $${paramIdx++}`);
+        updateFields.push(`cognome = $${paramIdx++}`);
         params.push(cognome);
       }
       if (telefono !== undefined) {
-        updateFields.push(`"Telefono" = $${paramIdx++}`);
+        updateFields.push(`telefono = $${paramIdx++}`);
         params.push(telefono);
       }
       if (citta !== undefined) {
-        updateFields.push(`"Citta" = $${paramIdx++}`);
+        updateFields.push(`citta = $${paramIdx++}`);
         params.push(citta);
       }
       if (provincia !== undefined) {
-        updateFields.push(`"Provincia" = $${paramIdx++}`);
+        updateFields.push(`provincia = $${paramIdx++}`);
         params.push(provincia);
       }
       if (codice_fiscale !== undefined) {
-        updateFields.push(`"CodiceFiscale" = $${paramIdx++}`);
+        updateFields.push(`codice_fiscale = $${paramIdx++}`);
         params.push(codice_fiscale);
       }
 
@@ -176,7 +176,7 @@ export default async function clientiRoutes(fastify, opts) {
       }
 
       const result = await query(
-        `UPDATE users SET ${updateFields.join(', ')} WHERE "UserName" = $1 RETURNING *`,
+        `UPDATE users SET ${updateFields.join(', ')} WHERE username = $1 RETURNING *`,
         params
       );
 
@@ -188,12 +188,12 @@ export default async function clientiRoutes(fastify, opts) {
       return {
         message: 'Profilo aggiornato con successo',
         user: {
-          nome: u.FirstName,
-          cognome: u.LastName,
-          telefono: u.Telefono,
-          citta: u.Citta,
-          provincia: u.Provincia,
-          codice_fiscale: u.CodiceFiscale
+          nome: u.nome,
+          cognome: u.cognome,
+          telefono: u.telefono,
+          citta: u.citta,
+          provincia: u.provincia,
+          codice_fiscale: u.codice_fiscale
         }
       };
     } catch (err) {
@@ -212,7 +212,7 @@ export default async function clientiRoutes(fastify, opts) {
       }
 
       const userResult = await query(
-        `SELECT "UserName", "PasswordHash" FROM users WHERE "UserName" = $1 LIMIT 1`,
+        `SELECT username, password_hash FROM users WHERE username = $1 LIMIT 1`,
         [request.user.username]
       );
 
@@ -222,8 +222,8 @@ export default async function clientiRoutes(fastify, opts) {
 
       const user = userResult.rows[0];
 
-      if (user.PasswordHash) {
-        const passwordMatch = await bcrypt.compare(password_attuale, user.PasswordHash);
+      if (user.password_hash) {
+        const passwordMatch = await bcrypt.compare(password_attuale, user.password_hash);
         if (!passwordMatch) {
           return reply.status(401).send({ error: 'Password attuale non valida' });
         }
@@ -238,8 +238,8 @@ export default async function clientiRoutes(fastify, opts) {
       }
 
       await query(
-        `UPDATE users SET "PasswordHash" = $1 WHERE "UserName" = $2`,
-        [hashedNewPassword, user.UserName]
+        `UPDATE users SET password_hash = $1 WHERE username = $2`,
+        [hashedNewPassword, user.username]
       );
 
       return { message: 'Password aggiornata con successo' };
@@ -263,16 +263,16 @@ export default async function clientiRoutes(fastify, opts) {
 
       // Get user's subscription filters
       const userRegioni = await query(
-        `SELECT DISTINCT "idRegione" FROM users_regioni WHERE "UserName" = $1`,
+        `SELECT DISTINCT id_regione FROM users_regioni WHERE username = $1`,
         [username]
       );
 
       const userSoa = await query(
-        `SELECT DISTINCT "id_soa" FROM users_soa WHERE "UserName" = $1`,
+        `SELECT DISTINCT id_soa FROM users_soa WHERE username = $1`,
         [username]
       );
 
-      const regioniList = userRegioni.rows.map(r => r.idRegione);
+      const regioniList = userRegioni.rows.map(r => r.id_regione);
       const soaList = userSoa.rows.map(s => s.id_soa);
 
       if (regioniList.length === 0 && soaList.length === 0) {
@@ -281,24 +281,24 @@ export default async function clientiRoutes(fastify, opts) {
 
       // Build WHERE conditions
       const conditions = [
-        'b."Annullato" = false',
-        `(b."Regione" = ANY($1) OR b."id_soa" = ANY($2))`
+        'b.annullato = false',
+        `(b.regione = ANY($1) OR b.id_soa = ANY($2))`
       ];
       const params = [regioniList.length > 0 ? regioniList : [], soaList.length > 0 ? soaList : []];
       let paramIdx = 3;
 
       if (search) {
-        conditions.push(`(b."Titolo" ILIKE $${paramIdx} OR b."CodiceCIG" ILIKE $${paramIdx})`);
+        conditions.push(`(b.titolo ILIKE $${paramIdx} OR b.codice_cig ILIKE $${paramIdx})`);
         params.push(`%${search}%`);
         paramIdx++;
       }
       if (regione) {
-        conditions.push(`b."Regione" = $${paramIdx}`);
+        conditions.push(`b.regione = $${paramIdx}`);
         params.push(regione);
         paramIdx++;
       }
       if (id_soa) {
-        conditions.push(`b."id_soa" = $${paramIdx}`);
+        conditions.push(`b.id_soa = $${paramIdx}`);
         params.push(id_soa);
         paramIdx++;
       }
@@ -313,21 +313,21 @@ export default async function clientiRoutes(fastify, opts) {
       const total = parseInt(countResult.rows[0].total);
 
       // Get results
-      const allowedSorts = ['DataPubblicazione', 'Titolo', 'ImportoSO'];
-      const sortCol = allowedSorts.includes(sort) ? `b."${sort}"` : 'b."DataPubblicazione"';
+      const allowedSorts = ['data_pubblicazione', 'titolo', 'importo_so'];
+      const sortCol = allowedSorts.includes(sort) ? `b.${sort}` : 'b.data_pubblicazione';
       const sortOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
       const result = await query(
         `SELECT
-          b."id_bando" AS id,
-          b."Titolo" AS titolo,
-          b."CodiceCIG" AS codice_cig,
-          b."DataPubblicazione" AS data_pubblicazione,
-          b."DataOfferta" AS data_offerta,
-          b."ImportoSO" AS importo_so,
-          b."Regione" AS regione,
-          b."Provincia" AS provincia,
-          b."Stazione" AS stazione
+          b.id AS id,
+          b.titolo AS titolo,
+          b.codice_cig AS codice_cig,
+          b.data_pubblicazione AS data_pubblicazione,
+          b.data_offerta AS data_offerta,
+          b.importo_so AS importo_so,
+          b.regione AS regione,
+          b.provincia AS provincia,
+          b.stazione_nome AS stazione
          FROM bandi b
          ${whereClause}
          ORDER BY ${sortCol} ${sortOrder}
@@ -357,39 +357,39 @@ export default async function clientiRoutes(fastify, opts) {
 
       // Check user has access to this bando
       const userRegioni = await query(
-        `SELECT DISTINCT "idRegione" FROM users_regioni WHERE "UserName" = $1`,
+        `SELECT DISTINCT id_regione FROM users_regioni WHERE username = $1`,
         [username]
       );
 
       const userSoa = await query(
-        `SELECT DISTINCT "id_soa" FROM users_soa WHERE "UserName" = $1`,
+        `SELECT DISTINCT id_soa FROM users_soa WHERE username = $1`,
         [username]
       );
 
-      const regioniList = userRegioni.rows.map(r => r.idRegione);
+      const regioniList = userRegioni.rows.map(r => r.id_regione);
       const soaList = userSoa.rows.map(s => s.id_soa);
 
       const result = await query(
         `SELECT
-          b."id_bando" AS id,
-          b."Titolo" AS titolo,
-          b."CodiceCIG" AS codice_cig,
-          b."CodiceCUP" AS codice_cup,
-          b."DataPubblicazione" AS data_pubblicazione,
-          b."DataOfferta" AS data_offerta,
-          b."DataApertura" AS data_apertura,
-          b."ImportoSO" AS importo_so,
-          b."Regione" AS regione,
-          b."Provincia" AS provincia,
-          b."id_soa" AS id_soa,
-          b."Stazione" AS stazione,
-          b."id_tipologia" AS id_tipologia,
-          b."id_criterio" AS id_criterio,
-          b."DescrizioneBreveBando" AS descrizione,
-          b."Note" AS note
+          b.id AS id,
+          b.titolo AS titolo,
+          b.codice_cig AS codice_cig,
+          b.codice_cup AS codice_cup,
+          b.data_pubblicazione AS data_pubblicazione,
+          b.data_offerta AS data_offerta,
+          b.data_apertura AS data_apertura,
+          b.importo_so AS importo_so,
+          b.regione AS regione,
+          b.provincia AS provincia,
+          b.id_soa AS id_soa,
+          b.stazione_nome AS stazione,
+          b.id_tipologia AS id_tipologia,
+          b.id_criterio AS id_criterio,
+          b.descrizione_breve AS descrizione,
+          b.note AS note
          FROM bandi b
-         WHERE b."id_bando" = $1
-           AND (b."Regione" = ANY($2) OR b."id_soa" = ANY($3))`,
+         WHERE b.id = $1
+           AND (b.regione = ANY($2) OR b.id_soa = ANY($3))`,
         [id, regioniList.length > 0 ? regioniList : [], soaList.length > 0 ? soaList : []]
       );
 
@@ -414,7 +414,7 @@ export default async function clientiRoutes(fastify, opts) {
 
       // Check user has access to this bando (already filtered above)
       const bandiResult = await query(
-        `SELECT "id_bando" FROM bandi WHERE "id_bando" = $1 LIMIT 1`,
+        `SELECT id FROM bandi WHERE id = $1 LIMIT 1`,
         [id]
       );
 
@@ -425,7 +425,7 @@ export default async function clientiRoutes(fastify, opts) {
       // Create service request
       const result = await query(
         `INSERT INTO richieste_servizi (
-          "id_bando", "UserName", "tipo_servizio", "data_richiesta", "note", "stato"
+          id_bando, username, tipo_servizio, data_richiesta, note, stato
          ) VALUES ($1, $2, $3, NOW(), $4, $5)
          RETURNING *`,
         [id, username, 'APERTURA', note || null, 'PENDING']
@@ -454,7 +454,7 @@ export default async function clientiRoutes(fastify, opts) {
       }
 
       const bandiResult = await query(
-        `SELECT "id_bando" FROM bandi WHERE "id_bando" = $1 LIMIT 1`,
+        `SELECT id FROM bandi WHERE id = $1 LIMIT 1`,
         [id]
       );
 
@@ -464,7 +464,7 @@ export default async function clientiRoutes(fastify, opts) {
 
       const result = await query(
         `INSERT INTO richieste_servizi (
-          "id_bando", "UserName", "tipo_servizio", "data_richiesta", "note", "stato"
+          id_bando, username, tipo_servizio, data_richiesta, note, stato
          ) VALUES ($1, $2, $3, NOW(), $4, $5)
          RETURNING *`,
         [id, username, tipo_servizio, note || null, 'PENDING']
@@ -490,25 +490,25 @@ export default async function clientiRoutes(fastify, opts) {
       const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
 
       const countResult = await query(
-        `SELECT COUNT(*) as total FROM registro_gare_clienti WHERE "UserName" = $1`,
+        `SELECT COUNT(*) as total FROM registro_gare_clienti WHERE username = $1`,
         [username]
       );
       const total = parseInt(countResult.rows[0].total);
 
       const result = await query(
         `SELECT
-          r."id" AS id,
-          r."id_bando" AS id_bando,
-          r."UserName" AS username,
-          r."note" AS note,
-          r."data_inserimento" AS data_inserimento,
-          b."Titolo" AS titolo_bando,
-          b."CodiceCIG" AS codice_cig,
-          b."DataPubblicazione" AS data_pubblicazione
+          r.id AS id,
+          r.id_bando AS id_bando,
+          r.username AS username,
+          r.note AS note,
+          r.data_inserimento AS data_inserimento,
+          b.titolo AS titolo_bando,
+          b.codice_cig AS codice_cig,
+          b.data_pubblicazione AS data_pubblicazione
          FROM registro_gare_clienti r
-         JOIN bandi b ON r."id_bando" = b."id_bando"
-         WHERE r."UserName" = $1
-         ORDER BY r."data_inserimento" DESC
+         JOIN bandi b ON r.id_bando = b.id
+         WHERE r.username = $1
+         ORDER BY r.data_inserimento DESC
          LIMIT $2 OFFSET $3`,
         [username, limit, offset]
       );
@@ -536,7 +536,7 @@ export default async function clientiRoutes(fastify, opts) {
 
       // Check if already in registry
       const existing = await query(
-        `SELECT "id" FROM registro_gare_clienti WHERE "id_bando" = $1 AND "UserName" = $2 LIMIT 1`,
+        `SELECT id FROM registro_gare_clienti WHERE id_bando = $1 AND username = $2 LIMIT 1`,
         [id, username]
       );
 
@@ -545,7 +545,7 @@ export default async function clientiRoutes(fastify, opts) {
       }
 
       const result = await query(
-        `INSERT INTO registro_gare_clienti ("id_bando", "UserName", "note", "data_inserimento")
+        `INSERT INTO registro_gare_clienti (id_bando, username, note, data_inserimento)
          VALUES ($1, $2, $3, NOW())
          RETURNING *`,
         [id, username, note || null]
@@ -570,7 +570,7 @@ export default async function clientiRoutes(fastify, opts) {
       const { note } = request.body || {};
 
       const result = await query(
-        `UPDATE registro_gare_clienti SET "note" = $1 WHERE "id" = $2 AND "UserName" = $3
+        `UPDATE registro_gare_clienti SET note = $1 WHERE id = $2 AND username = $3
          RETURNING *`,
         [note || null, id, username]
       );
@@ -597,7 +597,7 @@ export default async function clientiRoutes(fastify, opts) {
       const username = request.user.username;
 
       const result = await query(
-        `DELETE FROM registro_gare_clienti WHERE "id" = $1 AND "UserName" = $2`,
+        `DELETE FROM registro_gare_clienti WHERE id = $1 AND username = $2`,
         [id, username]
       );
 
@@ -620,20 +620,20 @@ export default async function clientiRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          r."id" AS id,
-          r."id_bando" AS id_bando,
-          r."note" AS note,
-          r."data_inserimento" AS data_inserimento,
-          b."Titolo" AS titolo_bando,
-          b."CodiceCIG" AS codice_cig,
-          b."DataPubblicazione" AS data_pubblicazione,
-          b."Regione" AS regione,
-          b."Provincia" AS provincia,
-          b."ImportoSO" AS importo_so
+          r.id AS id,
+          r.id_bando AS id_bando,
+          r.note AS note,
+          r.data_inserimento AS data_inserimento,
+          b.titolo AS titolo_bando,
+          b.codice_cig AS codice_cig,
+          b.data_pubblicazione AS data_pubblicazione,
+          b.regione AS regione,
+          b.provincia AS provincia,
+          b.importo_so AS importo_so
          FROM registro_gare_clienti r
-         JOIN bandi b ON r."id_bando" = b."id_bando"
-         WHERE r."UserName" = $1
-         ORDER BY r."data_inserimento" DESC`,
+         JOIN bandi b ON r.id_bando = b.id
+         WHERE r.username = $1
+         ORDER BY r.data_inserimento DESC`,
         [username]
       );
 
@@ -660,7 +660,7 @@ export default async function clientiRoutes(fastify, opts) {
       }
 
       const result = await query(
-        `UPDATE dettaglio_gara SET "AssegnaStato" = $1 WHERE "id" = $2
+        `UPDATE dettaglio_gara SET assegna_stato = $1 WHERE id = $2
          RETURNING *`,
         [stato, id]
       );
@@ -686,7 +686,7 @@ export default async function clientiRoutes(fastify, opts) {
       const { id } = request.params;
 
       const result = await query(
-        `UPDATE dettaglio_gara SET "Eseguito" = true, "DataEsecuzione" = NOW() WHERE "id" = $1
+        `UPDATE dettaglio_gara SET eseguito = true, data_esecuzione = NOW() WHERE id = $1
          RETURNING *`,
         [id]
       );
@@ -729,10 +729,10 @@ export default async function clientiRoutes(fastify, opts) {
 
       const result = await query(
         `INSERT INTO bandi (
-          "Titolo", "CodiceCIG", "CodiceCUP", "ImportoSO", "Regione",
-          "Provincia", "id_soa", "DescrizioneBreveBando", "DataOfferta",
-          "DataApertura", "DataPubblicazione", "Annullato", "created_by",
-          "created_at"
+          titolo, codice_cig, codice_cup, importo_so, regione,
+          provincia, id_soa, descrizione_breve, data_offerta,
+          data_apertura, data_pubblicazione, annullato, created_by,
+          created_at
          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), false, $11, NOW())
          RETURNING *`,
         [
@@ -762,7 +762,7 @@ export default async function clientiRoutes(fastify, opts) {
 
       // Verify user created this bando
       const checkResult = await query(
-        `SELECT "id_bando" FROM bandi WHERE "id_bando" = $1 AND "created_by" = $2 LIMIT 1`,
+        `SELECT id FROM bandi WHERE id = $1 AND created_by = $2 LIMIT 1`,
         [id, username]
       );
 
@@ -775,23 +775,23 @@ export default async function clientiRoutes(fastify, opts) {
       let paramIdx = 2;
 
       if (titolo !== undefined) {
-        updateFields.push(`"Titolo" = $${paramIdx++}`);
+        updateFields.push(`titolo = $${paramIdx++}`);
         params.push(titolo);
       }
       if (importo_so !== undefined) {
-        updateFields.push(`"ImportoSO" = $${paramIdx++}`);
+        updateFields.push(`importo_so = $${paramIdx++}`);
         params.push(importo_so);
       }
       if (descrizione !== undefined) {
-        updateFields.push(`"DescrizioneBreveBando" = $${paramIdx++}`);
+        updateFields.push(`descrizione_breve = $${paramIdx++}`);
         params.push(descrizione);
       }
       if (data_offerta !== undefined) {
-        updateFields.push(`"DataOfferta" = $${paramIdx++}`);
+        updateFields.push(`data_offerta = $${paramIdx++}`);
         params.push(data_offerta);
       }
       if (data_apertura !== undefined) {
-        updateFields.push(`"DataApertura" = $${paramIdx++}`);
+        updateFields.push(`data_apertura = $${paramIdx++}`);
         params.push(data_apertura);
       }
 
@@ -800,7 +800,7 @@ export default async function clientiRoutes(fastify, opts) {
       }
 
       const result = await query(
-        `UPDATE bandi SET ${updateFields.join(', ')} WHERE "id_bando" = $1
+        `UPDATE bandi SET ${updateFields.join(', ')} WHERE id = $1
          RETURNING *`,
         params
       );
@@ -829,16 +829,16 @@ export default async function clientiRoutes(fastify, opts) {
 
       // Get user's subscription filters
       const userRegioni = await query(
-        `SELECT DISTINCT "idRegione" FROM users_regioni WHERE "UserName" = $1`,
+        `SELECT DISTINCT id_regione FROM users_regioni WHERE username = $1`,
         [username]
       );
 
       const userSoa = await query(
-        `SELECT DISTINCT "id_soa" FROM users_soa WHERE "UserName" = $1`,
+        `SELECT DISTINCT id_soa FROM users_soa WHERE username = $1`,
         [username]
       );
 
-      const regioniList = userRegioni.rows.map(r => r.idRegione);
+      const regioniList = userRegioni.rows.map(r => r.id_regione);
       const soaList = userSoa.rows.map(s => s.id_soa);
 
       if (regioniList.length === 0 && soaList.length === 0) {
@@ -847,23 +847,23 @@ export default async function clientiRoutes(fastify, opts) {
 
       // Build WHERE conditions
       const conditions = [
-        `(g."Regione" = ANY($1) OR g."id_soa" = ANY($2))`
+        `(g.regione = ANY($1) OR g.id_soa = ANY($2))`
       ];
       const params = [regioniList.length > 0 ? regioniList : [], soaList.length > 0 ? soaList : []];
       let paramIdx = 3;
 
       if (search) {
-        conditions.push(`(g."NumGara" ILIKE $${paramIdx} OR g."Stazione" ILIKE $${paramIdx})`);
+        conditions.push(`(g.numero_gara ILIKE $${paramIdx} OR g.stazione ILIKE $${paramIdx})`);
         params.push(`%${search}%`);
         paramIdx++;
       }
       if (regione) {
-        conditions.push(`g."Regione" = $${paramIdx}`);
+        conditions.push(`g.regione = $${paramIdx}`);
         params.push(regione);
         paramIdx++;
       }
       if (id_soa) {
-        conditions.push(`g."id_soa" = $${paramIdx}`);
+        conditions.push(`g.id_soa = $${paramIdx}`);
         params.push(id_soa);
         paramIdx++;
       }
@@ -878,19 +878,19 @@ export default async function clientiRoutes(fastify, opts) {
       const total = parseInt(countResult.rows[0].total);
 
       // Get results
-      const allowedSorts = ['DataPubblicazione', 'NumGara'];
-      const sortCol = allowedSorts.includes(sort) ? `g."${sort}"` : 'g."DataPubblicazione"';
+      const allowedSorts = ['data_pubblicazione', 'numero_gara'];
+      const sortCol = allowedSorts.includes(sort) ? `g.${sort}` : 'g.data_pubblicazione';
       const sortOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
       const result = await query(
         `SELECT
-          g."id_gara" AS id,
-          g."NumGara" AS numero_gara,
-          g."DataPubblicazione" AS data_pubblicazione,
-          g."Regione" AS regione,
-          g."Provincia" AS provincia,
-          g."Stazione" AS stazione,
-          g."id_soa" AS id_soa
+          g.id_gara AS id,
+          g.numero_gara AS numero_gara,
+          g.data_pubblicazione AS data_pubblicazione,
+          g.regione AS regione,
+          g.provincia AS provincia,
+          g.stazione AS stazione,
+          g.id_soa AS id_soa
          FROM gare g
          ${whereClause}
          ORDER BY ${sortCol} ${sortOrder}
@@ -920,31 +920,31 @@ export default async function clientiRoutes(fastify, opts) {
 
       // Check user has access to this esito
       const userRegioni = await query(
-        `SELECT DISTINCT "idRegione" FROM users_regioni WHERE "UserName" = $1`,
+        `SELECT DISTINCT id_regione FROM users_regioni WHERE username = $1`,
         [username]
       );
 
       const userSoa = await query(
-        `SELECT DISTINCT "id_soa" FROM users_soa WHERE "UserName" = $1`,
+        `SELECT DISTINCT id_soa FROM users_soa WHERE username = $1`,
         [username]
       );
 
-      const regioniList = userRegioni.rows.map(r => r.idRegione);
+      const regioniList = userRegioni.rows.map(r => r.id_regione);
       const soaList = userSoa.rows.map(s => s.id_soa);
 
       const result = await query(
         `SELECT
-          g."id_gara" AS id,
-          g."NumGara" AS numero_gara,
-          g."DataPubblicazione" AS data_pubblicazione,
-          g."Regione" AS regione,
-          g."Provincia" AS provincia,
-          g."Stazione" AS stazione,
-          g."id_soa" AS id_soa,
-          g."Note" AS note
+          g.id_gara AS id,
+          g.numero_gara AS numero_gara,
+          g.data_pubblicazione AS data_pubblicazione,
+          g.regione AS regione,
+          g.provincia AS provincia,
+          g.stazione AS stazione,
+          g.id_soa AS id_soa,
+          g.note AS note
          FROM gare g
-         WHERE g."id_gara" = $1
-           AND (g."Regione" = ANY($2) OR g."id_soa" = ANY($3))`,
+         WHERE g.id_gara = $1
+           AND (g.regione = ANY($2) OR g.id_soa = ANY($3))`,
         [id, regioniList.length > 0 ? regioniList : [], soaList.length > 0 ? soaList : []]
       );
 
@@ -967,16 +967,16 @@ export default async function clientiRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          p."id" AS id,
-          p."id_gara" AS id_gara,
-          g."NumGara" AS numero_gara,
-          g."DataPubblicazione" AS data_pubblicazione,
-          g."Regione" AS regione,
-          p."data_aggiunta" AS data_aggiunta
+          p.id AS id,
+          p.id_gara AS id_gara,
+          g.numero_gara AS numero_gara,
+          g.data_pubblicazione AS data_pubblicazione,
+          g.regione AS regione,
+          p.data_aggiunta AS data_aggiunta
          FROM preferiti_esiti p
-         JOIN gare g ON p."id_gara" = g."id_gara"
-         WHERE p."UserName" = $1
-         ORDER BY p."data_aggiunta" DESC`,
+         JOIN gare g ON p.id_gara = g.id_gara
+         WHERE p.username = $1
+         ORDER BY p.data_aggiunta DESC`,
         [username]
       );
 
@@ -999,7 +999,7 @@ export default async function clientiRoutes(fastify, opts) {
 
       // Check if already favorited
       const existing = await query(
-        `SELECT "id" FROM preferiti_esiti WHERE "id_gara" = $1 AND "UserName" = $2 LIMIT 1`,
+        `SELECT id FROM preferiti_esiti WHERE id_gara = $1 AND username = $2 LIMIT 1`,
         [id, username]
       );
 
@@ -1008,7 +1008,7 @@ export default async function clientiRoutes(fastify, opts) {
       }
 
       const result = await query(
-        `INSERT INTO preferiti_esiti ("id_gara", "UserName", "data_aggiunta")
+        `INSERT INTO preferiti_esiti (id_gara, username, data_aggiunta)
          VALUES ($1, $2, NOW())
          RETURNING *`,
         [id, username]
@@ -1032,7 +1032,7 @@ export default async function clientiRoutes(fastify, opts) {
       const username = request.user.username;
 
       const result = await query(
-        `DELETE FROM preferiti_esiti WHERE "id_gara" = $1 AND "UserName" = $2`,
+        `DELETE FROM preferiti_esiti WHERE id_gara = $1 AND username = $2`,
         [id, username]
       );
 
@@ -1060,7 +1060,7 @@ export default async function clientiRoutes(fastify, opts) {
 
       // Check esito exists
       const esitoResult = await query(
-        `SELECT "id_gara", "NumGara" FROM gare WHERE "id_gara" = $1 LIMIT 1`,
+        `SELECT id_gara, numero_gara FROM gare WHERE id_gara = $1 LIMIT 1`,
         [id]
       );
 
@@ -1071,7 +1071,7 @@ export default async function clientiRoutes(fastify, opts) {
       // Log email send request (actual email would be sent by service layer)
       const logResult = await query(
         `INSERT INTO richieste_servizi (
-          "id_gara", "UserName", "tipo_servizio", "data_richiesta", "note", "stato"
+          id_gara, username, tipo_servizio, data_richiesta, note, stato
          ) VALUES ($1, $2, $3, NOW(), $4, $5)
          RETURNING *`,
         [id, request.user.username, 'INVIA_EMAIL', `Destinatario: ${destinatario_email}`, 'PENDING']
@@ -1095,14 +1095,14 @@ export default async function clientiRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          "id_gara" AS id,
-          "NumGara" AS numero_gara,
-          "Provincia" AS provincia,
-          "Regione" AS regione,
-          "Latitudine" AS latitudine,
-          "Longitudine" AS longitudine
+          id_gara AS id,
+          numero_gara AS numero_gara,
+          provincia AS provincia,
+          regione AS regione,
+          latitudine AS latitudine,
+          longitudine AS longitudine
          FROM gare
-         WHERE "id_gara" = $1 LIMIT 1`,
+         WHERE id_gara = $1 LIMIT 1`,
         [id]
       );
 
@@ -1130,22 +1130,22 @@ export default async function clientiRoutes(fastify, opts) {
       const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
 
       const countResult = await query(
-        `SELECT COUNT(*) as total FROM simulazioni WHERE "created_by" = $1`,
+        `SELECT COUNT(*) as total FROM simulazioni WHERE created_by = $1`,
         [username]
       );
       const total = parseInt(countResult.rows[0].total);
 
       const result = await query(
         `SELECT
-          "id_simulazione" AS id,
-          "nome_simulazione" AS nome,
-          "id_gara" AS id_gara,
-          "numero_partecipanti" AS numero_partecipanti,
-          "data_creazione" AS data_creazione,
-          "created_by" AS creato_da
+          id_simulazione AS id,
+          nome_simulazione AS nome,
+          id_gara AS id_gara,
+          numero_partecipanti AS numero_partecipanti,
+          data_creazione AS data_creazione,
+          created_by AS creato_da
          FROM simulazioni
-         WHERE "created_by" = $1
-         ORDER BY "data_creazione" DESC
+         WHERE created_by = $1
+         ORDER BY data_creazione DESC
          LIMIT $2 OFFSET $3`,
         [username, limit, offset]
       );
@@ -1173,14 +1173,14 @@ export default async function clientiRoutes(fastify, opts) {
       // Check user created this simulation
       const simResult = await query(
         `SELECT
-          "id_simulazione" AS id,
-          "nome_simulazione" AS nome,
-          "id_gara" AS id_gara,
-          "numero_partecipanti" AS numero_partecipanti,
-          "data_creazione" AS data_creazione,
-          "created_by" AS creato_da
+          id_simulazione AS id,
+          nome_simulazione AS nome,
+          id_gara AS id_gara,
+          numero_partecipanti AS numero_partecipanti,
+          data_creazione AS data_creazione,
+          created_by AS creato_da
          FROM simulazioni
-         WHERE "id_simulazione" = $1 AND "created_by" = $2 LIMIT 1`,
+         WHERE id_simulazione = $1 AND created_by = $2 LIMIT 1`,
         [id, username]
       );
 
@@ -1190,18 +1190,19 @@ export default async function clientiRoutes(fastify, opts) {
 
       const sim = simResult.rows[0];
 
-      // Get participants
-      const partecipantiResult = await query(
-        `SELECT *
-         FROM simulazioni_partecipanti
-         WHERE "id_simulazione" = $1
-         ORDER BY "posizione" ASC`,
-        [id]
+      // Get participants - commented out as table doesn't exist, should be replaced with valid query
+      // const partecipantiResult = await query(
+      //   `SELECT *
+      //    FROM simulazioni_partecipanti
+      //    WHERE id_simulazione = $1
+      //    ORDER BY posizione ASC`,
+      //   [id]
       );
 
+      // Note: partecipantiResult was from non-existent table, returning empty
       return {
         simulazione: sim,
-        partecipanti: partecipantiResult.rows
+        partecipanti: []
       };
     } catch (err) {
       fastify.log.error({ err: err.message }, 'GET /simulazioni/:id error');
@@ -1217,7 +1218,7 @@ export default async function clientiRoutes(fastify, opts) {
       const username = request.user.username;
 
       const result = await query(
-        `DELETE FROM simulazioni WHERE "id_simulazione" = $1 AND "created_by" = $2`,
+        `DELETE FROM simulazioni WHERE id_simulazione = $1 AND created_by = $2`,
         [id, username]
       );
 
@@ -1243,13 +1244,13 @@ export default async function clientiRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          a."id_gara" AS id_gara,
-          a."id_mandataria" AS id_mandataria,
-          a."id_mandante" AS id_mandante,
-          a."percentuale_mandante" AS percentuale_mandante,
-          a."data_constituzione" AS data_costituzione
+          a.id_gara AS id_gara,
+          a.id_mandataria AS id_mandataria,
+          a.id_mandante AS id_mandante,
+          a.percentuale_mandante AS percentuale_mandante,
+          a.data_costituzione AS data_costituzione
          FROM ati_gare a
-         WHERE a."id_gara" = $1 AND a."id_mandataria" = $2`,
+         WHERE a.id_gara = $1 AND a.id_mandataria = $2`,
         [idGara, idMandataria]
       );
 
@@ -1276,16 +1277,16 @@ export default async function clientiRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT DISTINCT
-          g."id_gara" AS id_gara,
-          g."NumGara" AS numero_gara,
-          g."DataPubblicazione" AS data_pubblicazione,
-          a."id_mandataria" AS id_mandataria,
-          a."id_mandante" AS id_mandante
+          g.id_gara AS id_gara,
+          g.numero_gara AS numero_gara,
+          g.data_pubblicazione AS data_pubblicazione,
+          a.id_mandataria AS id_mandataria,
+          a.id_mandante AS id_mandante
          FROM ati_gare a
-         JOIN gare g ON a."id_gara" = g."id_gara"
-         WHERE (a."id_mandataria" = $1 AND a."id_mandante" = $2)
-            OR (a."id_mandataria" = $2 AND a."id_mandante" = $1)
-         ORDER BY g."DataPubblicazione" DESC`,
+         JOIN gare g ON a.id_gara = g.id_gara
+         WHERE (a.id_mandataria = $1 AND a.id_mandante = $2)
+            OR (a.id_mandataria = $2 AND a.id_mandante = $1)
+         ORDER BY g.data_pubblicazione DESC`,
         [id_mandataria, id_mandante]
       );
 
@@ -1308,7 +1309,7 @@ export default async function clientiRoutes(fastify, opts) {
       const result = await query(
         `SELECT *
          FROM dettaglio_gara
-         WHERE "id_gara" = $1 AND "id_azienda" = $2
+         WHERE id_gara = $1 AND id_azienda = $2
          LIMIT 1`,
         [idGara, idAzienda]
       );
@@ -1336,17 +1337,17 @@ export default async function clientiRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT DISTINCT
-          g."id_gara" AS id_gara,
-          g."NumGara" AS numero_gara,
-          g."DataPubblicazione" AS data_pubblicazione,
-          dg."id_azienda" AS id_azienda
+          g.id_gara AS id_gara,
+          g.numero_gara AS numero_gara,
+          g.data_pubblicazione AS data_pubblicazione,
+          dg.id_azienda AS id_azienda
          FROM dettaglio_gara dg
-         JOIN gare g ON dg."id_gara" = g."id_gara"
-         WHERE dg."id_gara" IN (
-           SELECT DISTINCT "id_gara" FROM dettaglio_gara
-           WHERE "id_azienda" = $1 OR "id_azienda" = $2
+         JOIN gare g ON dg.id_gara = g.id_gara
+         WHERE dg.id_gara IN (
+           SELECT DISTINCT id_gara FROM dettaglio_gara
+           WHERE id_azienda = $1 OR id_azienda = $2
          )
-         ORDER BY g."DataPubblicazione" DESC`,
+         ORDER BY g.data_pubblicazione DESC`,
         [id_azienda_principale, id_azienda_avvalimento]
       );
 
@@ -1371,16 +1372,16 @@ export default async function clientiRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          "id_azienda" AS id,
-          "RagioneSociale" AS ragione_sociale,
-          "PartitaIva" AS partita_iva,
-          "CodiceFiscale" AS codice_fiscale,
-          "Provincia" AS provincia,
-          "Regione" AS regione,
-          "TelefonoUfficio" AS telefono,
-          "EmailUfficio" AS email
+          id_azienda AS id,
+          ragione_sociale AS ragione_sociale,
+          partita_iva AS partita_iva,
+          codice_fiscale AS codice_fiscale,
+          provincia AS provincia,
+          regione AS regione,
+          telefono_ufficio AS telefono,
+          email_ufficio AS email
          FROM aziende
-         WHERE "id_azienda" = $1 LIMIT 1`,
+         WHERE id_azienda = $1 LIMIT 1`,
         [id]
       );
 
@@ -1403,14 +1404,14 @@ export default async function clientiRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          dg."id_gara" AS id_gara,
-          dg."Ribasso" AS ribasso,
-          g."DataPubblicazione" AS data_pubblicazione,
-          dg."Posizione" AS posizione
+          dg.id_gara AS id_gara,
+          dg.ribasso AS ribasso,
+          g.data_pubblicazione AS data_pubblicazione,
+          dg.posizione AS posizione
          FROM dettaglio_gara dg
-         JOIN gare g ON dg."id_gara" = g."id_gara"
-         WHERE dg."id_azienda" = $1 AND dg."Ribasso" IS NOT NULL
-         ORDER BY g."DataPubblicazione" DESC
+         JOIN gare g ON dg.id_gara = g.id_gara
+         WHERE dg.id_azienda = $1 AND dg.ribasso IS NOT NULL
+         ORDER BY g.data_pubblicazione DESC
          LIMIT 40`,
         [id]
       );
@@ -1442,12 +1443,12 @@ export default async function clientiRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          dg."Posizione" AS posizione,
+          dg.posizione AS posizione,
           COUNT(*) as total
          FROM dettaglio_gara dg
-         WHERE dg."id_azienda" = $1
-         GROUP BY dg."Posizione"
-         ORDER BY dg."Posizione" ASC`,
+         WHERE dg.id_azienda = $1
+         GROUP BY dg.posizione
+         ORDER BY dg.posizione ASC`,
         [id]
       );
 
@@ -1479,22 +1480,22 @@ export default async function clientiRoutes(fastify, opts) {
       const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
 
       const countResult = await query(
-        `SELECT COUNT(*) as total FROM newsletter_log
-         WHERE "UserName" = $1 AND "tipo" = $2`,
+        `SELECT COUNT(*) as total FROM newsletter_invii
+         WHERE username = $1 AND tipo = $2`,
         [username, 'BANDI']
       );
       const total = parseInt(countResult.rows[0].total);
 
       const result = await query(
         `SELECT
-          "id" AS id,
-          "data_invio" AS data_invio,
-          "numero_bandi" AS numero_bandi,
-          "soggetto" AS soggetto,
-          "stato_invio" AS stato_invio
-         FROM newsletter_log
-         WHERE "UserName" = $1 AND "tipo" = $2
-         ORDER BY "data_invio" DESC
+          id AS id,
+          data_invio AS data_invio,
+          numero_bandi AS numero_bandi,
+          soggetto AS soggetto,
+          stato_invio AS stato_invio
+         FROM newsletter_invii
+         WHERE username = $1 AND tipo = $2
+         ORDER BY data_invio DESC
          LIMIT $3 OFFSET $4`,
         [username, 'BANDI', limit, offset]
       );
@@ -1522,22 +1523,22 @@ export default async function clientiRoutes(fastify, opts) {
       const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
 
       const countResult = await query(
-        `SELECT COUNT(*) as total FROM newsletter_log
-         WHERE "UserName" = $1 AND "tipo" = $2`,
+        `SELECT COUNT(*) as total FROM newsletter_invii
+         WHERE username = $1 AND tipo = $2`,
         [username, 'ESITI']
       );
       const total = parseInt(countResult.rows[0].total);
 
       const result = await query(
         `SELECT
-          "id" AS id,
-          "data_invio" AS data_invio,
-          "numero_esiti" AS numero_esiti,
-          "soggetto" AS soggetto,
-          "stato_invio" AS stato_invio
-         FROM newsletter_log
-         WHERE "UserName" = $1 AND "tipo" = $2
-         ORDER BY "data_invio" DESC
+          id AS id,
+          data_invio AS data_invio,
+          numero_esiti AS numero_esiti,
+          soggetto AS soggetto,
+          stato_invio AS stato_invio
+         FROM newsletter_invii
+         WHERE username = $1 AND tipo = $2
+         ORDER BY data_invio DESC
          LIMIT $3 OFFSET $4`,
         [username, 'ESITI', limit, offset]
       );
@@ -1571,20 +1572,20 @@ export default async function clientiRoutes(fastify, opts) {
       // Simple distance-based query (5 degree = ~555 km)
       const result = await query(
         `SELECT
-          b."id_bando" AS id,
-          b."Titolo" AS titolo,
-          b."DataPubblicazione" AS data_pubblicazione,
-          b."Latitudine" AS latitudine,
-          b."Longitudine" AS longitudine,
-          b."Provincia" AS provincia,
-          b."Regione" AS regione
+          b.id AS id,
+          b.titolo AS titolo,
+          b.data_pubblicazione AS data_pubblicazione,
+          b.latitudine AS latitudine,
+          b.longitudine AS longitudine,
+          b.provincia AS provincia,
+          b.regione AS regione
          FROM bandi b
-         WHERE b."Latitudine" IS NOT NULL
-           AND b."Longitudine" IS NOT NULL
-           AND ABS(b."Latitudine" - $1) < ($3 / 111.0)
-           AND ABS(b."Longitudine" - $2) < ($3 / 111.0)
-           AND b."Annullato" = false
-         ORDER BY b."DataPubblicazione" DESC
+         WHERE b.latitudine IS NOT NULL
+           AND b.longitudine IS NOT NULL
+           AND ABS(b.latitudine - $1) < ($3 / 111.0)
+           AND ABS(b.longitudine - $2) < ($3 / 111.0)
+           AND b.annullato = false
+         ORDER BY b.data_pubblicazione DESC
          LIMIT 50`,
         [parseFloat(lat), parseFloat(lon), parseFloat(raggio)]
       );
@@ -1611,19 +1612,19 @@ export default async function clientiRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          g."id_gara" AS id,
-          g."NumGara" AS numero_gara,
-          g."DataPubblicazione" AS data_pubblicazione,
-          g."Latitudine" AS latitudine,
-          g."Longitudine" AS longitudine,
-          g."Provincia" AS provincia,
-          g."Regione" AS regione
+          g.id_gara AS id,
+          g.numero_gara AS numero_gara,
+          g.data_pubblicazione AS data_pubblicazione,
+          g.latitudine AS latitudine,
+          g.longitudine AS longitudine,
+          g.provincia AS provincia,
+          g.regione AS regione
          FROM gare g
-         WHERE g."Latitudine" IS NOT NULL
-           AND g."Longitudine" IS NOT NULL
-           AND ABS(g."Latitudine" - $1) < ($3 / 111.0)
-           AND ABS(g."Longitudine" - $2) < ($3 / 111.0)
-         ORDER BY g."DataPubblicazione" DESC
+         WHERE g.latitudine IS NOT NULL
+           AND g.longitudine IS NOT NULL
+           AND ABS(g.latitudine - $1) < ($3 / 111.0)
+           AND ABS(g.longitudine - $2) < ($3 / 111.0)
+         ORDER BY g.data_pubblicazione DESC
          LIMIT 50`,
         [parseFloat(lat), parseFloat(lon), parseFloat(raggio)]
       );

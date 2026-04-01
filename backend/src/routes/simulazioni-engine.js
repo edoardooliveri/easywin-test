@@ -51,15 +51,15 @@ export default async function simulazioniEngineRoutes(fastify) {
       `, [request.user.username]),
       query(`
         SELECT s.*,
-          soa."Descrizione" AS soa_desc,
-          r."Regione" AS regione_nome,
-          p."Provincia" AS provincia_nome,
-          tg."Tipologia" AS tipologia_nome
+          soa."descrizione" AS soa_desc,
+          r."regione" AS regione_nome,
+          p."provincia" AS provincia_nome,
+          tg."nome" AS tipologia_nome
         FROM simulazioni s
         LEFT JOIN soa ON s.id_soa = soa.id
         LEFT JOIN regioni r ON s.id_regione = r.id_regione
         LEFT JOIN province p ON s.id_provincia = p.id_provincia
-        LEFT JOIN tipologiagare tg ON s.id_tipologia = tg.id_tipologia
+        LEFT JOIN tipologia_gare tg ON s.id_tipologia = tg.id
         WHERE s.username = $1
         ${titolo ? `AND s.titolo ILIKE $2` : ''}
         ORDER BY s.data_inserimento ${ordinamento}
@@ -89,15 +89,15 @@ export default async function simulazioniEngineRoutes(fastify) {
     const [simRes, dettagliRes, variantiRes] = await Promise.all([
       query(`
         SELECT s.*,
-          soa."Descrizione" AS soa_desc,
-          r."Regione" AS regione_nome,
-          p."Provincia" AS provincia_nome,
-          tg."Tipologia" AS tipologia_nome
+          soa."descrizione" AS soa_desc,
+          r."regione" AS regione_nome,
+          p."provincia" AS provincia_nome,
+          tg."nome" AS tipologia_nome
         FROM simulazioni s
         LEFT JOIN soa ON s.id_soa = soa.id
         LEFT JOIN regioni r ON s.id_regione = r.id_regione
         LEFT JOIN province p ON s.id_provincia = p.id_provincia
-        LEFT JOIN tipologiagare tg ON s.id_tipologia = tg.id_tipologia
+        LEFT JOIN tipologia_gare tg ON s.id_tipologia = tg.id
         WHERE s.id = $1 AND s.username = $2
       `, [id, request.user.username]),
       query(`
