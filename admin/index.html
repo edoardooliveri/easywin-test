@@ -371,6 +371,18 @@ a { text-decoration: none; color: inherit; }
 .admin-tab-content.active {
   display: block;
 }
+.admin-tab-content .data-table th,
+.admin-tab-content .data-table td {
+  padding: 8px 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+.admin-tab-content .data-table th:first-child,
+.admin-tab-content .data-table td:first-child {
+  max-width: 220px;
+}
 
 /* MAIN CONTENT */
 .main-wrapper {
@@ -1776,20 +1788,20 @@ tbody tr:hover td {
                 <button class="btn btn-primary" onclick="searchAbbonamentiBloccati()"><i class="fas fa-search"></i> CERCA</button>
               </div>
             </div>
-            <div style="overflow-x:auto;width:100%">
-              <table class="data-table" id="abbonamentiBloccatiTable" style="min-width:1100px;table-layout:auto">
+            <div style="width:100%">
+              <table class="data-table" id="abbonamentiBloccatiTable" style="width:100%;font-size:0.82rem">
                 <thead>
                   <tr>
-                    <th style="min-width:180px">IMPRESA</th>
-                    <th style="min-width:80px">NOME</th>
-                    <th style="min-width:100px">COGNOME</th>
-                    <th style="min-width:120px">PARTITA IVA</th>
-                    <th style="min-width:90px">PROVINCIA</th>
-                    <th style="min-width:110px">TELEFONO</th>
-                    <th style="min-width:180px">EMAIL</th>
-                    <th style="min-width:80px">AGENTE</th>
-                    <th style="min-width:130px">ULTIMO LOGIN</th>
-                    <th style="min-width:100px">AZIONE</th>
+                    <th>IMPRESA</th>
+                    <th>NOME</th>
+                    <th>COGNOME</th>
+                    <th>P.IVA</th>
+                    <th>PROV.</th>
+                    <th>TEL.</th>
+                    <th>EMAIL</th>
+                    <th>AGENTE</th>
+                    <th>ULTIMO LOGIN</th>
+                    <th>AZIONE</th>
                   </tr>
                 </thead>
                 <tbody id="abbonamentiBloccatiBody">
@@ -1843,21 +1855,21 @@ tbody tr:hover td {
           <!-- Clienti Personali e loro Scadenze -->
           <div class="dashboard-section">
             <h3>Clienti Personali e loro Scadenze</h3>
-            <div style="overflow-x:auto;width:100%">
-              <table class="data-table" style="min-width:1200px;table-layout:auto">
+            <div style="width:100%">
+              <table class="data-table" style="width:100%;font-size:0.82rem">
                 <thead>
                   <tr>
-                    <th style="min-width:200px">IMPRESA</th>
-                    <th style="min-width:70px">TIPO</th>
-                    <th style="min-width:120px">PARTITA IVA</th>
-                    <th style="min-width:100px">PROVINCIA</th>
-                    <th style="min-width:110px">TELEFONO</th>
-                    <th style="min-width:180px">EMAIL</th>
-                    <th style="min-width:90px">AGENTE</th>
-                    <th style="min-width:100px">INIZIO</th>
-                    <th style="min-width:60px">RINN.</th>
-                    <th style="min-width:100px">IMPORTO</th>
-                    <th style="min-width:100px">AZIONE</th>
+                    <th>IMPRESA</th>
+                    <th>TIPO</th>
+                    <th>P.IVA</th>
+                    <th>PROV.</th>
+                    <th>TEL.</th>
+                    <th>EMAIL</th>
+                    <th>AGENTE</th>
+                    <th>INIZIO</th>
+                    <th>RINN.</th>
+                    <th>IMPORTO</th>
+                    <th>AZIONE</th>
                   </tr>
                 </thead>
                 <tbody id="scadenzeAbbonamentiBody">
