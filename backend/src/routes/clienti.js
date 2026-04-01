@@ -1197,7 +1197,7 @@ export default async function clientiRoutes(fastify, opts) {
       //    WHERE id_simulazione = $1
       //    ORDER BY posizione ASC`,
       //   [id]
-      );
+      // );
 
       // Note: partecipantiResult was from non-existent table, returning empty
       return {
