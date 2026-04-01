@@ -1776,20 +1776,20 @@ tbody tr:hover td {
                 <button class="btn btn-primary" onclick="searchAbbonamentiBloccati()"><i class="fas fa-search"></i> CERCA</button>
               </div>
             </div>
-            <div class="table-container">
-              <table class="data-table" id="abbonamentiBloccatiTable">
+            <div style="overflow-x:auto;width:100%">
+              <table class="data-table" id="abbonamentiBloccatiTable" style="min-width:1100px;table-layout:auto">
                 <thead>
                   <tr>
-                    <th>IMPRESA</th>
-                    <th>NOME</th>
-                    <th>COGNOME</th>
-                    <th>PARTITA IVA</th>
-                    <th>PROVINCIA</th>
-                    <th>TELEFONO</th>
-                    <th>EMAIL</th>
-                    <th>AGENTE</th>
-                    <th>ULTIMO LOGIN</th>
-                    <th>AZIONE</th>
+                    <th style="min-width:180px">IMPRESA</th>
+                    <th style="min-width:80px">NOME</th>
+                    <th style="min-width:100px">COGNOME</th>
+                    <th style="min-width:120px">PARTITA IVA</th>
+                    <th style="min-width:90px">PROVINCIA</th>
+                    <th style="min-width:110px">TELEFONO</th>
+                    <th style="min-width:180px">EMAIL</th>
+                    <th style="min-width:80px">AGENTE</th>
+                    <th style="min-width:130px">ULTIMO LOGIN</th>
+                    <th style="min-width:100px">AZIONE</th>
                   </tr>
                 </thead>
                 <tbody id="abbonamentiBloccatiBody">
@@ -1843,21 +1843,21 @@ tbody tr:hover td {
           <!-- Clienti Personali e loro Scadenze -->
           <div class="dashboard-section">
             <h3>Clienti Personali e loro Scadenze</h3>
-            <div class="table-container">
-              <table class="data-table">
+            <div style="overflow-x:auto;width:100%">
+              <table class="data-table" style="min-width:1200px;table-layout:auto">
                 <thead>
                   <tr>
-                    <th>IMPRESA</th>
-                    <th>TIPO</th>
-                    <th>PARTITA IVA</th>
-                    <th>PROVINCIA</th>
-                    <th>TELEFONO</th>
-                    <th>EMAIL</th>
-                    <th>AGENTE</th>
-                    <th>INIZIO</th>
-                    <th>RINN. AUT.</th>
-                    <th>IMPORTO</th>
-                    <th>AZIONE</th>
+                    <th style="min-width:200px">IMPRESA</th>
+                    <th style="min-width:70px">TIPO</th>
+                    <th style="min-width:120px">PARTITA IVA</th>
+                    <th style="min-width:100px">PROVINCIA</th>
+                    <th style="min-width:110px">TELEFONO</th>
+                    <th style="min-width:180px">EMAIL</th>
+                    <th style="min-width:90px">AGENTE</th>
+                    <th style="min-width:100px">INIZIO</th>
+                    <th style="min-width:60px">RINN.</th>
+                    <th style="min-width:100px">IMPORTO</th>
+                    <th style="min-width:100px">AZIONE</th>
                   </tr>
                 </thead>
                 <tbody id="scadenzeAbbonamentiBody">
@@ -1954,11 +1954,14 @@ tbody tr:hover td {
                 <label>Servizi</label>
                 <select id="admin-stato-servizio" class="form-input">
                   <option value="">Seleziona un servizio</option>
+                  <option value="download-bandi-presidia">Download bandi da Presidia</option>
                   <option value="newsletter">Newsletter</option>
-                  <option value="import-bandi">Import Bandi</option>
-                  <option value="import-esiti">Import Esiti</option>
-                  <option value="elaborazione-dati">Elaborazione Dati</option>
-                  <option value="indicizzazione">Indicizzazione</option>
+                  <option value="invio-esito">Invio esito</option>
+                  <option value="alert-aperture-bandi">Alert aperture bandi</option>
+                  <option value="alert-sopralluoghi-bandi">Alert sopralluoghi bandi</option>
+                  <option value="gestione-allegati">Gestione allegati</option>
+                  <option value="gestione-abbonamenti">Gestione abbonamenti</option>
+                  <option value="sincronizzazione-fonti-web">Sincronizzazione fonti web</option>
                 </select>
               </div>
               <div class="form-col">
