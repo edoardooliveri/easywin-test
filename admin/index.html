@@ -636,10 +636,10 @@ a { text-decoration: none; color: inherit; }
 /* ════════════════ TABLES & RESULTS ════════════════ */
 .table-container {
   background: var(--card);
-  border-radius: 16px;
+  border-radius: 14px;
   box-shadow: var(--shadow);
-  overflow-x: auto;
-  border: none;
+  overflow: hidden;
+  border: 1px solid var(--border);
   margin-bottom: 20px;
 }
 .table-header {
@@ -664,26 +664,28 @@ thead {
   background: var(--dark-surface);
 }
 th {
-  text-align: left;
-  padding: 14px 16px;
+  text-align: center;
+  padding: 12px 10px;
   font-size: 0.72rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.8px;
+  border: 1px solid var(--border);
 }
 td {
-  padding: 14px 16px;
-  font-size: 0.87rem;
-  border-bottom: 1px solid var(--border-dark);
+  padding: 10px 10px;
+  font-size: 0.85rem;
+  text-align: center;
+  border: 1px solid var(--border);
   color: var(--text);
 }
 tbody tr:hover {
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.05);
   transition: var(--transition);
 }
 tbody tr:hover td {
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.05);
 }
 .table-footer {
   display: flex;
@@ -1788,7 +1790,7 @@ tbody tr:hover td {
                 <button class="btn btn-primary" onclick="searchAbbonamentiBloccati()"><i class="fas fa-search"></i> CERCA</button>
               </div>
             </div>
-            <div style="width:100%">
+            <div class="table-container" style="border-radius:12px">
               <table class="data-table" id="abbonamentiBloccatiTable" style="width:100%;font-size:0.82rem">
                 <thead>
                   <tr>
@@ -1855,7 +1857,7 @@ tbody tr:hover td {
           <!-- Clienti Personali e loro Scadenze -->
           <div class="dashboard-section">
             <h3>Clienti Personali e loro Scadenze</h3>
-            <div style="width:100%">
+            <div class="table-container" style="border-radius:12px">
               <table class="data-table" style="width:100%;font-size:0.82rem">
                 <thead>
                   <tr>
