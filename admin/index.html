@@ -1954,14 +1954,37 @@ tbody tr:hover td {
                 <label>Servizi</label>
                 <select id="admin-stato-servizio" class="form-input">
                   <option value="">Seleziona un servizio</option>
-                  <option value="download-bandi-presidia">Download bandi da Presidia</option>
-                  <option value="newsletter">Newsletter</option>
-                  <option value="invio-esito">Invio esito</option>
-                  <option value="alert-aperture-bandi">Alert aperture bandi</option>
-                  <option value="alert-sopralluoghi-bandi">Alert sopralluoghi bandi</option>
-                  <option value="gestione-allegati">Gestione allegati</option>
-                  <option value="gestione-abbonamenti">Gestione abbonamenti</option>
-                  <option value="sincronizzazione-fonti-web">Sincronizzazione fonti web</option>
+                  <optgroup label="Servizi classici">
+                    <option value="download-bandi-presidia">Download bandi da Presidia</option>
+                    <option value="newsletter">Newsletter</option>
+                    <option value="invio-esito">Invio esito</option>
+                    <option value="alert-aperture-bandi">Alert aperture bandi</option>
+                    <option value="alert-sopralluoghi-bandi">Alert sopralluoghi bandi</option>
+                    <option value="gestione-allegati">Gestione allegati</option>
+                    <option value="gestione-abbonamenti">Gestione abbonamenti</option>
+                    <option value="sincronizzazione-fonti-web">Sincronizzazione fonti web</option>
+                  </optgroup>
+                  <optgroup label="Servizi AI">
+                    <option value="esiti-ai">Analisi AI Esiti (PDF/Excel)</option>
+                    <option value="bandi-ai">Analisi AI Bandi (PDF/Immagini)</option>
+                    <option value="bandi-ai-enrichment">Arricchimento AI Bandi</option>
+                  </optgroup>
+                  <optgroup label="Motori di calcolo">
+                    <option value="simulazioni-engine">Motore Simulazioni Gare</option>
+                    <option value="range-statistico">Range Statistico Ribassi</option>
+                  </optgroup>
+                  <optgroup label="Import e dati">
+                    <option value="bandi-import">Import Bandi (CSV/Excel)</option>
+                    <option value="fonti-web">Gestione Fonti Web</option>
+                    <option value="sincronizza-presidia">Sincronizzazione Presidia</option>
+                  </optgroup>
+                  <optgroup label="Jobs e manutenzione">
+                    <option value="tasks-manager">Gestione Tasks Schedulati</option>
+                    <option value="pulizia-temp">Pulizia file temporanei</option>
+                    <option value="backup-db">Backup Database</option>
+                    <option value="check-scadenze">Controllo Scadenze</option>
+                    <option value="daily-check">Check giornaliero sistema</option>
+                  </optgroup>
                 </select>
               </div>
               <div class="form-col">
