@@ -43,6 +43,7 @@ import bandiImportRoutes from './routes/bandi-import.js';
 import tasksManagerRoutes from './routes/tasks-manager.js';
 import calendarioRoutes from './routes/calendario.js';
 import provinceGestioneRoutes from './routes/province-gestione.js';
+import seedRoutes from './routes/seed.js';
 
 dotenv.config();
 
@@ -59,7 +60,7 @@ const fastify = Fastify({
 // Plugins
 await fastify.register(cors, {
   origin: process.env.NODE_ENV === 'production'
-    ? ['https://www.easywin.it']
+    ? ['https://www.easywin.it', 'https://easywin-test.onrender.com', 'https://console.neon.tech']
     : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:8080', 'http://localhost:8081', 'http://127.0.0.1:8080', 'http://127.0.0.1:8081'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true
@@ -155,6 +156,9 @@ await fastify.register(calendarioRoutes, { prefix: '/api/calendario' });
 
 // Province/Regioni/Comuni + File Downloads
 await fastify.register(provinceGestioneRoutes, { prefix: '/api' });
+
+// Temporary seed route for data import
+await fastify.register(seedRoutes, { prefix: '/api/admin/seed' });
 
 // Global error handler
 fastify.setErrorHandler((error, request, reply) => {
