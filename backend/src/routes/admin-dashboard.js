@@ -117,7 +117,10 @@ export default async function adminDashboardRoutes(fastify, opts) {
         query(`SELECT COUNT(*) AS total FROM gare WHERE abilitato = false OR abilitato IS NULL`),
         query(`SELECT COUNT(*) AS total FROM gare WHERE completo = false OR completo IS NULL`),
         query(`SELECT COUNT(*) AS total FROM users WHERE data_scadenza IS NOT NULL AND data_scadenza <= NOW() + INTERVAL '30 days' AND data_scadenza > NOW()`),
-        query(`SELECT COUNT(*) AS total FROM abbonamenti WHERE attivo = true`)
+        query(`SELECT COUNT(*) AS total FROM abbonamenti WHERE attivo = true`),
+        query(`SELECT COUNT(*) AS total FROM gare WHERE eliminata = true`),
+        query(`SELECT COUNT(*) AS total FROM aziende WHERE eliminata = true`),
+        query(`SELECT COUNT(*) AS total FROM stazioni WHERE eliminata = true`)
       ]);
 
       return {
@@ -132,7 +135,10 @@ export default async function adminDashboardRoutes(fastify, opts) {
         esiti_da_abilitare: parseInt(stats[8].rows[0].total),
         esiti_incompleti: parseInt(stats[9].rows[0].total),
         utenti_in_scadenza_30gg: parseInt(stats[10].rows[0].total),
-        abbonamenti_attivi: parseInt(stats[11].rows[0].total)
+        abbonamenti_attivi: parseInt(stats[11].rows[0].total),
+        esiti_da_cancellare: parseInt(stats[12].rows[0].total),
+        aziende_da_cancellare: parseInt(stats[13].rows[0].total),
+        stazioni_da_cancellare: parseInt(stats[14].rows[0].total)
       };
     } catch (err) {
       fastify.log.error(err, 'Dashboard stats error');
@@ -202,23 +208,110 @@ export default async function adminDashboardRoutes(fastify, opts) {
     }
   });
 
-  // GET /api/admin/dashboard/scadenze-abbonamenti - Users with expiring subscriptions
+  // GET /api/admin/dashboard/scadenze-abbonamenti - Users with expiring subscriptions (with filters)
   fastify.get('/dashboard/scadenze-abbonamenti', async (request, reply) => {
     try {
-      const result = await query(`
-        SELECT u.username, u.email, u.nome, u.data_scadenza, u.data_scadenza::interval AS giorni_rimanenti
+      const { data_inizio, data_fine, includi_pagati, includi_temporanei, agente } = request.query;
+
+      let query_str = `
+        SELECT
+          u.username,
+          COALESCE(az.ragione_sociale, u.nome || ' ' || COALESCE(u.cognome, '')) AS impresa,
+          u.email,
+          u.telefono,
+          COALESCE(az.partita_iva, '-') AS partita_iva,
+          COALESCE(p.nome, '-') AS provincia,
+          COALESCE(u.codice_agente, '-') AS agente,
+          up.data_inizio,
+          up.data_fine,
+          COALESCE(up.rinnovo_automatico, u.rinnovo_automatico, false) AS rinnovo_automatico,
+          COALESCE(up.tipo, 'standard') AS tipo,
+          COALESCE(
+            up.importo_bandi + up.importo_esiti + up.importo_esiti_light +
+            up.importo_newsletter_bandi + up.importo_newsletter_esiti + up.importo_simulazioni,
+            0
+          ) AS importo
         FROM users u
-        WHERE u.data_scadenza IS NOT NULL
-          AND u.data_scadenza <= NOW() + INTERVAL '30 days'
-          AND u.data_scadenza > NOW()
-        ORDER BY u.data_scadenza ASC
-      `);
+        LEFT JOIN users_periodi up ON u.username = up.username
+        LEFT JOIN aziende az ON u.id_azienda = az.id
+        LEFT JOIN province p ON az.id_provincia = p.id
+        WHERE up.data_fine IS NOT NULL
+      `;
+
+      // Apply filters
+      if (data_inizio) {
+        query_str += ` AND up.data_fine >= '${data_inizio}'`;
+      }
+      if (data_fine) {
+        query_str += ` AND up.data_inizio <= '${data_fine}'`;
+      }
+      if (agente && agente !== '') {
+        query_str += ` AND u.codice_agente = '${agente}'`;
+      }
+
+      query_str += ` ORDER BY up.data_fine ASC`;
+
+      const result = await query(query_str);
 
       return {
-        utenti_in_scadenza: result.rows
+        scadenze_abbonamenti: result.rows,
+        totale: result.rows.length
       };
     } catch (err) {
       fastify.log.error(err, 'Scadenze abbonamenti error');
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  // GET /api/admin/dashboard/abbonamenti-bloccati - List of blocked/locked user subscriptions
+  fastify.get('/dashboard/abbonamenti-bloccati', async (request, reply) => {
+    try {
+      const result = await query(`
+        SELECT
+          u.username,
+          COALESCE(az.ragione_sociale, u.nome || ' ' || COALESCE(u.cognome, '')) AS impresa,
+          u.nome,
+          u.cognome,
+          COALESCE(az.partita_iva, '-') AS partita_iva,
+          COALESCE(p.nome, '-') AS provincia,
+          u.telefono,
+          u.email,
+          COALESCE(u.codice_agente, '-') AS agente,
+          u.ultimo_accesso
+        FROM users u
+        LEFT JOIN aziende az ON u.id_azienda = az.id
+        LEFT JOIN province p ON az.id_provincia = p.id
+        WHERE u.bloccato = true
+        ORDER BY az.ragione_sociale ASC, u.username ASC
+      `);
+
+      return {
+        abbonamenti_bloccati: result.rows,
+        totale: result.rows.length
+      };
+    } catch (err) {
+      fastify.log.error(err, 'Abbonamenti bloccati error');
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  // GET /api/admin/dashboard/agenti - List of agent users for dropdown
+  fastify.get('/dashboard/agenti', async (request, reply) => {
+    try {
+      const result = await query(`
+        SELECT DISTINCT u.codice_agente AS agente
+        FROM users u
+        WHERE u.codice_agente IS NOT NULL
+          AND u.codice_agente != ''
+        ORDER BY u.codice_agente ASC
+      `);
+
+      return {
+        agenti: result.rows.map(r => r.agente),
+        totale: result.rows.length
+      };
+    } catch (err) {
+      fastify.log.error(err, 'Agenti error');
       return reply.status(500).send({ error: err.message });
     }
   });

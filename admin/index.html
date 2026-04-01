@@ -1715,86 +1715,270 @@ tbody tr:hover td {
           <button class="admin-tab" onclick="switchAdminTab('stato-servizi')" id="tabStatoServizi"><i class="fas fa-server"></i> Stato Servizi</button>
         </div>
         <div id="adminTabGenerale" class="admin-tab-content active">
-          <div class="dashboard-section" style="margin-top:0;box-shadow:none;border:none;padding:0;">
-            <div class="admin-summary-grid">
-              <div class="summary-card info">
-                <div class="summary-icon"><i class="fas fa-database"></i></div>
-                <div class="summary-info">
-                  <span class="summary-value" id="admin-db-size">-</span>
-                  <span class="summary-label">Dimensione DB</span>
+          <!-- Area di Amministrazione -->
+          <div class="dashboard-section">
+            <h3>Area di Amministrazione</h3>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Elemento</th>
+                    <th>Numero</th>
+                    <th>Azione</th>
+                  </tr>
+                </thead>
+                <tbody id="adminTaskCountersBody">
+                  <tr>
+                    <td>Esiti da completare</td>
+                    <td id="count-esiti-incompleti">0</td>
+                    <td><a href="#" class="btn btn-small btn-primary" onclick="goToPage('esiti'); return false;">vai alla pagina</a></td>
+                  </tr>
+                  <tr>
+                    <td>Esiti da abilitare</td>
+                    <td id="count-esiti-da-abilitare">0</td>
+                    <td><a href="#" class="btn btn-small btn-primary" onclick="goToPage('esiti'); return false;">vai alla pagina</a></td>
+                  </tr>
+                  <tr>
+                    <td>Esiti da cancellare</td>
+                    <td id="count-esiti-da-cancellare">0</td>
+                    <td><a href="#" class="btn btn-small btn-primary" onclick="goToPage('esiti'); return false;">vai alla pagina</a></td>
+                  </tr>
+                  <tr>
+                    <td>Aziende da cancellare</td>
+                    <td id="count-aziende-da-cancellare">0</td>
+                    <td><a href="#" class="btn btn-small btn-primary" onclick="goToPage('aziende'); return false;">vai alla pagina</a></td>
+                  </tr>
+                  <tr>
+                    <td>Stazioni da cancellare</td>
+                    <td id="count-stazioni-da-cancellare">0</td>
+                    <td><a href="#" class="btn btn-small btn-primary" onclick="goToPage('stazioni'); return false;">vai alla pagina</a></td>
+                  </tr>
+                  <tr>
+                    <td>Fonti da controllare</td>
+                    <td>-</td>
+                    <td><a href="#" class="btn btn-small btn-primary" onclick="goToPage('fonti'); return false;">vai alla pagina</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Abbonamenti Bloccati -->
+          <div class="dashboard-section">
+            <h3>Abbonamenti Bloccati</h3>
+            <div class="search-section compact">
+              <div class="form-row">
+                <div class="form-col">
+                  <input type="text" id="admin-abbonamenti-bloccati-search" placeholder="Cerca per azienda, nome, cognome, PIVA..." class="form-input">
                 </div>
               </div>
-              <div class="summary-card success">
-                <div class="summary-icon"><i class="fas fa-clock"></i></div>
-                <div class="summary-info">
-                  <span class="summary-value" id="admin-uptime">-</span>
-                  <span class="summary-label">Uptime Server</span>
+              <div class="button-group">
+                <button class="btn btn-primary" onclick="searchAbbonamentiBloccati()"><i class="fas fa-search"></i> CERCA</button>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="data-table" id="abbonamentiBloccatiTable">
+                <thead>
+                  <tr>
+                    <th>IMPRESA</th>
+                    <th>NOME</th>
+                    <th>COGNOME</th>
+                    <th>PARTITA IVA</th>
+                    <th>PROVINCIA</th>
+                    <th>TELEFONO</th>
+                    <th>EMAIL</th>
+                    <th>AGENTE</th>
+                    <th>ULTIMO LOGIN</th>
+                    <th>AZIONE</th>
+                  </tr>
+                </thead>
+                <tbody id="abbonamentiBloccatiBody">
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Filtro Scadenze Abbonamenti -->
+          <div class="dashboard-section">
+            <h3>Filtro Scadenze Abbonamenti</h3>
+            <div class="search-section">
+              <div class="form-row">
+                <div class="form-col">
+                  <label>Data Iniziale</label>
+                  <input type="date" id="admin-scadenze-data-inizio" class="form-input">
+                </div>
+                <div class="form-col">
+                  <label>Data A</label>
+                  <input type="date" id="admin-scadenze-data-fine" class="form-input">
                 </div>
               </div>
-              <div class="summary-card warning">
-                <div class="summary-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                <div class="summary-info">
-                  <span class="summary-value" id="admin-errori-oggi">0</span>
-                  <span class="summary-label">Errori Oggi</span>
+              <div class="form-row">
+                <div class="form-col">
+                  <label>
+                    <input type="checkbox" id="admin-scadenze-includi-pagati" class="form-checkbox">
+                    Includi pagati
+                  </label>
+                </div>
+                <div class="form-col">
+                  <label>
+                    <input type="checkbox" id="admin-scadenze-includi-temporanei" class="form-checkbox">
+                    Includi temporanei
+                  </label>
                 </div>
               </div>
-              <div class="summary-card info">
-                <div class="summary-icon"><i class="fas fa-tasks"></i></div>
-                <div class="summary-info">
-                  <span class="summary-value" id="admin-jobs-attivi">0</span>
-                  <span class="summary-label">Jobs Attivi</span>
+              <div class="form-row">
+                <div class="form-col">
+                  <label>Agente</label>
+                  <select id="admin-scadenze-agente" class="form-input">
+                    <option value="">Nessuno</option>
+                  </select>
                 </div>
+              </div>
+              <div class="button-group">
+                <button class="btn btn-primary" onclick="applicaFiltroScadenze()"><i class="fas fa-filter"></i> APPLICA FILTRO</button>
               </div>
             </div>
           </div>
-          <div class="stats-grid" id="statsGridAdmin" style="margin-top:20px;"></div>
+
+          <!-- Clienti Personali e loro Scadenze -->
+          <div class="dashboard-section">
+            <h3>Clienti Personali e loro Scadenze</h3>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>IMPRESA</th>
+                    <th>TIPO</th>
+                    <th>PARTITA IVA</th>
+                    <th>PROVINCIA</th>
+                    <th>TELEFONO</th>
+                    <th>EMAIL</th>
+                    <th>AGENTE</th>
+                    <th>INIZIO</th>
+                    <th>RINN. AUT.</th>
+                    <th>IMPORTO</th>
+                    <th>AZIONE</th>
+                  </tr>
+                </thead>
+                <tbody id="scadenzeAbbonamentiBody">
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
         <div id="adminTabNewsletterAdmin" class="admin-tab-content">
+          <!-- Newsletter Sending Form -->
           <div class="search-section compact">
+            <h3 style="margin-bottom:16px;color:#e2e8f0">Newsletter Sending</h3>
             <div class="form-row">
-              <div class="form-col"><label>Stato Newsletter</label>
-                <select id="admin-nl-stato"><option value="">Tutte</option><option value="attiva">Attive</option><option value="sospesa">Sospese</option></select>
+              <div class="form-col">
+                <label>Data Newsletter</label>
+                <input type="date" id="admin-nl-data" placeholder="Giorno da inviare">
               </div>
-              <div class="form-col"><label>Tipo</label>
-                <select id="admin-nl-tipo"><option value="">Tutti</option><option value="bandi">Bandi</option><option value="esiti">Esiti</option></select>
+              <div class="form-col">
+                <label>Utente iniziale</label>
+                <input type="text" id="admin-nl-utente-iniziale" placeholder="Utente iniziale">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-col">
+                <label style="display:block;margin-bottom:8px">Tipo Newsletter</label>
+                <div style="display:flex;gap:16px">
+                  <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                    <input type="checkbox" id="admin-nl-bandi"> Bandi
+                  </label>
+                  <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                    <input type="checkbox" id="admin-nl-esiti"> Esiti
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-col">
+                <label>Filtro utenti</label>
+                <textarea id="admin-nl-filtro-utenti" placeholder="Inserire pochi utenti per volta, indicativamente 10" style="min-height:80px;resize:vertical;padding:8px;background:#1e293b;border:1px solid #475569;border-radius:4px;color:#e2e8f0;font-family:monospace;font-size:0.875rem"></textarea>
               </div>
             </div>
             <div class="button-group">
-              <button class="btn btn-primary" onclick="searchAdminNewsletter()"><i class="fas fa-search"></i> CERCA</button>
+              <button class="btn btn-primary" onclick="sendAdminNewsletter()"><i class="fas fa-paper-plane"></i> NEWSLETTER</button>
             </div>
           </div>
-          <div class="table-container"><div id="adminNewsletterResults"></div></div>
+
+          <!-- CIG/CUP Sistemazione Section -->
+          <div class="search-section compact" style="margin-top:32px">
+            <h3 style="margin-bottom:16px;color:#e2e8f0">Sistemazione CIG/CUP</h3>
+            <div class="form-row">
+              <div class="form-col">
+                <label style="display:block;margin-bottom:8px">Filtri</label>
+                <div style="display:flex;flex-wrap:wrap;gap:12px">
+                  <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                    <input type="checkbox" id="admin-cig-bandi"> Bandi
+                  </label>
+                  <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                    <input type="checkbox" id="admin-cig-esiti"> Esiti
+                  </label>
+                  <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                    <input type="checkbox" id="admin-cig-cig"> CIG
+                  </label>
+                  <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                    <input type="checkbox" id="admin-cig-cup"> CUP
+                  </label>
+                  <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                    <input type="checkbox" id="admin-cig-vuoto"> CodiceCIG vuoto
+                  </label>
+                  <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                    <input type="checkbox" id="admin-cig-x"> X
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-col">
+                <label>N° bandi da</label>
+                <input type="number" id="admin-cig-n-bandi" placeholder="N° bandi da">
+              </div>
+              <div class="form-col">
+                <label>Testo da cercare</label>
+                <input type="text" id="admin-cig-testo-cercare" placeholder="C.I.G.">
+              </div>
+            </div>
+            <div class="button-group">
+              <button class="btn btn-primary" onclick="sistemaCigCup()"><i class="fas fa-tools"></i> SISTEMA CIG/CUP</button>
+            </div>
+          </div>
         </div>
         <div id="adminTabStatoServizi" class="admin-tab-content">
-          <div class="admin-summary-grid" id="statoServiziGrid">
-            <div class="summary-card success">
-              <div class="summary-icon"><i class="fas fa-check"></i></div>
-              <div class="summary-info">
-                <span class="summary-value">Online</span>
-                <span class="summary-label">Database PostgreSQL</span>
+          <div class="search-section compact">
+            <div class="form-row">
+              <div class="form-col">
+                <label>Servizi</label>
+                <select id="admin-stato-servizio" class="form-input">
+                  <option value="">Seleziona un servizio</option>
+                  <option value="newsletter">Newsletter</option>
+                  <option value="import-bandi">Import Bandi</option>
+                  <option value="import-esiti">Import Esiti</option>
+                  <option value="elaborazione-dati">Elaborazione Dati</option>
+                  <option value="indicizzazione">Indicizzazione</option>
+                </select>
+              </div>
+              <div class="form-col">
+                <label>Data</label>
+                <input type="date" id="admin-stato-data" placeholder="Data da elaborare" class="form-input">
+              </div>
+              <div class="form-col">
+                <label>Esito</label>
+                <input type="number" id="admin-stato-esito" value="0" class="form-input">
               </div>
             </div>
-            <div class="summary-card success">
-              <div class="summary-icon"><i class="fas fa-check"></i></div>
-              <div class="summary-info">
-                <span class="summary-value">Online</span>
-                <span class="summary-label">API Backend</span>
-              </div>
+            <div class="button-group">
+              <button class="btn btn-primary" onclick="mostraStatoServizio()"><i class="fas fa-eye"></i> MOSTRA</button>
+              <button class="btn btn-primary" onclick="rilanciServizio()"><i class="fas fa-redo"></i> RILANCIA</button>
             </div>
-            <div class="summary-card success">
-              <div class="summary-icon"><i class="fas fa-check"></i></div>
-              <div class="summary-info">
-                <span class="summary-value">Online</span>
-                <span class="summary-label">Servizio Newsletter</span>
-              </div>
-            </div>
-            <div class="summary-card success">
-              <div class="summary-icon"><i class="fas fa-check"></i></div>
-              <div class="summary-info">
-                <span class="summary-value">Online</span>
-                <span class="summary-label">AI Processing</span>
-              </div>
-            </div>
+          </div>
+
+          <!-- Service Execution Log -->
+          <div class="table-container" style="margin-top:24px">
+            <div id="statoServiziResults" style="min-height:200px;padding:16px;background:#1e293b;border-radius:6px;border:1px solid #475569;color:#e2e8f0;font-family:monospace;font-size:0.875rem;white-space:pre-wrap;word-break:break-word"></div>
           </div>
         </div>
       </div>
@@ -6011,6 +6195,8 @@ function selectSection(section) {
     loadNewsletterDashboard();
   } else if (section === 'sistema') {
     loadInfoSistema();
+  } else if (section === 'amministrazione') {
+    loadAdminDashboard();
   }
 }
 
@@ -7633,6 +7819,260 @@ function switchAdminTab(tabName) {
   if (tabButton) tabButton.classList.add('active');
   const content = document.getElementById('adminTab' + tabName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''));
   if (content) content.classList.add('active');
+
+  // Load data when switching to admin tabs
+  if (tabName === 'generale') {
+    loadAdminDashboard();
+  } else if (tabName === 'stato-servizi') {
+    // stato-servizi tab loads on demand when user clicks mostraStatoServizio
+  }
+}
+
+// ════════════════ ADMIN DASHBOARD FUNCTIONS ════════════════
+
+async function loadAdminDashboard() {
+  try {
+    const res = await fetch(`${API_BASE}/admin/dashboard/stats`, {
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error('API non disponibile');
+    const stats = await res.json();
+
+    // Populate task counters
+    document.getElementById('count-esiti-incompleti').textContent = fmt(stats.esiti_incompleti || 0);
+    document.getElementById('count-esiti-da-abilitare').textContent = fmt(stats.esiti_da_abilitare || 0);
+    document.getElementById('count-esiti-da-cancellare').textContent = fmt(stats.esiti_da_cancellare || 0);
+    document.getElementById('count-aziende-da-cancellare').textContent = fmt(stats.aziende_da_cancellare || 0);
+    document.getElementById('count-stazioni-da-cancellare').textContent = fmt(stats.stazioni_da_cancellare || 0);
+
+    // Load related sections
+    await loadAbbonamentiBloccati();
+    await loadScadenzeAbbonamenti();
+  } catch (err) {
+    console.error('Errore caricamento dashboard:', err);
+  }
+}
+
+async function loadAbbonamentiBloccati() {
+  const tbody = document.getElementById('abbonamentiBloccatiBody');
+  if (!tbody) return;
+
+  try {
+    const searchVal = document.getElementById('admin-abbonamenti-bloccati-search')?.value || '';
+    const res = await fetch(`${API_BASE}/admin/dashboard/abbonamenti-bloccati?search=${encodeURIComponent(searchVal)}`, {
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error('API non disponibile');
+    const data = await res.json();
+    const rows = data.data || data;
+
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="10" class="empty-cell"><i class="fas fa-lock"></i> Nessun abbonamento bloccato</td></tr>';
+      return;
+    }
+
+    let html = '';
+    rows.forEach(r => {
+      html += `<tr>
+        <td>${esc(r.impresa || r.ragione_sociale || '-')}</td>
+        <td>${esc(r.nome || '-')}</td>
+        <td>${esc(r.cognome || '-')}</td>
+        <td>${esc(r.partita_iva || '-')}</td>
+        <td>${esc(r.provincia || '-')}</td>
+        <td>${esc(r.telefono || '-')}</td>
+        <td>${esc(r.email || '-')}</td>
+        <td>${esc(r.agente || '-')}</td>
+        <td>${fmtDate(r.ultimo_login)}</td>
+        <td><button class="btn btn-sm btn-secondary"><i class="fas fa-eye"></i> VISUALIZZA</button></td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  } catch (err) {
+    console.error('Errore caricamento abbonamenti bloccati:', err);
+    tbody.innerHTML = '<tr><td colspan="10" class="empty-cell"><i class="fas fa-exclamation-triangle"></i> API non disponibile</td></tr>';
+  }
+}
+
+function searchAbbonamentiBloccati() {
+  loadAbbonamentiBloccati();
+}
+
+async function loadScadenzeAbbonamenti() {
+  const tbody = document.getElementById('scadenzeAbbonamentiBody');
+  if (!tbody) return;
+
+  try {
+    const params = new URLSearchParams();
+    const dataInizio = document.getElementById('admin-scadenze-data-inizio')?.value;
+    const dataFine = document.getElementById('admin-scadenze-data-fine')?.value;
+    const includiPagati = document.getElementById('admin-scadenze-includi-pagati')?.checked;
+    const includiTemporanei = document.getElementById('admin-scadenze-includi-temporanei')?.checked;
+    const agente = document.getElementById('admin-scadenze-agente')?.value;
+
+    if (dataInizio) params.set('data_inizio', dataInizio);
+    if (dataFine) params.set('data_fine', dataFine);
+    if (includiPagati) params.set('includi_pagati', '1');
+    if (includiTemporanei) params.set('includi_temporanei', '1');
+    if (agente) params.set('agente', agente);
+
+    const res = await fetch(`${API_BASE}/admin/dashboard/scadenze-abbonamenti?${params}`, {
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error('API non disponibile');
+    const data = await res.json();
+    const rows = data.data || data;
+
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="11" class="empty-cell"><i class="fas fa-calendar"></i> Nessuna scadenza trovata</td></tr>';
+      return;
+    }
+
+    let html = '';
+    rows.forEach(r => {
+      html += `<tr>
+        <td>${esc(r.impresa || r.ragione_sociale || '-')}</td>
+        <td>${esc(r.tipo || '-')}</td>
+        <td>${esc(r.partita_iva || '-')}</td>
+        <td>${esc(r.provincia || '-')}</td>
+        <td>${esc(r.telefono || '-')}</td>
+        <td>${esc(r.email || '-')}</td>
+        <td>${esc(r.agente || '-')}</td>
+        <td>${fmtDate(r.data_inizio)}</td>
+        <td>${r.rinnovo_automatico ? 'Si' : 'No'}</td>
+        <td>${fmtImporto(r.importo)}</td>
+        <td><button class="btn btn-sm btn-secondary"><i class="fas fa-eye"></i> VISUALIZZA</button></td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  } catch (err) {
+    console.error('Errore caricamento scadenze abbonamenti:', err);
+    tbody.innerHTML = '<tr><td colspan="11" class="empty-cell"><i class="fas fa-exclamation-triangle"></i> API non disponibile</td></tr>';
+  }
+}
+
+function applicaFiltroScadenze() {
+  loadScadenzeAbbonamenti();
+}
+
+async function mostraStatoServizio() {
+  const container = document.getElementById('statoServiziResults');
+  container.innerHTML = '<div style="text-align:center"><i class="fas fa-spinner fa-spin"></i> Caricamento...</div>';
+
+  try {
+    const params = new URLSearchParams();
+    const servizio = document.getElementById('admin-stato-servizio')?.value;
+    const data = document.getElementById('admin-stato-data')?.value;
+    const esito = document.getElementById('admin-stato-esito')?.value;
+
+    if (servizio) params.set('servizio', servizio);
+    if (data) params.set('data', data);
+    if (esito) params.set('esito', esito);
+
+    const res = await fetch(`${API_BASE}/admin/servizi/stato?${params}`, {
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error('API non disponibile');
+    const result = await res.json();
+
+    container.innerHTML = result.log || JSON.stringify(result, null, 2);
+  } catch (err) {
+    console.error('Errore caricamento stato servizio:', err);
+    container.innerHTML = 'Errore nel caricamento dello stato servizio: ' + err.message;
+  }
+}
+
+async function rilanciServizio() {
+  try {
+    const servizio = document.getElementById('admin-stato-servizio')?.value;
+    if (!servizio) {
+      alert('Seleziona un servizio');
+      return;
+    }
+
+    const res = await fetch(`${API_BASE}/admin/servizi/${encodeURIComponent(servizio)}/rilancia`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' }
+    });
+
+    if (!res.ok) throw new Error('API non disponibile');
+    const result = await res.json();
+    alert('Servizio rilanciato con successo: ' + (result.message || 'OK'));
+    mostraStatoServizio();
+  } catch (err) {
+    console.error('Errore rilancio servizio:', err);
+    alert('Errore: ' + err.message);
+  }
+}
+
+async function sendAdminNewsletter() {
+  try {
+    const data = document.getElementById('admin-nl-data')?.value;
+    const utenteIniziale = document.getElementById('admin-nl-utente-iniziale')?.value;
+    const bandiFlagged = document.getElementById('admin-nl-bandi')?.checked;
+    const esitiFlagged = document.getElementById('admin-nl-esiti')?.checked;
+    const filtroUtenti = document.getElementById('admin-nl-filtro-utenti')?.value || '';
+
+    if (!data) {
+      alert('Seleziona una data');
+      return;
+    }
+    if (!bandiFlagged && !esitiFlagged) {
+      alert('Seleziona almeno un tipo di newsletter (Bandi o Esiti)');
+      return;
+    }
+
+    let endpoint = bandiFlagged ? 'invia-bandi' : 'invia-esiti';
+    const body = {
+      data,
+      utente_iniziale: utenteIniziale,
+      filtro_utenti: filtroUtenti
+    };
+
+    const res = await fetch(`${API_BASE}/admin/newsletter/${endpoint}`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) throw new Error('API non disponibile');
+    const result = await res.json();
+    alert('Newsletter inviata: ' + (result.message || 'OK'));
+  } catch (err) {
+    console.error('Errore invio newsletter:', err);
+    alert('Errore: ' + err.message);
+  }
+}
+
+async function sistemaCigCup() {
+  try {
+    const includiBandi = document.getElementById('admin-cig-bandi')?.checked;
+    const includiEsiti = document.getElementById('admin-cig-esiti')?.checked;
+    const tipo = document.getElementById('admin-cig-tipo')?.value || '';
+
+    if (!includiBandi && !includiEsiti) {
+      alert('Seleziona almeno un tipo (Bandi o Esiti)');
+      return;
+    }
+
+    const body = {
+      bandi: includiBandi,
+      esiti: includiEsiti,
+      tipo: tipo
+    };
+
+    const res = await fetch(`${API_BASE}/admin/cig-cup/sistema`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) throw new Error('API non disponibile');
+    const result = await res.json();
+    alert('Sistemazione completata: ' + (result.message || 'OK'));
+  } catch (err) {
+    console.error('Errore sistemazione CIG/CUP:', err);
+    alert('Errore: ' + err.message);
+  }
 }
 
 // ════════════════ PLACEHOLDER SEARCH FUNCTIONS ════════════════
