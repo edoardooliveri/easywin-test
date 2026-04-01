@@ -113,11 +113,11 @@ export default async function adminDashboardRoutes(fastify, opts) {
         query(`SELECT COUNT(*) AS total FROM users`),
         query(`SELECT COUNT(*) AS total FROM bandi WHERE EXTRACT(YEAR FROM data) = EXTRACT(YEAR FROM NOW()) AND EXTRACT(MONTH FROM data) = EXTRACT(MONTH FROM NOW())`),
         query(`SELECT COUNT(*) AS total FROM gare WHERE EXTRACT(YEAR FROM data) = EXTRACT(YEAR FROM NOW()) AND EXTRACT(MONTH FROM data) = EXTRACT(MONTH FROM NOW())`),
-        query(`SELECT COUNT(*) AS total FROM bandi WHERE abilitato = false OR abilitato IS NULL`),
-        query(`SELECT COUNT(*) AS total FROM gare WHERE abilitato = false OR abilitato IS NULL`),
-        query(`SELECT COUNT(*) AS total FROM gare WHERE completo = false OR completo IS NULL`),
-        query(`SELECT COUNT(*) AS total FROM users WHERE data_scadenza IS NOT NULL AND data_scadenza <= NOW() + INTERVAL '30 days' AND data_scadenza > NOW()`),
-        query(`SELECT COUNT(*) AS total FROM abbonamenti WHERE attivo = true`),
+        query(`SELECT COUNT(*) AS total FROM bandi WHERE annullato = true`),
+        query(`SELECT COUNT(*) AS total FROM gare WHERE annullato = true`),
+        query(`SELECT COUNT(*) AS total FROM gare WHERE eliminata = true`),
+        query(`SELECT COUNT(*) AS total FROM users_periodi WHERE data_fine IS NOT NULL AND data_fine <= NOW() + INTERVAL '30 days' AND data_fine > NOW() AND attivo = true`),
+        query(`SELECT COUNT(*) AS total FROM users_periodi WHERE attivo = true`),
         query(`SELECT COUNT(*) AS total FROM gare WHERE eliminata = true`),
         query(`SELECT COUNT(*) AS total FROM aziende WHERE eliminata = true`),
         query(`SELECT COUNT(*) AS total FROM stazioni WHERE eliminata = true`)
@@ -131,12 +131,12 @@ export default async function adminDashboardRoutes(fastify, opts) {
         utenti_totali: parseInt(stats[4].rows[0].total),
         bandi_questo_mese: parseInt(stats[5].rows[0].total),
         esiti_questo_mese: parseInt(stats[6].rows[0].total),
-        bandi_da_abilitare: parseInt(stats[7].rows[0].total),
-        esiti_da_abilitare: parseInt(stats[8].rows[0].total),
-        esiti_incompleti: parseInt(stats[9].rows[0].total),
+        bandi_annullati: parseInt(stats[7].rows[0].total),
+        esiti_annullati: parseInt(stats[8].rows[0].total),
+        esiti_da_cancellare: parseInt(stats[9].rows[0].total),
         utenti_in_scadenza_30gg: parseInt(stats[10].rows[0].total),
-        abbonamenti_attivi: parseInt(stats[11].rows[0].total),
-        esiti_da_cancellare: parseInt(stats[12].rows[0].total),
+        periodi_attivi: parseInt(stats[11].rows[0].total),
+        gare_eliminate: parseInt(stats[12].rows[0].total),
         aziende_da_cancellare: parseInt(stats[13].rows[0].total),
         stazioni_da_cancellare: parseInt(stats[14].rows[0].total)
       };
@@ -170,15 +170,15 @@ export default async function adminDashboardRoutes(fastify, opts) {
       const stats = await Promise.all([
         query(`SELECT COUNT(*) AS total FROM bandi WHERE 1=1 ${filters}`),
         query(`SELECT COUNT(*) AS total FROM gare WHERE 1=1 ${filters}`),
-        query(`SELECT COUNT(*) AS total FROM bandi WHERE abilitato = false ${filters}`),
-        query(`SELECT COUNT(*) AS total FROM gare WHERE abilitato = false ${filters}`)
+        query(`SELECT COUNT(*) AS total FROM bandi WHERE annullato = true ${filters}`),
+        query(`SELECT COUNT(*) AS total FROM gare WHERE annullato = true ${filters}`)
       ]);
 
       return {
         bandi: parseInt(stats[0].rows[0].total),
         esiti: parseInt(stats[1].rows[0].total),
-        bandi_da_abilitare: parseInt(stats[2].rows[0].total),
-        esiti_da_abilitare: parseInt(stats[3].rows[0].total)
+        bandi_annullati: parseInt(stats[2].rows[0].total),
+        esiti_annullati: parseInt(stats[3].rows[0].total)
       };
     } catch (err) {
       fastify.log.error(err, 'Stats per ruolo error');
@@ -356,8 +356,8 @@ export default async function adminDashboardRoutes(fastify, opts) {
 
       // Find recipients
       let query_recipients = `SELECT DISTINCT u.email FROM users u
-        INNER JOIN abbonamenti a ON u.id = a.user_id
-        WHERE a.attivo = true AND a.tipo_abbonamento = 'bandi'`;
+        INNER JOIN users_periodi up ON u.username = up.username
+        WHERE up.attivo = true AND up.importo_bandi > 0`;
 
       if (filtro_regioni && filtro_regioni.length > 0) {
         query_recipients += ` AND u.regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
@@ -397,8 +397,8 @@ export default async function adminDashboardRoutes(fastify, opts) {
       const esiti_result = await query(query_esiti + ` LIMIT 50`);
 
       let query_recipients = `SELECT DISTINCT u.email FROM users u
-        INNER JOIN abbonamenti a ON u.id = a.user_id
-        WHERE a.attivo = true AND a.tipo_abbonamento = 'esiti'`;
+        INNER JOIN users_periodi up ON u.username = up.username
+        WHERE up.attivo = true AND (up.importo_esiti > 0 OR up.importo_esiti_light > 0)`;
 
       if (filtro_regioni && filtro_regioni.length > 0) {
         query_recipients += ` AND u.regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
@@ -438,8 +438,8 @@ export default async function adminDashboardRoutes(fastify, opts) {
       const bandi_result = await query(query_bandi);
 
       let query_recipients = `SELECT DISTINCT u.email FROM users u
-        INNER JOIN abbonamenti a ON u.id = a.user_id
-        WHERE a.attivo = true AND a.tipo_abbonamento = 'bandi'`;
+        INNER JOIN users_periodi up ON u.username = up.username
+        WHERE up.attivo = true AND up.importo_bandi > 0`;
 
       if (filtro_regioni && filtro_regioni.length > 0) {
         query_recipients += ` AND u.regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
@@ -504,8 +504,8 @@ export default async function adminDashboardRoutes(fastify, opts) {
       const esiti_result = await query(query_esiti);
 
       let query_recipients = `SELECT DISTINCT u.email FROM users u
-        INNER JOIN abbonamenti a ON u.id = a.user_id
-        WHERE a.attivo = true AND a.tipo_abbonamento = 'esiti'`;
+        INNER JOIN users_periodi up ON u.username = up.username
+        WHERE up.attivo = true AND (up.importo_esiti > 0 OR up.importo_esiti_light > 0)`;
 
       if (filtro_regioni && filtro_regioni.length > 0) {
         query_recipients += ` AND u.regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;

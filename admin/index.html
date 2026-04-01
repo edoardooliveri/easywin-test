@@ -7870,8 +7870,47 @@ function switchAdminTab(tabName) {
 
 // ════════════════ ADMIN DASHBOARD FUNCTIONS ════════════════
 
+function goToPage(section) {
+  selectSection(section);
+}
+
 async function loadAdminDashboard() {
   try {
+    // Set default dates for scadenze filter
+    const oggi = new Date();
+    const dataInizio = document.getElementById('admin-scadenze-data-inizio');
+    const dataFine = document.getElementById('admin-scadenze-data-fine');
+    if (dataInizio && !dataInizio.value) {
+      const d = new Date(oggi.getFullYear() - 1, oggi.getMonth(), 1);
+      dataInizio.value = d.toISOString().split('T')[0];
+    }
+    if (dataFine && !dataFine.value) {
+      const d = new Date(oggi.getFullYear(), oggi.getMonth() + 1, 1);
+      dataFine.value = d.toISOString().split('T')[0];
+    }
+
+    // Load agents dropdown
+    const agentiSelect = document.getElementById('admin-scadenze-agente');
+    if (agentiSelect) {
+      try {
+        const agentiRes = await fetch(`${API_BASE}/admin/dashboard/agenti`, {
+          headers: { ...authHeaders(), 'Content-Type': 'application/json' }
+        });
+        if (agentiRes.ok) {
+          const agentiData = await agentiRes.json();
+          const agenti = agentiData.data || agentiData || [];
+          agenti.forEach(agente => {
+            const option = document.createElement('option');
+            option.value = agente.id || agente.nome || '';
+            option.textContent = agente.nome || agente.name || '';
+            agentiSelect.appendChild(option);
+          });
+        }
+      } catch (err) {
+        console.error('Errore caricamento agenti:', err);
+      }
+    }
+
     const res = await fetch(`${API_BASE}/admin/dashboard/stats`, {
       headers: { ...authHeaders(), 'Content-Type': 'application/json' }
     });
