@@ -11696,9 +11696,13 @@ function renderIntermediariListShell() {
     const top = document.getElementById('intermediari-' + f);
     const bot = document.getElementById('intermediari-' + f + '-bot');
     if (top && bot) {
-      top.addEventListener('change', () => { bot.value = top.value; });
-      bot.addEventListener('change', () => { top.value = bot.value; });
-      if (f === 'search') bot.addEventListener('keydown', (e) => { if (e.key === 'Enter') { top.value = bot.value; loadIntermediari(1); } });
+      const evt = (top.tagName === 'SELECT') ? 'change' : 'input';
+      top.addEventListener(evt, () => { bot.value = top.value; });
+      bot.addEventListener(evt, () => { top.value = bot.value; });
+      if (f === 'search') {
+        top.addEventListener('keydown', (e) => { if (e.key === 'Enter') { bot.value = top.value; loadIntermediari(1); } });
+        bot.addEventListener('keydown', (e) => { if (e.key === 'Enter') { top.value = bot.value; loadIntermediari(1); } });
+      }
     }
   });
 }
@@ -11714,9 +11718,22 @@ async function loadIntermediari(page = 1) {
   if (!resultsEl) return;
   resultsEl.innerHTML = '<div class="az-empty-msg" style="padding:32px">Caricamento...</div>';
   try {
-    const search = document.getElementById('intermediari-search')?.value || '';
-    const provincia = document.getElementById('intermediari-provincia')?.value || '';
-    const limit = document.getElementById('intermediari-limit')?.value || '25';
+    const pickVal = (name, def='') => {
+      const t = document.getElementById('intermediari-' + name)?.value || '';
+      const b = document.getElementById('intermediari-' + name + '-bot')?.value || '';
+      return (t || b || def);
+    };
+    const search = pickVal('search');
+    const provincia = pickVal('provincia');
+    const limit = pickVal('limit', '25');
+    // Keep top/bottom in sync after reading
+    ['search','provincia','limit'].forEach(n => {
+      const val = n==='search'?search:(n==='provincia'?provincia:limit);
+      const t = document.getElementById('intermediari-' + n);
+      const b = document.getElementById('intermediari-' + n + '-bot');
+      if (t) t.value = val;
+      if (b) b.value = val;
+    });
     const params = new URLSearchParams();
     if (search) params.set('search', search);
     if (provincia) params.set('id_provincia', provincia);

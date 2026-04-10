@@ -39,7 +39,7 @@ export default async function intermediariRoutes(fastify) {
 
     if (search) {
       conditions.push(
-        `(i.ragione_sociale ILIKE $${paramIdx} OR i.nome ILIKE $${paramIdx} OR i.cognome ILIKE $${paramIdx} OR i.partita_iva ILIKE $${paramIdx} OR i.email ILIKE $${paramIdx})`
+        `(i.ragione_sociale ILIKE $${paramIdx} OR i.nome ILIKE $${paramIdx} OR i.cognome ILIKE $${paramIdx} OR i.partita_iva ILIKE $${paramIdx} OR i.codice_fiscale ILIKE $${paramIdx} OR i.email ILIKE $${paramIdx} OR i.pec ILIKE $${paramIdx} OR i.citta ILIKE $${paramIdx} OR i.cap ILIKE $${paramIdx} OR i.telefono ILIKE $${paramIdx} OR i.referente ILIKE $${paramIdx})`
       );
       params.push(`%${search}%`);
       paramIdx++;
