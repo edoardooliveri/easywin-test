@@ -5449,47 +5449,235 @@ span.flatpickr-weekday {
 
       <!-- ALBI FORNITORI DASHBOARD -->
       <div id="pageAlbiDashboard" class="page">
-        <div class="page-header">
-          <h1 class="page-title"><i class="fas fa-clipboard-list"></i> ALBI FORNITORI - DASHBOARD</h1>
-          <p class="page-subtitle" style="color:#94a3b8;font-size:0.88rem;margin-top:4px;margin-bottom:24px"><i class="fas fa-robot" style="color:#FF8C00"></i> <strong style="color:#FF8C00">AI-Powered</strong> — Centro di gestione albi fornitori. Monitora iscrizioni, scadenze e lascia che l'AI trovi le migliori corrispondenze azienda-albo.</p>
+        <style>
+          .af-hero { background:linear-gradient(135deg,#1E2D3D 0%,#2d4258 100%); border-radius:20px; padding:28px 32px; margin-bottom:22px; color:#fff; display:flex; align-items:center; gap:24px; box-shadow:0 8px 28px rgba(30,45,61,0.18); }
+          .af-hero-icon { width:72px; height:72px; border-radius:18px; background:linear-gradient(135deg,#FF8C00,#F5C518); display:flex; align-items:center; justify-content:center; font-size:32px; flex-shrink:0; box-shadow:0 6px 18px rgba(255,140,0,0.35); }
+          .af-hero h1 { margin:0 0 6px; font-size:24px; font-weight:800; letter-spacing:.3px; }
+          .af-hero p { margin:0; opacity:.85; font-size:13px; line-height:1.55; max-width:680px; }
+          .af-hero-cta { margin-left:auto; flex-shrink:0; }
+          .af-cta-btn { background:linear-gradient(135deg,#FF8C00,#e67e00); color:#fff; border:none; padding:14px 26px; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer; box-shadow:0 6px 18px rgba(255,140,0,0.4); display:inline-flex; align-items:center; gap:10px; transition:transform .15s; }
+          .af-cta-btn:hover { transform:translateY(-2px); }
+          .af-kpis { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:22px; }
+          .af-kpi { background:#fff; border:1px solid #d4dbe5; border-radius:16px; padding:18px 20px; box-shadow:0 2px 10px rgba(30,45,61,0.05); position:relative; overflow:hidden; }
+          .af-kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,#FF8C00,#F5C518); }
+          .af-kpi.green::before { background:linear-gradient(90deg,#10b981,#34d399); }
+          .af-kpi.amber::before { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+          .af-kpi.blue::before { background:linear-gradient(90deg,#3b82f6,#60a5fa); }
+          .af-kpi.purple::before { background:linear-gradient(90deg,#8b5cf6,#a78bfa); }
+          .af-kpi-num { font-size:32px; font-weight:800; color:#1E2D3D; line-height:1; margin-bottom:6px; }
+          .af-kpi-lbl { font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:.5px; font-weight:600; }
+          .af-kpi-icon { position:absolute; right:16px; top:50%; transform:translateY(-50%); font-size:36px; color:#1E2D3D; opacity:.06; }
+          .af-section { background:#fff; border:1px solid #d4dbe5; border-radius:16px; overflow:hidden; box-shadow:0 2px 10px rgba(30,45,61,0.05); margin-bottom:18px; }
+          .af-sec-head { background:linear-gradient(135deg,#1E2D3D,#2d4258); color:#fff; padding:14px 20px; display:flex; align-items:center; gap:10px; font-size:13px; font-weight:700; letter-spacing:.5px; }
+          .af-sec-head .af-sec-cta { margin-left:auto; background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); padding:6px 14px; border-radius:8px; font-size:11px; cursor:pointer; }
+          .af-sec-head .af-sec-cta:hover { background:rgba(255,255,255,0.22); }
+          .af-tbl { width:100%; border-collapse:separate; border-spacing:0; font-size:13px; }
+          .af-tbl thead th { background:#f8fafc; color:#64748b; padding:10px 14px; text-align:left; font-weight:600; font-size:11px; letter-spacing:.3px; text-transform:uppercase; border-bottom:1px solid #eef1f5; }
+          .af-tbl tbody td { padding:13px 14px; border-bottom:1px solid #eef1f5; }
+          .af-tbl tbody tr:hover { background:#f8fafc; }
+          .af-tbl tbody tr:last-child td { border-bottom:none; }
+          .af-empty { padding:30px 20px; text-align:center; color:#94a3b8; font-size:13px; }
+          .af-empty i { font-size:34px; opacity:.4; display:block; margin-bottom:10px; }
+          .af-badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; }
+          .af-badge.b-orange { background:#fff7ed; color:#c2410c; }
+          .af-badge.b-green { background:#dcfce7; color:#15803d; }
+          .af-badge.b-blue { background:#dbeafe; color:#1d4ed8; }
+          .af-badge.b-gray { background:#f1f5f9; color:#475569; }
+          .af-badge { color:#fff; }
+          .af-row-btn { background:#fff7ed; color:#FF8C00; border:1px solid #fed7aa; width:32px; height:32px; border-radius:8px; cursor:pointer; font-size:12px; }
+          .af-row-btn:hover { background:#FF8C00; color:#fff; border-color:#FF8C00; }
+          /* Wizard modal */
+          .afw-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(4px); z-index:9999; align-items:center; justify-content:center; padding:20px; }
+          .afw-overlay.active { display:flex; }
+          .afw-modal { background:#fff; border-radius:20px; width:100%; max-width:780px; max-height:92vh; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.4); }
+          .afw-head { background:linear-gradient(135deg,#1E2D3D,#2d4258); color:#fff; padding:20px 26px; display:flex; align-items:center; gap:14px; }
+          .afw-head .afw-icon { width:46px; height:46px; border-radius:12px; background:linear-gradient(135deg,#FF8C00,#F5C518); display:flex; align-items:center; justify-content:center; font-size:20px; }
+          .afw-head h2 { margin:0; font-size:18px; font-weight:700; }
+          .afw-head p { margin:2px 0 0; font-size:12px; opacity:.75; }
+          .afw-close { margin-left:auto; background:rgba(255,255,255,0.15); border:none; color:#fff; width:32px; height:32px; border-radius:8px; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; }
+          .afw-close:hover { background:rgba(255,255,255,0.25); }
+          .afw-body { padding:24px 26px; overflow-y:auto; flex:1; }
+          .afw-step { margin-bottom:22px; }
+          .afw-step-title { font-size:11px; text-transform:uppercase; letter-spacing:.5px; font-weight:700; color:#FF8C00; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+          .afw-step-title .afw-num { width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg,#FF8C00,#e67e00); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:11px; }
+          .afw-field { display:block; margin-bottom:14px; }
+          .afw-field label { display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px; }
+          .afw-field input, .afw-field select, .afw-field textarea { width:100%; box-sizing:border-box; border:1px solid #d4dbe5; border-radius:10px; padding:11px 14px; font-size:13px; background:#fff; color:#1e293b; font-family:inherit; transition:all .15s; }
+          .afw-field input:focus, .afw-field select:focus, .afw-field textarea:focus { outline:none; border-color:#FF8C00; box-shadow:0 0 0 3px rgba(255,140,0,0.15); }
+          .afw-field textarea { resize:vertical; min-height:70px; }
+          .afw-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+          .afw-typeahead { position:relative; }
+          .afw-suggest { position:absolute; left:0; right:0; top:100%; margin-top:4px; background:#fff; border:1px solid #d4dbe5; border-radius:12px; max-height:280px; overflow-y:auto; box-shadow:0 12px 28px rgba(0,0,0,0.12); z-index:10; display:none; }
+          .afw-suggest.active { display:block; }
+          .afw-suggest-item { padding:11px 14px; cursor:pointer; border-bottom:1px solid #f1f5f9; font-size:13px; }
+          .afw-suggest-item:hover { background:#fff7ed; }
+          .afw-suggest-item:last-child { border-bottom:none; }
+          .afw-suggest-item .afw-s-name { font-weight:600; color:#1E2D3D; }
+          .afw-suggest-item .afw-s-meta { font-size:11px; color:#64748b; margin-top:2px; }
+          .afw-selected { background:#fff7ed; border:1px solid #FF8C00; border-radius:12px; padding:12px 16px; display:flex; align-items:center; gap:12px; }
+          .afw-selected i { color:#FF8C00; font-size:18px; }
+          .afw-selected .afw-sel-name { font-weight:700; color:#1E2D3D; font-size:14px; }
+          .afw-selected .afw-sel-meta { font-size:11px; color:#64748b; }
+          .afw-selected .afw-sel-clear { margin-left:auto; background:none; border:none; color:#64748b; cursor:pointer; font-size:18px; }
+          .afw-chips { display:flex; flex-wrap:wrap; gap:6px; padding:8px; border:1px solid #d4dbe5; border-radius:10px; min-height:42px; background:#fff; }
+          .afw-chip { background:linear-gradient(135deg,#FF8C00,#e67e00); color:#fff; padding:5px 12px; border-radius:999px; font-size:12px; font-weight:600; display:inline-flex; align-items:center; gap:6px; }
+          .afw-chip button { background:none; border:none; color:#fff; cursor:pointer; font-size:14px; padding:0; line-height:1; }
+          .afw-chip-input { border:none; outline:none; padding:5px 8px; font-size:13px; flex:1; min-width:120px; background:transparent; }
+          .afw-presets { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+          .afw-preset-btn { background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; padding:5px 12px; border-radius:999px; font-size:11px; cursor:pointer; font-weight:600; }
+          .afw-preset-btn:hover { background:#FF8C00; color:#fff; border-color:#FF8C00; }
+          .afw-foot { padding:18px 26px; background:#f8fafc; border-top:1px solid #eef1f5; display:flex; gap:10px; justify-content:flex-end; }
+          .afw-btn { border:none; padding:11px 22px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+          .afw-btn-primary { background:linear-gradient(135deg,#FF8C00,#e67e00); color:#fff; box-shadow:0 4px 14px rgba(255,140,0,0.35); }
+          .afw-btn-primary:hover { transform:translateY(-1px); }
+          .afw-btn-ghost { background:#fff; color:#1E2D3D; border:1px solid #d4dbe5; }
+          .afw-btn-ghost:hover { background:#f1f5f9; }
+          .afw-success { background:linear-gradient(135deg,#dcfce7,#bbf7d0); border:1px solid #86efac; color:#14532d; padding:14px 18px; border-radius:12px; margin-bottom:16px; font-size:13px; display:none; align-items:center; gap:10px; }
+          .afw-success.active { display:flex; }
+          @media(max-width:900px){ .af-kpis{grid-template-columns:repeat(2,1fr)} .afw-row{grid-template-columns:1fr} .af-hero{flex-direction:column;align-items:flex-start} .af-hero-cta{margin-left:0} }
+        </style>
+
+        <!-- Hero -->
+        <div class="af-hero">
+          <div class="af-hero-icon"><i class="fas fa-clipboard-list"></i></div>
+          <div>
+            <h1>Albi Fornitori</h1>
+            <p>Gestisci gli albi delle stazioni appaltanti. Ogni albo che crei viene pubblicato automaticamente nell'area clienti, dove le aziende possono richiedere l'iscrizione al servizio.</p>
+          </div>
+          <div class="af-hero-cta">
+            <button class="af-cta-btn" onclick="openAfWizard(null)"><i class="fas fa-plus"></i> NUOVO ALBO</button>
+          </div>
         </div>
 
         <!-- KPI Cards -->
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px">
-          <div class="stat-card" style="border-left:4px solid var(--primary)">
-            <div class="stat-number" id="albi-kpi-albi">-</div><div class="stat-label">Albi Monitorati</div>
-          </div>
-          <div class="stat-card" style="border-left:4px solid #4caf50">
-            <div class="stat-number" id="albi-kpi-iscrizioni">-</div><div class="stat-label">Iscrizioni Attive</div>
-          </div>
-          <div class="stat-card" style="border-left:4px solid #ff9800">
-            <div class="stat-number" id="albi-kpi-scadenze">-</div><div class="stat-label">In Scadenza (30gg)</div>
-          </div>
-          <div class="stat-card" style="border-left:4px solid #2196F3">
-            <div class="stat-number" id="albi-kpi-richieste">-</div><div class="stat-label">Richieste Pendenti</div>
-          </div>
-          <div class="stat-card" style="border-left:4px solid #9c27b0">
-            <div class="stat-number" id="albi-kpi-raccomandazioni">-</div><div class="stat-label">Raccomandazioni AI</div>
-          </div>
+        <div class="af-kpis">
+          <div class="af-kpi"><div class="af-kpi-num" id="albi-kpi-albi">-</div><div class="af-kpi-lbl">Albi monitorati</div><i class="fas fa-clipboard-list af-kpi-icon"></i></div>
+          <div class="af-kpi green"><div class="af-kpi-num" id="albi-kpi-iscrizioni">-</div><div class="af-kpi-lbl">Iscrizioni attive</div><i class="fas fa-user-check af-kpi-icon"></i></div>
+          <div class="af-kpi amber"><div class="af-kpi-num" id="albi-kpi-scadenze">-</div><div class="af-kpi-lbl">In scadenza 30gg</div><i class="fas fa-clock af-kpi-icon"></i></div>
+          <div class="af-kpi blue"><div class="af-kpi-num" id="albi-kpi-richieste">-</div><div class="af-kpi-lbl">Richieste pendenti</div><i class="fas fa-inbox af-kpi-icon"></i></div>
+          <div class="af-kpi purple"><div class="af-kpi-num" id="albi-kpi-raccomandazioni">-</div><div class="af-kpi-lbl">Suggeriti AI</div><i class="fas fa-robot af-kpi-icon"></i></div>
         </div>
 
-        <!-- Quick Actions -->
-        <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap">
-          <button class="btn btn-success" onclick="showAlboEditForm(null)"><i class="fas fa-plus"></i> AGGIUNGI ALBO</button>
-          <button class="btn btn-ai" onclick="selectSubPage('albi-fornitori','raccomandazioni')"><i class="fas fa-robot"></i> RACCOMANDAZIONI AI</button>
-          <button class="btn btn-warning" onclick="selectSubPage('albi-fornitori','scadenze')"><i class="fas fa-clock"></i> SCADENZE</button>
+        <!-- Recent Albi -->
+        <div class="af-section">
+          <div class="af-sec-head"><i class="fas fa-list"></i> ULTIMI ALBI PUBBLICATI <button class="af-sec-cta" onclick="selectSubPage('albi-fornitori','stazioni')">Vedi tutti →</button></div>
+          <div id="albi-dash-recenti"></div>
         </div>
 
-        <!-- Albi recenti -->
-        <div class="dashboard-section">
-          <div class="section-header"><h3><i class="fas fa-list"></i> Ultimi Albi Aggiunti</h3></div>
-          <div id="albi-dash-recenti" class="table-container"></div>
+        <!-- Recent Richieste -->
+        <div class="af-section">
+          <div class="af-sec-head"><i class="fas fa-inbox"></i> RICHIESTE SERVIZIO RECENTI <button class="af-sec-cta" onclick="selectSubPage('albi-fornitori','richieste')">Gestisci →</button></div>
+          <div id="albi-dash-richieste"></div>
         </div>
 
-        <!-- Richieste recenti -->
-        <div class="dashboard-section" style="margin-top:20px">
-          <div class="section-header"><h3><i class="fas fa-inbox"></i> Richieste Servizio Recenti</h3></div>
-          <div id="albi-dash-richieste" class="table-container"></div>
+        <!-- Wizard Modal -->
+        <div class="afw-overlay" id="afwOverlay" onclick="if(event.target===this) closeAfWizard()">
+          <div class="afw-modal">
+            <div class="afw-head">
+              <div class="afw-icon"><i class="fas fa-magic"></i></div>
+              <div>
+                <h2 id="afwTitle">Crea Nuovo Albo Fornitori</h2>
+                <p>Compila i campi essenziali — il resto è opzionale</p>
+              </div>
+              <button class="afw-close" onclick="closeAfWizard()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="afw-body">
+              <div class="afw-success" id="afwSuccess"><i class="fas fa-check-circle"></i><span>Albo salvato! Sarà visibile nell'area clienti entro pochi secondi.</span></div>
+
+              <!-- Step 1 - Stazione -->
+              <div class="afw-step">
+                <div class="afw-step-title"><span class="afw-num">1</span>Stazione Appaltante <span style="color:#dc2626">*</span></div>
+                <div id="afwStazioneSection">
+                  <div class="afw-typeahead afw-field">
+                    <input type="text" id="afwStazioneSearch" placeholder="Cerca per nome, città o P.IVA…" autocomplete="off" oninput="afwSearchStazioni()" onfocus="afwSearchStazioni()">
+                    <div class="afw-suggest" id="afwStazioneSuggest"></div>
+                  </div>
+                </div>
+                <div id="afwStazioneSelected" style="display:none"></div>
+                <input type="hidden" id="afwStazioneId">
+              </div>
+
+              <!-- Step 2 - Info Albo -->
+              <div class="afw-step">
+                <div class="afw-step-title"><span class="afw-num">2</span>Info Albo</div>
+                <div class="afw-field">
+                  <label>Nome Albo (lasciare vuoto per usare il nome stazione)</label>
+                  <input type="text" id="afwNomeAlbo" placeholder="es. Albo Fornitori Comune di Milano">
+                </div>
+                <div class="afw-row">
+                  <div class="afw-field">
+                    <label>URL Portale Albo</label>
+                    <input type="url" id="afwUrl" placeholder="https://...">
+                  </div>
+                  <div class="afw-field">
+                    <label>Piattaforma</label>
+                    <input type="text" id="afwPiattaforma" placeholder="MePA, START, SINTEL…" list="afw-piattaforme-list">
+                    <datalist id="afw-piattaforme-list">
+                      <option value="MEPA"><option value="START by FABER"><option value="Sintel"><option value="MAGGIOLI"><option value="DigitalPA"><option value="TuttoGare"><option value="Net4Market"><option value="TRASPARE"><option value="Empulia"><option value="Intercent-ER">
+                    </datalist>
+                    <div class="afw-presets">
+                      <button type="button" class="afw-preset-btn" onclick="document.getElementById('afwPiattaforma').value='MEPA'">MEPA</button>
+                      <button type="button" class="afw-preset-btn" onclick="document.getElementById('afwPiattaforma').value='START by FABER'">START</button>
+                      <button type="button" class="afw-preset-btn" onclick="document.getElementById('afwPiattaforma').value='Sintel'">Sintel</button>
+                      <button type="button" class="afw-preset-btn" onclick="document.getElementById('afwPiattaforma').value='TuttoGare'">TuttoGare</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 3 - Categorie & Scadenza -->
+              <div class="afw-step">
+                <div class="afw-step-title"><span class="afw-num">3</span>Categorie e Scadenza <span style="color:#94a3b8;font-weight:400;text-transform:none">(opzionali)</span></div>
+                <div class="afw-field">
+                  <label>Categorie SOA</label>
+                  <div class="afw-chips" id="afwSoaChips">
+                    <input type="text" class="afw-chip-input" id="afwSoaInput" placeholder="Digita e premi Invio (es. OG1)" onkeydown="afwAddChip(event,'soa')">
+                  </div>
+                  <div class="afw-presets">
+                    <button type="button" class="afw-preset-btn" onclick="afwQuickChip('soa','OG1')">+ OG1</button>
+                    <button type="button" class="afw-preset-btn" onclick="afwQuickChip('soa','OG3')">+ OG3</button>
+                    <button type="button" class="afw-preset-btn" onclick="afwQuickChip('soa','OG11')">+ OG11</button>
+                    <button type="button" class="afw-preset-btn" onclick="afwQuickChip('soa','OS21')">+ OS21</button>
+                    <button type="button" class="afw-preset-btn" onclick="afwQuickChip('soa','OS28')">+ OS28</button>
+                  </div>
+                </div>
+                <div class="afw-field">
+                  <label>Categorie Merceologiche</label>
+                  <div class="afw-chips" id="afwMerceChips">
+                    <input type="text" class="afw-chip-input" id="afwMerceInput" placeholder="Digita e premi Invio (es. Lavori stradali)" onkeydown="afwAddChip(event,'merce')">
+                  </div>
+                </div>
+                <div class="afw-row">
+                  <div class="afw-field">
+                    <label>Scadenza Iscrizione</label>
+                    <input type="date" id="afwScadenza">
+                  </div>
+                  <div class="afw-field">
+                    <label>Note interne</label>
+                    <input type="text" id="afwNote" placeholder="Note opzionali">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 4 - Procedura -->
+              <div class="afw-step">
+                <div class="afw-step-title"><span class="afw-num">4</span>Procedura di Iscrizione <span style="color:#94a3b8;font-weight:400;text-transform:none">(opzionale, mostrata ai clienti)</span></div>
+                <div class="afw-field">
+                  <textarea id="afwProcedura" rows="4" placeholder="Descrivi i passaggi che le aziende devono seguire per iscriversi a questo albo…"></textarea>
+                </div>
+                <div class="afw-field">
+                  <label>Documenti Richiesti (uno per riga)</label>
+                  <textarea id="afwDocumenti" rows="3" placeholder="Visura camerale&#10;DURC&#10;Attestazione SOA"></textarea>
+                </div>
+              </div>
+
+              <input type="hidden" id="afwAlboId">
+            </div>
+            <div class="afw-foot">
+              <button class="afw-btn afw-btn-ghost" onclick="closeAfWizard()">ANNULLA</button>
+              <button class="afw-btn afw-btn-primary" onclick="afwSubmit()"><i class="fas fa-save"></i> SALVA E PUBBLICA</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -12939,6 +13127,180 @@ async function deleteAlbo(stazioneId) {
   }
 }
 
+// ════════════════ ALBI FORNITORI - NEW WIZARD ════════════════
+let afwSearchTimer = null;
+const afwChips = { soa: [], merce: [] };
+
+function openAfWizard(stazioneId) {
+  const ov = document.getElementById('afwOverlay');
+  if (!ov) return;
+  ov.classList.add('active');
+  // Reset
+  document.getElementById('afwAlboId').value = '';
+  document.getElementById('afwStazioneId').value = '';
+  document.getElementById('afwStazioneSearch').value = '';
+  document.getElementById('afwStazioneSuggest').classList.remove('active');
+  document.getElementById('afwStazioneSuggest').innerHTML = '';
+  document.getElementById('afwStazioneSelected').style.display = 'none';
+  document.getElementById('afwStazioneSelected').innerHTML = '';
+  document.getElementById('afwStazioneSection').querySelector('.afw-typeahead').style.display = 'block';
+  document.getElementById('afwNomeAlbo').value = '';
+  document.getElementById('afwUrl').value = '';
+  document.getElementById('afwPiattaforma').value = '';
+  document.getElementById('afwScadenza').value = '';
+  document.getElementById('afwNote').value = '';
+  document.getElementById('afwProcedura').value = '';
+  document.getElementById('afwDocumenti').value = '';
+  document.getElementById('afwTitle').textContent = 'Crea Nuovo Albo Fornitori';
+  document.getElementById('afwSuccess').classList.remove('active');
+  afwChips.soa = []; afwChips.merce = [];
+  afwRenderChips('soa'); afwRenderChips('merce');
+
+  if (stazioneId) {
+    document.getElementById('afwTitle').textContent = 'Modifica Albo Fornitori';
+    // Preload existing albo
+    fetch(`${API_BASE}/albi-fornitori/${stazioneId}`, { headers: authHeaders() })
+      .then(r => r.json())
+      .then(data => {
+        const albo = data.albo || {};
+        const staz = data.stazione || {};
+        document.getElementById('afwStazioneId').value = stazioneId;
+        afwSelectStazione(stazioneId, staz.nome || staz.Nome || ('Stazione #' + stazioneId), [staz.citta, staz.provincia].filter(Boolean).join(' · '));
+        if (albo.id) document.getElementById('afwAlboId').value = albo.id;
+        document.getElementById('afwNomeAlbo').value = albo.nome_albo || '';
+        document.getElementById('afwUrl').value = albo.url_albo || '';
+        document.getElementById('afwPiattaforma').value = albo.piattaforma || '';
+        document.getElementById('afwScadenza').value = albo.scadenza_iscrizione ? String(albo.scadenza_iscrizione).split('T')[0] : '';
+        document.getElementById('afwNote').value = albo.note || '';
+        document.getElementById('afwProcedura').value = albo.procedura_iscrizione || '';
+        if (Array.isArray(albo.categorie_soa)) { afwChips.soa = albo.categorie_soa.slice(); afwRenderChips('soa'); }
+        if (Array.isArray(albo.categorie_merceologiche)) { afwChips.merce = albo.categorie_merceologiche.slice(); afwRenderChips('merce'); }
+        if (Array.isArray(albo.documenti_richiesti)) {
+          document.getElementById('afwDocumenti').value = albo.documenti_richiesti.map(d => typeof d === 'string' ? d : (d.nome || '')).filter(Boolean).join('\n');
+        }
+      }).catch(e => console.error('preload albo error', e));
+  }
+}
+
+function closeAfWizard() {
+  const ov = document.getElementById('afwOverlay');
+  if (ov) ov.classList.remove('active');
+}
+
+function afwSearchStazioni() {
+  clearTimeout(afwSearchTimer);
+  const q = document.getElementById('afwStazioneSearch').value.trim();
+  const box = document.getElementById('afwStazioneSuggest');
+  if (!q) { box.classList.remove('active'); box.innerHTML = ''; return; }
+  afwSearchTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/stazioni?search=${encodeURIComponent(q)}&limit=10`, { headers: authHeaders() });
+      const data = await res.json();
+      const rows = data.data || data || [];
+      if (!rows.length) {
+        box.innerHTML = '<div class="afw-suggest-item" style="color:#94a3b8;cursor:default">Nessuna stazione trovata</div>';
+        box.classList.add('active');
+        return;
+      }
+      box.innerHTML = rows.map(s => {
+        const nome = s.Nome || s.nome || ('Stazione #' + s.id);
+        const meta = [s.citta || s.Citta, s.provincia || s.Provincia, s.partita_iva || s.PartitaIVA].filter(Boolean).join(' · ');
+        return `<div class="afw-suggest-item" onclick="afwSelectStazione(${s.id}, ${JSON.stringify(nome).replace(/"/g,'&quot;')}, ${JSON.stringify(meta).replace(/"/g,'&quot;')})"><div class="afw-s-name">${esc(nome)}</div><div class="afw-s-meta">${esc(meta)}</div></div>`;
+      }).join('');
+      box.classList.add('active');
+    } catch(e) { console.error('afw search error', e); }
+  }, 220);
+}
+
+function afwSelectStazione(id, nome, meta) {
+  document.getElementById('afwStazioneId').value = id;
+  const sel = document.getElementById('afwStazioneSelected');
+  sel.innerHTML = `<div class="afw-selected"><i class="fas fa-building"></i><div><div class="afw-sel-name">${esc(nome)}</div><div class="afw-sel-meta">${esc(meta || '')}</div></div><button class="afw-sel-clear" onclick="afwClearStazione()" title="Cambia"><i class="fas fa-times"></i></button></div>`;
+  sel.style.display = 'block';
+  document.getElementById('afwStazioneSection').querySelector('.afw-typeahead').style.display = 'none';
+  document.getElementById('afwStazioneSuggest').classList.remove('active');
+}
+
+function afwClearStazione() {
+  document.getElementById('afwStazioneId').value = '';
+  document.getElementById('afwStazioneSelected').style.display = 'none';
+  document.getElementById('afwStazioneSelected').innerHTML = '';
+  document.getElementById('afwStazioneSection').querySelector('.afw-typeahead').style.display = 'block';
+  document.getElementById('afwStazioneSearch').value = '';
+  document.getElementById('afwStazioneSearch').focus();
+}
+
+function afwAddChip(event, type) {
+  if (event.key !== 'Enter' && event.key !== ',') return;
+  event.preventDefault();
+  const inputId = type === 'soa' ? 'afwSoaInput' : 'afwMerceInput';
+  const inp = document.getElementById(inputId);
+  const val = inp.value.trim().replace(/,$/, '');
+  if (!val) return;
+  if (!afwChips[type].includes(val)) afwChips[type].push(val);
+  inp.value = '';
+  afwRenderChips(type);
+}
+
+function afwQuickChip(type, value) {
+  if (!afwChips[type].includes(value)) afwChips[type].push(value);
+  afwRenderChips(type);
+}
+
+function afwRemoveChip(type, idx) {
+  afwChips[type].splice(idx, 1);
+  afwRenderChips(type);
+}
+
+function afwRenderChips(type) {
+  const containerId = type === 'soa' ? 'afwSoaChips' : 'afwMerceChips';
+  const inputId = type === 'soa' ? 'afwSoaInput' : 'afwMerceInput';
+  const placeholder = type === 'soa' ? 'Digita e premi Invio (es. OG1)' : 'Digita e premi Invio (es. Lavori stradali)';
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const chipsHtml = afwChips[type].map((c, i) => `<span class="afw-chip">${esc(c)}<button type="button" onclick="afwRemoveChip('${type}',${i})">×</button></span>`).join('');
+  container.innerHTML = chipsHtml + `<input type="text" class="afw-chip-input" id="${inputId}" placeholder="${placeholder}" onkeydown="afwAddChip(event,'${type}')">`;
+}
+
+async function afwSubmit() {
+  const stazioneId = document.getElementById('afwStazioneId').value;
+  if (!stazioneId) { alert('Seleziona una stazione appaltante'); return; }
+
+  const docLines = document.getElementById('afwDocumenti').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const documenti = docLines.length ? docLines.map(nome => ({ nome, obbligatorio: true })) : null;
+
+  const payload = {
+    id_stazione: parseInt(stazioneId),
+    nome_albo: document.getElementById('afwNomeAlbo').value || null,
+    url_albo: document.getElementById('afwUrl').value || null,
+    piattaforma: document.getElementById('afwPiattaforma').value || null,
+    documenti_richiesti: documenti,
+    procedura_iscrizione: document.getElementById('afwProcedura').value || null,
+    categorie_soa: afwChips.soa.length ? afwChips.soa : null,
+    categorie_merceologiche: afwChips.merce.length ? afwChips.merce : null,
+    scadenza_iscrizione: document.getElementById('afwScadenza').value || null,
+    note: document.getElementById('afwNote').value || null
+  };
+
+  const btn = document.querySelector('.afw-btn-primary');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvataggio...'; }
+
+  try {
+    const res = await fetch(`${API_BASE}/albi-fornitori/admin/albo`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || 'Errore salvataggio'); }
+    document.getElementById('afwSuccess').classList.add('active');
+    setTimeout(() => { closeAfWizard(); loadAlbiDashboard(); }, 1400);
+  } catch(e) {
+    alert('Errore: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> SALVA E PUBBLICA'; }
+  }
+}
+
 // ── Richieste Servizio ──
 async function loadAlbiRichieste() {
   const container = document.getElementById('albi-richieste-results');
@@ -14966,31 +15328,41 @@ async function loadAlbiDashboard() {
   } catch(e) { console.error('Dashboard albi error:', e); }
   // Ultimi albi
   try {
-    const res2 = await fetch(`${API_BASE}/albi-fornitori?limit=5&sort=created_at&order=desc`, { headers: authHeaders() });
+    const res2 = await fetch(`${API_BASE}/albi-fornitori?has_albo=true&limit=5`, { headers: authHeaders() });
     const data = await res2.json();
     const raw_ = data.data || data || []; const rows = Array.isArray(raw_) ? raw_ : [];
-    let html = rows.length ? '<table><thead><tr><th>Stazione</th><th>Piattaforma</th><th>Scadenza</th><th>Iscritti</th></tr></thead><tbody>' : '';
-    rows.forEach(r => {
-      html += `<tr><td>${esc(r.stazione||r.nome_stazione||'-')}</td><td>${esc(r.piattaforma||'-')}</td><td>${fmtDate(r.scadenza)}</td><td>${r.num_iscritti||0}</td></tr>`;
-    });
-    if (rows.length) html += '</tbody></table>';
-    else html = '<p style="padding:16px;color:rgba(255,255,255,0.4)">Nessun albo trovato</p>';
+    let html = '';
+    if (rows.length) {
+      html = '<table class="af-tbl"><thead><tr><th>Stazione</th><th>Piattaforma</th><th>Città</th><th>Scadenza</th><th></th></tr></thead><tbody>';
+      rows.forEach(r => {
+        const nome = r.nome_stazione || r.nome || r.stazione || '-';
+        const citta = [r.citta, r.provincia].filter(Boolean).join(', ') || '-';
+        html += `<tr><td><strong>${esc(nome)}</strong></td><td>${esc(r.piattaforma||'-')}</td><td>${esc(citta)}</td><td>${r.scadenza_iscrizione ? fmtDate(r.scadenza_iscrizione) : '-'}</td><td style="text-align:right"><button class="af-row-btn" onclick="openAfWizard(${r.id})"><i class="fas fa-edit"></i></button></td></tr>`;
+      });
+      html += '</tbody></table>';
+    } else {
+      html = '<div class="af-empty"><i class="fas fa-clipboard-list"></i><p>Nessun albo pubblicato. Clicca <strong>NUOVO ALBO</strong> per iniziare.</p></div>';
+    }
     document.getElementById('albi-dash-recenti').innerHTML = html;
-  } catch(e) { document.getElementById('albi-dash-recenti').innerHTML = '<p style="color:red">Errore</p>'; }
+  } catch(e) { document.getElementById('albi-dash-recenti').innerHTML = '<div class="af-empty"><p style="color:#dc2626">Errore caricamento</p></div>'; }
   // Richieste recenti
   try {
     const res3 = await fetch(`${API_BASE}/albi-fornitori/admin/richieste?limit=5`, { headers: authHeaders() });
     const data = await res3.json();
     const raw_ = data.data || data || []; const rows = Array.isArray(raw_) ? raw_ : [];
-    let html = rows.length ? '<table><thead><tr><th>Data</th><th>Azienda</th><th>Stazione</th><th>Stato</th></tr></thead><tbody>' : '';
-    rows.forEach(r => {
-      const colore = r.stato === 'ricevuta' ? '#ff9800' : r.stato === 'completata' ? '#4caf50' : '#2196F3';
-      html += `<tr><td>${fmtDate(r.created_at)}</td><td>${esc(r.azienda||'-')}</td><td>${esc(r.stazione||'-')}</td><td><span style="background:${colore};color:#fff;padding:2px 8px;border-radius:10px;font-size:11px">${esc(r.stato)}</span></td></tr>`;
-    });
-    if (rows.length) html += '</tbody></table>';
-    else html = '<p style="padding:16px;color:rgba(255,255,255,0.4)">Nessuna richiesta</p>';
+    let html = '';
+    if (rows.length) {
+      html = '<table class="af-tbl"><thead><tr><th>Data</th><th>Azienda</th><th>Stazione</th><th>Stato</th></tr></thead><tbody>';
+      rows.forEach(r => {
+        const colore = r.stato === 'ricevuta' ? '#f59e0b' : r.stato === 'completata' ? '#10b981' : '#3b82f6';
+        html += `<tr><td>${fmtDate(r.created_at)}</td><td>${esc(r.azienda||'-')}</td><td>${esc(r.stazione||'-')}</td><td><span class="af-badge" style="background:${colore}">${esc(r.stato||'-')}</span></td></tr>`;
+      });
+      html += '</tbody></table>';
+    } else {
+      html = '<div class="af-empty"><i class="fas fa-inbox"></i><p>Nessuna richiesta di servizio</p></div>';
+    }
     document.getElementById('albi-dash-richieste').innerHTML = html;
-  } catch(e) { document.getElementById('albi-dash-richieste').innerHTML = '<p style="color:red">Errore</p>'; }
+  } catch(e) { document.getElementById('albi-dash-richieste').innerHTML = '<div class="af-empty"><p style="color:#dc2626">Errore caricamento</p></div>'; }
 }
 
 async function loadAlbiRaccomandazioniAI() {
