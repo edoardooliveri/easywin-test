@@ -2089,7 +2089,7 @@ tbody tr:hover td {
 
         <div class="search-section compact">
           <!-- Riga 1: Ragione Sociale (largo), Partita IVA, Codice Fiscale -->
-          <div class="form-row" style="grid-template-columns: 3fr 1fr 1fr;">
+          <div class="form-row" style="grid-template-columns: 2fr 1fr 1fr;">
             <div class="form-col">
               <label>Ragione Sociale</label>
               <input type="text" id="aziende-ragione" placeholder="es. Acme S.r.l.">
@@ -2118,7 +2118,7 @@ tbody tr:hover td {
               <input type="text" id="aziende-citta">
             </div>
           </div>
-          <!-- Riga 3: Province (tendina multi-select) -->
+          <!-- Riga 3: Province (tendina multi-select, full width) -->
           <div class="form-row" style="grid-template-columns:1fr;">
             <div class="form-col">
               <label>Province</label>
@@ -2131,16 +2131,14 @@ tbody tr:hover td {
               </select>
             </div>
           </div>
-          <!-- Riga 4: Attestazione SOA, Legame, Classifica, Emails, Inserita da, Senza Att.(chk), Fornitrice -->
-          <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto 1fr;">
+          <!-- Riga 4: SOA, Legame SOA, Classifica, Emails -->
+          <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
             <div class="form-col">
               <label>Attestazione SOA</label>
-              <select id="aziende-soa">
-                <option value="">Tutte</option>
-              </select>
+              <select id="aziende-soa"><option value="">Tutte</option></select>
             </div>
             <div class="form-col">
-              <label>Legame con Classifica</label>
+              <label>Legame SOA</label>
               <select id="aziende-soa-legame">
                 <option value="">Tutte</option>
                 <option value="prevalente">Prevalente</option>
@@ -2151,16 +2149,9 @@ tbody tr:hover td {
               <label>Classifica</label>
               <select id="aziende-soa-classifica">
                 <option value="">Tutte</option>
-                <option value="I">I</option>
-                <option value="II">II</option>
-                <option value="III">III</option>
-                <option value="III-bis">III-bis</option>
-                <option value="IV">IV</option>
-                <option value="IV-bis">IV-bis</option>
-                <option value="V">V</option>
-                <option value="VI">VI</option>
-                <option value="VII">VII</option>
-                <option value="VIII">VIII</option>
+                <option value="I">I</option><option value="II">II</option><option value="III">III</option>
+                <option value="III-bis">III-bis</option><option value="IV">IV</option><option value="IV-bis">IV-bis</option>
+                <option value="V">V</option><option value="VI">VI</option><option value="VII">VII</option><option value="VIII">VIII</option>
               </select>
             </div>
             <div class="form-col">
@@ -2171,68 +2162,66 @@ tbody tr:hover td {
                 <option value="senza">Senza email</option>
               </select>
             </div>
+          </div>
+          <!-- Riga 5: Inserita da, Fornitrice, Agente, Responsabile -->
+          <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
             <div class="form-col">
-              <label>Azienda inserita da</label>
-              <select id="aziende-inserita-da">
-                <option value="">Tutti</option>
-              </select>
-            </div>
-            <div class="form-col" style="display:flex;align-items:end;padding-bottom:4px;">
-              <label class="checkbox-label" style="padding-top:0;white-space:nowrap;">
-                <input type="checkbox" id="aziende-senza-attestazioni"> Senza Att.
-              </label>
+              <label>Inserita da</label>
+              <select id="aziende-inserita-da"><option value="">Tutti</option></select>
             </div>
             <div class="form-col">
-              <label>Azienda fornitrice</label>
+              <label>Fornitrice</label>
               <select id="aziende-fornitrice">
                 <option value="">Non indicato</option>
                 <option value="si">Sì</option>
                 <option value="no">No</option>
               </select>
             </div>
-          </div>
-          <!-- Riga 5: Agente, Stato dell'azienda (radio), And/Or (radio), Responsabile contatto, Stato contatto (radio) -->
-          <div class="form-row" style="grid-template-columns: 140px 1fr auto 140px 1fr;">
             <div class="form-col">
               <label>Agente</label>
-              <select id="aziende-agente">
-                <option value="">Tutti</option>
-              </select>
+              <select id="aziende-agente"><option value="">Tutti</option></select>
             </div>
             <div class="form-col">
-              <label>Stato dell'azienda</label>
-              <div class="radio-group" style="display:flex;gap:10px;flex-wrap:wrap;padding-top:6px;">
-                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato" value="" checked> Tutti</label>
-                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato" value="con_utente"> Con utente</label>
-                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato" value="temporanei"> Temporanei</label>
-                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato" value="effettivi"> Effettivi</label>
-                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato" value="senza_utente"> Senza utente</label>
+              <label>Responsabile</label>
+              <select id="aziende-responsabile"><option value="">Tutti</option></select>
+            </div>
+          </div>
+          <!-- Riga 6: Stato azienda (radio) + And/Or + Stato contatto (radio) + checkbox -->
+          <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;margin-bottom:20px;padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+            <div>
+              <label style="font-weight:600;color:var(--text-muted);text-transform:uppercase;font-size:0.72rem;letter-spacing:0.6px;font-family:'Comfortaa',cursive;display:block;margin-bottom:8px;">Stato azienda</label>
+              <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'Comfortaa',cursive;white-space:nowrap;"><input type="radio" name="aziende-stato" value="" checked> Tutti</label>
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'Comfortaa',cursive;white-space:nowrap;"><input type="radio" name="aziende-stato" value="con_utente"> Con utente</label>
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'Comfortaa',cursive;white-space:nowrap;"><input type="radio" name="aziende-stato" value="temporanei"> Temporanei</label>
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'Comfortaa',cursive;white-space:nowrap;"><input type="radio" name="aziende-stato" value="effettivi"> Effettivi</label>
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'Comfortaa',cursive;white-space:nowrap;"><input type="radio" name="aziende-stato" value="senza_utente"> Senza utente</label>
               </div>
             </div>
-            <div class="form-col">
-              <label>And / Or</label>
-              <div class="radio-group" style="display:flex;gap:10px;padding-top:6px;">
-                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="radio" name="aziende-logica" value="and" checked> And</label>
-                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="radio" name="aziende-logica" value="or"> Or</label>
+            <div style="border-left:1px solid var(--border);padding-left:24px;">
+              <label style="font-weight:600;color:var(--text-muted);text-transform:uppercase;font-size:0.72rem;letter-spacing:0.6px;font-family:'Comfortaa',cursive;display:block;margin-bottom:8px;">Logica</label>
+              <div style="display:flex;gap:12px;">
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'Comfortaa',cursive;"><input type="radio" name="aziende-logica" value="and" checked> And</label>
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'Comfortaa',cursive;"><input type="radio" name="aziende-logica" value="or"> Or</label>
               </div>
             </div>
-            <div class="form-col">
-              <label>Responsabile di contatto</label>
-              <select id="aziende-responsabile">
-                <option value="">Tutti</option>
-              </select>
+            <div style="border-left:1px solid var(--border);padding-left:24px;">
+              <label style="font-weight:600;color:var(--text-muted);text-transform:uppercase;font-size:0.72rem;letter-spacing:0.6px;font-family:'Comfortaa',cursive;display:block;margin-bottom:8px;">Stato contatto</label>
+              <div style="display:flex;gap:12px;">
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'Comfortaa',cursive;white-space:nowrap;"><input type="radio" name="aziende-stato-contatto" value="" checked> Tutti</label>
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'Comfortaa',cursive;white-space:nowrap;"><input type="radio" name="aziende-stato-contatto" value="non_contattate"> Non contattate</label>
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'Comfortaa',cursive;white-space:nowrap;"><input type="radio" name="aziende-stato-contatto" value="contattate"> Contattate</label>
+              </div>
             </div>
-            <div class="form-col">
-              <label>Stato del contatto</label>
-              <div class="radio-group" style="display:flex;gap:10px;flex-wrap:wrap;padding-top:6px;">
-                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato-contatto" value="" checked> Tutti</label>
-                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato-contatto" value="non_contattate"> Non contattate</label>
-                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato-contatto" value="contattate"> Contattate</label>
+            <div style="border-left:1px solid var(--border);padding-left:24px;">
+              <label style="font-weight:600;color:var(--text-muted);text-transform:uppercase;font-size:0.72rem;letter-spacing:0.6px;font-family:'Comfortaa',cursive;display:block;margin-bottom:8px;">Filtri</label>
+              <div style="display:flex;gap:16px;">
+                <label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'Comfortaa',cursive;"><input type="checkbox" id="aziende-senza-attestazioni"> Senza attestazioni</label>
               </div>
             </div>
           </div>
-          <!-- Riga 6: Date ranges (7 colonne come il vecchio) -->
-          <div class="form-row" style="grid-template-columns: repeat(7, 1fr);margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+          <!-- Riga 7: Date ranges — 4 colonne per riga -->
+          <div class="form-row" style="grid-template-columns: repeat(4, 1fr);">
             <div class="form-col">
               <label>Aggiornamento</label>
               <input type="date" id="aziende-agg-da" style="margin-bottom:4px;">
@@ -2249,17 +2238,19 @@ tbody tr:hover td {
               <input type="date" id="aziende-att-corso-a">
             </div>
             <div class="form-col">
-              <label>Validità triennale</label>
+              <label>Val. triennale</label>
               <input type="date" id="aziende-val-tri-da" style="margin-bottom:4px;">
               <input type="date" id="aziende-val-tri-a">
             </div>
+          </div>
+          <div class="form-row" style="grid-template-columns: repeat(4, 1fr);">
             <div class="form-col">
-              <label>Verifica triennale</label>
+              <label>Ver. triennale</label>
               <input type="date" id="aziende-ver-tri-da" style="margin-bottom:4px;">
               <input type="date" id="aziende-ver-tri-a">
             </div>
             <div class="form-col">
-              <label>Validità quinquennale</label>
+              <label>Val. quinquennale</label>
               <input type="date" id="aziende-val-quin-da" style="margin-bottom:4px;">
               <input type="date" id="aziende-val-quin-a">
             </div>
@@ -2268,11 +2259,10 @@ tbody tr:hover td {
               <input type="date" id="aziende-scad-iso-da" style="margin-bottom:4px;">
               <input type="date" id="aziende-scad-iso-a">
             </div>
-          </div>
-          <!-- Riga 7: Inserite/Modificate checkboxes -->
-          <div style="display:flex;gap:24px;align-items:center;margin-bottom:10px;">
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-family:'Comfortaa',cursive;cursor:pointer;"><input type="checkbox" id="aziende-inserite"> Inserite</label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-family:'Comfortaa',cursive;cursor:pointer;"><input type="checkbox" id="aziende-modificate"> Modificate</label>
+            <div class="form-col" style="display:flex;flex-direction:column;justify-content:center;gap:10px;padding-top:16px;">
+              <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'Comfortaa',cursive;"><input type="checkbox" id="aziende-inserite"> Inserite</label>
+              <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'Comfortaa',cursive;"><input type="checkbox" id="aziende-modificate"> Modificate</label>
+            </div>
           </div>
 
           <!-- Bottoni -->
