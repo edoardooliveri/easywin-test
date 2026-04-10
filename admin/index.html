@@ -6795,6 +6795,11 @@ function selectSection(section) {
   if (sectionsWithSubs.includes(section)) {
     subTabsBar.classList.add('visible');
     loadSubTabs(section);
+    // Auto-trigger the first sub-tab action so the landing page loads immediately
+    const firstItem = getSubNavItems(section)[0];
+    if (firstItem && typeof firstItem.action === 'function') {
+      try { firstItem.action(); } catch(e) { console.error('sub-tab init error', e); }
+    }
   } else {
     subTabsBar.classList.remove('visible');
     subTabsBar.innerHTML = '';
@@ -7146,6 +7151,7 @@ function selectSubPage(section, subpage) {
   if (subpage === 'intermediari' && section === 'aziende') loadIntermediari();
   if (subpage === 'esecutori' && section === 'aziende') loadEsecutori();
   if (subpage === 'stazioni' && section === 'stazioni') loadStazioni(1);
+  if (subpage === 'piattaforme' && section === 'stazioni') searchPiattaforme();
   if (subpage === 'sopralluoghi') loadSopralluoghiAdmin();
   if (subpage === 'tipologia-dati') loadTipologiaDati();
   if (subpage === 'create-azienda') { setTimeout(() => { if (typeof initFlatpickrAll === 'function') initFlatpickrAll(); }, 50); }
