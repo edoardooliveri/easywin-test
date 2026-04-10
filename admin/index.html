@@ -5037,20 +5037,10 @@ span.flatpickr-weekday {
       <!-- CESTINO STAZIONI PAGE -->
       <div id="pageCestinoStazioni" class="page">
         <div class="page-header">
-          <h1 class="page-title">CESTINO STAZIONI</h1>
+          <h1 class="page-title"><i class="fas fa-trash-alt" style="color:#FF8C00;margin-right:10px"></i>CESTINO STAZIONI</h1>
         </div>
 
-        <div class="search-section compact">
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="loadCestinoStazioni()">
-              <i class="fas fa-trash"></i> AGGIORNA
-            </button>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <div id="cestino-stazioni-results"></div>
-        </div>
+        <div id="cestinoStazioniContainer"></div>
       </div>
 
       <!-- CONCORRENTI PAGE -->
@@ -10798,27 +10788,161 @@ async function eliminaAziendaDefinitivo(id) {
   } catch(e) { showToast('Errore: ' + e.message, 'error'); }
 }
 
+function renderCestinoStazioniShell() {
+  const host = document.getElementById('cestinoStazioniContainer');
+  if (!host) return;
+  host.innerHTML = `
+    <style>
+      .cst-wrap { background:#fff; border:1px solid var(--border,#d4dbe5); border-radius:16px; overflow:hidden; box-shadow:0 4px 14px rgba(30,45,61,0.06); }
+      .cst-head { background: linear-gradient(135deg, #1E2D3D 0%, #2d4258 100%); color:#fff; padding:14px 20px; display:flex; align-items:center; gap:12px; }
+      .cst-head h2 { margin:0; font-size:15px; font-weight:700; letter-spacing:.5px; flex:1; }
+      .cst-head .cst-count { background:#FF8C00; color:#fff; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700; }
+      .cst-toolbar { background:#f8fafc; padding:12px 20px; border-bottom:1px solid var(--border,#d4dbe5); display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+      .cst-btn { border:none; padding:9px 18px; border-radius:12px; font-weight:600; cursor:pointer; font-size:13px; display:inline-flex; align-items:center; gap:8px; transition:all .15s; }
+      .cst-btn-primary { background:linear-gradient(135deg,#FF8C00,#e67e00); color:#fff; }
+      .cst-btn-primary:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(255,140,0,.35); }
+      .cst-btn-ghost { background:#fff; color:#1E2D3D; border:1px solid var(--border,#d4dbe5); }
+      .cst-btn-ghost:hover { background:#f0f2f7; }
+      .cst-btn-danger { background:#fff; color:#dc2626; border:1px solid #fecaca; }
+      .cst-btn-danger:hover { background:#fef2f2; }
+      .cst-tbl-wrap { overflow-x:auto; }
+      .cst-tbl { width:100%; border-collapse:separate; border-spacing:0; font-size:13px; }
+      .cst-tbl thead th { background:#1E2D3D; color:#fff; padding:12px 10px; text-align:center; font-weight:600; font-size:12px; letter-spacing:.3px; border-bottom:2px solid #FF8C00; white-space:nowrap; }
+      .cst-tbl tbody td { padding:11px 10px; border-bottom:1px solid #eef1f5; text-align:center; vertical-align:middle; }
+      .cst-tbl tbody tr:hover { background:#f8fafc; }
+      .cst-tbl .cst-rs { text-align:left; font-weight:600; color:#1E2D3D; }
+      .cst-tbl .cst-muted { color:#64748b; }
+      .cst-badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; }
+      .cst-badge.ok { background:#dcfce7; color:#15803d; }
+      .cst-badge.ko { background:#fee2e2; color:#b91c1c; }
+      .cst-chk { width:17px; height:17px; accent-color:#FF8C00; cursor:pointer; }
+      .cst-actionbar { padding:16px 20px; background:#f8fafc; border-top:1px solid var(--border,#d4dbe5); display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+      .cst-empty { padding:42px 20px; text-align:center; color:#64748b; }
+      .cst-empty i { font-size:42px; color:#cbd5e1; margin-bottom:12px; }
+    </style>
+    <div class="cst-wrap">
+      <div class="cst-head">
+        <i class="fas fa-trash-alt"></i>
+        <h2>STAZIONI NEL CESTINO</h2>
+        <span class="cst-count" id="cst-count">0</span>
+      </div>
+      <div class="cst-toolbar">
+        <button class="cst-btn cst-btn-ghost" onclick="loadCestinoStazioni()"><i class="fas fa-sync"></i> AGGIORNA</button>
+        <button class="cst-btn cst-btn-ghost" onclick="cstToggleAll(true)"><i class="fas fa-check-square"></i> SELEZIONA TUTTI</button>
+        <button class="cst-btn cst-btn-ghost" onclick="cstToggleAll(false)"><i class="far fa-square"></i> DESELEZIONA</button>
+        <div style="flex:1"></div>
+      </div>
+      <div class="cst-tbl-wrap">
+        <table class="cst-tbl">
+          <thead>
+            <tr>
+              <th style="width:40px"><input type="checkbox" class="cst-chk" id="cst-checkall" onchange="cstToggleAll(this.checked)"></th>
+              <th>RAGIONE SOCIALE</th>
+              <th>PROVINCIA</th>
+              <th>CAP</th>
+              <th>CITTÀ</th>
+              <th>PARTITA IVA</th>
+              <th>PUB. ESITI</th>
+              <th>PUB. BANDI</th>
+              <th>UTENTE</th>
+              <th>ELIMINATA</th>
+              <th style="width:140px">AZIONI</th>
+            </tr>
+          </thead>
+          <tbody id="cst-tbody">
+            <tr><td colspan="11" class="cst-empty"><i class="fas fa-spinner fa-spin"></i><div>Caricamento cestino...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="cst-actionbar">
+        <button class="cst-btn cst-btn-danger" onclick="cstBulkDelete()"><i class="fas fa-times"></i> ELIMINA DEFINITIVAMENTE</button>
+        <button class="cst-btn cst-btn-primary" onclick="cstBulkRestore()"><i class="fas fa-undo"></i> RIPRISTINA SELEZIONATI</button>
+      </div>
+    </div>`;
+}
+
+function cstToggleAll(checked) {
+  document.querySelectorAll('#cst-tbody .cst-row-chk').forEach(c => { c.checked = checked; });
+  const all = document.getElementById('cst-checkall');
+  if (all) all.checked = checked;
+}
+
+function cstGetSelectedIds() {
+  return Array.from(document.querySelectorAll('#cst-tbody .cst-row-chk:checked')).map(c => parseInt(c.dataset.id));
+}
+
 async function loadCestinoStazioni() {
+  if (!document.getElementById('cst-tbody')) renderCestinoStazioniShell();
+  const tbody = document.getElementById('cst-tbody');
+  tbody.innerHTML = '<tr><td colspan="11" class="cst-empty"><i class="fas fa-spinner fa-spin"></i><div>Caricamento cestino...</div></td></tr>';
   try {
-    const res = await fetch(`${API_BASE}/admin/stazioni/stazioni-trash`, {
-      headers: authHeaders()
-    });
+    const res = await fetch(`${API_BASE}/admin/stazioni/stazioni-trash`, { headers: authHeaders() });
     const data = await res.json();
-    const raw_ = data.data || data || []; const rows = Array.isArray(raw_) ? raw_ : [];
-    let html = '';
-    if (rows.length) {
-      html = '<table><thead><tr><th>P.IVA</th><th>Ragione Sociale</th><th>Città</th><th>Eliminata</th><th>Azione</th></tr></thead><tbody>';
-      rows.forEach(r => {
-        html += `<tr><td>${esc(r.partita_iva)}</td><td>${esc(r.ragione_sociale)}</td><td>${esc(r.citta||'-')}</td><td>${fmtDate(r.deleted_at)}</td><td><button class="btn btn-sm btn-success" onclick="ripristinaStazione(${r.id})"><i class="fas fa-undo"></i> Ripristina</button> <button class="btn btn-sm btn-danger" onclick="eliminaStazioneDefinitivo(${r.id})"><i class="fas fa-times"></i></button></td></tr>`;
-      });
-      html += '</tbody></table>';
-    } else {
-      html = '<p style="padding: 16px;">Nessuna stazione nel cestino</p>';
+    const raw_ = data.dati || data.data || data || [];
+    const rows = Array.isArray(raw_) ? raw_ : [];
+    const cntEl = document.getElementById('cst-count');
+    if (cntEl) cntEl.textContent = rows.length;
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="11" class="cst-empty"><i class="fas fa-inbox"></i><div>Nessuna stazione nel cestino</div></td></tr>';
+      return;
     }
-    document.getElementById('cestino-stazioni-results').innerHTML = html;
+    let html = '';
+    rows.forEach(r => {
+      const id = r.id || r.ID;
+      const ragione = r.ragione_sociale || r.RagioneSociale || r.Nome || '-';
+      const piva = r.partita_iva || r.PartitaIva || '-';
+      const citta = r.citta || r['Città'] || r.Citta || '-';
+      const cap = r.cap || r.Cap || '-';
+      const prov = r.provincia_sigla || r.Provincia || r.provincia || '-';
+      const pubEsito = r.pubblicazione_esito ?? r.PubblicazioneEsito;
+      const pubBando = r.pubblicazione_bando ?? r.PubblicazioneBando;
+      const username = r.username || r.Username || r.utente || '-';
+      const deletedAt = r.deleted_at || r.DeletedAt || r.data_eliminazione;
+      html += `<tr>
+        <td><input type="checkbox" class="cst-chk cst-row-chk" data-id="${id}"></td>
+        <td class="cst-rs">${esc(ragione)}</td>
+        <td>${esc(prov)}</td>
+        <td>${esc(cap)}</td>
+        <td>${esc(citta)}</td>
+        <td class="cst-muted">${esc(piva)}</td>
+        <td>${pubEsito ? '<span class="cst-badge ok">SI</span>' : '<span class="cst-badge ko">NO</span>'}</td>
+        <td>${pubBando ? '<span class="cst-badge ok">SI</span>' : '<span class="cst-badge ko">NO</span>'}</td>
+        <td class="cst-muted">${esc(username)}</td>
+        <td class="cst-muted">${deletedAt ? fmtDate(deletedAt) : '-'}</td>
+        <td>
+          <button class="cst-btn cst-btn-primary" style="padding:6px 10px;font-size:11px" onclick="ripristinaStazione(${id})" title="Ripristina"><i class="fas fa-undo"></i></button>
+          <button class="cst-btn cst-btn-danger" style="padding:6px 10px;font-size:11px" onclick="eliminaStazioneDefinitivo(${id})" title="Elimina definitivamente"><i class="fas fa-times"></i></button>
+        </td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
   } catch(e) {
-    document.getElementById('cestino-stazioni-results').innerHTML = '<p style="padding: 16px; color: red;">Errore: ' + esc(e.message) + '</p>';
+    tbody.innerHTML = `<tr><td colspan="11" class="cst-empty" style="color:#b91c1c"><i class="fas fa-exclamation-triangle"></i><div>Errore: ${esc(e.message)}</div></td></tr>`;
   }
+}
+
+async function cstBulkRestore() {
+  const ids = cstGetSelectedIds();
+  if (!ids.length) { alert('Seleziona almeno una stazione da ripristinare'); return; }
+  if (!confirm(`Ripristinare ${ids.length} stazion${ids.length===1?'e':'i'}?`)) return;
+  try {
+    for (const id of ids) {
+      await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}/ripristina`, { method: 'POST', headers: authHeaders() });
+    }
+    loadCestinoStazioni();
+  } catch(e) { alert('Errore: ' + e.message); }
+}
+
+async function cstBulkDelete() {
+  const ids = cstGetSelectedIds();
+  if (!ids.length) { alert('Seleziona almeno una stazione da eliminare'); return; }
+  if (!confirm(`ATTENZIONE: eliminare DEFINITIVAMENTE ${ids.length} stazion${ids.length===1?'e':'i'}?\nQuesta operazione NON può essere annullata.`)) return;
+  try {
+    for (const id of ids) {
+      await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}/definitivo`, { method: 'DELETE', headers: authHeaders() });
+    }
+    loadCestinoStazioni();
+  } catch(e) { alert('Errore: ' + e.message); }
 }
 
 async function ripristinaStazione(id) {
