@@ -8125,11 +8125,11 @@ function renderStazioniListShell() {
       .staz-page { font-family: Comfortaa, sans-serif; color:#1e293b; }
       .staz-title { color:#1E2D3D; font-weight:700; font-size:1.05rem; letter-spacing:0.4px; padding:0 0 14px 2px; display:flex; align-items:center; gap:10px; }
       .staz-title i { color:#FF8C00; }
-      .staz-filters { background:#fff; border:1px solid #d4dbe5; padding:18px 22px; margin-bottom:16px; border-radius:8px; box-shadow:0 1px 2px rgba(30,45,61,0.04); }
+      .staz-filters { background:#fff; border:1px solid #d4dbe5; padding:22px 24px; margin-bottom:18px; border-radius:16px; box-shadow:0 2px 8px rgba(30,45,61,0.06); }
       .staz-filters label { display:block; color:#586879; font-size:0.74rem; font-weight:700; margin-bottom:6px; font-family:Comfortaa,sans-serif; text-transform:uppercase; letter-spacing:0.3px; }
-      .staz-filters input[type=text], .staz-filters input[type=number], .staz-filters select { width:100%; padding:8px 10px; border:1px solid #d4dbe5; border-radius:6px; background:#fff; font-family:Comfortaa,sans-serif; font-size:0.82rem; color:#1e293b; box-sizing:border-box; transition:border-color 0.15s; }
+      .staz-filters input[type=text], .staz-filters input[type=number], .staz-filters select { width:100%; padding:9px 12px; border:1px solid #d4dbe5; border-radius:10px; background:#fff; font-family:Comfortaa,sans-serif; font-size:0.82rem; color:#1e293b; box-sizing:border-box; transition:border-color 0.15s; }
       .staz-filters input:focus, .staz-filters select:focus { outline:none; border-color:#FF8C00; box-shadow:0 0 0 2px rgba(255,140,0,0.12); }
-      .staz-filters select[multiple] { min-height:34px; padding:4px; }
+      .staz-filters select[multiple] { min-height:38px; padding:5px; border-radius:10px; }
       .staz-row { display:grid; gap:14px; margin-bottom:14px; }
       .staz-row.r1 { grid-template-columns:1fr; }
       .staz-row.r2 { grid-template-columns:1fr 1fr; }
@@ -8137,15 +8137,15 @@ function renderStazioniListShell() {
       .staz-row .chk-col { display:flex; align-items:center; padding-bottom:8px; }
       .staz-row .chk-col label { margin-bottom:0; font-weight:700; color:#586879; cursor:pointer; display:flex; align-items:center; gap:8px; text-transform:uppercase; font-size:0.72rem; }
       .staz-row .chk-col input[type=checkbox] { width:auto; margin:0; accent-color:#FF8C00; }
-      .staz-btn-cerca { background:linear-gradient(135deg,#1E2D3D 0%,#2A3F55 100%); color:#fff; border:none; padding:10px 22px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.5px; border-radius:6px; cursor:pointer; text-transform:uppercase; box-shadow:0 1px 3px rgba(30,45,61,0.2); }
+      .staz-btn-cerca { background:linear-gradient(135deg,#1E2D3D 0%,#2A3F55 100%); color:#fff; border:none; padding:11px 24px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.5px; border-radius:12px; cursor:pointer; text-transform:uppercase; box-shadow:0 2px 6px rgba(30,45,61,0.2); }
       .staz-btn-cerca:hover { background:linear-gradient(135deg,#FF8C00 0%,#ff9d22 100%); }
-      .staz-btn-annulla { background:#fff; color:#586879; border:1px solid #d4dbe5; padding:10px 20px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.5px; border-radius:6px; cursor:pointer; margin-left:8px; text-transform:uppercase; }
+      .staz-btn-annulla { background:#fff; color:#586879; border:1px solid #d4dbe5; padding:11px 22px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.5px; border-radius:12px; cursor:pointer; margin-left:8px; text-transform:uppercase; }
       .staz-btn-annulla:hover { background:#f0f2f7; border-color:#FF8C00; color:#FF8C00; }
-      .staz-btn-nuova { background:#FF8C00; color:#fff; border:none; padding:10px 20px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.5px; border-radius:6px; cursor:pointer; margin-left:8px; text-transform:uppercase; box-shadow:0 1px 3px rgba(255,140,0,0.25); }
+      .staz-btn-nuova { background:#FF8C00; color:#fff; border:none; padding:11px 22px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.5px; border-radius:12px; cursor:pointer; margin-left:8px; text-transform:uppercase; box-shadow:0 2px 6px rgba(255,140,0,0.25); }
       .staz-btn-nuova:hover { background:#e57a00; }
       .staz-count { color:#1E2D3D; font-weight:700; font-size:0.88rem; padding:12px 2px 12px 2px; letter-spacing:0.3px; text-transform:uppercase; }
       .staz-count strong { color:#FF8C00; font-size:1rem; }
-      .staz-table-wrap { background:#fff; border:1px solid #d4dbe5; border-radius:8px; overflow:hidden; box-shadow:0 1px 2px rgba(30,45,61,0.04); }
+      .staz-table-wrap { background:#fff; border:1px solid #d4dbe5; border-radius:16px; overflow:hidden; box-shadow:0 2px 8px rgba(30,45,61,0.06); }
       .staz-table { width:100%; border-collapse:collapse; font-family:Comfortaa,sans-serif; font-size:0.78rem; background:#fff; }
       .staz-table thead th { background:linear-gradient(135deg,#1E2D3D 0%,#2A3F55 100%); color:#fff; padding:11px 10px; text-align:left; font-weight:700; letter-spacing:0.3px; font-size:0.7rem; text-transform:uppercase; border-right:1px solid rgba(255,255,255,0.08); }
       .staz-table thead th:last-child { border-right:none; }
@@ -8154,14 +8154,14 @@ function renderStazioniListShell() {
       .staz-table tbody tr:last-child td { border-bottom:none; }
       .staz-table .center { text-align:center; }
       .staz-table .stz-name { font-weight:700; color:#1E2D3D; }
-      .staz-btn-vis { background:#fff; color:#586879; border:1px solid #d4dbe5; padding:5px 11px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.68rem; border-radius:5px; cursor:pointer; letter-spacing:0.3px; text-transform:uppercase; }
+      .staz-btn-vis { background:#fff; color:#586879; border:1px solid #d4dbe5; padding:6px 13px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.68rem; border-radius:10px; cursor:pointer; letter-spacing:0.3px; text-transform:uppercase; }
       .staz-btn-vis:hover { background:#FF8C00; color:#fff; border-color:#FF8C00; }
-      .staz-btn-elim { background:#fff; color:#586879; border:1px solid #d4dbe5; padding:5px 11px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.68rem; border-radius:5px; cursor:pointer; letter-spacing:0.3px; margin-left:4px; text-transform:uppercase; }
+      .staz-btn-elim { background:#fff; color:#586879; border:1px solid #d4dbe5; padding:6px 13px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.68rem; border-radius:10px; cursor:pointer; letter-spacing:0.3px; margin-left:4px; text-transform:uppercase; }
       .staz-btn-elim:hover { background:#fef2f2; color:#dc2626; border-color:#dc2626; }
       .staz-check { color:#10b981; font-size:1rem; font-weight:700; }
       .staz-dash { color:#cbd5e1; }
       .staz-pagination { display:flex; gap:6px; align-items:center; justify-content:center; padding:18px 0; }
-      .staz-pagination button { background:#fff; border:1px solid #d4dbe5; padding:7px 12px; font-family:Comfortaa,sans-serif; font-size:0.78rem; font-weight:700; color:#586879; cursor:pointer; border-radius:6px; }
+      .staz-pagination button { background:#fff; border:1px solid #d4dbe5; padding:8px 14px; font-family:Comfortaa,sans-serif; font-size:0.78rem; font-weight:700; color:#586879; cursor:pointer; border-radius:10px; }
       .staz-pagination button:hover:not([disabled]) { background:#FF8C00; color:#fff; border-color:#FF8C00; }
       .staz-pagination button[disabled] { opacity:0.4; cursor:not-allowed; }
       .staz-pagination .pag-info { padding:7px 14px; font-weight:700; color:#1E2D3D; }
@@ -8216,7 +8216,7 @@ async function loadStazioni(page = 1) {
   const countEl = document.getElementById('stazioni-count');
   const pagEl = document.getElementById('stazioni-pagination');
   if (!resultsEl) return;
-  resultsEl.innerHTML = '<div style="padding:40px;text-align:center;color:#586879;background:#fff;border:1px solid #d4dbe5;border-radius:8px"><i class="fas fa-spinner fa-spin" style="font-size:1.4rem;margin-right:8px;color:#FF8C00"></i>Caricamento stazioni...</div>';
+  resultsEl.innerHTML = '<div style="padding:40px;text-align:center;color:#586879;background:#fff;border:1px solid #d4dbe5;border-radius:16px;box-shadow:0 2px 8px rgba(30,45,61,0.06)"><i class="fas fa-spinner fa-spin" style="font-size:1.4rem;margin-right:8px;color:#FF8C00"></i>Caricamento stazioni...</div>';
   try {
     const v = id => document.getElementById(id)?.value?.trim() || '';
     const c = id => document.getElementById(id)?.checked || false;
@@ -8247,7 +8247,7 @@ async function loadStazioni(page = 1) {
       countEl.innerHTML = `Stazioni Appaltanti Trovate: <strong>${fmt(total)}</strong>`;
     }
     if (!rows.length) {
-      resultsEl.innerHTML = '<div style="padding:48px;text-align:center;background:#fff;border:1px solid #d4dbe5;border-radius:8px;color:#586879"><i class="fas fa-sitemap" style="font-size:2.4rem;display:block;margin-bottom:12px;color:#cbd5e1"></i>Nessuna stazione trovata</div>';
+      resultsEl.innerHTML = '<div style="padding:48px;text-align:center;background:#fff;border:1px solid #d4dbe5;border-radius:16px;box-shadow:0 2px 8px rgba(30,45,61,0.06);color:#586879"><i class="fas fa-sitemap" style="font-size:2.4rem;display:block;margin-bottom:12px;color:#cbd5e1"></i>Nessuna stazione trovata</div>';
       if (pagEl) pagEl.innerHTML = '';
       return;
     }
@@ -8286,7 +8286,7 @@ async function loadStazioni(page = 1) {
       pagEl.innerHTML = pagH;
     }
   } catch(e) {
-    resultsEl.innerHTML = '<div style="padding:32px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;color:#dc2626;text-align:center"><i class="fas fa-exclamation-triangle" style="margin-right:8px"></i>Errore: ' + esc(e.message) + '</div>';
+    resultsEl.innerHTML = '<div style="padding:32px;background:#fef2f2;border:1px solid #fecaca;border-radius:16px;color:#dc2626;text-align:center"><i class="fas fa-exclamation-triangle" style="margin-right:8px"></i>Errore: ' + esc(e.message) + '</div>';
   }
 }
 
