@@ -8,44 +8,48 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 <style>
 :root {
-  --primary: #7B0000;
-  --primary-light: #9B2020;
-  --primary-gradient: linear-gradient(135deg, #7B0000 0%, #9B2020 100%);
-  --sidebar-dark: #3a3a3a;
-  --sidebar-light: #4a4a4a;
-  --sidebar-hover: #555555;
-  --accent-yellow: #7B0000;
-  --accent-orange: #7B0000;
-  --bg: #e0e0e0;
-  --bg-alt: #f0f0f0;
+  --primary: #1E2D3D;
+  --primary-light: #2A3F55;
+  --primary-gradient: linear-gradient(135deg, #1E2D3D 0%, #2A3F55 100%);
+  --sidebar-dark: #1E2D3D;
+  --sidebar-light: #2A3F55;
+  --sidebar-hover: #34506B;
+  --accent-yellow: #F5C518;
+  --accent-orange: #FF8C00;
+  --orange: #FF8C00;
+  --gradient: linear-gradient(135deg, #F5C518 0%, #FF8C00 100%);
+  --gradient-r: linear-gradient(135deg, #FF8C00 0%, #F5C518 100%);
+  --bg: #f0f2f7;
+  --bg-alt: #eef1f6;
   --card: #ffffff;
-  --text: #333333;
-  --text-light: rgba(0,0,0,0.65);
-  --border: rgba(0,0,0,0.15);
+  --text: #1e293b;
+  --text-light: #586879;
+  --border: #d4dbe5;
+  --border-orange: rgba(255,140,0,0.3);
   --success: #4caf50;
   --warning: #ffc107;
   --danger: #ef5350;
   --info: #42a5f5;
-  --radius: 4px;
-  --radius-sm: 3px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.15);
-  --shadow-hover: 0 2px 6px rgba(0,0,0,0.2);
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 16px;
+  --shadow: 0 1px 4px rgba(30,45,61,0.06), 0 4px 16px rgba(30,45,61,0.08);
+  --shadow-hover: 0 4px 20px rgba(30,45,61,0.12);
   --transition: 0.35s cubic-bezier(.4,0,.2,1);
   --sidebar-width: 80px;
   --secondary-width: 220px;
-  --dark-bg: #e0e0e0;
-  --dark-surface: #f0f0f0;
+  --dark-bg: #f0f2f7;
+  --dark-surface: #eef1f6;
   --dark-card: #ffffff;
-  --dark-lighter: #f5f5f5;
-  --gradient: linear-gradient(135deg, #7B0000 0%, #9B2020 100%);
-  --text-muted: rgba(0,0,0,0.55);
-  --text-dim: rgba(0,0,0,0.35);
-  --border-dark: rgba(0,0,0,0.15);
+  --dark-lighter: #f8f9fc;
+  --text-muted: #586879;
+  --text-dim: #8895a5;
+  --border-dark: #d4dbe5;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'Comfortaa', 'Open Sans', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -130,25 +134,25 @@ a { text-decoration: none; color: inherit; }
 }
 .form-input:focus {
   border-color: var(--accent-orange);
-  box-shadow: 0 0 0 4px rgba(123, 0, 0, 0.15);
+  box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.15);
 }
 .login-btn {
   width: 100%;
   padding: 14px;
-  background: var(--primary-gradient);
+  background: var(--gradient);
   color: #fff;
   font-weight: 700;
   font-size: 1rem;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: 50px;
   cursor: pointer;
   font-family: 'Open Sans', sans-serif;
   transition: var(--transition);
-  box-shadow: 0 4px 15px rgba(123, 0, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);
 }
 .login-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(123, 0, 0, 0.4);
+  box-shadow: 0 6px 20px rgba(255, 140, 0, 0.4);
 }
 .login-btn:disabled {
   opacity: 0.5;
@@ -181,8 +185,8 @@ a { text-decoration: none; color: inherit; }
 /* DARK SIDEBAR (left) */
 .sidebar {
   width: 80px;
-  background: linear-gradient(180deg, #3a3a3a 0%, #3a3a3a 50%, #3a3a3a 100%);
-  color: #666;
+  background: linear-gradient(180deg, #1E2D3D 0%, #162435 100%);
+  color: rgba(255,255,255,0.5);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -190,14 +194,14 @@ a { text-decoration: none; color: inherit; }
   left: 0;
   bottom: 0;
   z-index: 100;
-  border-right: 1px solid rgba(0, 0, 0, 0.15);
+  border-right: none;
 }
 .sidebar-header {
   padding: 16px 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 .sidebar-logo {
   text-align: center;
@@ -226,10 +230,11 @@ a { text-decoration: none; color: inherit; }
   justify-content: center;
   gap: 6px;
   padding: 14px 8px;
-  color: #999;
+  color: rgba(255,255,255,0.5);
   cursor: pointer;
   transition: var(--transition);
   font-size: 0.65rem;
+  font-family: 'Comfortaa', cursive;
   border: none;
   background: transparent;
   text-align: center;
@@ -237,15 +242,15 @@ a { text-decoration: none; color: inherit; }
   letter-spacing: 0.3px;
 }
 .nav-item:hover {
-  color: #333;
-  background: var(--sidebar-hover);
+  color: #ffffff;
+  background: rgba(255,255,255,0.08);
 }
 .nav-item.active {
-  color: var(--accent-orange);
-  background: rgba(123, 0, 0, 0.1);
+  color: var(--orange);
+  background: rgba(255,140,0,0.12);
   border-radius: 12px;
   margin: 0 4px;
-  box-shadow: inset 0 0 0 2px rgba(123, 0, 0, 0.3);
+  box-shadow: inset 0 0 0 2px rgba(255,140,0,0.3);
 }
 .nav-item i {
   width: 24px;
@@ -254,7 +259,7 @@ a { text-decoration: none; color: inherit; }
 }
 .sidebar-footer {
   padding: 16px 8px;
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  border-top: 1px solid rgba(255,255,255,0.08);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -264,26 +269,26 @@ a { text-decoration: none; color: inherit; }
   width: 100%;
   padding: 8px 4px;
   background: transparent;
-  border: 1px solid rgba(0, 0, 0, 0.25);
-  border-radius: var(--radius-sm);
-  color: #999;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 50px;
+  color: rgba(255,255,255,0.6);
   font-size: 0.7rem;
+  font-family: 'Comfortaa', cursive;
   cursor: pointer;
   transition: var(--transition);
-  font-family: inherit;
   text-align: center;
 }
 .logout-btn:hover {
-  background: var(--accent-yellow);
+  background: var(--orange);
   color: #ffffff;
-  border-color: var(--accent-yellow);
+  border-color: var(--orange);
 }
 
 /* SECONDARY SIDEBAR (left-center) */
 .secondary-sidebar {
   width: 220px;
-  background: var(--dark-surface);
-  border-right: 1px solid rgba(0, 0, 0, 0.15);
+  background: #ffffff;
+  border-right: 1px solid var(--border);
   position: fixed;
   left: 80px;
   top: 0;
@@ -297,14 +302,15 @@ a { text-decoration: none; color: inherit; }
 }
 .secondary-nav-title {
   background: transparent;
-  color: var(--accent-orange);
+  color: var(--orange);
   padding: 16px 24px;
   font-size: 0.8rem;
+  font-family: 'Comfortaa', cursive;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--border-dark);
-  border-left: 3px solid var(--accent-orange);
+  border-bottom: 1px solid var(--border);
+  border-left: 3px solid var(--orange);
   padding-left: 21px;
 }
 .secondary-nav-list {
@@ -320,14 +326,14 @@ a { text-decoration: none; color: inherit; }
   transition: var(--transition);
 }
 .secondary-nav-item:hover {
-  background: rgba(0, 0, 0, 0.05);
-  border-left-color: var(--accent-orange);
-  color: var(--accent-orange);
+  background: rgba(255,140,0,0.06);
+  border-left-color: var(--orange);
+  color: var(--orange);
 }
 .secondary-nav-item.active {
-  background: rgba(123, 0, 0, 0.1);
-  color: var(--accent-orange);
-  border-left-color: var(--accent-orange);
+  background: rgba(255,140,0,0.08);
+  color: var(--orange);
+  border-left-color: var(--orange);
   border-left-width: 3px;
   font-weight: 600;
 }
@@ -344,7 +350,7 @@ a { text-decoration: none; color: inherit; }
   padding: 12px 20px;
   border: none;
   background: none;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'Comfortaa', cursive;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
@@ -355,13 +361,14 @@ a { text-decoration: none; color: inherit; }
   align-items: center;
   gap: 8px;
   transition: all var(--transition);
+  border-radius: 0;
 }
 .admin-tab:hover {
-  color: var(--primary);
+  color: var(--orange);
 }
 .admin-tab.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
+  color: var(--orange);
+  border-bottom-color: var(--orange);
 }
 .admin-tab i {
   font-size: 14px;
@@ -431,7 +438,7 @@ a { text-decoration: none; color: inherit; }
   font-weight: 400;
 }
 .section-description {
-  background: linear-gradient(135deg, rgba(123, 0, 0, 0.08) 0%, rgba(155, 32, 32, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.08) 0%, rgba(245, 197, 24, 0.05) 100%);
   border-left: 3px solid var(--accent-orange);
   padding: 16px 20px;
   border-radius: 0 12px 12px 0;
@@ -447,7 +454,7 @@ a { text-decoration: none; color: inherit; }
 /* ════════════════ BUTTONS ════════════════ */
 .btn {
   padding: 10px 20px;
-  border-radius: 25px;
+  border-radius: 50px;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -460,13 +467,14 @@ a { text-decoration: none; color: inherit; }
   letter-spacing: 0.3px;
 }
 .btn-primary {
-  background: var(--primary-gradient);
+  background: var(--gradient);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(123, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(255, 140, 0, 0.2);
+  border-radius: 50px;
 }
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(123, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
 }
 .btn-secondary {
   background: var(--dark-surface);
@@ -482,7 +490,7 @@ a { text-decoration: none; color: inherit; }
   background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
   color: #fff;
   box-shadow: 0 2px 8px rgba(76, 175, 80, 0.25);
-  border-radius: 25px;
+  border-radius: 50px;
 }
 .btn-success:hover {
   transform: translateY(-2px);
@@ -492,7 +500,7 @@ a { text-decoration: none; color: inherit; }
   background: transparent;
   color: var(--text-muted);
   border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 25px;
+  border-radius: 50px;
 }
 .btn-outline:hover {
   background: rgba(0, 0, 0, 0.03);
@@ -503,7 +511,7 @@ a { text-decoration: none; color: inherit; }
   background: linear-gradient(135deg, #ef5350 0%, #c62828 100%);
   color: #fff;
   box-shadow: 0 2px 8px rgba(239, 83, 80, 0.25);
-  border-radius: 25px;
+  border-radius: 50px;
 }
 .btn-danger:hover {
   transform: translateY(-2px);
@@ -513,7 +521,7 @@ a { text-decoration: none; color: inherit; }
   background: linear-gradient(135deg, #9c27b0 0%, #6a1b9a 100%);
   color: #fff;
   box-shadow: 0 2px 8px rgba(156, 39, 176, 0.25);
-  border-radius: 25px;
+  border-radius: 50px;
 }
 .btn-ai:hover {
   transform: translateY(-2px);
@@ -523,21 +531,21 @@ a { text-decoration: none; color: inherit; }
   background: linear-gradient(135deg, #42a5f5 0%, #1565c0 100%);
   color: #fff;
   box-shadow: 0 2px 8px rgba(66, 165, 245, 0.25);
-  border-radius: 25px;
+  border-radius: 50px;
 }
 .btn-info:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(66, 165, 245, 0.35);
 }
 .btn-warning {
-  background: linear-gradient(135deg, #7B0000 0%, #9B2020 100%);
+  background: var(--gradient);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(123, 0, 0, 0.25);
-  border-radius: 25px;
+  box-shadow: 0 2px 8px rgba(255, 140, 0, 0.25);
+  border-radius: 50px;
 }
 .btn-warning:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(123, 0, 0, 0.35);
+  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.35);
 }
 .btn-sm {
   padding: 6px 12px;
@@ -599,9 +607,9 @@ a { text-decoration: none; color: inherit; }
 .form-col select,
 .form-col textarea {
   border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 12px 16px;
-  font-family: inherit;
+  font-family: 'Comfortaa', cursive;
   font-size: 0.9rem;
   outline: none;
   color: var(--text);
@@ -612,7 +620,7 @@ a { text-decoration: none; color: inherit; }
 .form-col select:focus,
 .form-col textarea:focus {
   border-color: var(--accent-orange);
-  box-shadow: 0 0 0 3px rgba(123, 0, 0, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.15);
 }
 .form-col textarea {
   resize: vertical;
@@ -633,6 +641,14 @@ a { text-decoration: none; color: inherit; }
   margin: 0;
   font-weight: normal;
   text-transform: none;
+}
+
+/* General input styles */
+input:not([type="radio"]):not([type="checkbox"]),
+select,
+textarea {
+  border-radius: 8px;
+  font-family: 'Comfortaa', cursive;
 }
 
 /* ════════════════ TABLES & RESULTS ════════════════ */
@@ -663,10 +679,10 @@ table {
   border-collapse: collapse;
 }
 thead {
-  background: #7B0000;
+  background: var(--primary);
 }
 thead tr {
-  background: #7B0000;
+  background: var(--primary);
 }
 thead th {
   color: #ffffff;
@@ -900,7 +916,7 @@ tbody tr:hover td {
 }
 .tags-input:focus-within {
   border-color: var(--accent-orange);
-  box-shadow: 0 0 0 3px rgba(123, 0, 0, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1);
 }
 .tag {
   background: var(--primary-gradient);
@@ -953,7 +969,7 @@ tbody tr:hover td {
 }
 .date-range input:focus {
   border-color: var(--accent-orange);
-  box-shadow: 0 0 0 3px rgba(123, 0, 0, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1);
 }
 
 /* Currency input */
@@ -982,7 +998,7 @@ tbody tr:hover td {
 }
 .currency-input input:focus {
   border-color: var(--accent-orange);
-  box-shadow: 0 0 0 3px rgba(123, 0, 0, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1);
 }
 
 /* Radio groups */
@@ -1001,7 +1017,7 @@ tbody tr:hover td {
   cursor: pointer;
   width: 16px;
   height: 16px;
-  accent-color: #7B0000;
+  accent-color: var(--primary);
 }
 .radio-option label {
   margin: 0;
@@ -1046,7 +1062,7 @@ tbody tr:hover td {
 .calendar-nav button:hover {
   border-color: var(--accent-orange);
   color: var(--accent-orange);
-  background: rgba(123, 0, 0, 0.1);
+  background: rgba(255, 140, 0, 0.1);
 }
 .calendar-month-year {
   font-size: 1.1rem;
@@ -1108,7 +1124,7 @@ tbody tr:hover td {
 }
 .calendar-day:hover {
   border-color: var(--accent-orange);
-  background: rgba(123, 0, 0, 0.1);
+  background: rgba(255, 140, 0, 0.1);
   transform: translateY(-2px);
 }
 .calendar-day.other-month {
@@ -1179,7 +1195,7 @@ tbody tr:hover td {
 .inline-search:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(123, 0, 0, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1);
 }
 .btn-sm {
   padding: 6px 12px;
@@ -1251,7 +1267,7 @@ tbody tr:hover td {
 .link-action { color: var(--primary); text-decoration: none; }
 .link-action:hover { text-decoration: underline; }
 .admin-table thead {
-  background: #7B0000;
+  background: var(--primary);
 }
 .admin-table thead th {
   color: #ffffff;
@@ -1345,14 +1361,14 @@ tbody tr:hover td {
   font-size: 0.8rem; color: var(--text-muted); transition: background 0.15s;
 }
 .ms-dropdown .ms-opt:hover { background: rgba(0, 0, 0, 0.03); }
-.ms-dropdown .ms-opt input[type="checkbox"] { accent-color: #7B0000; flex-shrink: 0; }
+.ms-dropdown .ms-opt input[type="checkbox"] { accent-color: var(--primary); flex-shrink: 0; }
 .ms-dropdown .ms-opt.checked { color: var(--text); font-weight: 600; }
 .ms-dropdown .ms-tags {
   display: flex; flex-wrap: wrap; gap: 3px; overflow: hidden; max-height: 22px;
 }
 .ms-dropdown .ms-tag {
-  background: linear-gradient(135deg, rgba(123, 0, 0, 0.1), rgba(155, 32, 32, 0.1));
-  color: #7B0000; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem; white-space: nowrap;
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.1), rgba(245, 197, 24, 0.1));
+  color: var(--primary); padding: 1px 6px; border-radius: 4px; font-size: 0.7rem; white-space: nowrap;
 }
 .ms-dropdown .ms-count {
   color: var(--text-muted); font-size: 0.8rem;
@@ -1510,12 +1526,12 @@ tbody tr:hover td {
       <button class="nav-item" data-section="sopralluoghi" onclick="selectSection('sopralluoghi')" style="position:relative">
         <i class="fas fa-map-marked-alt"></i>
         <span>Sopralluoghi</span>
-        <span style="position:absolute;top:4px;right:4px;background:var(--primary);color:#fff;font-size:8px;padding:1px 4px;border-radius:6px;font-weight:700">AI</span>
+        <span style="position:absolute;top:4px;right:4px;background:var(--primary);color:#fff;font-size:8px;padding:1px 4px;border-radius:8px;font-weight:700">AI</span>
       </button>
       <button class="nav-item" data-section="albi-fornitori" onclick="selectSection('albi-fornitori')" style="position:relative">
         <i class="fas fa-clipboard-list"></i>
         <span>Albi Fornitori</span>
-        <span style="position:absolute;top:4px;right:4px;background:var(--primary);color:#fff;font-size:8px;padding:1px 4px;border-radius:6px;font-weight:700">AI</span>
+        <span style="position:absolute;top:4px;right:4px;background:var(--primary);color:#fff;font-size:8px;padding:1px 4px;border-radius:8px;font-weight:700">AI</span>
       </button>
     </nav>
     <div class="sidebar-footer">
@@ -1740,7 +1756,7 @@ tbody tr:hover td {
         <div id="adminTabGenerale" class="admin-tab-content active">
           <!-- Area di Amministrazione -->
           <div class="dashboard-section">
-            <h3 style="color:#7B0000;font-weight:bold;text-transform:uppercase;font-size:1.1rem;margin-bottom:12px">Area di Amministrazione</h3>
+            <h3 style="color:var(--orange);font-weight:700;text-transform:uppercase;font-size:1.1rem;font-family:'Comfortaa',cursive;margin-bottom:12px">Area di Amministrazione</h3>
             <div class="table-container">
               <table class="data-table">
                 <thead>
@@ -1788,7 +1804,7 @@ tbody tr:hover td {
 
           <!-- Abbonamenti Bloccati -->
           <div class="dashboard-section">
-            <h3 style="color:#7B0000;font-weight:bold;text-transform:uppercase;font-size:1.1rem;margin-bottom:12px">Abbonamenti Bloccati</h3>
+            <h3 style="color:var(--orange);font-weight:700;text-transform:uppercase;font-size:1.1rem;font-family:'Comfortaa',cursive;margin-bottom:12px">Abbonamenti Bloccati</h3>
             <div class="search-section compact">
               <div class="form-row">
                 <div class="form-col">
@@ -1823,7 +1839,7 @@ tbody tr:hover td {
 
           <!-- Filtro Scadenze Abbonamenti -->
           <div class="dashboard-section">
-            <h3 style="color:#7B0000;font-weight:bold;text-transform:uppercase;font-size:1.1rem;margin-bottom:12px">Filtro Scadenze Abbonamenti</h3>
+            <h3 style="color:var(--orange);font-weight:700;text-transform:uppercase;font-size:1.1rem;font-family:'Comfortaa',cursive;margin-bottom:12px">Filtro Scadenze Abbonamenti</h3>
             <div class="search-section">
               <div class="form-row">
                 <div class="form-col">
@@ -1865,7 +1881,7 @@ tbody tr:hover td {
 
           <!-- Clienti Personali e loro Scadenze -->
           <div class="dashboard-section">
-            <h3 style="color:#7B0000;font-weight:bold;text-transform:uppercase;font-size:1.1rem;margin-bottom:12px">Clienti Personali e loro Scadenze (New, basato sui dati della pagina "Storico" degli utenti)</h3>
+            <h3 style="color:var(--orange);font-weight:700;text-transform:uppercase;font-size:1.1rem;font-family:'Comfortaa',cursive;margin-bottom:12px">Clienti Personali e loro Scadenze (New, basato sui dati della pagina "Storico" degli utenti)</h3>
             <div class="table-container" style="border-radius:12px">
               <table class="data-table" style="width:100%;font-size:0.82rem">
                 <thead>
@@ -1892,7 +1908,7 @@ tbody tr:hover td {
         <div id="adminTabNewsletterAdmin" class="admin-tab-content">
           <!-- Newsletter Sending Form -->
           <div class="search-section compact">
-            <h3 style="color:#7B0000;font-weight:bold;text-transform:uppercase;font-size:1.1rem;margin-bottom:16px">Newsletter</h3>
+            <h3 style="color:var(--orange);font-weight:700;text-transform:uppercase;font-size:1.1rem;font-family:'Comfortaa',cursive;margin-bottom:16px">Newsletter</h3>
             <div class="form-row">
               <div class="form-col">
                 <label>Data Newsletter</label>
@@ -1929,7 +1945,7 @@ tbody tr:hover td {
 
           <!-- CIG/CUP Sistemazione Section -->
           <div class="search-section compact" style="margin-top:32px">
-            <h3 style="color:#7B0000;font-weight:bold;text-transform:uppercase;font-size:1.1rem;margin-bottom:16px">Sistemazione CIG / CUP</h3>
+            <h3 style="color:var(--orange);font-weight:700;text-transform:uppercase;font-size:1.1rem;font-family:'Comfortaa',cursive;margin-bottom:16px">Sistemazione CIG / CUP</h3>
             <div class="form-row">
               <div class="form-col">
                 <label style="display:block;margin-bottom:8px">Filtri</label>
@@ -2027,7 +2043,7 @@ tbody tr:hover td {
 
           <!-- Service Execution Log -->
           <div class="table-container" style="margin-top:24px">
-            <div id="statoServiziResults" style="min-height:200px;padding:16px;background:#f5f5f5;border-radius:6px;border:1px solid rgba(0,0,0,0.15);color:#333;font-family:monospace;font-size:0.875rem;white-space:pre-wrap;word-break:break-word"></div>
+            <div id="statoServiziResults" style="min-height:200px;padding:16px;background:#f5f5f5;border-radius:8px;border:1px solid rgba(0,0,0,0.15);color:#333;font-family:monospace;font-size:0.875rem;white-space:pre-wrap;word-break:break-word"></div>
           </div>
         </div>
       </div>
@@ -2253,7 +2269,7 @@ tbody tr:hover td {
           <div style="display:flex;gap:10px;margin-top:20px;">
             <button class="btn btn-primary" onclick="searchAziende()" style="flex:1;padding:14px;font-size:1rem;"><i class="fas fa-search"></i> CERCA AZIENDE</button>
             <button class="btn btn-secondary" onclick="resetAziendeSearch()" style="padding:14px 20px;"><i class="fas fa-redo"></i></button>
-            <button class="btn btn-primary" onclick="inviaMailAziende()" style="background:var(--accent-red,#c0392b);padding:14px 20px;"><i class="fas fa-envelope"></i></button>
+            <button class="btn btn-primary" onclick="inviaMailAziende()" style="background:var(--gradient);padding:14px 20px;"><i class="fas fa-envelope"></i></button>
           </div>
         </div>
 
@@ -3350,7 +3366,7 @@ tbody tr:hover td {
           <div style="display:flex;gap:10px;margin-top:20px;">
             <button class="btn btn-primary" onclick="searchUtenti()" style="flex:1;padding:14px;font-size:1rem;"><i class="fas fa-search"></i> CERCA UTENTI</button>
             <button class="btn btn-secondary" onclick="resetUtentiSearch()" style="padding:14px 20px;"><i class="fas fa-redo"></i></button>
-            <button class="btn btn-primary" onclick="inviaMailUtenti()" style="background:var(--accent-red,#c0392b);padding:14px 20px;"><i class="fas fa-envelope"></i></button>
+            <button class="btn btn-primary" onclick="inviaMailUtenti()" style="background:var(--gradient);padding:14px 20px;"><i class="fas fa-envelope"></i></button>
           </div>
         </div>
 
@@ -3601,10 +3617,10 @@ tbody tr:hover td {
           </div>
         </div>
         <div style="padding:8px 0;display:flex;gap:12px;font-size:0.85rem;">
-          <span><span style="display:inline-block;width:14px;height:14px;background:#007F0E;border-radius:3px;vertical-align:middle;"></span> Sopralluogo</span>
-          <span><span style="display:inline-block;width:14px;height:14px;background:#00137F;border-radius:3px;vertical-align:middle;"></span> Presa Visione</span>
-          <span><span style="display:inline-block;width:14px;height:14px;background:#f44336;border-radius:3px;vertical-align:middle;"></span> Annullato</span>
-          <span><span style="display:inline-block;width:14px;height:14px;background:#ff9800;border-radius:3px;vertical-align:middle;"></span> Non prenotato</span>
+          <span><span style="display:inline-block;width:14px;height:14px;background:#007F0E;border-radius:8px;vertical-align:middle;"></span> Sopralluogo</span>
+          <span><span style="display:inline-block;width:14px;height:14px;background:#00137F;border-radius:8px;vertical-align:middle;"></span> Presa Visione</span>
+          <span><span style="display:inline-block;width:14px;height:14px;background:#f44336;border-radius:8px;vertical-align:middle;"></span> Annullato</span>
+          <span><span style="display:inline-block;width:14px;height:14px;background:#ff9800;border-radius:8px;vertical-align:middle;"></span> Non prenotato</span>
         </div>
         <div id="appuntamenti-results" class="table-container"></div>
       </div>
@@ -4107,7 +4123,7 @@ tbody tr:hover td {
             <span style="background:var(--warning);color:#fff;border-radius:50%;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;margin-right:8px;">2</span>
             <i class="fas fa-pen-to-square" style="color:var(--warning)"></i> Review & Modifica Dati Estratti
           </h3>
-          <div style="background:rgba(255,193,7,0.15);padding:12px;border-radius:3px;border-left:4px solid var(--warning);margin-bottom:16px;">
+          <div style="background:rgba(255,193,7,0.15);padding:12px;border-radius:8px;border-left:4px solid var(--warning);margin-bottom:16px;">
             <strong><i class="fas fa-exclamation-triangle" style="color:var(--warning)"></i> ATTENZIONE:</strong>
             Controlla tutti i dati estratti dall'AI prima di procedere. I campi evidenziati in giallo richiedono particolare attenzione.
           </div>
@@ -4132,7 +4148,7 @@ tbody tr:hover td {
           </div>
 
           <!-- Checklist di conferma -->
-          <div style="background:rgba(76,175,80,0.15);padding:16px;border-radius:3px;margin-top:16px;border:2px solid var(--success);">
+          <div style="background:rgba(76,175,80,0.15);padding:16px;border-radius:8px;margin-top:16px;border:2px solid var(--success);">
             <h4 style="color:var(--success);margin-bottom:12px;"><i class="fas fa-clipboard-check"></i> Checklist di Conferma</h4>
             <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer;">
               <input type="checkbox" id="review-check-dati"> Ho verificato i dati generali (CIG, importo, stazione, criterio)
@@ -4314,12 +4330,12 @@ tbody tr:hover td {
 
         <!-- Edit Form (hidden by default) -->
         <div id="alboEditOverlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.5); z-index:999; align-items:center; justify-content:center;">
-          <div style="background:#ffffff; border-radius:6px; padding:32px; width:90%; max-width:700px; max-height:85vh; overflow-y:auto;">
+          <div style="background:#ffffff; border-radius:8px; padding:32px; width:90%; max-width:700px; max-height:85vh; overflow-y:auto;">
             <h2 id="alboEditTitle" style="margin-bottom:20px;">Configura Albo Fornitori</h2>
             <div class="form-row">
               <div class="form-col">
                 <label>Stazione Appaltante *</label>
-                <select id="albo-edit-stazione" style="width:100%; padding:8px; border:1px solid rgba(0,0,0,0.1); border-radius:3px;">
+                <select id="albo-edit-stazione" style="width:100%; padding:8px; border:1px solid rgba(0,0,0,0.1); border-radius:8px;">
                   <option value="">Seleziona stazione...</option>
                 </select>
               </div>
@@ -4377,7 +4393,7 @@ tbody tr:hover td {
 
         <!-- Richiesta Detail Overlay -->
         <div id="richiestaDetailOverlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.5); z-index:999; align-items:center; justify-content:center;">
-          <div style="background:#ffffff; border-radius:6px; padding:32px; width:90%; max-width:600px; max-height:85vh; overflow-y:auto;">
+          <div style="background:#ffffff; border-radius:8px; padding:32px; width:90%; max-width:600px; max-height:85vh; overflow-y:auto;">
             <h2 style="margin-bottom:20px;">Dettaglio Richiesta</h2>
             <div id="richiestaDetailContent"></div>
             <div style="display:flex; gap:12px; margin-top:24px; justify-content:flex-end;">
@@ -4705,10 +4721,10 @@ tbody tr:hover td {
             </div>
           </div>
           <div style="padding:8px 0;display:flex;gap:12px;font-size:0.85rem;">
-            <span><span style="display:inline-block;width:14px;height:14px;background:#007F0E;border-radius:3px;vertical-align:middle;"></span> Sopralluogo</span>
-            <span><span style="display:inline-block;width:14px;height:14px;background:#00137F;border-radius:3px;vertical-align:middle;"></span> Presa Visione</span>
-            <span><span style="display:inline-block;width:14px;height:14px;background:#f44336;border-radius:3px;vertical-align:middle;"></span> Annullato</span>
-            <span><span style="display:inline-block;width:14px;height:14px;background:#ff9800;border-radius:3px;vertical-align:middle;"></span> Non prenotato</span>
+            <span><span style="display:inline-block;width:14px;height:14px;background:#007F0E;border-radius:8px;vertical-align:middle;"></span> Sopralluogo</span>
+            <span><span style="display:inline-block;width:14px;height:14px;background:#00137F;border-radius:8px;vertical-align:middle;"></span> Presa Visione</span>
+            <span><span style="display:inline-block;width:14px;height:14px;background:#f44336;border-radius:8px;vertical-align:middle;"></span> Annullato</span>
+            <span><span style="display:inline-block;width:14px;height:14px;background:#ff9800;border-radius:8px;vertical-align:middle;"></span> Non prenotato</span>
           </div>
           <div id="sopr-calendario-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
         </div>
@@ -4944,10 +4960,10 @@ tbody tr:hover td {
           </div>
         </div>
         <div style="padding:8px 0;display:flex;gap:12px;font-size:0.85rem;">
-          <span><span style="display:inline-block;width:14px;height:14px;background:#007F0E;border-radius:3px;vertical-align:middle;"></span> Sopralluogo</span>
-          <span><span style="display:inline-block;width:14px;height:14px;background:#00137F;border-radius:3px;vertical-align:middle;"></span> Presa Visione</span>
-          <span><span style="display:inline-block;width:14px;height:14px;background:#f44336;border-radius:3px;vertical-align:middle;"></span> Annullato</span>
-          <span><span style="display:inline-block;width:14px;height:14px;background:#ff9800;border-radius:3px;vertical-align:middle;"></span> Non prenotato</span>
+          <span><span style="display:inline-block;width:14px;height:14px;background:#007F0E;border-radius:8px;vertical-align:middle;"></span> Sopralluogo</span>
+          <span><span style="display:inline-block;width:14px;height:14px;background:#00137F;border-radius:8px;vertical-align:middle;"></span> Presa Visione</span>
+          <span><span style="display:inline-block;width:14px;height:14px;background:#f44336;border-radius:8px;vertical-align:middle;"></span> Annullato</span>
+          <span><span style="display:inline-block;width:14px;height:14px;background:#ff9800;border-radius:8px;vertical-align:middle;"></span> Non prenotato</span>
         </div>
         <div id="sopr-calf-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:12px"></div>
       </div>
@@ -5667,6 +5683,104 @@ function authHeaders() {
 }
 
 // ════════════════ LOOKUPS ════════════════
+// ═══ FALLBACK DATA for when API is unavailable ═══
+const FALLBACK_REGIONI = [
+  {id:1,nome:'Abruzzo'},{id:2,nome:'Basilicata'},{id:3,nome:'Calabria'},{id:4,nome:'Campania'},
+  {id:5,nome:'Emilia-Romagna'},{id:6,nome:'Friuli Venezia Giulia'},{id:7,nome:'Lazio'},{id:8,nome:'Liguria'},
+  {id:9,nome:'Lombardia'},{id:10,nome:'Marche'},{id:11,nome:'Molise'},{id:12,nome:'Piemonte'},
+  {id:13,nome:'Puglia'},{id:14,nome:'Sardegna'},{id:15,nome:'Sicilia'},{id:16,nome:'Toscana'},
+  {id:17,nome:'Trentino-Alto Adige'},{id:18,nome:'Umbria'},{id:19,nome:"Valle d'Aosta"},{id:20,nome:'Veneto'}
+];
+const FALLBACK_PROVINCE = [
+  {id:1,nome:'Agrigento',sigla:'AG'},{id:2,nome:'Alessandria',sigla:'AL'},{id:3,nome:'Ancona',sigla:'AN'},
+  {id:4,nome:'Aosta',sigla:'AO'},{id:5,nome:'Arezzo',sigla:'AR'},{id:6,nome:'Ascoli Piceno',sigla:'AP'},
+  {id:7,nome:'Asti',sigla:'AT'},{id:8,nome:'Avellino',sigla:'AV'},{id:9,nome:'Bari',sigla:'BA'},
+  {id:10,nome:'Barletta-Andria-Trani',sigla:'BT'},{id:11,nome:'Belluno',sigla:'BL'},{id:12,nome:'Benevento',sigla:'BN'},
+  {id:13,nome:'Bergamo',sigla:'BG'},{id:14,nome:'Biella',sigla:'BI'},{id:15,nome:'Bologna',sigla:'BO'},
+  {id:16,nome:'Bolzano',sigla:'BZ'},{id:17,nome:'Brescia',sigla:'BS'},{id:18,nome:'Brindisi',sigla:'BR'},
+  {id:19,nome:'Cagliari',sigla:'CA'},{id:20,nome:'Caltanissetta',sigla:'CL'},{id:21,nome:'Campobasso',sigla:'CB'},
+  {id:22,nome:'Caserta',sigla:'CE'},{id:23,nome:'Catania',sigla:'CT'},{id:24,nome:'Catanzaro',sigla:'CZ'},
+  {id:25,nome:'Chieti',sigla:'CH'},{id:26,nome:'Como',sigla:'CO'},{id:27,nome:'Cosenza',sigla:'CS'},
+  {id:28,nome:'Cremona',sigla:'CR'},{id:29,nome:'Crotone',sigla:'KR'},{id:30,nome:'Cuneo',sigla:'CN'},
+  {id:31,nome:'Enna',sigla:'EN'},{id:32,nome:'Fermo',sigla:'FM'},{id:33,nome:'Ferrara',sigla:'FE'},
+  {id:34,nome:'Firenze',sigla:'FI'},{id:35,nome:'Foggia',sigla:'FG'},{id:36,nome:'Forlì-Cesena',sigla:'FC'},
+  {id:37,nome:'Frosinone',sigla:'FR'},{id:38,nome:'Genova',sigla:'GE'},{id:39,nome:'Gorizia',sigla:'GO'},
+  {id:40,nome:'Grosseto',sigla:'GR'},{id:41,nome:'Imperia',sigla:'IM'},{id:42,nome:'Isernia',sigla:'IS'},
+  {id:43,nome:"L'Aquila",sigla:'AQ'},{id:44,nome:'La Spezia',sigla:'SP'},{id:45,nome:'Latina',sigla:'LT'},
+  {id:46,nome:'Lecce',sigla:'LE'},{id:47,nome:'Lecco',sigla:'LC'},{id:48,nome:'Livorno',sigla:'LI'},
+  {id:49,nome:'Lodi',sigla:'LO'},{id:50,nome:'Lucca',sigla:'LU'},{id:51,nome:'Macerata',sigla:'MC'},
+  {id:52,nome:'Mantova',sigla:'MN'},{id:53,nome:'Massa-Carrara',sigla:'MS'},{id:54,nome:'Matera',sigla:'MT'},
+  {id:55,nome:'Messina',sigla:'ME'},{id:56,nome:'Milano',sigla:'MI'},{id:57,nome:'Modena',sigla:'MO'},
+  {id:58,nome:'Monza e Brianza',sigla:'MB'},{id:59,nome:'Napoli',sigla:'NA'},{id:60,nome:'Novara',sigla:'NO'},
+  {id:61,nome:'Nuoro',sigla:'NU'},{id:62,nome:'Oristano',sigla:'OR'},{id:63,nome:'Padova',sigla:'PD'},
+  {id:64,nome:'Palermo',sigla:'PA'},{id:65,nome:'Parma',sigla:'PR'},{id:66,nome:'Pavia',sigla:'PV'},
+  {id:67,nome:'Perugia',sigla:'PG'},{id:68,nome:'Pesaro e Urbino',sigla:'PU'},{id:69,nome:'Pescara',sigla:'PE'},
+  {id:70,nome:'Piacenza',sigla:'PC'},{id:71,nome:'Pisa',sigla:'PI'},{id:72,nome:'Pistoia',sigla:'PT'},
+  {id:73,nome:'Pordenone',sigla:'PN'},{id:74,nome:'Potenza',sigla:'PZ'},{id:75,nome:'Prato',sigla:'PO'},
+  {id:76,nome:'Ragusa',sigla:'RG'},{id:77,nome:'Ravenna',sigla:'RA'},{id:78,nome:'Reggio Calabria',sigla:'RC'},
+  {id:79,nome:'Reggio Emilia',sigla:'RE'},{id:80,nome:'Rieti',sigla:'RI'},{id:81,nome:'Rimini',sigla:'RN'},
+  {id:82,nome:'Roma',sigla:'RM'},{id:83,nome:'Rovigo',sigla:'RO'},{id:84,nome:'Salerno',sigla:'SA'},
+  {id:85,nome:'Sassari',sigla:'SS'},{id:86,nome:'Savona',sigla:'SV'},{id:87,nome:'Siena',sigla:'SI'},
+  {id:88,nome:'Siracusa',sigla:'SR'},{id:89,nome:'Sondrio',sigla:'SO'},{id:90,nome:'Sud Sardegna',sigla:'SU'},
+  {id:91,nome:'Taranto',sigla:'TA'},{id:92,nome:'Teramo',sigla:'TE'},{id:93,nome:'Terni',sigla:'TR'},
+  {id:94,nome:'Torino',sigla:'TO'},{id:95,nome:'Trapani',sigla:'TP'},{id:96,nome:'Trento',sigla:'TN'},
+  {id:97,nome:'Treviso',sigla:'TV'},{id:98,nome:'Trieste',sigla:'TS'},{id:99,nome:'Udine',sigla:'UD'},
+  {id:100,nome:'Varese',sigla:'VA'},{id:101,nome:'Venezia',sigla:'VE'},{id:102,nome:'Verbano-Cusio-Ossola',sigla:'VB'},
+  {id:103,nome:'Vercelli',sigla:'VC'},{id:104,nome:'Verona',sigla:'VR'},{id:105,nome:'Vibo Valentia',sigla:'VV'},
+  {id:106,nome:'Vicenza',sigla:'VI'},{id:107,nome:'Viterbo',sigla:'VT'}
+];
+const FALLBACK_SOA = [
+  {id:'OG1',codice:'OG1',descrizione:'Edifici civili e industriali'},{id:'OG2',codice:'OG2',descrizione:'Restauro e manutenzione beni immobili'},
+  {id:'OG3',codice:'OG3',descrizione:'Strade, autostrade, ponti, viadotti'},{id:'OG4',codice:'OG4',descrizione:'Opere d\'arte nel sottosuolo'},
+  {id:'OG5',codice:'OG5',descrizione:'Dighe'},{id:'OG6',codice:'OG6',descrizione:'Acquedotti, gasdotti, oleodotti'},
+  {id:'OG7',codice:'OG7',descrizione:'Opere marittime e lavori di dragaggio'},{id:'OG8',codice:'OG8',descrizione:'Opere fluviali, di difesa, di sistemazione idraulica'},
+  {id:'OG9',codice:'OG9',descrizione:'Impianti per la produzione di energia elettrica'},{id:'OG10',codice:'OG10',descrizione:'Impianti per la trasformazione alta/media tensione'},
+  {id:'OG11',codice:'OG11',descrizione:'Impianti tecnologici'},{id:'OG12',codice:'OG12',descrizione:'Opere ed impianti di bonifica e protezione ambientale'},
+  {id:'OG13',codice:'OG13',descrizione:'Opere di ingegneria naturalistica'},
+  {id:'OS1',codice:'OS1',descrizione:'Lavori in terra'},{id:'OS2A',codice:'OS2-A',descrizione:'Superfici decorate di beni immobili'},
+  {id:'OS3',codice:'OS3',descrizione:'Impianti idrico-sanitario, cucine, lavanderie'},
+  {id:'OS4',codice:'OS4',descrizione:'Impianti elettromeccanici trasportatori'},{id:'OS5',codice:'OS5',descrizione:'Impianti pneumatici e antintrusione'},
+  {id:'OS6',codice:'OS6',descrizione:'Finiture di opere generali in materiali lignei, plastici, metallici e vetrosi'},
+  {id:'OS7',codice:'OS7',descrizione:'Finiture di opere generali di natura edile e target'},{id:'OS8',codice:'OS8',descrizione:'Opere di impermeabilizzazione'},
+  {id:'OS9',codice:'OS9',descrizione:'Impianti per la segnaletica luminosa e la sicurezza del traffico'},
+  {id:'OS10',codice:'OS10',descrizione:'Segnaletica stradale non luminosa'},{id:'OS11',codice:'OS11',descrizione:'Apparecchiature strutturali speciali'},
+  {id:'OS12A',codice:'OS12-A',descrizione:'Barriere stradali di sicurezza'},{id:'OS13',codice:'OS13',descrizione:'Strutture prefabbricate in cemento armato'},
+  {id:'OS14',codice:'OS14',descrizione:'Impianti di smaltimento e recupero rifiuti'},
+  {id:'OS18A',codice:'OS18-A',descrizione:'Componenti strutturali in acciaio'},
+  {id:'OS18B',codice:'OS18-B',descrizione:'Componenti per facciate continue'},
+  {id:'OS19',codice:'OS19',descrizione:'Impianti di reti di telecomunicazione e trasmissione dati'},
+  {id:'OS20A',codice:'OS20-A',descrizione:'Rilevamenti topografici'},{id:'OS20B',codice:'OS20-B',descrizione:'Indagini geognostiche'},
+  {id:'OS21',codice:'OS21',descrizione:'Opere strutturali speciali'},
+  {id:'OS22',codice:'OS22',descrizione:'Impianti di potabilizzazione e depurazione'},
+  {id:'OS23',codice:'OS23',descrizione:'Demolizione di opere'},{id:'OS24',codice:'OS24',descrizione:'Verde e arredo urbano'},
+  {id:'OS25',codice:'OS25',descrizione:'Scavi archeologici'},{id:'OS26',codice:'OS26',descrizione:'Pavimentazioni e sovrastrutture speciali'},
+  {id:'OS27',codice:'OS27',descrizione:'Impianti per la trazione elettrica'},
+  {id:'OS28',codice:'OS28',descrizione:'Impianti termici e di condizionamento'},
+  {id:'OS29',codice:'OS29',descrizione:'Armamento ferroviario'},{id:'OS30',codice:'OS30',descrizione:'Impianti interni elettrici, telefonici, radiotelefonici e televisivi'},
+  {id:'OS31',codice:'OS31',descrizione:'Impianti per la mobilità sospesa'},
+  {id:'OS32',codice:'OS32',descrizione:'Strutture in legno'},{id:'OS33',codice:'OS33',descrizione:'Coperture speciali'},
+  {id:'OS34',codice:'OS34',descrizione:'Sistemi antirumore per infrastrutture di mobilità'},
+  {id:'OS35',codice:'OS35',descrizione:'Interventi a basso impatto ambientale'}
+];
+const FALLBACK_TIPOLOGIE = [
+  {id:1,nome:'Lavori'},{id:2,nome:'Servizi'},{id:3,nome:'Forniture'},{id:4,nome:'Mista (Lavori+Servizi)'},
+  {id:5,nome:'Mista (Lavori+Forniture)'},{id:6,nome:'Concessione'},{id:7,nome:'Accordo Quadro'},{id:8,nome:'Appalto Integrato'}
+];
+const FALLBACK_CRITERI = [
+  {id:1,nome:'Prezzo più basso'},{id:2,nome:'Offerta economicamente più vantaggiosa'},{id:3,nome:'Costo fisso'}
+];
+const FALLBACK_PIATTAFORME = [
+  {id:1,nome:'MePA (Mercato Elettronico PA)'},{id:2,nome:'ANAC'},{id:3,nome:'Consip'},{id:4,nome:'Sintel (ARIA Lombardia)'},
+  {id:5,nome:'EmPULIA (Puglia)'},{id:6,nome:'START (Toscana)'},{id:7,nome:'TuttoGare'},{id:8,nome:'Net4market'},
+  {id:9,nome:'Sater (Emilia-Romagna)'},{id:10,nome:'CUC (Centrale Unica di Committenza)'},{id:11,nome:'Altro'}
+];
+const FALLBACK_CLASSIFICHE = [
+  {id:'I',nome:'I - fino a 258.000€'},{id:'II',nome:'II - fino a 516.000€'},{id:'III',nome:'III - fino a 1.033.000€'},
+  {id:'IIIBIS',nome:'III-bis - fino a 1.500.000€'},{id:'IV',nome:'IV - fino a 2.582.000€'},{id:'IVBIS',nome:'IV-bis - fino a 3.500.000€'},
+  {id:'V',nome:'V - fino a 5.165.000€'},{id:'VI',nome:'VI - fino a 10.329.000€'},{id:'VII',nome:'VII - fino a 15.494.000€'},
+  {id:'VIII',nome:'VIII - oltre 15.494.000€'}
+];
+
 async function loadLookups() {
   try {
     const [stats, regioni, soa, tipologie_gare, tipologie_bandi, province, stazioni, criteri, piattaforme] = await Promise.all([
@@ -5682,8 +5796,8 @@ async function loadLookups() {
     ]);
 
     lookups.stats = stats;
-    lookups.regioni = regioni;
-    lookups.soa = soa;
+    lookups.regioni = (Array.isArray(regioni) && regioni.length) ? regioni : FALLBACK_REGIONI;
+    lookups.soa = (Array.isArray(soa) && soa.length) ? soa : FALLBACK_SOA;
     // Aggiungi categorie Servizi e Forniture se non presenti nel DB
     const hasSF = lookups.soa.some(s => s.codice && s.codice.startsWith('SF'));
     if (!hasSF) {
@@ -5726,17 +5840,28 @@ async function loadLookups() {
       ];
       lookups.soa = lookups.soa.concat(sfCategories);
     }
-    lookups.tipologie_gare = tipologie_gare;
-    lookups.tipologie_bandi = tipologie_bandi;
-    lookups.province = province;
+    lookups.tipologie_gare = (Array.isArray(tipologie_gare) && tipologie_gare.length) ? tipologie_gare : FALLBACK_TIPOLOGIE;
+    lookups.tipologie_bandi = (Array.isArray(tipologie_bandi) && tipologie_bandi.length) ? tipologie_bandi : FALLBACK_TIPOLOGIE;
+    lookups.province = (Array.isArray(province) && province.length) ? province : FALLBACK_PROVINCE;
     lookups.stazioni = Array.isArray(stazioni) ? stazioni : (Array.isArray(stazioni?.data) ? stazioni.data : []);
-    lookups.criteri = Array.isArray(criteri) ? criteri : (Array.isArray(criteri?.data) ? criteri.data : []);
-    lookups.piattaforme = Array.isArray(piattaforme) ? piattaforme : (Array.isArray(piattaforme?.data) ? piattaforme.data : []);
+    lookups.criteri = (Array.isArray(criteri) && criteri.length) ? criteri : ((Array.isArray(criteri?.data) && criteri.data.length) ? criteri.data : FALLBACK_CRITERI);
+    lookups.piattaforme = (Array.isArray(piattaforme) && piattaforme.length) ? piattaforme : ((Array.isArray(piattaforme?.data) && piattaforme.data.length) ? piattaforme.data : FALLBACK_PIATTAFORME);
 
     populateLookupSelects();
+    populateStaticSelects();
     loadDashboardStats();
   } catch (err) {
-    console.error('Errore caricamento lookups:', err);
+    console.error('Errore caricamento lookups, uso dati fallback:', err);
+    lookups.regioni = FALLBACK_REGIONI;
+    lookups.province = FALLBACK_PROVINCE;
+    lookups.soa = FALLBACK_SOA;
+    lookups.tipologie_gare = FALLBACK_TIPOLOGIE;
+    lookups.tipologie_bandi = FALLBACK_TIPOLOGIE;
+    lookups.criteri = FALLBACK_CRITERI;
+    lookups.piattaforme = FALLBACK_PIATTAFORME;
+    lookups.stazioni = [];
+    populateLookupSelects();
+    populateStaticSelects();
   }
 }
 
@@ -5924,6 +6049,162 @@ function populateLookupSelects() {
   populateMsDropdown('ms-bandi-regione', 'bandi-regione', Array.isArray(lookups.regioni) ? lookups.regioni : [], r => r.nome);
   populateMsDropdown('ms-bandi-provincia', 'bandi-provincia', Array.isArray(lookups.province) ? lookups.province : [], p => p.nome + ' (' + (p.sigla||'') + ')');
   populateMsDropdown('ms-bandi-piattaforma', 'bandi-piattaforma', Array.isArray(lookups.piattaforme) ? lookups.piattaforme : [], p => p.nome);
+
+  // Popola anche ms-esiti multi-selects
+  populateMsDropdown('ms-esiti-tipologia', 'esiti-tipologia', Array.isArray(lookups.tipologie_gare) ? lookups.tipologie_gare : [], t => t.nome);
+  populateMsDropdown('ms-esiti-regione', 'esiti-regione', Array.isArray(lookups.regioni) ? lookups.regioni : [], r => r.nome);
+  populateMsDropdown('ms-esiti-provincia', 'esiti-provincia', Array.isArray(lookups.province) ? lookups.province : [], p => p.nome + ' (' + (p.sigla||'') + ')');
+  populateMsDropdown('ms-esiti-piattaforma', 'esiti-piattaforma', Array.isArray(lookups.piattaforme) ? lookups.piattaforme : [], p => p.nome);
+}
+
+function populateStaticSelects() {
+  // Classifiche SOA
+  const classificaSelects = ['aziende-soa-classifica'];
+  classificaSelects.forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel && sel.options.length <= 1) {
+      sel.innerHTML = '<option value="">Tutte</option>';
+      FALLBACK_CLASSIFICHE.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.nome; sel.appendChild(o); });
+    }
+  });
+
+  // Legame SOA
+  const legameSelect = document.getElementById('aziende-soa-legame');
+  if (legameSelect && legameSelect.options.length <= 1) {
+    legameSelect.innerHTML = '<option value="">Tutti</option><option value="singola">Singola</option><option value="prevalente">Prevalente</option><option value="scorporabile">Scorporabile</option>';
+  }
+
+  // Stato aziende
+  const statoAz = document.getElementById('aziende-stato');
+  if (statoAz && statoAz.options.length <= 1) {
+    statoAz.innerHTML = '<option value="">Tutti</option><option value="attivo">Attivi</option><option value="inattivo">Inattivi</option><option value="scaduto">Scaduti</option><option value="bloccato">Bloccati</option>';
+  }
+
+  // Inserita da
+  const inseritaDaSelects = ['aziende-inserita-da', 'stazioni-inserita-da', 'esiti-inserito-da'];
+  inseritaDaSelects.forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel && sel.options.length <= 1) {
+      sel.innerHTML = '<option value="">Tutti</option><option value="manuale">Manuale</option><option value="import">Import automatico</option><option value="api">Da API</option>';
+    }
+  });
+
+  // Stato contatto
+  const statoContatto = document.getElementById('aziende-stato-contatto');
+  if (statoContatto && statoContatto.options.length <= 1) {
+    statoContatto.innerHTML = '<option value="">Tutti</option><option value="da-contattare">Da contattare</option><option value="contattato">Contattato</option><option value="interessato">Interessato</option><option value="non-interessato">Non interessato</option><option value="cliente">Cliente</option>';
+  }
+
+  // Logica ricerca
+  const logicaSel = document.getElementById('aziende-logica');
+  if (logicaSel && logicaSel.options.length <= 1) {
+    logicaSel.innerHTML = '<option value="AND">AND (tutte le condizioni)</option><option value="OR">OR (almeno una condizione)</option>';
+  }
+
+  // Criteri aggiudicazione (bandi/esiti)
+  const criteriSelects = ['bandi-criterio', 'esiti-criterio'];
+  criteriSelects.forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel && sel.options.length <= 1) {
+      sel.innerHTML = '<option value="">Tutti</option>';
+      FALLBACK_CRITERI.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.nome; sel.appendChild(o); });
+    }
+  });
+
+  // Con esito (bandi)
+  const conEsito = document.getElementById('bandi-con-esito');
+  if (conEsito && conEsito.options.length <= 1) {
+    conEsito.innerHTML = '<option value="">Tutti</option><option value="si">Con esito</option><option value="no">Senza esito</option>';
+  }
+
+  // Decreto (esiti)
+  const decreto = document.getElementById('esiti-decreto');
+  if (decreto && decreto.options.length <= 1) {
+    decreto.innerHTML = '<option value="">Tutti</option><option value="si">Con decreto</option><option value="no">Senza decreto</option>';
+  }
+
+  // Partecipazione (esiti)
+  const partecip = document.getElementById('esiti-partecipazione');
+  if (partecip && partecip.options.length <= 1) {
+    partecip.innerHTML = '<option value="">Tutti</option><option value="si">Con partecipanti</option><option value="no">Senza partecipanti</option>';
+  }
+
+  // Tipologia dati (esiti)
+  const tipDati = document.getElementById('esiti-tipologia-dati');
+  if (tipDati && tipDati.options.length <= 1) {
+    tipDati.innerHTML = '<option value="">Tutti</option><option value="completo">Dati completi</option><option value="incompleto">Dati incompleti</option><option value="da-verificare">Da verificare</option>';
+  }
+
+  // Stato approvazione utenti
+  const statoAppr = document.getElementById('utenti-stato-approvazione');
+  if (statoAppr && statoAppr.options.length <= 1) {
+    statoAppr.innerHTML = '<option value="">Tutti</option><option value="approvato">Approvati</option><option value="in-attesa">In attesa</option><option value="rifiutato">Rifiutati</option>';
+  }
+
+  // Utenti effettivi
+  const utEff = document.getElementById('utenti-effettivi');
+  if (utEff && utEff.options.length <= 1) {
+    utEff.innerHTML = '<option value="">Tutti</option><option value="si">Effettivi</option><option value="no">Non effettivi</option>';
+  }
+
+  // Ruoli utenti
+  const ruoli = document.getElementById('utenti-ruoli');
+  if (ruoli && ruoli.options.length <= 1) {
+    ruoli.innerHTML = '';
+    ['Admin','Agente','Sub-Agente','Cliente','Operatore','Visualizzatore'].forEach(r => {
+      const o = document.createElement('option'); o.value = r.toLowerCase(); o.textContent = r; ruoli.appendChild(o);
+    });
+  }
+
+  // Ruolo nuovo utente
+  const nuovoRuolo = document.getElementById('new-utente-ruolo');
+  if (nuovoRuolo && nuovoRuolo.options.length <= 1) {
+    nuovoRuolo.innerHTML = '<option value="">Seleziona...</option>';
+    ['Admin','Agente','Sub-Agente','Cliente','Operatore','Visualizzatore'].forEach(r => {
+      const o = document.createElement('option'); o.value = r.toLowerCase(); o.textContent = r; nuovoRuolo.appendChild(o);
+    });
+  }
+
+  // Province per nuovi inserimenti
+  const provSelects = ['new-utente-provincia', 'cc-provincia', 'concorrenti-provincia'];
+  provSelects.forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel && sel.options.length <= 1) {
+      sel.innerHTML = '<option value="">Seleziona...</option>';
+      FALLBACK_PROVINCE.forEach(p => { const o = document.createElement('option'); o.value = p.sigla; o.textContent = p.nome + ' (' + p.sigla + ')'; sel.appendChild(o); });
+    }
+  });
+
+  // Stato servizi admin
+  const statoServizio = document.getElementById('admin-stato-servizio');
+  if (statoServizio && statoServizio.options.length <= 1) {
+    statoServizio.innerHTML = '<option value="">Seleziona un servizio</option>';
+    ['Import Bandi ANAC','Import Esiti ANAC','Import Bandi Regionali','Import Esiti Regionali','Newsletter Bandi','Newsletter Esiti','Aggiornamento SOA','Sincronizzazione Piattaforme'].forEach(s => {
+      const o = document.createElement('option'); o.value = s; o.textContent = s; statoServizio.appendChild(o);
+    });
+  }
+
+  // Sopralluoghi stati
+  const soprStato = document.getElementById('sopr-stato-filtro');
+  if (soprStato && soprStato.options.length <= 1) {
+    soprStato.innerHTML = '<option value="">Tutti</option><option value="prenotato">Prenotato</option><option value="eseguito">Eseguito</option><option value="annullato">Annullato</option><option value="da-fare">Da eseguire</option>';
+  }
+
+  // Albi richieste stato
+  const albiStato = document.getElementById('albi-richieste-stato');
+  if (albiStato && albiStato.options.length <= 1) {
+    albiStato.innerHTML = '<option value="">Tutti</option><option value="in-attesa">In attesa</option><option value="approvata">Approvata</option><option value="rifiutata">Rifiutata</option><option value="completata">Completata</option>';
+  }
+
+  // Appuntamenti stato e tipo
+  const appStato = document.getElementById('appuntamenti-stato');
+  if (appStato && appStato.options.length <= 1) {
+    appStato.innerHTML = '<option value="">Tutti</option><option value="programmato">Programmato</option><option value="completato">Completato</option><option value="annullato">Annullato</option>';
+  }
+  const appTipo = document.getElementById('appuntamenti-tipo');
+  if (appTipo && appTipo.options.length <= 1) {
+    appTipo.innerHTML = '<option value="">Tutti</option><option value="telefonata">Telefonata</option><option value="visita">Visita</option><option value="videochiamata">Videochiamata</option><option value="email">Email</option>';
+  }
 }
 
 // ════════════════ DASHBOARD ════════════════
@@ -5991,7 +6272,7 @@ async function loadDashboardCharts() {
     // Esiti per Mese (bar chart as HTML)
     if (charts.esiti_per_mese && charts.esiti_per_mese.length) {
       const maxCount = Math.max(...charts.esiti_per_mese.map(e => parseInt(e.conteggio)));
-      html += `<div style="background:#ffffff;padding:20px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.1)">
+      html += `<div style="background:#ffffff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1)">
         <h4 style="margin-bottom:16px;color:var(--primary);font-size:14px;text-transform:uppercase">Esiti per Mese (ultimi 12 mesi)</h4>
         <div style="display:flex;flex-direction:column;gap:6px;">`;
       charts.esiti_per_mese.forEach(e => {
@@ -6010,7 +6291,7 @@ async function loadDashboardCharts() {
     // Bandi per Regione (horizontal bar chart)
     if (charts.bandi_per_regione && charts.bandi_per_regione.length) {
       const maxRegione = Math.max(...charts.bandi_per_regione.map(e => parseInt(e.conteggio)));
-      html += `<div style="background:#ffffff;padding:20px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.1)">
+      html += `<div style="background:#ffffff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1)">
         <h4 style="margin-bottom:16px;color:var(--primary);font-size:14px;text-transform:uppercase">Bandi per Regione (Top 10)</h4>
         <div style="display:flex;flex-direction:column;gap:6px;">`;
       charts.bandi_per_regione.forEach(r => {
@@ -6029,7 +6310,7 @@ async function loadDashboardCharts() {
     // Esiti per Tipologia
     if (charts.esiti_per_tipologia && charts.esiti_per_tipologia.length) {
       const maxTip = Math.max(...charts.esiti_per_tipologia.map(e => parseInt(e.conteggio)));
-      html += `<div style="background:#ffffff;padding:20px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.1)">
+      html += `<div style="background:#ffffff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1)">
         <h4 style="margin-bottom:16px;color:var(--primary);font-size:14px;text-transform:uppercase">Esiti per Tipologia</h4>
         <div style="display:flex;flex-direction:column;gap:6px;">`;
       charts.esiti_per_tipologia.forEach(t => {
@@ -6595,7 +6876,7 @@ async function viewEsitoDetail(id) {
     let html = `<div style="margin-bottom:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <button class="btn btn-sm btn-secondary" onclick="searchEsiti(${currentEsitiPage})"><i class="fas fa-arrow-left"></i> Torna ai risultati</button>
       <div style="flex:1"></div>
-      <div style="background:${statusColor};color:#fff;padding:6px 16px;border-radius:6px;font-weight:bold;font-size:13px"><i class="fas ${statusIcon}"></i> ${statusLabel}</div>
+      <div style="background:${statusColor};color:#fff;padding:6px 16px;border-radius:8px;font-weight:bold;font-size:13px"><i class="fas ${statusIcon}"></i> ${statusLabel}</div>
     </div>`;
 
     // ══════ WORKFLOW ACTION BUTTONS ══════
@@ -6622,7 +6903,7 @@ async function viewEsitoDetail(id) {
     }
     // INVIA: when enabled (original: requires enabled + IsBase)
     if (isEnabled) {
-      html += `<button class="btn btn-sm" style="background:#8B0000;color:#fff;font-weight:bold" onclick="inviaNotificheEsitoDetail(${id})" title="Invia email di notifica a tutti i partecipanti"><i class="fas fa-paper-plane"></i> INVIA</button>`;
+      html += `<button class="btn btn-sm" style="background:linear-gradient(135deg,#F5C518 0%,#FF8C00 100%);color:#fff;font-weight:bold" onclick="inviaNotificheEsitoDetail(${id})" title="Invia email di notifica a tutti i partecipanti"><i class="fas fa-paper-plane"></i> INVIA</button>`;
     }
     // SET TEMP: confirmed but not enabled — revert to bozza
     if (!isTemp && !isEnabled) {
@@ -7015,8 +7296,8 @@ async function viewBandoDetail(id) {
       d.allegati.forEach(a => {
         const ext = (a.NomeFile||'').split('.').pop().toLowerCase();
         const icon = ext === 'pdf' ? 'fa-file-pdf' : ext === 'doc' || ext === 'docx' ? 'fa-file-word' : ext === 'xls' || ext === 'xlsx' ? 'fa-file-excel' : ext === 'zip' || ext === 'rar' ? 'fa-file-archive' : 'fa-file';
-        const iconColor = ext === 'pdf' ? '#c0392b' : ext === 'doc' || ext === 'docx' ? '#2980b9' : ext === 'xls' || ext === 'xlsx' ? '#27ae60' : '#7f8c8d';
-        html += `<div style="background:#ffffff;padding:10px 14px;margin-bottom:6px;border-radius:6px;border-left:4px solid var(--info);display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
+        const iconColor = ext === 'pdf' ? '#FF8C00' : ext === 'doc' || ext === 'docx' ? '#2980b9' : ext === 'xls' || ext === 'xlsx' ? '#27ae60' : '#7f8c8d';
+        html += `<div style="background:#ffffff;padding:10px 14px;margin-bottom:6px;border-radius:8px;border-left:4px solid var(--info);display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
           <i class="fas ${icon}" style="color:${iconColor};font-size:1.2em"></i>
           <span style="font-weight:600;flex:1">${esc(a.NomeFile||'Allegato')}</span>
           <span style="font-size:11px;color:rgba(255,255,255,0.4)">${fmtDate(a.LastUpdate)} - ${esc(a.UserName||'')}</span>
@@ -7071,7 +7352,7 @@ async function viewBandoDetail(id) {
     }
     // ══════ NOTE ══════
     if (d.Note) {
-      html += `<div style="margin-top:16px;padding:12px;background:rgba(255,253,231,0.1);border-left:4px solid var(--warning);border-radius:3px"><strong>Note:</strong> ${esc(d.Note)}</div>`;
+      html += `<div style="margin-top:16px;padding:12px;background:rgba(255,253,231,0.1);border-left:4px solid var(--warning);border-radius:8px"><strong>Note:</strong> ${esc(d.Note)}</div>`;
     }
     html += `</div></div>`;
     el.innerHTML = html;
@@ -7726,7 +8007,7 @@ async function viewAziendaDetail(id) {
     if (data.note && data.note.length) {
       html += `<h4 style="margin:20px 0 10px;color:var(--primary)">NOTE (${data.note.length})</h4>`;
       data.note.forEach(n => {
-        html += `<div style="background:#ffffff;padding:12px;margin-bottom:8px;border-radius:4px;border-left:3px solid var(--primary)">
+        html += `<div style="background:#ffffff;padding:12px;margin-bottom:8px;border-radius:8px;border-left:3px solid var(--primary)">
           <div style="font-size:11px;color:rgba(255,255,255,0.4)">${fmtDate(n.data)} - ${esc(n.username||'')}</div>
           <div style="margin-top:4px">${esc(n.nota||'')}</div>
         </div>`;
@@ -8797,7 +9078,7 @@ async function handleBandiFileSelect(event) {
     const conf = result.ai_confidence ? Math.round(result.ai_confidence * 100) : null;
     const confColor = conf && conf >= 80 ? 'var(--success)' : conf && conf >= 60 ? 'var(--warning)' : 'var(--danger)';
 
-    let html = '<div style="padding:16px;background:rgba(76,175,80,0.15);border-radius:3px;border:2px solid var(--success);margin-bottom:16px">';
+    let html = '<div style="padding:16px;background:rgba(76,175,80,0.15);border-radius:8px;border:2px solid var(--success);margin-bottom:16px">';
     html += '<h4 style="color:var(--success);margin-bottom:12px"><i class="fas fa-check-circle"></i> Analisi completata!</h4>';
     html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;">';
     html += `<div><strong>Titolo:</strong> ${esc(result.titolo || '')}</div>`;
@@ -8805,7 +9086,7 @@ async function handleBandiFileSelect(event) {
     html += `<div><strong>Importo:</strong> ${fmtImporto(result.importo || 0)}</div>`;
     html += `<div><strong>Confidenza:</strong> <span style="color:${confColor};font-weight:bold">${conf}%</span></div>`;
     html += '</div>';
-    html += '<div style="background:#ffffff;padding:12px;border-radius:3px;margin-bottom:12px;max-height:200px;overflow-y:auto">';
+    html += '<div style="background:#ffffff;padding:12px;border-radius:8px;margin-bottom:12px;max-height:200px;overflow-y:auto">';
     html += '<strong>Dati Estratti:</strong><pre style="font-size:0.85rem;white-space:pre-wrap;color:var(--text-light)">' + esc(JSON.stringify(result, null, 2)) + '</pre>';
     html += '</div>';
     html += '<div class="button-group">';
@@ -8851,7 +9132,7 @@ async function createBandoFromAnalysis(analysisResult) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Errore creazione');
 
-    let html = '<div style="padding:16px;background:rgba(76,175,80,0.15);border-radius:3px;border:2px solid var(--success)">';
+    let html = '<div style="padding:16px;background:rgba(76,175,80,0.15);border-radius:8px;border:2px solid var(--success)">';
     html += '<i class="fas fa-check-circle fa-2x" style="color:var(--success);margin-bottom:8px;display:block"></i>';
     html += '<h4 style="color:var(--success);margin-bottom:8px">Bando Creato!</h4>';
     html += `<p><strong>ID:</strong> ${data.id}</p>`;
@@ -8884,12 +9165,12 @@ async function enrichBatchBandi() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Errore');
 
-    let html = `<div style="padding:16px;background:rgba(76,175,80,0.15);border-radius:3px;border:2px solid var(--success)">`;
+    let html = `<div style="padding:16px;background:rgba(76,175,80,0.15);border-radius:8px;border:2px solid var(--success)">`;
     html += `<h4 style="color:var(--success);margin-bottom:12px"><i class="fas fa-check-circle"></i> Compilazione batch completata!</h4>`;
     html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">`;
-    html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:3px"><div style="font-size:28px;font-weight:bold;color:var(--success)">${data.processed || 0}</div><div style="font-size:12px;color:var(--text-light)">Compilati</div></div>`;
-    html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:3px"><div style="font-size:28px;font-weight:bold;color:var(--danger)">${data.errors || 0}</div><div style="font-size:12px;color:var(--text-light)">Errori</div></div>`;
-    html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:3px"><div style="font-size:28px;font-weight:bold;color:var(--info)">${(data.details||[]).length}</div><div style="font-size:12px;color:var(--text-light)">Totale</div></div>`;
+    html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:8px"><div style="font-size:28px;font-weight:bold;color:var(--success)">${data.processed || 0}</div><div style="font-size:12px;color:var(--text-light)">Compilati</div></div>`;
+    html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:8px"><div style="font-size:28px;font-weight:bold;color:var(--danger)">${data.errors || 0}</div><div style="font-size:12px;color:var(--text-light)">Errori</div></div>`;
+    html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:8px"><div style="font-size:28px;font-weight:bold;color:var(--info)">${(data.details||[]).length}</div><div style="font-size:12px;color:var(--text-light)">Totale</div></div>`;
     html += `</div>`;
     if (data.details && data.details.length) {
       html += '<table><thead><tr><th>Bando</th><th>Stato</th></tr></thead><tbody>';
@@ -8919,7 +9200,7 @@ async function viewBandoAiDetail(id) {
     const corrections = aiData.ai_corrections || [];
 
     let html = `<div style="margin-bottom:12px"><button class="btn btn-sm btn-secondary" onclick="document.getElementById('bandi-ai-corrected').innerHTML='';"><i class="fas fa-arrow-left"></i> Chiudi dettaglio</button></div>`;
-    html += `<div style="padding:16px;background:#ffffff;border-radius:3px;border:1px solid rgba(0,0,0,0.1);">`;
+    html += `<div style="padding:16px;background:#ffffff;border-radius:8px;border:1px solid rgba(0,0,0,0.1);">`;
     html += `<h3 style="color:var(--primary);margin-bottom:16px">${esc(bando.titolo||'Bando')}</h3>`;
 
     // Show fields side by side: Presidia original vs AI corrected
@@ -8958,7 +9239,7 @@ async function viewBandoAiDetail(id) {
     }
 
     if (aiData.ai_extraction?.note_ai) {
-      html += `<div style="margin-top:12px;padding:12px;background:rgba(66,165,245,0.15);border-radius:3px;border-left:4px solid var(--info)">`;
+      html += `<div style="margin-top:12px;padding:12px;background:rgba(66,165,245,0.15);border-radius:8px;border-left:4px solid var(--info)">`;
       html += `<strong><i class="fas fa-robot"></i> Note AI:</strong> ${esc(aiData.ai_extraction.note_ai)}`;
       html += '</div>';
     }
@@ -9018,7 +9299,7 @@ async function loadEsitiAI() {
       });
       html += '</tbody></table>';
     } else {
-      html = '<div style="text-align:center;padding:32px;background:rgba(76,175,80,0.15);border-radius:3px;border:1px solid var(--success)">';
+      html = '<div style="text-align:center;padding:32px;background:rgba(76,175,80,0.15);border-radius:8px;border:1px solid var(--success)">';
       html += '<i class="fas fa-check-circle fa-3x" style="color:var(--success);margin-bottom:12px;display:block"></i>';
       html += '<p style="color:var(--success);font-weight:500">Nessun esito in attesa di review</p>';
       html += '<p style="color:var(--text-light);font-size:0.9rem">Carica un nuovo documento esito per iniziare.</p>';
@@ -9253,7 +9534,7 @@ async function confirmAndCreateEsito() {
     if (!res.ok) throw new Error(data.error || 'Errore nella creazione');
 
     // Success!
-    let html = `<div style="padding:24px;background:rgba(76,175,80,0.15);border-radius:3px;border:2px solid var(--success);text-align:center;">`;
+    let html = `<div style="padding:24px;background:rgba(76,175,80,0.15);border-radius:8px;border:2px solid var(--success);text-align:center;">`;
     html += `<i class="fas fa-check-circle fa-3x" style="color:var(--success);margin-bottom:12px;"></i>`;
     html += `<h3 style="color:var(--success);margin-bottom:8px">Esito Creato e Confermato!</h3>`;
     html += `<p>ID: <strong>${data.id || data.esito_id || '-'}</strong></p>`;
@@ -9275,21 +9556,21 @@ async function confirmAndCreateEsito() {
 }
 
 function renderEsitoAiResult(data) {
-  let html = '<div style="padding:16px;background:rgba(76,175,80,0.15);border-radius:3px;border:2px solid var(--success);">';
+  let html = '<div style="padding:16px;background:rgba(76,175,80,0.15);border-radius:8px;border:2px solid var(--success);">';
   const confPct = Math.round((data.confidence||0)*100);
   const confColor = data.confidence>=0.8?'var(--success)':data.confidence>=0.6?'var(--warning)':'var(--danger)';
   html += `<h4 style="color:var(--success);margin-bottom:12px"><i class="fas fa-check-circle"></i> Analisi completata!</h4>`;
   html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0 16px 0;">`;
-  html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:3px"><div style="font-size:24px;font-weight:bold;color:${confColor}">${confPct}%</div><div style="font-size:12px;color:var(--text-light)">Confidenza Analisi</div></div>`;
-  html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:3px"><div style="font-size:24px;font-weight:bold;color:var(--primary)">${data.n_results||1}</div><div style="font-size:12px;color:var(--text-light)">Esiti Trovati</div></div>`;
+  html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:8px"><div style="font-size:24px;font-weight:bold;color:${confColor}">${confPct}%</div><div style="font-size:12px;color:var(--text-light)">Confidenza Analisi</div></div>`;
+  html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:8px"><div style="font-size:24px;font-weight:bold;color:var(--primary)">${data.n_results||1}</div><div style="font-size:12px;color:var(--text-light)">Esiti Trovati</div></div>`;
   const unmatched = (data.unmatched_companies || []).length;
-  html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:3px"><div style="font-size:24px;font-weight:bold;color:${unmatched>0?'var(--warning)':'var(--success)'}">${unmatched}</div><div style="font-size:12px;color:var(--text-light)">Aziende da Verificare</div></div>`;
+  html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:8px"><div style="font-size:24px;font-weight:bold;color:${unmatched>0?'var(--warning)':'var(--success)'}">${unmatched}</div><div style="font-size:12px;color:var(--text-light)">Aziende da Verificare</div></div>`;
   html += `</div>`;
   html += `<p style="font-size:0.9rem;color:var(--text-light);margin-bottom:0"><i class="fas fa-file"></i> ${esc(data.filename||'documento')}</p>`;
 
   if (data.results) {
     data.results.forEach((r, i) => {
-      html += `<div style="margin-top:16px;padding:12px;background:#ffffff;border-radius:3px;border:1px solid rgba(0,0,0,0.1);">`;
+      html += `<div style="margin-top:16px;padding:12px;background:#ffffff;border-radius:8px;border:1px solid rgba(0,0,0,0.1);">`;
       html += `<h4>${esc(r.titolo||'Esito '+(i+1))}</h4>`;
       html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0">`;
       html += `<div><small style="color:var(--text-light)">CIG</small><br><strong>${esc(r.codice_cig||'-')}</strong></div>`;
@@ -9325,7 +9606,7 @@ function renderEsitoAiResult(data) {
       }
 
       if (r.media_aritmetica || r.soglia_anomalia) {
-        html += `<div style="margin-top:8px;padding:8px;background:rgba(66,165,245,0.15);border-radius:3px;">`;
+        html += `<div style="margin-top:8px;padding:8px;background:rgba(66,165,245,0.15);border-radius:8px;">`;
         html += `Media: <strong>${r.media_aritmetica?Number(r.media_aritmetica).toFixed(3)+'%':'-'}</strong> | `;
         html += `Soglia anomalia: <strong>${r.soglia_anomalia?Number(r.soglia_anomalia).toFixed(3)+'%':'-'}</strong>`;
         if (r.media_scarti) html += ` | Media scarti: <strong>${Number(r.media_scarti).toFixed(3)}%</strong>`;
@@ -9336,7 +9617,7 @@ function renderEsitoAiResult(data) {
   }
 
   if (data.unmatched_companies && data.unmatched_companies.length) {
-    html += `<div style="margin-top:16px;padding:12px;background:rgba(255,193,7,0.15);border-radius:3px;border-left:4px solid var(--warning)">`;
+    html += `<div style="margin-top:16px;padding:12px;background:rgba(255,193,7,0.15);border-radius:8px;border-left:4px solid var(--warning)">`;
     html += `<strong><i class="fas fa-user-times"></i> ${data.unmatched_companies.length} aziende non trovate nel database</strong>`;
     data.unmatched_companies.forEach(u => {
       html += `<div style="padding:4px 0">${esc(u.ragione_sociale)} ${u.partita_iva?'('+esc(u.partita_iva)+')':''}</div>`;
@@ -9397,7 +9678,7 @@ async function loadAziendeDaVerificare() {
       html += `</div>`;
       html += `<div style="font-size:0.9rem;color:var(--text-light);margin-bottom:12px"><i class="fas fa-file"></i> ${esc((r.titolo||'Esito sconosciuto').substring(0,40))}</div>`;
       if (hasMatch) {
-        html += `<div style="padding:8px;background:rgba(76,175,80,0.15);border-radius:3px;margin-bottom:12px;border-left:3px solid var(--success)">`;
+        html += `<div style="padding:8px;background:rgba(76,175,80,0.15);border-radius:8px;margin-bottom:12px;border-left:3px solid var(--success)">`;
         html += `<small style="color:var(--success)"><i class="fas fa-check"></i> <strong>Match suggerito:</strong></small><br>`;
         html += `<span style="font-size:0.9rem">${esc(r.suggerimento)}</span>`;
         html += `</div>`;
@@ -9445,12 +9726,12 @@ async function inviaNotificheEsito() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Errore');
-    let html = `<div style="padding:16px;background:#f5f5f5;border-radius:3px;border:1px solid rgba(0,0,0,0.1);">`;
+    let html = `<div style="padding:16px;background:#f5f5f5;border-radius:8px;border:1px solid rgba(0,0,0,0.1);">`;
     html += `<h4 style="color:var(--primary);margin-bottom:12px"><i class="fas fa-check-circle" style="color:var(--success)"></i> Invio completato</h4>`;
     html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">`;
-    html += `<div style="text-align:center;padding:12px;background:rgba(76,175,80,0.15);border-radius:3px"><div style="font-size:24px;font-weight:bold;color:var(--success)">${data.sent||0}</div><div style="font-size:12px">Inviate</div></div>`;
-    html += `<div style="text-align:center;padding:12px;background:rgba(239,83,80,0.15);border-radius:3px"><div style="font-size:24px;font-weight:bold;color:var(--danger)">${data.failed||0}</div><div style="font-size:12px">Fallite</div></div>`;
-    html += `<div style="text-align:center;padding:12px;background:rgba(255,193,7,0.15);border-radius:3px"><div style="font-size:24px;font-weight:bold;color:var(--warning)">${data.skipped||0}</div><div style="font-size:12px">Saltate</div></div>`;
+    html += `<div style="text-align:center;padding:12px;background:rgba(76,175,80,0.15);border-radius:8px"><div style="font-size:24px;font-weight:bold;color:var(--success)">${data.sent||0}</div><div style="font-size:12px">Inviate</div></div>`;
+    html += `<div style="text-align:center;padding:12px;background:rgba(239,83,80,0.15);border-radius:8px"><div style="font-size:24px;font-weight:bold;color:var(--danger)">${data.failed||0}</div><div style="font-size:12px">Fallite</div></div>`;
+    html += `<div style="text-align:center;padding:12px;background:rgba(255,193,7,0.15);border-radius:8px"><div style="font-size:24px;font-weight:bold;color:var(--warning)">${data.skipped||0}</div><div style="font-size:12px">Saltate</div></div>`;
     html += `</div>`;
     if (data.details && data.details.length) {
       html += '<table><thead><tr><th>Azienda</th><th>Email</th><th>Stato</th><th>Note</th></tr></thead><tbody>';
@@ -10186,7 +10467,7 @@ async function loadSoprCalendario() {
 
     for (let day = 1; day <= lastDay.getDate(); day++) {
       const evts = eventsByDay[day] || [];
-      const dots = evts.map(ev => `<div style="font-size:0.7rem;padding:1px 4px;border-radius:3px;background:${ev.color};color:white;margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer" onclick="viewSopralluogoDetail('${ev.id}')" title="${esc(ev.title)}">${esc((ev.title||'').substring(0,12))}</div>`).join('');
+      const dots = evts.map(ev => `<div style="font-size:0.7rem;padding:1px 4px;border-radius:8px;background:${ev.color};color:white;margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer" onclick="viewSopralluogoDetail('${ev.id}')" title="${esc(ev.title)}">${esc((ev.title||'').substring(0,12))}</div>`).join('');
       html += `<div style="padding:6px;min-height:80px;border:1px solid rgba(255,255,255,0.08);${day === new Date().getDate() && mese === new Date().getMonth()+1 && anno === new Date().getFullYear() ? 'background:rgba(255,140,0,0.15);' : ''}">
         <div style="font-weight:bold;font-size:0.85rem;">${day}</div>
         ${dots}
@@ -11034,23 +11315,23 @@ async function loadAlbiFornitori() {
     const data = await res.json();
     const s = data.stats || {};
     document.getElementById('albi-dashboard-stats').innerHTML = `
-      <div class="stat-card" style="background:#ffffff; padding:16px; border-radius:6px; border-left:4px solid var(--primary); box-shadow:0 1px 3px rgba(0,0,0,.1);">
+      <div class="stat-card" style="background:#ffffff; padding:16px; border-radius:8px; border-left:4px solid var(--primary); box-shadow:0 1px 3px rgba(0,0,0,.1);">
         <div style="font-size:2rem; font-weight:700; color:var(--primary);">${s.albi_attivi || 0}</div>
         <div style="font-size:.85rem; color:rgba(255,255,255,0.5);">Albi Attivi</div>
       </div>
-      <div class="stat-card" style="background:#ffffff; padding:16px; border-radius:6px; border-left:4px solid var(--warning); box-shadow:0 1px 3px rgba(0,0,0,.1);">
+      <div class="stat-card" style="background:#ffffff; padding:16px; border-radius:8px; border-left:4px solid var(--warning); box-shadow:0 1px 3px rgba(0,0,0,.1);">
         <div style="font-size:2rem; font-weight:700; color:var(--warning);">${s.richieste_nuove || 0}</div>
         <div style="font-size:.85rem; color:rgba(255,255,255,0.5);">Richieste Nuove</div>
       </div>
-      <div class="stat-card" style="background:#ffffff; padding:16px; border-radius:6px; border-left:4px solid var(--info); box-shadow:0 1px 3px rgba(0,0,0,.1);">
+      <div class="stat-card" style="background:#ffffff; padding:16px; border-radius:8px; border-left:4px solid var(--info); box-shadow:0 1px 3px rgba(0,0,0,.1);">
         <div style="font-size:2rem; font-weight:700; color:var(--info);">${s.richieste_in_corso || 0}</div>
         <div style="font-size:.85rem; color:rgba(255,255,255,0.5);">In Lavorazione</div>
       </div>
-      <div class="stat-card" style="background:#ffffff; padding:16px; border-radius:6px; border-left:4px solid var(--success); box-shadow:0 1px 3px rgba(0,0,0,.1);">
+      <div class="stat-card" style="background:#ffffff; padding:16px; border-radius:8px; border-left:4px solid var(--success); box-shadow:0 1px 3px rgba(0,0,0,.1);">
         <div style="font-size:2rem; font-weight:700; color:var(--success);">${s.richieste_completate || 0}</div>
         <div style="font-size:.85rem; color:rgba(255,255,255,0.5);">Completate</div>
       </div>
-      <div class="stat-card" style="background:#ffffff; padding:16px; border-radius:6px; border-left:4px solid #9C27B0; box-shadow:0 1px 3px rgba(0,0,0,.1);">
+      <div class="stat-card" style="background:#ffffff; padding:16px; border-radius:8px; border-left:4px solid #9C27B0; box-shadow:0 1px 3px rgba(0,0,0,.1);">
         <div style="font-size:2rem; font-weight:700; color:#9C27B0;">${s.iscrizioni_attive || 0}</div>
         <div style="font-size:.85rem; color:rgba(255,255,255,0.5);">Iscrizioni Attive</div>
       </div>
@@ -11336,7 +11617,7 @@ async function loadAlbiIscrizioni() {
     // For now, show available iscrizioni from the stats
     const stats = data.stats || {};
     container.innerHTML = `
-      <div style="padding:20px; background:#f5f5f5; border-radius:6px;">
+      <div style="padding:20px; background:#f5f5f5; border-radius:8px;">
         <h3 style="margin-bottom:12px;">Iscrizioni Registrate</h3>
         <p style="font-size:1.2rem; font-weight:700; color:var(--primary);">${stats.iscrizioni_attive || 0} iscrizioni attive</p>
         <p style="margin-top:12px; color:rgba(255,255,255,0.5); font-size:.9rem;">Per visualizzare tutte le iscrizioni, usa il pulsante "Registra Iscrizione" per aggiungere nuove iscrizioni completate dal team.</p>
@@ -12486,10 +12767,10 @@ async function loadSoprCalendarioFull() {
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${anno}-${String(mese).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       const daySopr = rows.filter(r => (r.data||'').startsWith(dateStr));
-      html += `<div style="min-height:60px;border:1px solid rgba(255,255,255,0.08);padding:4px;border-radius:4px;${daySopr.length?'background:rgba(76,175,80,0.15)':''}"><div style="font-weight:600;font-size:12px">${d}</div>`;
+      html += `<div style="min-height:60px;border:1px solid rgba(255,255,255,0.08);padding:4px;border-radius:8px;${daySopr.length?'background:rgba(76,175,80,0.15)':''}"><div style="font-weight:600;font-size:12px">${d}</div>`;
       daySopr.forEach(s => {
         const col = s.tipo === 'presa_visione' ? '#00137F' : s.stato === 'annullato' ? '#f44336' : '#007F0E';
-        html += `<div style="background:${col};color:#fff;font-size:9px;padding:1px 4px;border-radius:3px;margin-top:2px;cursor:pointer" onclick="viewSoprDetail(${s.id})" title="${esc(s.stazione||'')}">${esc((s.stazione||'').substring(0,12))}</div>`;
+        html += `<div style="background:${col};color:#fff;font-size:9px;padding:1px 4px;border-radius:8px;margin-top:2px;cursor:pointer" onclick="viewSoprDetail(${s.id})" title="${esc(s.stazione||'')}">${esc((s.stazione||'').substring(0,12))}</div>`;
       });
       html += '</div>';
     }
@@ -12640,7 +12921,7 @@ async function loadAlbiRaccomandazioniAI() {
       rows.forEach(r => {
         const pct = r.compatibilita || r.score || Math.round(Math.random() * 30 + 70);
         const barColor = pct >= 80 ? '#4caf50' : pct >= 60 ? '#ff9800' : '#f44336';
-        html += `<tr><td>${esc(r.stazione||'-')}</td><td>${esc(r.nome_albo||r.piattaforma||'-')}</td><td>${esc(r.categorie_match||'-')}</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;background:rgba(255,255,255,0.1);border-radius:4px;height:8px"><div style="width:${pct}%;background:${barColor};height:100%;border-radius:4px"></div></div><span style="font-weight:700;font-size:12px">${pct}%</span></div></td><td>${fmtDate(r.scadenza)}</td><td><button class="btn btn-sm" class="btn-ai" onclick="richiediServizioAlbo(${r.id})"><i class="fas fa-paper-plane"></i> Richiedi</button></td></tr>`;
+        html += `<tr><td>${esc(r.stazione||'-')}</td><td>${esc(r.nome_albo||r.piattaforma||'-')}</td><td>${esc(r.categorie_match||'-')}</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;background:rgba(255,255,255,0.1);border-radius:8px;height:8px"><div style="width:${pct}%;background:${barColor};height:100%;border-radius:8px"></div></div><span style="font-weight:700;font-size:12px">${pct}%</span></div></td><td>${fmtDate(r.scadenza)}</td><td><button class="btn btn-sm" class="btn-ai" onclick="richiediServizioAlbo(${r.id})"><i class="fas fa-paper-plane"></i> Richiedi</button></td></tr>`;
       });
       html += '</tbody></table>';
     } else {
