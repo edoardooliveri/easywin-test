@@ -37,7 +37,7 @@ export default async function concorrentiRoutes(fastify) {
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-    const sortSafe = ['ragione_sociale', 'citta', 'email', 'partita_iva', 'data_creazione'].includes(sort) ? sort : 'ragione_sociale';
+    const sortSafe = ['ragione_sociale', 'citta', 'email', 'partita_iva', 'created_at'].includes(sort) ? sort : 'ragione_sociale';
     const orderSafe = ['ASC', 'DESC'].includes(order.toUpperCase()) ? order.toUpperCase() : 'ASC';
 
     try {
@@ -92,33 +92,39 @@ export default async function concorrentiRoutes(fastify) {
   // ============================================================
   // POST /api/concorrenti - Create
   // ============================================================
-  fastify.post('/', { onRequest: [fastify.authenticate] }, async (request) => {
-    const {
-      ragione_sociale, indirizzo, cap, citta, id_provincia,
-      telefono, fax, email, pec, partita_iva, codice_fiscale,
-      note, prezzo_bandi, prezzo_esiti, prezzo_bundle, id_azienda
-    } = request.body;
+  // Allowed columns based on actual schema (002_esiti_schema.sql)
+  const ALLOWED_COLS = [
+    'ragione_sociale', 'nome', 'indirizzo', 'cap', 'citta', 'id_provincia',
+    'telefono', 'email', 'partita_iva', 'codice_fiscale',
+    'note', 'persona_riferimento',
+    'prezzo_bandi', 'prezzo_esiti', 'prezzo_bundle', 'id_azienda'
+  ];
 
-    if (!ragione_sociale) {
+  fastify.post('/', { onRequest: [fastify.authenticate] }, async (request) => {
+    const b = request.body || {};
+    if (!b.ragione_sociale) {
       return { error: 'ragione_sociale è obbligatorio' };
     }
-
+    // Normalize: ignore unknown fields (fax, pec, etc) silently
+    const cols = [];
+    const vals = [];
+    const placeholders = [];
+    let idx = 1;
+    for (const c of ALLOWED_COLS) {
+      if (b[c] !== undefined && b[c] !== null && b[c] !== '') {
+        cols.push(c);
+        let v = b[c];
+        if (c === 'id_provincia' || c === 'id_azienda') v = parseInt(v);
+        else if (c.startsWith('prezzo_')) v = parseFloat(v) || 0;
+        vals.push(v);
+        placeholders.push('$' + idx++);
+      }
+    }
     try {
       const result = await query(
-        `INSERT INTO concorrenti (
-          ragione_sociale, indirizzo, cap, citta, id_provincia,
-          telefono, fax, email, pec, partita_iva, codice_fiscale,
-          note, prezzo_bandi, prezzo_esiti, prezzo_bundle, id_azienda, data_creazione
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
-         RETURNING *`,
-        [
-          ragione_sociale, indirizzo, cap, citta, id_provincia ? parseInt(id_provincia) : null,
-          telefono, fax, email, pec, partita_iva, codice_fiscale,
-          note, prezzo_bandi || 0, prezzo_esiti || 0, prezzo_bundle || 0,
-          id_azienda ? parseInt(id_azienda) : null
-        ]
+        `INSERT INTO concorrenti (${cols.join(', ')}) VALUES (${placeholders.join(', ')}) RETURNING *`,
+        vals
       );
-
       return result.rows[0];
     } catch (err) {
       fastify.log.error(err, 'Create concorrente error');
@@ -134,91 +140,28 @@ export default async function concorrentiRoutes(fastify) {
   // ============================================================
   fastify.put('/:id', { onRequest: [fastify.authenticate] }, async (request) => {
     const { id } = request.params;
-    const {
-      ragione_sociale, indirizzo, cap, citta, id_provincia,
-      telefono, fax, email, pec, partita_iva, codice_fiscale,
-      note, prezzo_bandi, prezzo_esiti, prezzo_bundle, id_azienda
-    } = request.body;
-
+    const b = request.body || {};
     const updates = [];
     const params = [];
     let paramIdx = 1;
-
-    if (ragione_sociale !== undefined) {
-      updates.push(`ragione_sociale = $${paramIdx++}`);
-      params.push(ragione_sociale);
+    for (const c of ALLOWED_COLS) {
+      if (b[c] !== undefined) {
+        let v = b[c];
+        if (v === '') v = null;
+        if (v !== null && (c === 'id_provincia' || c === 'id_azienda')) v = parseInt(v);
+        else if (v !== null && c.startsWith('prezzo_')) v = parseFloat(v) || 0;
+        updates.push(`${c} = $${paramIdx++}`);
+        params.push(v);
+      }
     }
-    if (indirizzo !== undefined) {
-      updates.push(`indirizzo = $${paramIdx++}`);
-      params.push(indirizzo);
-    }
-    if (cap !== undefined) {
-      updates.push(`cap = $${paramIdx++}`);
-      params.push(cap);
-    }
-    if (citta !== undefined) {
-      updates.push(`citta = $${paramIdx++}`);
-      params.push(citta);
-    }
-    if (id_provincia !== undefined) {
-      updates.push(`id_provincia = $${paramIdx++}`);
-      params.push(id_provincia ? parseInt(id_provincia) : null);
-    }
-    if (telefono !== undefined) {
-      updates.push(`telefono = $${paramIdx++}`);
-      params.push(telefono);
-    }
-    if (fax !== undefined) {
-      updates.push(`fax = $${paramIdx++}`);
-      params.push(fax);
-    }
-    if (email !== undefined) {
-      updates.push(`email = $${paramIdx++}`);
-      params.push(email);
-    }
-    if (pec !== undefined) {
-      updates.push(`pec = $${paramIdx++}`);
-      params.push(pec);
-    }
-    if (partita_iva !== undefined) {
-      updates.push(`partita_iva = $${paramIdx++}`);
-      params.push(partita_iva);
-    }
-    if (codice_fiscale !== undefined) {
-      updates.push(`codice_fiscale = $${paramIdx++}`);
-      params.push(codice_fiscale);
-    }
-    if (note !== undefined) {
-      updates.push(`note = $${paramIdx++}`);
-      params.push(note);
-    }
-    if (prezzo_bandi !== undefined) {
-      updates.push(`prezzo_bandi = $${paramIdx++}`);
-      params.push(prezzo_bandi);
-    }
-    if (prezzo_esiti !== undefined) {
-      updates.push(`prezzo_esiti = $${paramIdx++}`);
-      params.push(prezzo_esiti);
-    }
-    if (prezzo_bundle !== undefined) {
-      updates.push(`prezzo_bundle = $${paramIdx++}`);
-      params.push(prezzo_bundle);
-    }
-    if (id_azienda !== undefined) {
-      updates.push(`id_azienda = $${paramIdx++}`);
-      params.push(id_azienda ? parseInt(id_azienda) : null);
-    }
-
     if (updates.length === 0) {
       return { error: 'Nessun campo da aggiornare' };
     }
-
-    updates.push(`data_modifica = NOW()`);
+    updates.push(`updated_at = NOW()`);
     params.push(parseInt(id));
-
     try {
       const result = await query(
-        `UPDATE concorrenti SET ${updates.join(', ')} WHERE id = $${paramIdx + 1} RETURNING *`,
+        `UPDATE concorrenti SET ${updates.join(', ')} WHERE id = $${paramIdx} RETURNING *`,
         params
       );
 
