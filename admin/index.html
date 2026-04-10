@@ -3162,7 +3162,7 @@ span.flatpickr-weekday {
                 <div class="cs-field"><label>Telefono</label><input type="tel" id="cs-telefono" placeholder="inserire il telefono"></div>
                 <div class="cs-field"><label>Email</label><input type="email" id="cs-email" placeholder="inserire l'email"></div>
               </div>
-              <div class="cs-row r-gara">
+              <div class="cs-row" style="grid-template-columns:2fr 1fr">
                 <div class="cs-field">
                   <label>Tipo di gara pubblicata</label>
                   <select id="cs-tipo-pub-esito">
@@ -3175,8 +3175,35 @@ span.flatpickr-weekday {
                   </select>
                 </div>
                 <div class="cs-field"><label>Giorni medi pubblicazione</label><input type="number" id="cs-giorni" placeholder="0"></div>
+              </div>
+              <div class="cs-row" style="grid-template-columns:repeat(4,1fr);gap:12px">
                 <label class="cs-chk"><input type="checkbox" id="cs-pub-bando">Pubblicazione Bando</label>
+                <label class="cs-chk"><input type="checkbox" id="cs-pub-esito">Pubblicazione Esito</label>
                 <label class="cs-chk"><input type="checkbox" id="cs-limita-range">Limita range ricerca</label>
+                <label class="cs-chk"><input type="checkbox" id="cs-obsoleta">Obsoleta</label>
+              </div>
+            </div>
+
+            <div class="cs-section">
+              <div class="cs-section-title"><i class="fas fa-plug"></i>Piattaforma Digitale</div>
+              <div class="cs-row" style="grid-template-columns:1fr">
+                <div class="cs-field"><label>Piattaforma Digitale</label><select id="cs-piattaforma">
+                  <option value="0">Nessuna</option><option value="1">Non indicata</option>
+                  <option value="10">Asmecomm by TuttoGare</option><option value="47">Asmepal by TuttoGare</option>
+                  <option value="6">BravoSolutions</option><option value="24">CONSIP</option>
+                  <option value="15">DigitalPA</option><option value="25">eAppaltiFVG by BravoSolutions</option>
+                  <option value="7">Empulia</option><option value="8">FABER</option>
+                  <option value="5">Intercent-ER</option><option value="29">INVA by FABER</option>
+                  <option value="16">MAGGIOLI</option><option value="2">MEPA</option>
+                  <option value="32">MERCURIO</option><option value="34">NET4MARKET</option>
+                  <option value="36">PIATTAFORMA COMUNE</option><option value="37">PIATTAFORMA CUC</option>
+                  <option value="38">PIATTAFORMA ENTE</option><option value="42">SardegnaCAT by BravoSolutions</option>
+                  <option value="3">Sintel</option><option value="4">START by FABER</option>
+                  <option value="46">TRASPARE</option><option value="14">TuttoGare</option>
+                </select></div>
+              </div>
+              <div class="cs-row" style="grid-template-columns:1fr;margin-top:6px">
+                <div class="cs-field"><label>Note pubblicazione specifiche della stazione</label><textarea id="cs-note-pub" rows="2" placeholder="Eccezioni al comportamento abituale della piattaforma telematica"></textarea></div>
               </div>
             </div>
 
@@ -8338,89 +8365,179 @@ async function loadStazioni(page = 1) {
 }
 
 async function viewStazione(id) {
+  const container = document.getElementById('stazioni-container');
+  if (!container) return;
+  container.innerHTML = '<div style="padding:40px;text-align:center;color:#586879;background:#fff;border:1px solid #d4dbe5;border-radius:16px;box-shadow:0 2px 8px rgba(30,45,61,0.06)"><i class="fas fa-spinner fa-spin" style="font-size:1.4rem;margin-right:8px;color:#FF8C00"></i>Caricamento stazione...</div>';
   try {
     const res = await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}`, { headers: authHeaders() });
     const data = await res.json();
-    if (data.error) { alert(data.error); return; }
+    if (data.error) { container.innerHTML = '<div style="padding:32px;background:#fef2f2;border:1px solid #fecaca;border-radius:16px;color:#dc2626;text-align:center">'+esc(data.error)+'</div>'; return; }
     const s = data.stazione || {};
     const bandi = data.bandi_recenti || [];
     const esiti = data.esiti_recenti || [];
     const provOptions = (typeof FALLBACK_PROVINCE !== 'undefined' ? FALLBACK_PROVINCE : [])
       .map(p => `<option value="${esc(p.sigla)}" ${p.sigla===s.sigla_provincia?'selected':''}>${esc(p.nome)} (${esc(p.sigla)})</option>`).join('');
-    const container = document.getElementById('stazioni-container');
+    const tipoPub = s.TipoPubblicazioneEsito || s.tipo_pubblicazione_esito || 0;
+    const giorni = s.GiorniAlertPubblicazione || s.giorni_alert_pubblicazione || '';
+    const pubBando = s.PubblicazioneBando || s.pubblicazione_bando || false;
+    const pubEsito = s.PubblicazioneEsito || s.pubblicazione_esito || false;
+    const limRange = s.LimitaRange || s.limita_range || false;
+    const obsoleta = s.Obsoleta || s.obsoleta || false;
+    const idPiattaforma = s.IDPiattaformaDigitale || s.id_piattaforma || 0;
+    const notePub = s.NotePubblicazione || s.note_pubblicazione || '';
+    const piattaformeOpts = [
+      [0,'Nessuna'],[1,'Non indicata'],[10,'Asmecomm by TuttoGare'],[47,'Asmepal by TuttoGare'],
+      [6,'BravoSolutions'],[24,'CONSIP'],[15,'DigitalPA'],[25,'eAppaltiFVG by BravoSolutions'],
+      [7,'Empulia'],[8,'FABER'],[5,'Intercent-ER'],[29,'INVA by FABER'],[16,'MAGGIOLI'],
+      [2,'MEPA'],[32,'MERCURIO'],[34,'NET4MARKET'],[36,'PIATTAFORMA COMUNE'],[37,'PIATTAFORMA CUC'],
+      [38,'PIATTAFORMA ENTE'],[42,'SardegnaCAT by BravoSolutions'],[3,'Sintel'],[4,'START by FABER'],
+      [46,'TRASPARE'],[14,'TuttoGare']
+    ].map(([v,l]) => `<option value="${v}" ${idPiattaforma==v?'selected':''}>${l}</option>`).join('');
+    const tipoOpts = [
+      [0,'Nessuna'],[1,'Completa'],[2,'Elenco aziende partecipanti e ribasso solo del vincitore'],
+      [3,'N° partecipanti e ribasso del vincitore'],[4,'Nessun partecipante'],[5,'Gara non conclusa']
+    ].map(([v,l]) => `<option value="${v}" ${tipoPub==v?'selected':''}>${l}</option>`).join('');
+
     container.innerHTML = `
-      <div class="az-detail-wrap" style="max-width:100%;margin:0">
-        <div class="az-detail-title" style="padding:10px 16px;font-size:1rem;display:flex;align-items:center;justify-content:space-between">
-          <span><i class="fas fa-sitemap" style="color:#FF8C00;margin-right:8px"></i>${esc(s.RagioneSociale||s.Nome||'Stazione')}</span>
-          <button class="az-btn-action" style="padding:6px 12px;font-size:0.78rem" onclick="loadStazioni(currentStazioniPage||1)"><i class="fas fa-arrow-left"></i> INDIETRO</button>
+      <style>
+        .vs-stat { text-align:center; padding:18px 14px; background:#fff; border:1px solid #d4dbe5; border-radius:14px; box-shadow:0 1px 4px rgba(30,45,61,0.04); }
+        .vs-stat .num { font-size:1.9rem; font-weight:700; line-height:1; margin-bottom:6px; }
+        .vs-stat .lbl { font-size:0.7rem; color:#586879; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; }
+        .vs-sub-table { width:100%; border-collapse:collapse; font-family:Comfortaa,sans-serif; font-size:0.78rem; background:#fff; border-radius:12px; overflow:hidden; border:1px solid #eef1f6; }
+        .vs-sub-table thead th { background:linear-gradient(135deg,#1E2D3D 0%,#2A3F55 100%); color:#fff; padding:9px 10px; text-align:left; font-weight:700; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.3px; }
+        .vs-sub-table tbody td { padding:9px 10px; border-bottom:1px solid #eef1f6; color:#1e293b; }
+        .vs-sub-table tbody tr:last-child td { border-bottom:none; }
+        .vs-sub-table tbody tr:hover td { background:#fff8ed; }
+        .cs-btn-delete { background:#fff; color:#dc2626; border:1px solid #fecaca; padding:12px 24px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.82rem; letter-spacing:0.5px; border-radius:12px; cursor:pointer; text-transform:uppercase; }
+        .cs-btn-delete:hover { background:#dc2626; color:#fff; border-color:#dc2626; }
+      </style>
+      <div class="cs-page">
+        <div class="cs-title">
+          <span><i class="fas fa-sitemap"></i>${esc(s.RagioneSociale||s.Nome||'Stazione')}</span>
+          <button class="cs-btn-back" onclick="loadStazioni(currentStazioniPage||1)"><i class="fas fa-arrow-left" style="margin-right:6px"></i>Indietro</button>
         </div>
-        <div class="az-detail-body" style="padding:14px;display:block">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-            <div class="az-consorzio-section" style="margin:0">
-              <div class="az-consorzio-title"><i class="fas fa-id-card"></i> DATI ANAGRAFICI</div>
-              <div class="az-field-row"><div class="az-field"><label>Ragione Sociale *</label><input type="text" id="vs-ragione" value="${esc(s.RagioneSociale||'')}"></div></div>
-              <div class="az-field-row"><div class="az-field"><label>Codice Fiscale / P.IVA</label><input type="text" id="vs-piva" value="${esc(s.PartitaIva||'')}"></div></div>
-              <div class="az-field-row"><div class="az-field"><label>Indirizzo</label><input type="text" id="vs-indirizzo" value="${esc(s.Indirizzo||'')}"></div></div>
-              <div class="az-field-row-3">
-                <div class="az-field"><label>CAP</label><input type="text" id="vs-cap" value="${esc(s.Cap||'')}"></div>
-                <div class="az-field"><label>Città</label><input type="text" id="vs-citta" value="${esc(s['Città']||'')}"></div>
-                <div class="az-field"><label>Provincia</label><select id="vs-provincia"><option value="">-</option>${provOptions}</select></div>
-              </div>
-              <div class="az-field-row"><div class="az-field"><label>Note</label><textarea id="vs-note" rows="3">${esc(s.Note||'')}</textarea></div></div>
-            </div>
-            <div class="az-consorzio-section" style="margin:0">
-              <div class="az-consorzio-title"><i class="fas fa-address-book"></i> CONTATTI</div>
-              <div class="az-field-row">
-                <div class="az-field"><label>Telefono</label><input type="text" id="vs-telefono" value="${esc(s.Tel||'')}"></div>
-                <div class="az-field"><label>Email</label><input type="email" id="vs-email" value="${esc(s.Email||'')}"></div>
-              </div>
-              <div class="az-consorzio-title" style="margin-top:14px"><i class="fas fa-chart-bar"></i> STATISTICHE</div>
-              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:10px 0">
-                <div style="text-align:center;padding:10px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0"><div style="font-size:1.6rem;font-weight:700;color:#FF8C00">${fmt(bandi.length)}</div><div style="font-size:0.7rem;color:#64748b;font-weight:600">BANDI</div></div>
-                <div style="text-align:center;padding:10px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0"><div style="font-size:1.6rem;font-weight:700;color:#10b981">${fmt(esiti.length)}</div><div style="font-size:0.7rem;color:#64748b;font-weight:600">ESITI</div></div>
-                <div style="text-align:center;padding:10px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0"><div style="font-size:1.6rem;font-weight:700;color:#1E2D3D">${s.piattaforma_nome ? '<i class="fas fa-check"></i>' : '—'}</div><div style="font-size:0.7rem;color:#64748b;font-weight:600">${esc(s.piattaforma_nome||'Piattaforma')}</div></div>
-              </div>
-            </div>
+
+        <div class="cs-section">
+          <div class="cs-section-title"><i class="fas fa-chart-bar"></i>Riepilogo</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+            <div class="vs-stat"><div class="num" style="color:#FF8C00">${fmt(bandi.length)}</div><div class="lbl">Bandi recenti</div></div>
+            <div class="vs-stat"><div class="num" style="color:#10b981">${fmt(esiti.length)}</div><div class="lbl">Esiti recenti</div></div>
+            <div class="vs-stat"><div class="num" style="color:#1E2D3D">${s.piattaforma_nome ? '<i class="fas fa-check"></i>' : '—'}</div><div class="lbl">${esc(s.piattaforma_nome||'Piattaforma')}</div></div>
+            <div class="vs-stat"><div class="num" style="color:#586879;font-size:1.1rem;padding-top:10px">#${s.id||id}</div><div class="lbl">ID Stazione</div></div>
           </div>
-          ${bandi.length ? `
-            <div class="az-consorzio-section" style="margin-top:14px">
-              <div class="az-consorzio-title"><i class="fas fa-file-contract"></i> BANDI RECENTI (${bandi.length})</div>
-              <table class="az-consorzio-table" style="margin:0;font-size:0.76rem"><thead><tr><th>Data</th><th>Titolo</th><th>CIG</th><th>Importo</th><th>Scadenza</th></tr></thead><tbody>
-                ${bandi.map(b => `<tr><td>${fmtDate(b.data_pubblicazione)}</td><td>${esc((b.titolo||'').substring(0,80))}</td><td>${esc(b.cig||'')}</td><td>${fmtImporto(b.importo_totale)}</td><td>${fmtDate(b.data_offerta)}</td></tr>`).join('')}
-              </tbody></table>
-            </div>
-          ` : ''}
-          ${esiti.length ? `
-            <div class="az-consorzio-section" style="margin-top:14px">
-              <div class="az-consorzio-title"><i class="fas fa-gavel"></i> ESITI RECENTI (${esiti.length})</div>
-              <table class="az-consorzio-table" style="margin:0;font-size:0.76rem"><thead><tr><th>Data</th><th>Titolo</th><th>CIG</th><th>Importo</th><th style="text-align:center">Partec.</th><th>Ribasso</th></tr></thead><tbody>
-                ${esiti.map(e => `<tr><td>${fmtDate(e.data)}</td><td>${esc((e.titolo||'').substring(0,80))}</td><td>${esc(e.cig||'')}</td><td>${fmtImporto(e.importo)}</td><td style="text-align:center">${e.n_partecipanti||'—'}</td><td>${e.ribasso ? Number(e.ribasso).toFixed(3)+'%' : '—'}</td></tr>`).join('')}
-              </tbody></table>
-            </div>
-          ` : ''}
-          <div class="az-buttons" style="margin-top:14px;justify-content:flex-start">
-            <button class="az-btn-save" onclick="saveStazione(${id})"><i class="fas fa-save"></i> SALVA MODIFICHE</button>
-            <button class="az-btn-action" onclick="loadStazioni(currentStazioniPage||1)"><i class="fas fa-times"></i> ANNULLA</button>
-            <button class="az-btn-danger" onclick="deleteStazione(${id})"><i class="fas fa-trash"></i> ELIMINA</button>
+        </div>
+
+        <div class="cs-section">
+          <div class="cs-section-title"><i class="fas fa-id-card"></i>Dati Anagrafici</div>
+          <div class="cs-row r-piva">
+            <div class="cs-field"><label>Partita IVA</label><input type="text" id="vs-piva" maxlength="11" value="${esc(s.PartitaIva||'')}"></div>
+            <div class="cs-field"><label>Ragione Sociale <span class="cs-req">*</span></label><input type="text" id="vs-ragione" value="${esc(s.RagioneSociale||'')}" required></div>
           </div>
+          <div class="cs-row r-addr">
+            <div class="cs-field"><label>Indirizzo</label><input type="text" id="vs-indirizzo" value="${esc(s.Indirizzo||'')}"></div>
+            <div class="cs-field"><label>CAP</label><input type="text" id="vs-cap" maxlength="5" value="${esc(s.Cap||'')}"></div>
+            <div class="cs-field"><label>Città</label><input type="text" id="vs-citta" value="${esc(s['Città']||s.Citta||'')}"></div>
+            <div class="cs-field"><label>Provincia</label><select id="vs-provincia"><option value="">—</option>${provOptions}</select></div>
+          </div>
+        </div>
+
+        <div class="cs-section">
+          <div class="cs-section-title"><i class="fas fa-address-book"></i>Contatti e Pubblicazione</div>
+          <div class="cs-row r-contatti">
+            <div class="cs-field"><label>Telefono</label><input type="tel" id="vs-telefono" value="${esc(s.Tel||'')}"></div>
+            <div class="cs-field"><label>Email</label><input type="email" id="vs-email" value="${esc(s.Email||'')}"></div>
+          </div>
+          <div class="cs-row" style="grid-template-columns:2fr 1fr">
+            <div class="cs-field"><label>Tipo di gara pubblicata</label><select id="vs-tipo-pub-esito">${tipoOpts}</select></div>
+            <div class="cs-field"><label>Giorni medi pubblicazione</label><input type="number" id="vs-giorni" value="${esc(giorni)}"></div>
+          </div>
+          <div class="cs-row" style="grid-template-columns:repeat(4,1fr);gap:12px">
+            <label class="cs-chk"><input type="checkbox" id="vs-pub-bando" ${pubBando?'checked':''}>Pubblicazione Bando</label>
+            <label class="cs-chk"><input type="checkbox" id="vs-pub-esito" ${pubEsito?'checked':''}>Pubblicazione Esito</label>
+            <label class="cs-chk"><input type="checkbox" id="vs-limita-range" ${limRange?'checked':''}>Limita range ricerca</label>
+            <label class="cs-chk" style="border-color:${obsoleta?'#dc2626':'#d4dbe5'};color:${obsoleta?'#dc2626':'#586879'}"><input type="checkbox" id="vs-obsoleta" ${obsoleta?'checked':''}>Obsoleta</label>
+          </div>
+        </div>
+
+        <div class="cs-section">
+          <div class="cs-section-title"><i class="fas fa-plug"></i>Piattaforma Digitale</div>
+          <div class="cs-row" style="grid-template-columns:1fr">
+            <div class="cs-field"><label>Piattaforma Digitale</label><select id="vs-piattaforma">${piattaformeOpts}</select></div>
+          </div>
+          <div class="cs-row" style="grid-template-columns:1fr;margin-top:6px">
+            <div class="cs-field"><label>Note pubblicazione specifiche della stazione</label><textarea id="vs-note-pub" rows="2" placeholder="Eccezioni al comportamento abituale della piattaforma telematica">${esc(notePub)}</textarea></div>
+          </div>
+        </div>
+
+        <div class="cs-section">
+          <div class="cs-section-title"><i class="fas fa-map-marker-alt"></i>Geolocalizzazione</div>
+          <div class="cs-row r-geo">
+            <div class="cs-field"><label>Latitudine</label><input type="number" step="0.000001" id="vs-lat" value="${esc(s.Lat||'')}"></div>
+            <div class="cs-field"><label>Longitudine</label><input type="number" step="0.000001" id="vs-lon" value="${esc(s.Lon||'')}"></div>
+          </div>
+        </div>
+
+        <div class="cs-section">
+          <div class="cs-section-title"><i class="fas fa-sticky-note"></i>Note</div>
+          <div class="cs-field"><textarea id="vs-note" rows="3">${esc(s.Note||'')}</textarea></div>
+        </div>
+
+        ${bandi.length ? `
+        <div class="cs-section">
+          <div class="cs-section-title"><i class="fas fa-file-contract"></i>Bandi Recenti (${bandi.length})</div>
+          <table class="vs-sub-table">
+            <thead><tr><th>Data</th><th>Titolo</th><th>CIG</th><th>Importo</th><th>Scadenza</th></tr></thead>
+            <tbody>
+              ${bandi.map(b => `<tr><td>${fmtDate(b.data_pubblicazione)}</td><td>${esc((b.titolo||'').substring(0,80))}</td><td>${esc(b.cig||'')}</td><td>${fmtImporto(b.importo_totale)}</td><td>${fmtDate(b.data_offerta)}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>` : ''}
+
+        ${esiti.length ? `
+        <div class="cs-section">
+          <div class="cs-section-title"><i class="fas fa-gavel"></i>Esiti Recenti (${esiti.length})</div>
+          <table class="vs-sub-table">
+            <thead><tr><th>Data</th><th>Titolo</th><th>CIG</th><th>Importo</th><th style="text-align:center">Partec.</th><th>Ribasso</th></tr></thead>
+            <tbody>
+              ${esiti.map(e => `<tr><td>${fmtDate(e.data)}</td><td>${esc((e.titolo||'').substring(0,80))}</td><td>${esc(e.cig||'')}</td><td>${fmtImporto(e.importo)}</td><td style="text-align:center">${e.n_partecipanti||'—'}</td><td>${e.ribasso ? Number(e.ribasso).toFixed(3)+'%' : '—'}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>` : ''}
+
+        <div class="cs-actions">
+          <button class="cs-btn-save" onclick="saveStazione(${id})"><i class="fas fa-save" style="margin-right:8px"></i>Salva Modifiche</button>
+          <button class="cs-btn-cancel" onclick="loadStazioni(currentStazioniPage||1)">Annulla</button>
+          <button class="cs-btn-delete" onclick="deleteStazione(${id})"><i class="fas fa-trash" style="margin-right:8px"></i>Elimina</button>
         </div>
       </div>`;
   } catch(e) {
-    alert('Errore: ' + e.message);
+    container.innerHTML = '<div style="padding:32px;background:#fef2f2;border:1px solid #fecaca;border-radius:16px;color:#dc2626;text-align:center"><i class="fas fa-exclamation-triangle" style="margin-right:8px"></i>Errore: ' + esc(e.message) + '</div>';
   }
 }
 
 async function saveStazione(id) {
+  const v = i => document.getElementById(i)?.value;
+  const c = i => document.getElementById(i)?.checked || false;
   const body = {
-    ragione_sociale: document.getElementById('vs-ragione')?.value,
-    partita_iva: document.getElementById('vs-piva')?.value,
-    indirizzo: document.getElementById('vs-indirizzo')?.value,
-    cap: document.getElementById('vs-cap')?.value,
-    citta: document.getElementById('vs-citta')?.value,
-    id_provincia: provSiglaToId(document.getElementById('vs-provincia')?.value),
-    telefono: document.getElementById('vs-telefono')?.value,
-    email: document.getElementById('vs-email')?.value,
-    note: document.getElementById('vs-note')?.value
+    ragione_sociale: v('vs-ragione'),
+    partita_iva: v('vs-piva'),
+    indirizzo: v('vs-indirizzo'),
+    cap: v('vs-cap'),
+    citta: v('vs-citta'),
+    id_provincia: provSiglaToId(v('vs-provincia')),
+    telefono: v('vs-telefono'),
+    email: v('vs-email'),
+    tipo_pubblicazione_esito: parseInt(v('vs-tipo-pub-esito')) || 0,
+    giorni_alert_pubblicazione: parseInt(v('vs-giorni')) || 0,
+    pubblicazione_bando: c('vs-pub-bando'),
+    pubblicazione_esito: c('vs-pub-esito'),
+    limita_range: c('vs-limita-range'),
+    obsoleta: c('vs-obsoleta'),
+    id_piattaforma: parseInt(v('vs-piattaforma')) || 0,
+    note_pubblicazione: v('vs-note-pub'),
+    lat: v('vs-lat') || null,
+    lon: v('vs-lon') || null,
+    note: v('vs-note')
   };
   try {
     const res = await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body) });
@@ -9364,7 +9481,11 @@ async function handleCreateStazione(event) {
       tipo_pubblicazione_esito: parseInt(v('cs-tipo-pub-esito')) || 0,
       giorni_alert_pubblicazione: parseInt(v('cs-giorni')) || 0,
       pubblicazione_bando: c('cs-pub-bando'),
+      pubblicazione_esito: c('cs-pub-esito'),
       limita_range: c('cs-limita-range'),
+      obsoleta: c('cs-obsoleta'),
+      id_piattaforma: parseInt(v('cs-piattaforma')) || 0,
+      note_pubblicazione: v('cs-note-pub'),
       lat: v('cs-lat') || null,
       lon: v('cs-lon') || null,
       note: v('cs-note')
