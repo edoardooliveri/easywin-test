@@ -174,7 +174,8 @@ a { text-decoration: none; color: inherit; }
 /* ════════════════ MAIN LAYOUT ════════════════ */
 .app {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* DARK SIDEBAR (left) */
@@ -389,8 +390,9 @@ a { text-decoration: none; color: inherit; }
   margin-left: 80px;
   margin-right: 0;
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   flex: 1;
+  overflow: hidden;
 }
 .main-wrapper.with-secondary-sidebar {
   margin-left: 300px;
@@ -1738,7 +1740,7 @@ tbody tr:hover td {
         <div id="adminTabGenerale" class="admin-tab-content active">
           <!-- Area di Amministrazione -->
           <div class="dashboard-section">
-            <h3>Area di Amministrazione</h3>
+            <h3 style="color:#7B0000;font-weight:bold;text-transform:uppercase;font-size:1.1rem;margin-bottom:12px">Area di Amministrazione</h3>
             <div class="table-container">
               <table class="data-table">
                 <thead>
@@ -1786,7 +1788,7 @@ tbody tr:hover td {
 
           <!-- Abbonamenti Bloccati -->
           <div class="dashboard-section">
-            <h3>Abbonamenti Bloccati</h3>
+            <h3 style="color:#7B0000;font-weight:bold;text-transform:uppercase;font-size:1.1rem;margin-bottom:12px">Abbonamenti Bloccati</h3>
             <div class="search-section compact">
               <div class="form-row">
                 <div class="form-col">
@@ -1821,7 +1823,7 @@ tbody tr:hover td {
 
           <!-- Filtro Scadenze Abbonamenti -->
           <div class="dashboard-section">
-            <h3>Filtro Scadenze Abbonamenti</h3>
+            <h3 style="color:#7B0000;font-weight:bold;text-transform:uppercase;font-size:1.1rem;margin-bottom:12px">Filtro Scadenze Abbonamenti</h3>
             <div class="search-section">
               <div class="form-row">
                 <div class="form-col">
@@ -1863,7 +1865,7 @@ tbody tr:hover td {
 
           <!-- Clienti Personali e loro Scadenze -->
           <div class="dashboard-section">
-            <h3>Clienti Personali e loro Scadenze</h3>
+            <h3 style="color:#7B0000;font-weight:bold;text-transform:uppercase;font-size:1.1rem;margin-bottom:12px">Clienti Personali e loro Scadenze (New, basato sui dati della pagina "Storico" degli utenti)</h3>
             <div class="table-container" style="border-radius:12px">
               <table class="data-table" style="width:100%;font-size:0.82rem">
                 <thead>
@@ -1890,7 +1892,7 @@ tbody tr:hover td {
         <div id="adminTabNewsletterAdmin" class="admin-tab-content">
           <!-- Newsletter Sending Form -->
           <div class="search-section compact">
-            <h3 style="margin-bottom:16px;color:#333">Newsletter Sending</h3>
+            <h3 style="color:#7B0000;font-weight:bold;text-transform:uppercase;font-size:1.1rem;margin-bottom:16px">Newsletter</h3>
             <div class="form-row">
               <div class="form-col">
                 <label>Data Newsletter</label>
@@ -1927,7 +1929,7 @@ tbody tr:hover td {
 
           <!-- CIG/CUP Sistemazione Section -->
           <div class="search-section compact" style="margin-top:32px">
-            <h3 style="margin-bottom:16px;color:#333">Sistemazione CIG/CUP</h3>
+            <h3 style="color:#7B0000;font-weight:bold;text-transform:uppercase;font-size:1.1rem;margin-bottom:16px">Sistemazione CIG / CUP</h3>
             <div class="form-row">
               <div class="form-col">
                 <label style="display:block;margin-bottom:8px">Filtri</label>
@@ -7866,6 +7868,13 @@ function switchAdminTab(tabName) {
   if (tabButton) tabButton.classList.add('active');
   const content = document.getElementById('adminTab' + tabName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''));
   if (content) content.classList.add('active');
+
+  // Sync sidebar active state
+  const sidebarItems = document.querySelectorAll('#secondarySidebarList .sidebar-sub-item');
+  sidebarItems.forEach(item => item.classList.remove('active'));
+  const tabToSidebarMap = { 'generale': 0, 'newsletter-admin': 1, 'stato-servizi': 2 };
+  const idx = tabToSidebarMap[tabName];
+  if (idx !== undefined && sidebarItems[idx]) sidebarItems[idx].classList.add('active');
 
   // Load data when switching to admin tabs
   if (tabName === 'generale') {
