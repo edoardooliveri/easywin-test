@@ -317,57 +317,69 @@ a { text-decoration: none; color: inherit; }
 }
 
 /* SECONDARY SIDEBAR (left) */
+/* ═══ Secondary Nav — Horizontal Tabs (replaces sidebar) ═══ */
 .secondary-sidebar {
-  width: 220px;
-  background: #ffffff;
-  border-right: 1px solid var(--border);
-  position: fixed;
-  left: 0;
-  top: var(--topbar-height);
-  bottom: 0;
-  overflow-y: auto;
-  z-index: 50;
-  padding: 0;
+  display: none;
 }
 .secondary-sidebar-hidden {
   display: none;
 }
 .secondary-nav-title {
-  background: transparent;
-  color: var(--orange);
-  padding: 16px 24px;
-  font-size: 0.8rem;
-  font-family: 'Comfortaa', cursive;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--border);
-  border-left: 3px solid var(--orange);
-  padding-left: 21px;
+  display: none;
 }
 .secondary-nav-list {
-  padding: 8px 0;
-  list-style: none;
+  display: none;
+}
+/* New horizontal sub-tabs */
+.sub-tabs-bar {
+  display: none;
+  background: #fff;
+  border-bottom: 2px solid var(--border);
+  padding: 0 20px;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,140,0,0.3) transparent;
+  position: sticky;
+  top: 60px;
+  z-index: 99;
+  margin-top: 60px;
+}
+.sub-tabs-bar.visible {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+}
+.sub-tabs-bar::-webkit-scrollbar { height: 3px; }
+.sub-tabs-bar::-webkit-scrollbar-thumb { background: rgba(255,140,0,0.3); border-radius: 3px; }
+.sub-tab {
+  padding: 12px 18px;
+  font-family: 'Comfortaa', cursive;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.sub-tab:hover {
+  color: var(--orange);
+  background: rgba(255,140,0,0.04);
+}
+.sub-tab.active {
+  color: var(--orange);
+  font-weight: 700;
+  border-bottom-color: var(--orange);
 }
 .secondary-nav-item {
-  padding: 14px 24px;
-  cursor: pointer;
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  border-left: 3px solid transparent;
-  transition: var(--transition);
-}
-.secondary-nav-item:hover {
-  background: rgba(255,140,0,0.06);
-  border-left-color: var(--orange);
-  color: var(--orange);
-}
-.secondary-nav-item.active {
-  background: rgba(255,140,0,0.08);
-  color: var(--orange);
-  border-left-color: var(--orange);
-  border-left-width: 3px;
-  font-weight: 600;
+  display: none;
 }
 
 /* Admin Tabs */
@@ -434,7 +446,10 @@ a { text-decoration: none; color: inherit; }
   overflow: hidden;
 }
 .main-wrapper.with-secondary-sidebar {
-  margin-left: 220px;
+  margin-left: 0;
+}
+.sub-tabs-bar.visible + .main-wrapper {
+  margin-top: 0;
 }
 .main {
   flex: 1;
@@ -909,6 +924,39 @@ tbody tr:hover td {
 .results-header h3 { color: var(--text); font-size: 1rem; text-transform: uppercase; font-family: 'Comfortaa', cursive; }
 .pagination-bar { display: flex; align-items: center; gap: 12px; justify-content: center; padding: 16px; }
 .pagination-bar span { font-size: 0.85rem; color: var(--text-light); }
+/* Azioni tabella aziende */
+.azioni-cell { display: flex; flex-direction: column; gap: 6px; align-items: center; padding: 8px 4px !important; }
+.btn-azione {
+  font-family: 'Comfortaa', cursive;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  transition: var(--transition);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.btn-visualizza {
+  background: linear-gradient(135deg, var(--accent-orange), #e67e00);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(255,140,0,0.25);
+}
+.btn-visualizza:hover { box-shadow: 0 4px 12px rgba(255,140,0,0.4); transform: translateY(-1px); }
+.btn-elimina {
+  background: #fff;
+  color: #999;
+  border: 1px solid #ddd;
+}
+.btn-elimina:hover { color: var(--danger); border-color: var(--danger); background: #fff5f5; }
+.aziende-table { width: 100%; }
+.aziende-table th { position: sticky; top: 0; z-index: 2; }
+.aziende-table td { font-size: 0.78rem; vertical-align: middle; }
 .detail-card { background: var(--dark-card); border: 1px solid var(--border-dark); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
 .detail-grid { display: grid; gap: 0; }
 .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-dark); }
@@ -1747,6 +1795,9 @@ span.flatpickr-weekday {
     <div class="secondary-nav-title" id="secondarySidebarTitle">MENU</div>
     <ul class="secondary-nav-list" id="secondarySidebarList"></ul>
   </div>
+
+  <!-- SUB-NAVIGATION TABS (horizontal) -->
+  <div id="subTabsBar" class="sub-tabs-bar"></div>
 
   <!-- MAIN CONTENT -->
   <div id="mainWrapper" class="main-wrapper">
@@ -6705,15 +6756,15 @@ function selectSection(section) {
   document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
   document.querySelector(`[data-section="${section}"]`).classList.add('active');
 
-  // Show/hide secondary sidebar
-  const secondary = document.getElementById('secondarySidebar');
-  if (section === 'aziende' || section === 'stazioni' || section === 'bandi' || section === 'esiti' || section === 'utenti' || section === 'amministrazione' || section === 'ricerca-doppia' || section === 'sopralluoghi' || section === 'albi-fornitori') {
-    secondary.classList.remove('secondary-sidebar-hidden');
-    document.getElementById('mainWrapper').classList.add('with-secondary-sidebar');
-    loadSecondaryNav(section);
+  // Show/hide horizontal sub-tabs
+  const subTabsBar = document.getElementById('subTabsBar');
+  const sectionsWithSubs = ['aziende','stazioni','bandi','esiti','utenti','amministrazione','ricerca-doppia','sopralluoghi','albi-fornitori'];
+  if (sectionsWithSubs.includes(section)) {
+    subTabsBar.classList.add('visible');
+    loadSubTabs(section);
   } else {
-    secondary.classList.add('secondary-sidebar-hidden');
-    document.getElementById('mainWrapper').classList.remove('with-secondary-sidebar');
+    subTabsBar.classList.remove('visible');
+    subTabsBar.innerHTML = '';
   }
 
   // Load initial data for new sections
@@ -6729,6 +6780,107 @@ function selectSection(section) {
     loadInfoSistema();
   } else if (section === 'amministrazione') {
     loadAdminDashboard();
+  }
+}
+
+function loadSubTabs(section) {
+  const bar = document.getElementById('subTabsBar');
+  const items = getSubNavItems(section);
+  bar.innerHTML = items.map((it, i) =>
+    `<button class="sub-tab${i === 0 ? ' active' : ''}" onclick="handleSubTabClick(this, '${section}', ${i})">${it.label}</button>`
+  ).join('');
+}
+function handleSubTabClick(btn, section, idx) {
+  document.querySelectorAll('#subTabsBar .sub-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const items = getSubNavItems(section);
+  if (items[idx] && items[idx].action) items[idx].action();
+}
+function getSubNavItems(section) {
+  switch(section) {
+    case 'aziende': return [
+      { label: 'Aziende', action: () => selectSubPage('aziende', 'aziende') },
+      { label: 'Crea Azienda', action: () => selectSubPage('aziende', 'create-azienda') },
+      { label: 'Cestino', action: () => selectSubPage('aziende', 'cestino') },
+      { label: 'Concorrenti', action: () => selectSubPage('aziende', 'concorrenti') },
+      { label: 'Crea Concorrente', action: () => selectSubPage('aziende', 'create-concorrente') },
+      { label: 'Intermediari', action: () => selectSubPage('aziende', 'intermediari') },
+      { label: 'Crea Intermediario', action: () => selectSubPage('aziende', 'create-intermediario') },
+      { label: 'Esecutori Esterni', action: () => selectSubPage('aziende', 'esecutori') },
+      { label: 'Crea Esecutore', action: () => selectSubPage('aziende', 'create-esecutore') },
+      { label: 'Imprese', action: () => selectSubPage('aziende', 'imprese') },
+      { label: 'Casellario', action: () => selectSubPage('aziende', 'casellario') },
+      { label: 'CCIAA', action: () => selectSubPage('aziende', 'cciaa') }
+    ];
+    case 'stazioni': return [
+      { label: 'Stazioni', action: () => selectSubPage('stazioni', 'stazioni') },
+      { label: 'Crea Stazione', action: () => selectSubPage('stazioni', 'create-stazione') },
+      { label: 'Fonti Web', action: () => selectSubPage('stazioni', 'fonti-web') },
+      { label: 'Parole Chiave', action: () => selectSubPage('stazioni', 'parole-chiave') },
+      { label: 'Cestino', action: () => selectSubPage('stazioni', 'cestino') },
+      { label: 'Correzioni', action: () => selectSubPage('stazioni', 'correzioni') },
+      { label: 'Piattaforme', action: () => selectSubPage('stazioni', 'piattaforme') },
+      { label: 'Sync Manuale', action: () => selectSubPage('stazioni', 'sincronizzazione') },
+      { label: 'Presidia', action: () => selectSubPage('stazioni', 'presidia') },
+      { label: 'Albi Fornitori', action: () => selectSubPage('stazioni', 'albi-fornitori') }
+    ];
+    case 'bandi': return [
+      { label: 'Calendario', action: () => selectSubPage('bandi', 'calendario') },
+      { label: 'Agenda Mensile', action: () => selectSubPage('bandi', 'agenda-mensile') },
+      { label: 'Appuntamenti', action: () => selectSubPage('bandi', 'appuntamenti') },
+      { label: 'Cerca Bandi', action: () => selectSubPage('bandi', 'bandi') },
+      { label: 'Crea Bando', action: () => selectSubPage('bandi', 'create-bando') },
+      { label: 'Tipologia Bando', action: () => selectSubPage('bandi', 'tipologia-bando') },
+      { label: 'Criterio Agg.', action: () => selectSubPage('bandi', 'criterio-aggiudicazione') },
+      { label: 'Incompleti', action: () => selectSubPage('bandi', 'bandi-incompleti') },
+      { label: 'Rettificati', action: () => selectSubPage('bandi', 'bandi-rettificati') },
+      { label: 'Import', action: () => selectSubPage('bandi', 'import') }
+    ];
+    case 'esiti': return [
+      { label: 'Cerca Esiti', action: () => selectSubPage('esiti', 'esiti') },
+      { label: 'Crea Esito', action: () => selectSubPage('esiti', 'create-esito') },
+      { label: 'Da Abilitare', action: () => selectSubPage('esiti', 'esiti-da-abilitare') },
+      { label: 'Tipologia Gara', action: () => selectSubPage('esiti', 'tipologia-gara') },
+      { label: 'Incompleti', action: () => selectSubPage('esiti', 'esiti-incompleti') },
+      { label: 'Modificabili', action: () => selectSubPage('esiti', 'esiti-modificabili') },
+      { label: 'Cestino', action: () => selectSubPage('esiti', 'cestino') },
+      { label: 'Cestino Aziende', action: () => selectSubPage('esiti', 'cestino-aziende') },
+      { label: 'Cestino Stazioni', action: () => selectSubPage('esiti', 'cestino-stazioni') },
+      { label: 'Concorrenti', action: () => selectSubPage('esiti', 'concorrenti') }
+    ];
+    case 'utenti': return [
+      { label: 'Cerca Utenti', action: () => selectSubPage('utenti', 'utenti') },
+      { label: 'Crea Utente', action: () => selectSubPage('utenti', 'create-utente') },
+      { label: 'Agenti', action: () => selectSubPage('utenti', 'agenti') },
+      { label: 'Incaricati', action: () => selectSubPage('utenti', 'incaricati') },
+      { label: 'Inserimenti', action: () => selectSubPage('utenti', 'inserimenti') },
+      { label: 'Controllo Accessi', action: () => selectSubPage('utenti', 'controllo-accessi') },
+      { label: 'Fatturazione', action: () => selectSubPage('utenti', 'fatturazione') }
+    ];
+    case 'amministrazione': return [
+      { label: 'Generale', action: () => selectSubPage('amministrazione', 'generale') },
+      { label: 'Newsletter', action: () => selectSubPage('amministrazione', 'newsletter') },
+      { label: 'Stato Servizi', action: () => selectSubPage('amministrazione', 'stato-servizi') }
+    ];
+    case 'ricerca-doppia': return [
+      { label: 'Ricerca Doppia', action: () => selectSubPage('ricerca-doppia', 'ricerca-doppia') },
+      { label: 'Crea Esito', action: () => selectSubPage('ricerca-doppia', 'crea-esito') }
+    ];
+    case 'sopralluoghi': return [
+      { label: 'Dashboard', action: () => selectSubPage('sopralluoghi', 'dashboard') },
+      { label: 'Mappa', action: () => selectSubPage('sopralluoghi', 'mappa') },
+      { label: 'Richieste', action: () => selectSubPage('sopralluoghi', 'richieste') },
+      { label: 'Pagamenti', action: () => selectSubPage('sopralluoghi', 'pagamenti') },
+      { label: 'Collaboratori', action: () => selectSubPage('sopralluoghi', 'collaboratori') }
+    ];
+    case 'albi-fornitori': return [
+      { label: 'Dashboard', action: () => selectSubPage('albi-fornitori', 'dashboard') },
+      { label: 'Richieste', action: () => selectSubPage('albi-fornitori', 'richieste') },
+      { label: 'Iscrizioni', action: () => selectSubPage('albi-fornitori', 'iscrizioni') },
+      { label: 'Scadenze', action: () => selectSubPage('albi-fornitori', 'scadenze') },
+      { label: 'Raccomandazioni AI', action: () => selectSubPage('albi-fornitori', 'raccomandazioni') }
+    ];
+    default: return [];
   }
 }
 
@@ -8182,21 +8334,29 @@ async function searchAziende(page = 1) {
     }
     if (countEl) countEl.innerHTML = `AZIENDE TROVATE: ${fmt(total)}`;
     let html = '';
-    html += '<div class="table-container"><table><thead><tr><th>ID</th><th>Ragione Sociale</th><th>P.IVA</th><th>CAP</th><th>Città</th><th>Provincia</th><th>Attestazioni</th><th>Cliente</th><th>Email</th><th>Inserita da</th><th>Elim.</th></tr></thead><tbody>';
-    rows.forEach(r => {
-      const tipoLabel = r.tipo_azienda ? `<span style="color:var(--orange);font-size:11px;">${esc(r.tipo_azienda)}</span>` : '';
-      html += `<tr style="cursor:pointer;" onclick="viewAziendaDetailEnhanced(${r.id},${currentAziendePage})">
-        <td>${r.id||''}<br>${tipoLabel}</td>
-        <td>${esc(r.ragione_sociale||'')}</td>
+    html += '<div class="table-container"><table class="aziende-table"><thead><tr>';
+    html += '<th>ID</th><th>Ragione Sociale</th><th>P.IVA</th><th>CAP</th><th>Città</th><th>Provincia</th><th>Attestazioni</th><th>Cliente</th><th>Email</th><th>Inserita da</th><th>Ricontattare</th><th>Elim.</th><th style="min-width:120px;">Azioni</th>';
+    html += '</tr></thead><tbody>';
+    rows.forEach((r, idx) => {
+      const tipoLabel = r.tipo_azienda ? `<span style="color:var(--orange);font-size:10px;font-weight:600;">${esc(r.tipo_azienda)}</span>` : '';
+      const rowBg = idx % 2 === 0 ? '' : ' style="background:rgba(255,140,0,0.04);"';
+      html += `<tr${rowBg}>
+        <td style="text-align:center;font-weight:600;">${r.id||''}<br>${tipoLabel}</td>
+        <td style="max-width:220px;">${esc(r.ragione_sociale||'')}</td>
         <td>${esc(r.partita_iva||'')}</td>
-        <td>${esc(r.cap||'')}</td>
+        <td style="text-align:center;">${esc(r.cap||'')}</td>
         <td>${esc(r.citta||'')}</td>
         <td>${esc(r.provincia_nome||'')}</td>
-        <td style="font-size:11px;max-width:180px;white-space:normal;">${esc((r.num_attestazioni||0) > 0 ? r.num_attestazioni + ' att.' : '')}</td>
-        <td>${r.username_azienda ? '<i class="fas fa-check" style="color:var(--success)"></i>' : ''}</td>
-        <td style="font-size:11px;">${esc(r.email||r.pec||'')}</td>
+        <td style="font-size:11px;max-width:180px;white-space:normal;">${esc(r.attestazioni_lista || ((r.num_attestazioni||0) > 0 ? r.num_attestazioni + ' att.' : ''))}</td>
+        <td style="text-align:center;">${r.username_azienda ? '<i class="fas fa-check" style="color:var(--success)"></i>' : ''}</td>
+        <td style="font-size:11px;">${r.email ? 'Mail: ' + esc(r.email) : ''}${r.pec && r.pec !== r.email ? (r.email ? '<br>' : '') + 'PEC: ' + esc(r.pec) : ''}${r.telefono ? '<br>Tel.: ' + esc(r.telefono) : ''}</td>
         <td>${esc(r.username_responsabile||r.inserita_da||r.created_by||'')}</td>
-        <td>${r.cessata ? '<i class="fas fa-trash" style="color:var(--danger);font-size:11px;"></i>' : '<i class="fas fa-circle" style="font-size:10px;color:#ccc;"></i>'}</td>
+        <td style="text-align:center;">${r.da_ricontattare ? '<i class="fas fa-phone" style="color:var(--orange);"></i>' : ''}</td>
+        <td style="text-align:center;">${r.cessata ? '<i class="fas fa-times-circle" style="color:var(--danger);"></i>' : ''}</td>
+        <td class="azioni-cell">
+          <button class="btn-azione btn-visualizza" onclick="event.stopPropagation();viewAziendaDetailEnhanced(${r.id},${currentAziendePage})"><i class="fas fa-eye"></i> Visualizza</button>
+          <button class="btn-azione btn-elimina" onclick="event.stopPropagation();eliminaAzienda(${r.id})"><i class="fas fa-trash-alt"></i> Elimina</button>
+        </td>
       </tr>`;
     });
     html += '</tbody></table></div>';
@@ -8204,11 +8364,12 @@ async function searchAziende(page = 1) {
     if (totalPages > 1) {
       html += '<div class="pagination-bar">';
       if (page > 1) html += `<button class="btn btn-sm btn-secondary" onclick="searchAziende(${page-1})">← Prec</button>`;
-      html += `<span>Pagina ${page} di ${totalPages}</span>`;
+      html += `<span style="font-family:Comfortaa,cursive;font-size:0.85rem;color:var(--text-muted);">Pagina ${page} di ${totalPages} — ${fmt(total)} risultati</span>`;
       if (page < totalPages) html += `<button class="btn btn-sm btn-secondary" onclick="searchAziende(${page+1})">Succ →</button>`;
       html += '</div>';
     }
     container.innerHTML = html;
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch(e) {
     console.error('searchAziende error:', e);
     container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Errore: ${e.message}</p></div>`;
@@ -12170,6 +12331,18 @@ function switchDetailTab(btn, idx, tabId) {
 }
 
 // ═══════════════════ AZIENDA DETAIL WITH TABS ═══════════════════
+async function eliminaAzienda(id) {
+  if (!confirm(`Sei sicuro di voler eliminare l'azienda ID ${id}? Questa azione la segnerà come cessata.`)) return;
+  try {
+    const res = await fetch(`${API_BASE}/admin/aziende/${id}`, { method: 'DELETE', headers: authHeaders() });
+    if (!res.ok) throw new Error('Errore eliminazione');
+    showToast('Azienda eliminata con successo', 'success');
+    searchAziende(currentAziendePage);
+  } catch(e) {
+    showToast('Errore: ' + e.message, 'error');
+  }
+}
+
 async function viewAziendaDetailEnhanced(id, currentPage = 1) {
   const container = document.getElementById('aziendeResults');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Caricamento dettaglio...</p></div>';
