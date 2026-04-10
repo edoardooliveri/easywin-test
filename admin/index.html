@@ -3101,195 +3101,56 @@ span.flatpickr-weekday {
 
 
       <div id="pageStazioni" class="page">
-        <div class="page-header">
-          <h1 class="page-title">STAZIONI</h1>
-          <p class="page-subtitle" style="color:#94a3b8;font-size:0.88rem;margin-top:4px;margin-bottom:24px">Archivio delle stazioni appaltanti. Cerca per nome, provincia o tipologia e gestisci i dati di ogni ente.</p>
-        </div>
-
-        <div class="search-section compact">
-          <div class="form-row">
-            <div class="form-col">
-              <label>Ragione Sociale</label>
-              <input type="text" id="stazioni-ragione" placeholder="Ricerca per nome">
-            </div>
-            <div class="form-col">
-              <label>Partita IVA</label>
-              <input type="text" id="stazioni-piva" placeholder="es. 12345678901">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Città</label>
-              <input type="text" id="stazioni-citta" placeholder="Nome città">
-            </div>
-            <div class="form-col">
-              <label>CAP</label>
-              <input type="text" id="stazioni-cap" placeholder="es. 00100">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Indirizzo</label>
-              <input type="text" id="stazioni-indirizzo">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Regioni</label>
-              <select id="stazioni-regione" multiple size="3">
-                <option value="">Seleziona...</option>
-              </select>
-            </div>
-            <div class="form-col">
-              <label>Province</label>
-              <select id="stazioni-provincia" multiple size="3">
-                <option value="">Seleziona...</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Email</label>
-              <input type="text" id="stazioni-email" placeholder="email@esempio.it">
-            </div>
-            <div class="form-col">
-              <label>Inserita da Utenti</label>
-              <select id="stazioni-inserita-da">
-                <option value="">Tutti</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Giorni medi pubblicazione</label>
-              <input type="number" id="stazioni-giorni-medi" placeholder="Giorni">
-            </div>
-            <div class="form-col" style="display:flex;gap:24px;align-items:center;padding-top:8px;">
-              <label class="checkbox-label" style="padding-top:0">
-                <input type="checkbox" id="stazioni-pub-esito"> Pubblicazione Esito
-              </label>
-              <label class="checkbox-label" style="padding-top:0">
-                <input type="checkbox" id="stazioni-pub-bando"> Pubblicazione Bando
-              </label>
-              <label class="checkbox-label" style="padding-top:0">
-                <input type="checkbox" id="stazioni-obsoleta"> Obsoleta
-              </label>
-            </div>
-          </div>
-
-          <div style="display:flex;gap:10px;margin-top:20px;">
-            <button class="btn btn-primary" onclick="searchStazioni()" style="flex:1;padding:14px;font-size:1rem;"><i class="fas fa-search"></i> CERCA STAZIONI</button>
-            <button class="btn btn-secondary" onclick="resetStazioniSearch()" style="padding:14px 20px;"><i class="fas fa-redo"></i></button>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <div id="stazioniResults"></div>
-        </div>
+        <div id="stazioni-container"></div>
       </div>
 
       <!-- CREA STAZIONE PAGE -->
       <div id="pageCreateStazione" class="page">
-        <div class="page-header">
-          <h1 class="page-title">STAZIONE</h1>
-        </div>
-
-        <div class="search-section compact">
-          <form id="createStazioneForm" onsubmit="handleCreateStazione(event)">
-            <div class="form-row">
-              <div class="form-col">
-                <label>Partita IVA</label>
-                <input type="text" id="cs-piva" required>
-              </div>
-              <div class="form-col">
-                <label>Ragione Sociale</label>
-                <input type="text" id="cs-ragione" required>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>Indirizzo</label>
-                <input type="text" id="cs-indirizzo" required>
-              </div>
-              <div class="form-col">
-                <label>CAP</label>
-                <input type="text" id="cs-cap">
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>Città</label>
-                <input type="text" id="cs-citta" required>
-              </div>
-              <div class="form-col">
-                <label>Provincia</label>
-                <select id="cs-provincia" required>
-                  <option value="">Seleziona...</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>Telefono</label>
-                <input type="tel" id="cs-telefono">
-              </div>
-              <div class="form-col">
-                <label>Email</label>
-                <input type="email" id="cs-email">
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>Latitudine</label>
-                <input type="number" step="0.000001" id="cs-lat">
-              </div>
-              <div class="form-col">
-                <label>Longitudine</label>
-                <input type="number" step="0.000001" id="cs-lon">
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>Giorni medi per pubblicazione</label>
-                <input type="number" id="cs-giorni">
-              </div>
-              <div class="form-col">
-                <label>Tipo di gara pubblicata</label>
-                <select id="cs-tipo-gara">
-                  <option value="">Nessuna</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-col">
-                <div class="checkbox-group">
-                  <input type="checkbox" id="cs-pub-bando">
-                  <label for="cs-pub-bando">Pubblicazione Bando</label>
+        <div class="az-detail-wrap" style="max-width:100%;margin:0">
+          <div class="az-detail-title" style="padding:10px 16px;font-size:1rem;display:flex;align-items:center;justify-content:space-between">
+            <span><i class="fas fa-plus-circle" style="color:#FF8C00;margin-right:8px"></i>NUOVA STAZIONE APPALTANTE</span>
+            <button class="az-btn-action" style="padding:6px 12px;font-size:0.78rem" onclick="selectSubPage('stazioni','stazioni')"><i class="fas fa-arrow-left"></i> INDIETRO</button>
+          </div>
+          <div class="az-detail-body" style="padding:14px;display:block">
+            <form id="createStazioneForm" onsubmit="handleCreateStazione(event);return false">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                <div class="az-consorzio-section" style="margin:0">
+                  <div class="az-consorzio-title"><i class="fas fa-id-card"></i> DATI ANAGRAFICI</div>
+                  <div class="az-field-row"><div class="az-field"><label>Ragione Sociale *</label><input type="text" id="cs-ragione" required></div></div>
+                  <div class="az-field-row"><div class="az-field"><label>Codice Fiscale / P.IVA</label><input type="text" id="cs-piva"></div></div>
+                  <div class="az-field-row"><div class="az-field"><label>Indirizzo</label><input type="text" id="cs-indirizzo"></div></div>
+                  <div class="az-field-row-3">
+                    <div class="az-field"><label>CAP</label><input type="text" id="cs-cap"></div>
+                    <div class="az-field"><label>Città</label><input type="text" id="cs-citta"></div>
+                    <div class="az-field"><label>Provincia</label><select id="cs-provincia"><option value="">-</option></select></div>
+                  </div>
+                  <div class="az-field-row"><div class="az-field"><label>Note</label><textarea id="cs-note" rows="3"></textarea></div></div>
+                </div>
+                <div class="az-consorzio-section" style="margin:0">
+                  <div class="az-consorzio-title"><i class="fas fa-address-book"></i> CONTATTI & GEO</div>
+                  <div class="az-field-row">
+                    <div class="az-field"><label>Telefono</label><input type="tel" id="cs-telefono"></div>
+                    <div class="az-field"><label>Email</label><input type="email" id="cs-email"></div>
+                  </div>
+                  <div class="az-field-row">
+                    <div class="az-field"><label>Latitudine</label><input type="number" step="0.000001" id="cs-lat"></div>
+                    <div class="az-field"><label>Longitudine</label><input type="number" step="0.000001" id="cs-lon"></div>
+                  </div>
+                  <div class="az-field-row">
+                    <div class="az-field"><label>Giorni medi pubblicazione</label><input type="number" id="cs-giorni"></div>
+                    <div class="az-field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding-top:22px"><input type="checkbox" id="cs-pub-bando" style="width:auto;margin:0">Pubblica Bando</label></div>
+                  </div>
+                  <div class="az-field-row">
+                    <div class="az-field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="cs-limita-range" style="width:auto;margin:0">Limita range ricerca</label></div>
+                  </div>
                 </div>
               </div>
-              <div class="form-col">
-                <div class="checkbox-group">
-                  <input type="checkbox" id="cs-limita-range">
-                  <label for="cs-limita-range">Limita ricerca "range"</label>
-                </div>
+              <div class="az-buttons" style="margin-top:14px;justify-content:flex-start">
+                <button type="submit" class="az-btn-save"><i class="fas fa-save"></i> CREA STAZIONE</button>
+                <button type="button" class="az-btn-action" onclick="selectSubPage('stazioni','stazioni')"><i class="fas fa-times"></i> ANNULLA</button>
               </div>
-            </div>
-            <div class="form-row full">
-              <div class="form-col">
-                <label>Note</label>
-                <textarea id="cs-note"></textarea>
-              </div>
-            </div>
-
-            <div class="button-group">
-              <button type="submit" class="btn btn-primary">
-                <i class="fas fa-plus"></i> AGGIUNGI STAZIONE
-              </button>
-              <button type="button" class="btn btn-secondary" onclick="selectSubPage('stazioni', 'stazioni')">
-                <i class="fas fa-times"></i> ANNULLA
-              </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
 
@@ -6542,7 +6403,7 @@ function populateStaticSelects() {
   }
 
   // Province per nuovi inserimenti
-  const provSelects = ['new-utente-provincia', 'cc-provincia', 'concorrenti-provincia', 'ci-provincia', 'ce-provincia'];
+  const provSelects = ['new-utente-provincia', 'cc-provincia', 'concorrenti-provincia', 'ci-provincia', 'ce-provincia', 'cs-provincia'];
   provSelects.forEach(id => {
     const sel = document.getElementById(id);
     if (sel && sel.options.length <= 1) {
@@ -7235,6 +7096,7 @@ function selectSubPage(section, subpage) {
   if (subpage === 'concorrenti') loadConcorrenti();
   if (subpage === 'intermediari' && section === 'aziende') loadIntermediari();
   if (subpage === 'esecutori' && section === 'aziende') loadEsecutori();
+  if (subpage === 'stazioni' && section === 'stazioni') loadStazioni(1);
   if (subpage === 'sopralluoghi') loadSopralluoghiAdmin();
   if (subpage === 'tipologia-dati') loadTipologiaDati();
   if (subpage === 'create-azienda') { setTimeout(() => { if (typeof initFlatpickrAll === 'function') initFlatpickrAll(); }, 50); }
@@ -8230,114 +8092,313 @@ async function inserisciLinkEsito(id) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 
-// STAZIONI — uses /api/admin/stazioni
+// ════════════════ STAZIONI — stile Intermediari ════════════════
 let currentStazioniPage = 1;
-async function searchStazioni(page = 1) {
+
+// Util: converte sigla provincia -> id (per POST/PUT al backend)
+function provSiglaToId(sigla) {
+  if (!sigla) return null;
+  if (/^\d+$/.test(String(sigla))) return parseInt(sigla);
+  const p = (typeof FALLBACK_PROVINCE !== 'undefined' ? FALLBACK_PROVINCE : []).find(x => x.sigla === sigla);
+  return p ? p.id : null;
+}
+
+function resetStazioniFiltri() {
+  ['ragione','piva','citta','cap','indirizzo','emails','inserita','giorni','giorni-num'].forEach(f => {
+    const el = document.getElementById('stazioni-' + f); if (el) el.value = '';
+  });
+  ['pub-esito','pub-bando','obsoleta'].forEach(f => {
+    const el = document.getElementById('stazioni-' + f); if (el) el.checked = false;
+  });
+  const provSel = document.getElementById('stazioni-province');
+  if (provSel) Array.from(provSel.options).forEach(o => o.selected = false);
+  loadStazioni(1);
+}
+
+function renderStazioniListShell() {
+  const container = document.getElementById('stazioni-container');
+  if (!container) return;
+  const provOptions = (typeof FALLBACK_PROVINCE !== 'undefined' ? FALLBACK_PROVINCE : [])
+    .map(p => `<option value="${esc(p.nome)}">${esc(p.nome)} (${esc(p.sigla)})</option>`).join('');
+  container.innerHTML = `
+    <style>
+      .staz-page { font-family: Comfortaa, sans-serif; color:#1e293b; }
+      .staz-title { color:#1E2D3D; font-weight:700; font-size:1.05rem; letter-spacing:0.4px; padding:0 0 14px 2px; display:flex; align-items:center; gap:10px; }
+      .staz-title i { color:#FF8C00; }
+      .staz-filters { background:#fff; border:1px solid #d4dbe5; padding:18px 22px; margin-bottom:16px; border-radius:8px; box-shadow:0 1px 2px rgba(30,45,61,0.04); }
+      .staz-filters label { display:block; color:#586879; font-size:0.74rem; font-weight:700; margin-bottom:6px; font-family:Comfortaa,sans-serif; text-transform:uppercase; letter-spacing:0.3px; }
+      .staz-filters input[type=text], .staz-filters input[type=number], .staz-filters select { width:100%; padding:8px 10px; border:1px solid #d4dbe5; border-radius:6px; background:#fff; font-family:Comfortaa,sans-serif; font-size:0.82rem; color:#1e293b; box-sizing:border-box; transition:border-color 0.15s; }
+      .staz-filters input:focus, .staz-filters select:focus { outline:none; border-color:#FF8C00; box-shadow:0 0 0 2px rgba(255,140,0,0.12); }
+      .staz-filters select[multiple] { min-height:34px; padding:4px; }
+      .staz-row { display:grid; gap:14px; margin-bottom:14px; }
+      .staz-row.r1 { grid-template-columns:1fr; }
+      .staz-row.r2 { grid-template-columns:1fr 1fr; }
+      .staz-row.r6 { grid-template-columns:1.3fr 1.3fr 1fr 1fr 1.5fr 0.9fr; align-items:end; }
+      .staz-row .chk-col { display:flex; align-items:center; padding-bottom:8px; }
+      .staz-row .chk-col label { margin-bottom:0; font-weight:700; color:#586879; cursor:pointer; display:flex; align-items:center; gap:8px; text-transform:uppercase; font-size:0.72rem; }
+      .staz-row .chk-col input[type=checkbox] { width:auto; margin:0; accent-color:#FF8C00; }
+      .staz-btn-cerca { background:linear-gradient(135deg,#1E2D3D 0%,#2A3F55 100%); color:#fff; border:none; padding:10px 22px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.5px; border-radius:6px; cursor:pointer; text-transform:uppercase; box-shadow:0 1px 3px rgba(30,45,61,0.2); }
+      .staz-btn-cerca:hover { background:linear-gradient(135deg,#FF8C00 0%,#ff9d22 100%); }
+      .staz-btn-annulla { background:#fff; color:#586879; border:1px solid #d4dbe5; padding:10px 20px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.5px; border-radius:6px; cursor:pointer; margin-left:8px; text-transform:uppercase; }
+      .staz-btn-annulla:hover { background:#f0f2f7; border-color:#FF8C00; color:#FF8C00; }
+      .staz-btn-nuova { background:#FF8C00; color:#fff; border:none; padding:10px 20px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.5px; border-radius:6px; cursor:pointer; margin-left:8px; text-transform:uppercase; box-shadow:0 1px 3px rgba(255,140,0,0.25); }
+      .staz-btn-nuova:hover { background:#e57a00; }
+      .staz-count { color:#1E2D3D; font-weight:700; font-size:0.88rem; padding:12px 2px 12px 2px; letter-spacing:0.3px; text-transform:uppercase; }
+      .staz-count strong { color:#FF8C00; font-size:1rem; }
+      .staz-table-wrap { background:#fff; border:1px solid #d4dbe5; border-radius:8px; overflow:hidden; box-shadow:0 1px 2px rgba(30,45,61,0.04); }
+      .staz-table { width:100%; border-collapse:collapse; font-family:Comfortaa,sans-serif; font-size:0.78rem; background:#fff; }
+      .staz-table thead th { background:linear-gradient(135deg,#1E2D3D 0%,#2A3F55 100%); color:#fff; padding:11px 10px; text-align:left; font-weight:700; letter-spacing:0.3px; font-size:0.7rem; text-transform:uppercase; border-right:1px solid rgba(255,255,255,0.08); }
+      .staz-table thead th:last-child { border-right:none; }
+      .staz-table tbody td { padding:10px 10px; border-bottom:1px solid #eef1f6; color:#1e293b; vertical-align:middle; }
+      .staz-table tbody tr:hover td { background:#fff8ed; }
+      .staz-table tbody tr:last-child td { border-bottom:none; }
+      .staz-table .center { text-align:center; }
+      .staz-table .stz-name { font-weight:700; color:#1E2D3D; }
+      .staz-btn-vis { background:#fff; color:#586879; border:1px solid #d4dbe5; padding:5px 11px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.68rem; border-radius:5px; cursor:pointer; letter-spacing:0.3px; text-transform:uppercase; }
+      .staz-btn-vis:hover { background:#FF8C00; color:#fff; border-color:#FF8C00; }
+      .staz-btn-elim { background:#fff; color:#586879; border:1px solid #d4dbe5; padding:5px 11px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.68rem; border-radius:5px; cursor:pointer; letter-spacing:0.3px; margin-left:4px; text-transform:uppercase; }
+      .staz-btn-elim:hover { background:#fef2f2; color:#dc2626; border-color:#dc2626; }
+      .staz-check { color:#10b981; font-size:1rem; font-weight:700; }
+      .staz-dash { color:#cbd5e1; }
+      .staz-pagination { display:flex; gap:6px; align-items:center; justify-content:center; padding:18px 0; }
+      .staz-pagination button { background:#fff; border:1px solid #d4dbe5; padding:7px 12px; font-family:Comfortaa,sans-serif; font-size:0.78rem; font-weight:700; color:#586879; cursor:pointer; border-radius:6px; }
+      .staz-pagination button:hover:not([disabled]) { background:#FF8C00; color:#fff; border-color:#FF8C00; }
+      .staz-pagination button[disabled] { opacity:0.4; cursor:not-allowed; }
+      .staz-pagination .pag-info { padding:7px 14px; font-weight:700; color:#1E2D3D; }
+    </style>
+    <div class="staz-page">
+      <div class="staz-title"><i class="fas fa-sitemap"></i> STAZIONI APPALTANTI</div>
+      <div class="staz-filters">
+        <div class="staz-row r1">
+          <div><label>Ragione Sociale</label><input type="text" id="stazioni-ragione" onkeydown="if(event.key==='Enter')loadStazioni(1)"></div>
+        </div>
+        <div class="staz-row r2">
+          <div><label>Partita iva</label><input type="text" id="stazioni-piva" onkeydown="if(event.key==='Enter')loadStazioni(1)"></div>
+          <div><label>Città</label><input type="text" id="stazioni-citta" onkeydown="if(event.key==='Enter')loadStazioni(1)"></div>
+        </div>
+        <div class="staz-row r2">
+          <div><label>Cap</label><input type="text" id="stazioni-cap" onkeydown="if(event.key==='Enter')loadStazioni(1)"></div>
+          <div><label>Indirizzo</label><input type="text" id="stazioni-indirizzo" onkeydown="if(event.key==='Enter')loadStazioni(1)"></div>
+        </div>
+        <div class="staz-row r1">
+          <div><label>Province</label><select id="stazioni-province" multiple size="1" style="height:34px">${provOptions}</select></div>
+        </div>
+        <div class="staz-row r6">
+          <div><label>Emails</label><select id="stazioni-emails"><option value="">Tutte</option><option value="si">Con email</option><option value="no">Senza email</option></select></div>
+          <div><label>Inserita da Utenti</label><select id="stazioni-inserita"><option value="">Tutti</option><option value="si">Sì</option><option value="no">No</option></select></div>
+          <div class="chk-col"><label><input type="checkbox" id="stazioni-pub-esito"> Pub. Esito</label></div>
+          <div class="chk-col"><label><input type="checkbox" id="stazioni-pub-bando"> Pub. Bando</label></div>
+          <div>
+            <label>Giorni medi pubblicazione</label>
+            <div style="display:flex;gap:6px">
+              <select id="stazioni-giorni" style="flex:1"><option value="">Tutte</option><option value="lt">Minore di</option><option value="gt">Maggiore di</option></select>
+              <input type="number" id="stazioni-giorni-num" style="width:70px" value="0">
+            </div>
+          </div>
+          <div class="chk-col"><label><input type="checkbox" id="stazioni-obsoleta"> Obsoleta</label></div>
+        </div>
+        <div style="margin-top:6px">
+          <button class="staz-btn-cerca" onclick="loadStazioni(1)"><i class="fas fa-search" style="margin-right:6px"></i>Cerca Stazioni</button>
+          <button class="staz-btn-annulla" onclick="resetStazioniFiltri()">Annulla</button>
+          <button class="staz-btn-nuova" onclick="selectSubPage('stazioni','create-stazione')"><i class="fas fa-plus" style="margin-right:6px"></i>Nuova Stazione</button>
+        </div>
+      </div>
+      <div id="stazioni-count" class="staz-count" style="display:none"></div>
+      <div id="stazioni-results"></div>
+      <div id="stazioni-pagination" class="staz-pagination"></div>
+    </div>`;
+}
+
+async function loadStazioni(page = 1) {
   currentStazioniPage = page;
-  const container = document.getElementById('stazioniResults');
-  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Ricerca in corso...</p></div>';
+  if (!document.getElementById('stazioni-results')) renderStazioniListShell();
+  const resultsEl = document.getElementById('stazioni-results');
+  const countEl = document.getElementById('stazioni-count');
+  const pagEl = document.getElementById('stazioni-pagination');
+  if (!resultsEl) return;
+  resultsEl.innerHTML = '<div style="padding:40px;text-align:center;color:#586879;background:#fff;border:1px solid #d4dbe5;border-radius:8px"><i class="fas fa-spinner fa-spin" style="font-size:1.4rem;margin-right:8px;color:#FF8C00"></i>Caricamento stazioni...</div>';
   try {
+    const v = id => document.getElementById(id)?.value?.trim() || '';
+    const c = id => document.getElementById(id)?.checked || false;
+    const ragione = v('stazioni-ragione');
+    const piva = v('stazioni-piva');
+    const citta = v('stazioni-citta');
+    const cap = v('stazioni-cap');
+    const indirizzo = v('stazioni-indirizzo');
+    const provSel = document.getElementById('stazioni-province');
+    const provNames = provSel ? Array.from(provSel.selectedOptions).map(o => o.value).filter(Boolean) : [];
     const params = new URLSearchParams();
-    const search = document.getElementById('stazioni-ragione')?.value || '';
-    if (search) params.set('search', search);
-    const provSel = document.getElementById('stazioni-provincia');
-    if (provSel && provSel.value) {
-      const provName = provSel.options[provSel.selectedIndex]?.text?.split(' (')[0];
-      if (provName) params.set('provincia', provName);
-    }
+    // backend supports: search, provincia, citta, cap, indirizzo
+    if (ragione) params.set('search', ragione);
+    else if (piva) params.set('search', piva);
+    if (citta) params.set('citta', citta);
+    if (cap) params.set('cap', cap);
+    if (indirizzo) params.set('indirizzo', indirizzo);
+    if (provNames.length) params.set('provincia', provNames.join(','));
+    params.set('limit', '50');
     params.set('page', page);
-    params.set('limit', PAGE_SIZE);
     const res = await fetch(`${API_BASE}/admin/stazioni/stazioni?${params}`, { headers: authHeaders() });
     const data = await res.json();
     const rows = data.dati || [];
-    const total = data.totale || rows.length;
-    if (!rows.length) { container.innerHTML = '<div class="empty-state"><i class="fas fa-sitemap"></i><p>Nessuna stazione trovata</p></div>'; return; }
-    let html = `<div class="results-header"><h3>STAZIONI TROVATE: ${fmt(total)}</h3></div>`;
-    html += '<div class="table-container"><table><thead><tr><th>Ragione Sociale</th><th>Città</th><th>Provincia</th><th>Regione</th><th>P.IVA</th><th>N. Bandi</th><th>N. Esiti</th><th></th></tr></thead><tbody>';
+    const total = data.totale || 0;
+    const pages = data.pagine || 1;
+    if (countEl) {
+      countEl.style.display = 'block';
+      countEl.innerHTML = `Stazioni Appaltanti Trovate: <strong>${fmt(total)}</strong>`;
+    }
+    if (!rows.length) {
+      resultsEl.innerHTML = '<div style="padding:48px;text-align:center;background:#fff;border:1px solid #d4dbe5;border-radius:8px;color:#586879"><i class="fas fa-sitemap" style="font-size:2.4rem;display:block;margin-bottom:12px;color:#cbd5e1"></i>Nessuna stazione trovata</div>';
+      if (pagEl) pagEl.innerHTML = '';
+      return;
+    }
+    let html = '<div class="staz-table-wrap"><table class="staz-table"><thead><tr>';
+    html += '<th>ID</th><th>Stazione Appaltante</th><th>CAP</th><th>Città</th><th>Provincia</th><th>Partita IVA</th><th class="center">Pub. Esito</th><th class="center">Pub. Bando</th><th>Username</th><th class="center">Fonti</th><th class="center">Eliminata</th><th class="center">Azioni</th>';
+    html += '</tr></thead><tbody>';
     rows.forEach(r => {
+      const fonti = (r.n_albi||0) + (r.n_bandi||0) + (r.n_esiti||0);
       html += `<tr>
-        <td>${esc(r.ragione_sociale||r.nome||'')}</td>
+        <td>${esc(r.id||'')}</td>
+        <td><span class="stz-name">${esc(r.ragione_sociale||r.nome||'')}</span></td>
+        <td>${esc(r.cap||'')}</td>
         <td>${esc(r.citta||'')}</td>
-        <td>${esc(r.provincia_nome||'')} ${r.sigla_provincia ? '('+esc(r.sigla_provincia)+')' : ''}</td>
-        <td>${esc(r.regione_nome||'')}</td>
+        <td>${esc(r.provincia_nome||r.regione_nome||'')} ${r.sigla_provincia?'('+esc(r.sigla_provincia)+')':''}</td>
         <td>${esc(r.partita_iva||'')}</td>
-        <td style="text-align:center">${fmt(r.n_bandi||0)}</td>
-        <td style="text-align:center">${fmt(r.n_esiti||0)}</td>
-        <td><button class="btn btn-sm btn-primary" onclick="viewStazioneDetailEnhanced(${r.id},${currentStazioniPage})"><i class="fas fa-eye"></i></button></td>
+        <td class="center">${(r.n_esiti||0)>0 ? '<i class="fas fa-check staz-check"></i>' : '<span class="staz-dash">—</span>'}</td>
+        <td class="center">${(r.n_bandi||0)>0 ? '<i class="fas fa-check staz-check"></i>' : '<span class="staz-dash">—</span>'}</td>
+        <td>${esc(r.username_creatore||'')}</td>
+        <td class="center">${fonti>0 ? '<i class="fas fa-check staz-check"></i>' : '<span class="staz-dash">—</span>'}</td>
+        <td class="center">${r.eliminata ? '<i class="fas fa-check" style="color:#dc2626"></i>' : '<span class="staz-dash">—</span>'}</td>
+        <td class="center" style="white-space:nowrap">
+          <button class="staz-btn-vis" onclick="viewStazione(${r.id})"><i class="fas fa-eye"></i> Visualizza</button>
+          <button class="staz-btn-elim" onclick="deleteStazione(${r.id})"><i class="fas fa-trash"></i></button>
+        </td>
       </tr>`;
     });
     html += '</tbody></table></div>';
-    const totalPages = data.pagine || Math.ceil(total / PAGE_SIZE);
-    if (totalPages > 1) {
-      html += '<div class="pagination-bar">';
-      if (page > 1) html += `<button class="btn btn-sm btn-secondary" onclick="searchStazioni(${page-1})">← Prec</button>`;
-      html += `<span>Pagina ${page} di ${totalPages}</span>`;
-      if (page < totalPages) html += `<button class="btn btn-sm btn-secondary" onclick="searchStazioni(${page+1})">Succ →</button>`;
-      html += '</div>';
+    resultsEl.innerHTML = html;
+    if (pagEl) {
+      let pagH = '';
+      pagH += `<button ${page<=1?'disabled':''} onclick="loadStazioni(1)"><i class="fas fa-angle-double-left"></i></button>`;
+      pagH += `<button ${page<=1?'disabled':''} onclick="loadStazioni(${page-1})"><i class="fas fa-angle-left"></i></button>`;
+      pagH += `<span class="pag-info">Pagina ${page} di ${pages}</span>`;
+      pagH += `<button ${page>=pages?'disabled':''} onclick="loadStazioni(${page+1})"><i class="fas fa-angle-right"></i></button>`;
+      pagH += `<button ${page>=pages?'disabled':''} onclick="loadStazioni(${pages})"><i class="fas fa-angle-double-right"></i></button>`;
+      pagEl.innerHTML = pagH;
     }
-    container.innerHTML = html;
-  } catch(e) { container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Errore: ${e.message}</p></div>`; }
+  } catch(e) {
+    resultsEl.innerHTML = '<div style="padding:32px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;color:#dc2626;text-align:center"><i class="fas fa-exclamation-triangle" style="margin-right:8px"></i>Errore: ' + esc(e.message) + '</div>';
+  }
 }
 
-async function viewStazioneDetail(id) {
-  const container = document.getElementById('stazioniResults');
-  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Caricamento dettaglio...</p></div>';
+async function viewStazione(id) {
   try {
     const res = await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}`, { headers: authHeaders() });
     const data = await res.json();
-    const s = data.stazione;
-    let html = `<div style="margin-bottom:16px"><button class="btn btn-sm btn-secondary" onclick="searchStazioni(${currentStazioniPage})"><i class="fas fa-arrow-left"></i> Torna ai risultati</button></div>`;
-    html += `<div class="detail-card"><h3 style="color:var(--primary);margin-bottom:16px">DETTAGLIO STAZIONE #${id}</h3>`;
-    html += `<div class="detail-grid">`;
-    html += `<div class="detail-row"><span class="detail-label">Ragione Sociale</span><span class="detail-value">${esc(s.RagioneSociale||'')}</span></div>`;
-    html += `<div class="detail-row"><span class="detail-label">Nome</span><span class="detail-value">${esc(s.Nome||'')}</span></div>`;
-    html += `<div class="detail-row"><span class="detail-label">Indirizzo</span><span class="detail-value">${esc(s.Indirizzo||'')} ${esc(s.Cap||'')} ${esc(s['Città']||'')}</span></div>`;
-    html += `<div class="detail-row"><span class="detail-label">Provincia</span><span class="detail-value">${esc(s.provincia_nome||'')} - ${esc(s.regione_nome||'')}</span></div>`;
-    html += `<div class="detail-row"><span class="detail-label">P.IVA</span><span class="detail-value">${esc(s.PartitaIva||'')}</span></div>`;
-    html += `<div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${esc(s.Email||'')}</span></div>`;
-    html += `<div class="detail-row"><span class="detail-label">Telefono</span><span class="detail-value">${esc(s.Tel||'')}</span></div>`;
-    html += `<div class="detail-row"><span class="detail-label">Piattaforma</span><span class="detail-value">${esc(s.piattaforma_nome||'-')} ${s.piattaforma_link ? '(<a href="'+esc(s.piattaforma_link)+'" target="_blank">link</a>)' : ''}</span></div>`;
-    html += `<div class="detail-row"><span class="detail-label">Note</span><span class="detail-value">${esc(s.Note||'-')}</span></div>`;
-    html += `</div></div>`;
-    // Bandi recenti
-    if (data.bandi_recenti && data.bandi_recenti.length) {
-      html += `<h4 style="margin:20px 0 10px;color:var(--primary)">BANDI RECENTI (${data.bandi_recenti.length})</h4>`;
-      html += '<div class="table-container"><table><thead><tr><th>Data</th><th>Titolo</th><th>CIG</th><th>Importo</th><th>Scadenza</th></tr></thead><tbody>';
-      data.bandi_recenti.forEach(b => {
-        html += `<tr>
-          <td>${fmtDate(b.data_pubblicazione)}</td>
-          <td>${esc((b.titolo||'').substring(0,50))}</td>
-          <td>${esc(b.cig||'')}</td>
-          <td>${fmtImporto(b.importo_totale)}</td>
-          <td>${fmtDate(b.data_offerta)}</td>
-        </tr>`;
-      });
-      html += '</tbody></table></div>';
-    }
-    // Esiti recenti
-    if (data.esiti_recenti && data.esiti_recenti.length) {
-      html += `<h4 style="margin:20px 0 10px;color:var(--primary)">ESITI RECENTI (${data.esiti_recenti.length})</h4>`;
-      html += '<div class="table-container"><table><thead><tr><th>Data</th><th>Titolo</th><th>CIG</th><th>Importo</th><th>Partec.</th><th>Ribasso</th></tr></thead><tbody>';
-      data.esiti_recenti.forEach(e => {
-        html += `<tr>
-          <td>${fmtDate(e.data)}</td>
-          <td>${esc((e.titolo||'').substring(0,50))}</td>
-          <td>${esc(e.cig||'')}</td>
-          <td>${fmtImporto(e.importo)}</td>
-          <td style="text-align:center">${e.n_partecipanti||'-'}</td>
-          <td>${e.ribasso ? Number(e.ribasso).toFixed(3)+'%' : '-'}</td>
-        </tr>`;
-      });
-      html += '</tbody></table></div>';
-    }
-    container.innerHTML = html;
-  } catch(e) { container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Errore: ${e.message}</p></div>`; }
+    if (data.error) { alert(data.error); return; }
+    const s = data.stazione || {};
+    const bandi = data.bandi_recenti || [];
+    const esiti = data.esiti_recenti || [];
+    const provOptions = (typeof FALLBACK_PROVINCE !== 'undefined' ? FALLBACK_PROVINCE : [])
+      .map(p => `<option value="${esc(p.sigla)}" ${p.sigla===s.sigla_provincia?'selected':''}>${esc(p.nome)} (${esc(p.sigla)})</option>`).join('');
+    const container = document.getElementById('stazioni-container');
+    container.innerHTML = `
+      <div class="az-detail-wrap" style="max-width:100%;margin:0">
+        <div class="az-detail-title" style="padding:10px 16px;font-size:1rem;display:flex;align-items:center;justify-content:space-between">
+          <span><i class="fas fa-sitemap" style="color:#FF8C00;margin-right:8px"></i>${esc(s.RagioneSociale||s.Nome||'Stazione')}</span>
+          <button class="az-btn-action" style="padding:6px 12px;font-size:0.78rem" onclick="loadStazioni(currentStazioniPage||1)"><i class="fas fa-arrow-left"></i> INDIETRO</button>
+        </div>
+        <div class="az-detail-body" style="padding:14px;display:block">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div class="az-consorzio-section" style="margin:0">
+              <div class="az-consorzio-title"><i class="fas fa-id-card"></i> DATI ANAGRAFICI</div>
+              <div class="az-field-row"><div class="az-field"><label>Ragione Sociale *</label><input type="text" id="vs-ragione" value="${esc(s.RagioneSociale||'')}"></div></div>
+              <div class="az-field-row"><div class="az-field"><label>Codice Fiscale / P.IVA</label><input type="text" id="vs-piva" value="${esc(s.PartitaIva||'')}"></div></div>
+              <div class="az-field-row"><div class="az-field"><label>Indirizzo</label><input type="text" id="vs-indirizzo" value="${esc(s.Indirizzo||'')}"></div></div>
+              <div class="az-field-row-3">
+                <div class="az-field"><label>CAP</label><input type="text" id="vs-cap" value="${esc(s.Cap||'')}"></div>
+                <div class="az-field"><label>Città</label><input type="text" id="vs-citta" value="${esc(s['Città']||'')}"></div>
+                <div class="az-field"><label>Provincia</label><select id="vs-provincia"><option value="">-</option>${provOptions}</select></div>
+              </div>
+              <div class="az-field-row"><div class="az-field"><label>Note</label><textarea id="vs-note" rows="3">${esc(s.Note||'')}</textarea></div></div>
+            </div>
+            <div class="az-consorzio-section" style="margin:0">
+              <div class="az-consorzio-title"><i class="fas fa-address-book"></i> CONTATTI</div>
+              <div class="az-field-row">
+                <div class="az-field"><label>Telefono</label><input type="text" id="vs-telefono" value="${esc(s.Tel||'')}"></div>
+                <div class="az-field"><label>Email</label><input type="email" id="vs-email" value="${esc(s.Email||'')}"></div>
+              </div>
+              <div class="az-consorzio-title" style="margin-top:14px"><i class="fas fa-chart-bar"></i> STATISTICHE</div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:10px 0">
+                <div style="text-align:center;padding:10px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0"><div style="font-size:1.6rem;font-weight:700;color:#FF8C00">${fmt(bandi.length)}</div><div style="font-size:0.7rem;color:#64748b;font-weight:600">BANDI</div></div>
+                <div style="text-align:center;padding:10px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0"><div style="font-size:1.6rem;font-weight:700;color:#10b981">${fmt(esiti.length)}</div><div style="font-size:0.7rem;color:#64748b;font-weight:600">ESITI</div></div>
+                <div style="text-align:center;padding:10px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0"><div style="font-size:1.6rem;font-weight:700;color:#1E2D3D">${s.piattaforma_nome ? '<i class="fas fa-check"></i>' : '—'}</div><div style="font-size:0.7rem;color:#64748b;font-weight:600">${esc(s.piattaforma_nome||'Piattaforma')}</div></div>
+              </div>
+            </div>
+          </div>
+          ${bandi.length ? `
+            <div class="az-consorzio-section" style="margin-top:14px">
+              <div class="az-consorzio-title"><i class="fas fa-file-contract"></i> BANDI RECENTI (${bandi.length})</div>
+              <table class="az-consorzio-table" style="margin:0;font-size:0.76rem"><thead><tr><th>Data</th><th>Titolo</th><th>CIG</th><th>Importo</th><th>Scadenza</th></tr></thead><tbody>
+                ${bandi.map(b => `<tr><td>${fmtDate(b.data_pubblicazione)}</td><td>${esc((b.titolo||'').substring(0,80))}</td><td>${esc(b.cig||'')}</td><td>${fmtImporto(b.importo_totale)}</td><td>${fmtDate(b.data_offerta)}</td></tr>`).join('')}
+              </tbody></table>
+            </div>
+          ` : ''}
+          ${esiti.length ? `
+            <div class="az-consorzio-section" style="margin-top:14px">
+              <div class="az-consorzio-title"><i class="fas fa-gavel"></i> ESITI RECENTI (${esiti.length})</div>
+              <table class="az-consorzio-table" style="margin:0;font-size:0.76rem"><thead><tr><th>Data</th><th>Titolo</th><th>CIG</th><th>Importo</th><th style="text-align:center">Partec.</th><th>Ribasso</th></tr></thead><tbody>
+                ${esiti.map(e => `<tr><td>${fmtDate(e.data)}</td><td>${esc((e.titolo||'').substring(0,80))}</td><td>${esc(e.cig||'')}</td><td>${fmtImporto(e.importo)}</td><td style="text-align:center">${e.n_partecipanti||'—'}</td><td>${e.ribasso ? Number(e.ribasso).toFixed(3)+'%' : '—'}</td></tr>`).join('')}
+              </tbody></table>
+            </div>
+          ` : ''}
+          <div class="az-buttons" style="margin-top:14px;justify-content:flex-start">
+            <button class="az-btn-save" onclick="saveStazione(${id})"><i class="fas fa-save"></i> SALVA MODIFICHE</button>
+            <button class="az-btn-action" onclick="loadStazioni(currentStazioniPage||1)"><i class="fas fa-times"></i> ANNULLA</button>
+            <button class="az-btn-danger" onclick="deleteStazione(${id})"><i class="fas fa-trash"></i> ELIMINA</button>
+          </div>
+        </div>
+      </div>`;
+  } catch(e) {
+    alert('Errore: ' + e.message);
+  }
 }
 
-function resetStazioniSearch() {
-  document.getElementById('stazioni-ragione').value = '';
-  document.getElementById('stazioniResults').innerHTML = '';
+async function saveStazione(id) {
+  const body = {
+    ragione_sociale: document.getElementById('vs-ragione')?.value,
+    partita_iva: document.getElementById('vs-piva')?.value,
+    indirizzo: document.getElementById('vs-indirizzo')?.value,
+    cap: document.getElementById('vs-cap')?.value,
+    citta: document.getElementById('vs-citta')?.value,
+    id_provincia: provSiglaToId(document.getElementById('vs-provincia')?.value),
+    telefono: document.getElementById('vs-telefono')?.value,
+    email: document.getElementById('vs-email')?.value,
+    note: document.getElementById('vs-note')?.value
+  };
+  try {
+    const res = await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json', ...authHeaders()}, body: JSON.stringify(body) });
+    const j = await res.json();
+    if (j.error) { alert(j.error); return; }
+    alert('Stazione aggiornata');
+    loadStazioni(currentStazioniPage||1);
+  } catch(e) { alert('Errore: '+e.message); }
 }
+
+async function deleteStazione(id) {
+  if (!confirm('Eliminare questa stazione? (spostata nel cestino)')) return;
+  try {
+    const res = await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}`, { method: 'DELETE', headers: authHeaders() });
+    const j = await res.json();
+    if (j.error) { alert(j.error); return; }
+    alert('Stazione eliminata');
+    loadStazioni(currentStazioniPage||1);
+  } catch(e) { alert('Errore: '+e.message); }
+}
+
+// Alias di retrocompatibilità per codice che chiama searchStazioni
+function searchStazioni(page = 1) { return loadStazioni(page); }
+
+// (funzioni viewStazioneDetail/resetStazioniSearch rimosse — usano la nuova loadStazioni/viewStazione)
 
 // AZIENDE — uses /api/admin/aziende
 let currentAziendePage = 1;
@@ -9238,34 +9299,33 @@ async function handleCreateAzienda(event) {
 }
 
 async function handleCreateStazione(event) {
-  event.preventDefault();
+  if (event && event.preventDefault) event.preventDefault();
   try {
+    const v = id => document.getElementById(id)?.value || '';
+    const ragione = v('cs-ragione').trim();
+    if (!ragione) { alert('Ragione Sociale obbligatoria'); return; }
     const body = {
-      partita_iva: document.getElementById('cs-piva').value,
-      ragione_sociale: document.getElementById('cs-ragione').value,
-      indirizzo: document.getElementById('cs-indirizzo').value,
-      cap: document.getElementById('cs-cap').value,
-      citta: document.getElementById('cs-citta').value,
-      id_provincia: document.getElementById('cs-provincia').value,
-      telefono: document.getElementById('cs-telefono').value,
-      email: document.getElementById('cs-email').value,
-      lat: document.getElementById('cs-lat').value,
-      lon: document.getElementById('cs-lon').value,
-      giorni_medi_pubblicazione: document.getElementById('cs-giorni').value,
-      pubblica_bando: document.getElementById('cs-pub-bando').checked,
-      limita_range: document.getElementById('cs-limita-range').checked,
-      note: document.getElementById('cs-note').value
+      ragione_sociale: ragione,
+      partita_iva: v('cs-piva'),
+      indirizzo: v('cs-indirizzo'),
+      cap: v('cs-cap'),
+      citta: v('cs-citta'),
+      id_provincia: provSiglaToId(v('cs-provincia')),
+      telefono: v('cs-telefono'),
+      email: v('cs-email'),
+      lat: v('cs-lat') || null,
+      lon: v('cs-lon') || null,
+      note: v('cs-note')
     };
     const res = await fetch(`${API_BASE}/admin/stazioni/stazioni`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(body)
     });
-    if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Errore creazione'); }
-    alert('Stazione creata con successo!');
-    document.getElementById('createStazioneForm').reset();
+    if (!res.ok) { const err = await res.json().catch(()=>({})); throw new Error(err.error || 'Errore creazione'); }
+    alert('Stazione creata con successo');
+    document.getElementById('createStazioneForm')?.reset();
     selectSubPage('stazioni', 'stazioni');
-    searchStazioni();
   } catch(e) { alert('Errore: ' + e.message); }
 }
 
