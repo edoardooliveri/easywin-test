@@ -1,4 +1,24 @@
-import { query, transaction } from '../db/pool.js';
+import { query } from '../db/pool.js';
+
+const ALLOWED_COLS = [
+  'ragione_sociale', 'nome', 'cognome',
+  'indirizzo', 'cap', 'citta', 'id_provincia',
+  'telefono', 'cellulare', 'email', 'pec',
+  'partita_iva', 'codice_fiscale', 'codice_sdi',
+  'id_intermediario', 'id_tipo_esecutore',
+  'prezzo_propria_zona', 'prezzo_altre_zone',
+  'note'
+];
+
+const INT_COLS = new Set(['id_provincia', 'id_intermediario', 'id_tipo_esecutore']);
+const NUM_COLS = new Set(['prezzo_propria_zona', 'prezzo_altre_zone']);
+
+function coerce(c, v) {
+  if (v === undefined || v === null || v === '') return null;
+  if (INT_COLS.has(c)) return parseInt(v) || null;
+  if (NUM_COLS.has(c)) return parseFloat(v) || 0;
+  return v;
+}
 
 export default async function esecutoriEsterniRoutes(fastify) {
 
@@ -8,48 +28,53 @@ export default async function esecutoriEsterniRoutes(fastify) {
   fastify.get('/', async (request) => {
     const {
       page = 1, limit = 25, sort = 'ragione_sociale', order = 'ASC',
-      search, id_provincia, id_tipo_esecutore
+      search, id_provincia, id_intermediario
     } = request.query;
 
     const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
-    const conditions = [];
+    const conditions = ['e.eliminato = false'];
     const params = [];
     let paramIdx = 1;
 
     if (search) {
       conditions.push(
-        `(ragione_sociale ILIKE $${paramIdx} OR nome ILIKE $${paramIdx} OR cognome ILIKE $${paramIdx} OR email ILIKE $${paramIdx})`
+        `(e.ragione_sociale ILIKE $${paramIdx} OR e.nome ILIKE $${paramIdx} OR e.cognome ILIKE $${paramIdx} OR e.partita_iva ILIKE $${paramIdx} OR e.codice_fiscale ILIKE $${paramIdx} OR e.email ILIKE $${paramIdx} OR e.pec ILIKE $${paramIdx} OR e.citta ILIKE $${paramIdx} OR e.cap ILIKE $${paramIdx} OR e.telefono ILIKE $${paramIdx} OR e.indirizzo ILIKE $${paramIdx})`
       );
       params.push(`%${search}%`);
       paramIdx++;
     }
 
     if (id_provincia) {
-      conditions.push(`id_provincia = $${paramIdx}`);
+      conditions.push(`e.id_provincia = $${paramIdx}`);
       params.push(parseInt(id_provincia));
       paramIdx++;
     }
 
-    if (id_tipo_esecutore) {
-      conditions.push(`id_tipo_esecutore = $${paramIdx}`);
-      params.push(parseInt(id_tipo_esecutore));
+    if (id_intermediario) {
+      conditions.push(`e.id_intermediario = $${paramIdx}`);
+      params.push(parseInt(id_intermediario));
       paramIdx++;
     }
 
-    const whereClause = conditions.length > 0 ? `WHERE eliminato = false AND ${conditions.join(' AND ')}` : 'WHERE eliminato = false';
-    const sortSafe = ['ragione_sociale', 'cognome', 'citta', 'email', 'data_creazione'].includes(sort) ? sort : 'ragione_sociale';
-    const orderSafe = ['ASC', 'DESC'].includes(order.toUpperCase()) ? order.toUpperCase() : 'ASC';
+    const whereClause = `WHERE ${conditions.join(' AND ')}`;
+    const sortSafe = ['ragione_sociale', 'cognome', 'citta', 'email', 'partita_iva', 'data_inserimento'].includes(sort) ? sort : 'ragione_sociale';
+    const orderSafe = ['ASC', 'DESC'].includes((order || '').toUpperCase()) ? order.toUpperCase() : 'ASC';
 
     try {
       const countResult = await query(
-        `SELECT COUNT(*) FROM esecutori_esterni ${whereClause}`,
+        `SELECT COUNT(*) FROM esecutori_esterni e ${whereClause}`,
         params
       );
       const total = parseInt(countResult.rows[0].count);
 
       const result = await query(
-        `SELECT * FROM esecutori_esterni ${whereClause}
-         ORDER BY ${sortSafe} ${orderSafe}
+        `SELECT e.*, p.sigla AS provincia_sigla, p.nome AS provincia_nome,
+                i.ragione_sociale AS intermediario_ragione_sociale
+         FROM esecutori_esterni e
+         LEFT JOIN province p ON p.id = e.id_provincia
+         LEFT JOIN intermediari i ON i.id = e.id_intermediario
+         ${whereClause}
+         ORDER BY e.${sortSafe} ${orderSafe}
          LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
         [...params, parseInt(limit), offset]
       );
@@ -76,7 +101,12 @@ export default async function esecutoriEsterniRoutes(fastify) {
     const { id } = request.params;
     try {
       const result = await query(
-        `SELECT * FROM esecutori_esterni WHERE id = $1 AND eliminato = false`,
+        `SELECT e.*, p.sigla AS provincia_sigla, p.nome AS provincia_nome,
+                i.ragione_sociale AS intermediario_ragione_sociale
+         FROM esecutori_esterni e
+         LEFT JOIN province p ON p.id = e.id_provincia
+         LEFT JOIN intermediari i ON i.id = e.id_intermediario
+         WHERE e.id = $1 AND e.eliminato = false`,
         [parseInt(id)]
       );
       if (result.rows.length === 0) {
@@ -93,33 +123,26 @@ export default async function esecutoriEsterniRoutes(fastify) {
   // POST /api/esecutori-esterni - Create
   // ============================================================
   fastify.post('/', { onRequest: [fastify.authenticate] }, async (request) => {
-    const {
-      ragione_sociale, nome, cognome, indirizzo, cap, citta, id_provincia,
-      telefono, cellulare, email, pec, partita_iva, codice_fiscale,
-      codice_sdi, id_tipo_esecutore, note, zone_operative
-    } = request.body;
-
-    if (!ragione_sociale && !(nome && cognome)) {
+    const b = request.body || {};
+    if (!b.ragione_sociale && !(b.nome && b.cognome)) {
       return { error: 'ragione_sociale oppure (nome e cognome) sono obbligatori' };
     }
-
+    const cols = []; const vals = []; const placeholders = [];
+    let idx = 1;
+    for (const c of ALLOWED_COLS) {
+      if (b[c] !== undefined && b[c] !== null && b[c] !== '') {
+        cols.push(c);
+        vals.push(coerce(c, b[c]));
+        placeholders.push('$' + idx++);
+      }
+    }
     try {
       const result = await query(
-        `INSERT INTO esecutori_esterni (
-          ragione_sociale, nome, cognome, indirizzo, cap, citta, id_provincia,
-          telefono, cellulare, email, pec, partita_iva, codice_fiscale,
-          codice_sdi, id_tipo_esecutore, note, zone_operative, eliminato, data_creazione
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, false, NOW())
+        `INSERT INTO esecutori_esterni (${cols.join(', ')}, eliminato, data_inserimento)
+         VALUES (${placeholders.join(', ')}, false, NOW())
          RETURNING *`,
-        [
-          ragione_sociale || null, nome || null, cognome || null, indirizzo, cap, citta,
-          id_provincia ? parseInt(id_provincia) : null,
-          telefono, cellulare, email, pec, partita_iva, codice_fiscale,
-          codice_sdi, id_tipo_esecutore ? parseInt(id_tipo_esecutore) : null, note,
-          zone_operative && Array.isArray(zone_operative) ? zone_operative : null
-        ]
+        vals
       );
-
       return result.rows[0];
     } catch (err) {
       fastify.log.error(err, 'Create esecutore esterno error');
@@ -135,102 +158,26 @@ export default async function esecutoriEsterniRoutes(fastify) {
   // ============================================================
   fastify.put('/:id', { onRequest: [fastify.authenticate] }, async (request) => {
     const { id } = request.params;
-    const {
-      ragione_sociale, nome, cognome, indirizzo, cap, citta, id_provincia,
-      telefono, cellulare, email, pec, partita_iva, codice_fiscale,
-      codice_sdi, id_tipo_esecutore, note, zone_operative
-    } = request.body;
-
-    const updates = [];
-    const params = [];
-    let paramIdx = 1;
-
-    if (ragione_sociale !== undefined) {
-      updates.push(`ragione_sociale = $${paramIdx++}`);
-      params.push(ragione_sociale);
+    const b = request.body || {};
+    const sets = []; const vals = [];
+    let idx = 1;
+    for (const c of ALLOWED_COLS) {
+      if (b[c] !== undefined) {
+        sets.push(`${c} = $${idx++}`);
+        vals.push(coerce(c, b[c]));
+      }
     }
-    if (nome !== undefined) {
-      updates.push(`nome = $${paramIdx++}`);
-      params.push(nome);
-    }
-    if (cognome !== undefined) {
-      updates.push(`cognome = $${paramIdx++}`);
-      params.push(cognome);
-    }
-    if (indirizzo !== undefined) {
-      updates.push(`indirizzo = $${paramIdx++}`);
-      params.push(indirizzo);
-    }
-    if (cap !== undefined) {
-      updates.push(`cap = $${paramIdx++}`);
-      params.push(cap);
-    }
-    if (citta !== undefined) {
-      updates.push(`citta = $${paramIdx++}`);
-      params.push(citta);
-    }
-    if (id_provincia !== undefined) {
-      updates.push(`id_provincia = $${paramIdx++}`);
-      params.push(id_provincia ? parseInt(id_provincia) : null);
-    }
-    if (telefono !== undefined) {
-      updates.push(`telefono = $${paramIdx++}`);
-      params.push(telefono);
-    }
-    if (cellulare !== undefined) {
-      updates.push(`cellulare = $${paramIdx++}`);
-      params.push(cellulare);
-    }
-    if (email !== undefined) {
-      updates.push(`email = $${paramIdx++}`);
-      params.push(email);
-    }
-    if (pec !== undefined) {
-      updates.push(`pec = $${paramIdx++}`);
-      params.push(pec);
-    }
-    if (partita_iva !== undefined) {
-      updates.push(`partita_iva = $${paramIdx++}`);
-      params.push(partita_iva);
-    }
-    if (codice_fiscale !== undefined) {
-      updates.push(`codice_fiscale = $${paramIdx++}`);
-      params.push(codice_fiscale);
-    }
-    if (codice_sdi !== undefined) {
-      updates.push(`codice_sdi = $${paramIdx++}`);
-      params.push(codice_sdi);
-    }
-    if (id_tipo_esecutore !== undefined) {
-      updates.push(`id_tipo_esecutore = $${paramIdx++}`);
-      params.push(id_tipo_esecutore ? parseInt(id_tipo_esecutore) : null);
-    }
-    if (note !== undefined) {
-      updates.push(`note = $${paramIdx++}`);
-      params.push(note);
-    }
-    if (zone_operative !== undefined) {
-      updates.push(`zone_operative = $${paramIdx++}`);
-      params.push(Array.isArray(zone_operative) ? zone_operative : null);
-    }
-
-    if (updates.length === 0) {
-      return { error: 'Nessun campo da aggiornare' };
-    }
-
-    updates.push(`data_modifica = NOW()`);
-    params.push(parseInt(id));
-
+    if (sets.length === 0) return { error: 'Nessun campo da aggiornare' };
+    sets.push(`data_modifica = NOW()`);
+    vals.push(parseInt(id));
     try {
       const result = await query(
-        `UPDATE esecutori_esterni SET ${updates.join(', ')} WHERE id = $${paramIdx + 1} AND eliminato = false RETURNING *`,
-        params
+        `UPDATE esecutori_esterni SET ${sets.join(', ')}
+         WHERE id = $${idx} AND eliminato = false
+         RETURNING *`,
+        vals
       );
-
-      if (result.rows.length === 0) {
-        return { error: 'Esecutore esterno non trovato' };
-      }
-
+      if (result.rows.length === 0) return { error: 'Esecutore esterno non trovato' };
       return result.rows[0];
     } catch (err) {
       fastify.log.error(err, 'Update esecutore esterno error');
@@ -251,11 +198,7 @@ export default async function esecutoriEsterniRoutes(fastify) {
         `UPDATE esecutori_esterni SET eliminato = true, data_modifica = NOW() WHERE id = $1 AND eliminato = false RETURNING id`,
         [parseInt(id)]
       );
-
-      if (result.rows.length === 0) {
-        return { error: 'Esecutore esterno non trovato' };
-      }
-
+      if (result.rows.length === 0) return { error: 'Esecutore esterno non trovato' };
       return { success: true, id: result.rows[0].id };
     } catch (err) {
       fastify.log.error(err, 'Delete esecutore esterno error');
@@ -264,7 +207,7 @@ export default async function esecutoriEsterniRoutes(fastify) {
   });
 
   // ============================================================
-  // GET /api/esecutori-esterni/search?term= - Autocomplete
+  // GET /api/esecutori-esterni/search/term?term= - Autocomplete
   // ============================================================
   fastify.get('/search/term', async (request) => {
     const { term = '' } = request.query;
@@ -283,32 +226,21 @@ export default async function esecutoriEsterniRoutes(fastify) {
   });
 
   // ============================================================
-  // GET /api/esecutori-esterni/check-univoco?tipo=&valore= - Check uniqueness
+  // GET /api/esecutori-esterni/check/univoco
   // ============================================================
   fastify.get('/check/univoco', async (request) => {
     const { tipo, valore, exclude_id } = request.query;
-
-    if (!tipo || !valore) {
-      return { error: 'tipo e valore sono obbligatori' };
-    }
-
+    if (!tipo || !valore) return { error: 'tipo e valore sono obbligatori' };
     const tipiValidi = ['partita_iva', 'codice_fiscale', 'codice_sdi'];
     if (!tipiValidi.includes(tipo)) {
-      return { error: 'tipo non valido: deve essere partita_iva, codice_fiscale o codice_sdi' };
+      return { error: 'tipo non valido' };
     }
-
     try {
       let sql = `SELECT COUNT(*) FROM esecutori_esterni WHERE ${tipo} = $1 AND eliminato = false`;
       const params = [valore];
-
-      if (exclude_id) {
-        sql += ` AND id != $2`;
-        params.push(parseInt(exclude_id));
-      }
-
+      if (exclude_id) { sql += ` AND id != $2`; params.push(parseInt(exclude_id)); }
       const result = await query(sql, params);
       const exists = parseInt(result.rows[0].count) > 0;
-
       return { available: !exists, tipo, valore, exists };
     } catch (err) {
       fastify.log.error(err, 'Check univoco error');

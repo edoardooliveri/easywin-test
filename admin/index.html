@@ -3026,35 +3026,75 @@ span.flatpickr-weekday {
 
       <!-- ESECUTORI AZIENDE PAGE -->
       <div id="pageEsecutoriAziende" class="page">
-        <div class="page-header"><h1 class="page-title">ESECUTORI ESTERNI</h1></div>
-        <div class="search-section compact">
-          <div class="form-row">
-            <div class="form-col"><label>Ragione Sociale</label><input type="text" id="esecutori-az-search" placeholder="Cerca esecutore..."></div>
-            <div class="form-col"><label>P.IVA</label><input type="text" id="esecutori-az-piva"></div>
-          </div>
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="searchEsecutoriAz()"><i class="fas fa-search"></i> CERCA</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('esecutori-az-search').value='';document.getElementById('esecutori-az-piva').value='';"><i class="fas fa-redo"></i> ANNULLA</button>
-          </div>
-        </div>
-        <div class="table-container"><div id="esecutoriAzResults"></div></div>
+        <div id="esecutori-container"></div>
       </div>
 
       <!-- CREA ESECUTORE PAGE -->
       <div id="pageCreateEsecutore" class="page">
-        <div class="page-header"><h1 class="page-title">CREA ESECUTORE ESTERNO</h1></div>
-        <div class="search-section compact">
-          <div class="form-row">
-            <div class="form-col"><label>P.IVA *</label><input type="text" id="ce-piva" required></div>
-            <div class="form-col"><label>Ragione Sociale *</label><input type="text" id="ce-ragione" required></div>
+        <div class="az-detail-wrap" style="max-width:100%;margin:0">
+          <div class="az-detail-title" style="padding:10px 16px;font-size:1rem">
+            <i class="fas fa-user-hard-hat" style="color:#FF8C00;margin-right:8px"></i>NUOVO ESECUTORE ESTERNO
           </div>
-          <div class="form-row">
-            <div class="form-col"><label>Email</label><input type="email" id="ce-email"></div>
-            <div class="form-col"><label>Telefono</label><input type="text" id="ce-telefono"></div>
-          </div>
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="createEsecutore()"><i class="fas fa-plus"></i> CREA ESECUTORE</button>
-            <button class="btn btn-secondary" onclick="selectSubPage('aziende','esecutori')"><i class="fas fa-arrow-left"></i> ANNULLA</button>
+          <div class="az-detail-body" style="padding:14px;display:block">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+              <div class="az-consorzio-section" style="margin:0">
+                <div class="az-consorzio-title"><i class="fas fa-id-card"></i> DATI ANAGRAFICI</div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Ragione Sociale</label><input type="text" id="ce-ragione"></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Cognome</label><input type="text" id="ce-cognome"></div>
+                  <div class="az-field"><label>Nome</label><input type="text" id="ce-nome"></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Partita IVA</label><input type="text" id="ce-piva"></div>
+                  <div class="az-field"><label>Codice Fiscale</label><input type="text" id="ce-cf"></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Codice SDI</label><input type="text" id="ce-sdi"></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Indirizzo</label><input type="text" id="ce-indirizzo"></div>
+                </div>
+                <div class="az-field-row-3">
+                  <div class="az-field"><label>CAP</label><input type="text" id="ce-cap"></div>
+                  <div class="az-field"><label>Città</label><input type="text" id="ce-citta"></div>
+                  <div class="az-field"><label>Provincia</label><select id="ce-provincia"><option value="">-</option></select></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Note</label><textarea id="ce-note" rows="3"></textarea></div>
+                </div>
+              </div>
+
+              <div class="az-consorzio-section" style="margin:0">
+                <div class="az-consorzio-title"><i class="fas fa-address-book"></i> CONTATTI & PREZZI</div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Telefono</label><input type="text" id="ce-telefono"></div>
+                  <div class="az-field"><label>Cellulare</label><input type="text" id="ce-cellulare"></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Email</label><input type="email" id="ce-email"></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Indirizzo PEC</label><input type="email" id="ce-pec"></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Intermediario</label><select id="ce-intermediario"><option value="">Nessuno</option></select></div>
+                </div>
+                <div class="az-consorzio-title" style="margin-top:14px"><i class="fas fa-euro-sign"></i> PREZZI MINIMI</div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Propria Zona (€)</label><input type="number" step="0.01" id="ce-prezzo-propria"></div>
+                  <div class="az-field"><label>Altre Zone (€)</label><input type="number" step="0.01" id="ce-prezzo-altre"></div>
+                </div>
+              </div>
+
+            </div>
+            <div class="az-buttons" style="margin-top:14px;justify-content:flex-start">
+              <button class="az-btn-save" onclick="createEsecutore()"><i class="fas fa-check"></i> CONFERMA</button>
+              <button class="az-btn-action" onclick="selectSubPage('aziende','esecutori')"><i class="fas fa-times"></i> ANNULLA</button>
+              <button class="az-btn-action" onclick="resetCreateEsecutoreForm()"><i class="fas fa-eraser"></i> PULISCI</button>
+            </div>
           </div>
         </div>
       </div>
@@ -5801,78 +5841,11 @@ span.flatpickr-weekday {
       <!-- NEW INTERMEDIARIO FORM PAGE (legacy - not used) -->
       <div id="pageCreateIntermediarioLegacy" class="page" style="display:none"></div>
 
-      <!-- ESECUTORI ESTERNI PAGE -->
-      <div id="pageEsecutoriList" class="page">
-        <div class="page-header">
-          <h1 class="page-title">ESECUTORI ESTERNI</h1>
-        </div>
-        <div class="search-section compact">
-          <div class="form-row">
-            <div class="form-col">
-              <label>Ricerca</label>
-              <input type="text" id="esecutori-search" placeholder="Nome, P.IVA...">
-            </div>
-          </div>
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="searchEsecutori()"><i class="fas fa-search"></i> CERCA</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('esecutori-search').value=''"><i class="fas fa-times"></i> RESET</button>
-            <button class="btn btn-success" onclick="showNewEsecutoreForm()"><i class="fas fa-plus"></i> NUOVO</button>
-          </div>
-        </div>
-        <div class="table-container">
-          <div id="esecutori-results"></div>
-        </div>
-      </div>
+      <!-- ESECUTORI ESTERNI PAGE (legacy - not used) -->
+      <div id="pageEsecutoriListLegacy" class="page" style="display:none"></div>
 
-      <!-- NEW ESECUTORE FORM PAGE -->
-      <div id="pageCreateEsecutore" class="page">
-        <div class="page-header">
-          <h1 class="page-title"><i class="fas fa-hammer"></i> NUOVO ESECUTORE</h1>
-        </div>
-        <div class="form-card">
-          <form onsubmit="saveEsecutore(event)">
-            <div class="form-row">
-              <div class="form-col">
-                <label>Nome Azienda*</label>
-                <input type="text" id="es-nome" required>
-              </div>
-              <div class="form-col">
-                <label>Tipologia*</label>
-                <select id="es-tipologia" required>
-                  <option value="">Seleziona...</option>
-                  <option value="impresa">Impresa</option>
-                  <option value="libero_professionista">Libero Professionista</option>
-                  <option value="consorzio">Consorzio</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>P.IVA*</label>
-                <input type="text" id="es-piva" required>
-              </div>
-              <div class="form-col">
-                <label>Codice Fiscale</label>
-                <input type="text" id="es-cf">
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>Email</label>
-                <input type="email" id="es-email">
-              </div>
-              <div class="form-col">
-                <label>Telefono</label>
-                <input type="tel" id="es-tel">
-              </div>
-            </div>
-            <div class="button-group">
-              <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> SALVA</button>
-              <button type="button" class="btn btn-secondary" onclick="searchEsecutoriList()"><i class="fas fa-times"></i> ANNULLA</button>
-            </div>
-          </form>
-        </div>
-      </div>
+      <!-- NEW ESECUTORE FORM PAGE (legacy - not used) -->
+      <div id="pageCreateEsecutoreLegacy" class="page" style="display:none"></div>
 
       <!-- PIATTAFORME PAGE -->
       <div id="pagePiattaforme" class="page">
@@ -6683,7 +6656,7 @@ function populateStaticSelects() {
   }
 
   // Province per nuovi inserimenti
-  const provSelects = ['new-utente-provincia', 'cc-provincia', 'concorrenti-provincia', 'ci-provincia'];
+  const provSelects = ['new-utente-provincia', 'cc-provincia', 'concorrenti-provincia', 'ci-provincia', 'ce-provincia'];
   provSelects.forEach(id => {
     const sel = document.getElementById(id);
     if (sel && sel.options.length <= 1) {
@@ -7000,7 +6973,7 @@ function selectSection(section) {
   // Map special section IDs
   const sectionPageMap = {
     'intermediari': 'pageIntermediariList',
-    'esecutori': 'pageEsecutoriList',
+    'esecutori': 'pageEsecutoriAziende',
     'piattaforme': 'pagePiattaforme',
     'newsletter': 'pageNewsletter',
     'sistema': 'pageSistema',
@@ -7035,7 +7008,7 @@ function selectSection(section) {
   if (section === 'intermediari') {
     searchIntermediariList();
   } else if (section === 'esecutori') {
-    searchEsecutoriList();
+    loadEsecutori();
   } else if (section === 'piattaforme') {
     searchPiattaforme();
   } else if (section === 'newsletter') {
@@ -7397,6 +7370,7 @@ function selectSubPage(section, subpage) {
   if (subpage === 'fonti-web') loadFontiWeb();
   if (subpage === 'concorrenti') loadConcorrenti();
   if (subpage === 'intermediari' && section === 'aziende') loadIntermediari();
+  if (subpage === 'esecutori' && section === 'aziende') loadEsecutori();
   if (subpage === 'sopralluoghi') loadSopralluoghiAdmin();
   if (subpage === 'tipologia-dati') loadTipologiaDati();
   if (subpage === 'create-azienda') { setTimeout(() => { if (typeof initFlatpickrAll === 'function') initFlatpickrAll(); }, 50); }
@@ -10881,9 +10855,13 @@ function renderConcorrentiListShell() {
     const top = document.getElementById('concorrenti-' + f);
     const bot = document.getElementById('concorrenti-' + f + '-bot');
     if (top && bot) {
-      top.addEventListener('change', () => { bot.value = top.value; });
-      bot.addEventListener('change', () => { top.value = bot.value; });
-      if (f === 'search') bot.addEventListener('keydown', (e) => { if (e.key === 'Enter') { top.value = bot.value; loadConcorrenti(1); } });
+      const evt = (top.tagName === 'SELECT') ? 'change' : 'input';
+      top.addEventListener(evt, () => { bot.value = top.value; });
+      bot.addEventListener(evt, () => { top.value = bot.value; });
+      if (f === 'search') {
+        top.addEventListener('keydown', (e) => { if (e.key === 'Enter') { bot.value = top.value; loadConcorrenti(1); } });
+        bot.addEventListener('keydown', (e) => { if (e.key === 'Enter') { top.value = bot.value; loadConcorrenti(1); } });
+      }
     }
   });
 }
@@ -10900,9 +10878,21 @@ async function loadConcorrenti(page = 1) {
   if (!resultsEl) return;
   resultsEl.innerHTML = '<div class="az-empty-msg" style="padding:32px">Caricamento...</div>';
   try {
-    const search = document.getElementById('concorrenti-search')?.value || '';
-    const provincia = document.getElementById('concorrenti-provincia')?.value || '';
-    const limit = document.getElementById('concorrenti-limit')?.value || '25';
+    const pickVal = (name, def='') => {
+      const t = document.getElementById('concorrenti-' + name)?.value || '';
+      const b = document.getElementById('concorrenti-' + name + '-bot')?.value || '';
+      return (t || b || def);
+    };
+    const search = pickVal('search');
+    const provincia = pickVal('provincia');
+    const limit = pickVal('limit', '25');
+    ['search','provincia','limit'].forEach(n => {
+      const val = n==='search'?search:(n==='provincia'?provincia:limit);
+      const t = document.getElementById('concorrenti-' + n);
+      const b = document.getElementById('concorrenti-' + n + '-bot');
+      if (t) t.value = val;
+      if (b) b.value = val;
+    });
     const params = new URLSearchParams();
     if (search) params.set('search', search);
     if (provincia) params.set('id_provincia', provincia);
@@ -11913,110 +11903,284 @@ async function deleteIntermediario(id) {
 }
 
 // ════════════════ ESECUTORI ESTERNI ════════════════
-async function searchEsecutoriList() {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('pageEsecutoriList').classList.add('active');
-  searchEsecutori();
+let currentEsecutoriPage = 1;
+let _esecutoriIntermediariCache = null;
+
+async function getIntermediariForEsecutori() {
+  if (_esecutoriIntermediariCache) return _esecutoriIntermediariCache;
+  try {
+    const res = await fetch(`${API_BASE}/intermediari?limit=500`, { headers: authHeaders() });
+    const data = await res.json();
+    _esecutoriIntermediariCache = Array.isArray(data.data) ? data.data : [];
+  } catch(e) { _esecutoriIntermediariCache = []; }
+  return _esecutoriIntermediariCache;
 }
 
-async function searchEsecutori(page = 1) {
-  const container = document.getElementById('esecutori-results');
-  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Ricerca in corso...</p></div>';
+function resetEsecutoriFiltri() {
+  const s = document.getElementById('esecutori-search'); if (s) s.value = '';
+  const p = document.getElementById('esecutori-provincia'); if (p) p.value = '';
+  const i = document.getElementById('esecutori-intermediario'); if (i) i.value = '';
+  loadEsecutori(1);
+}
+
+async function renderEsecutoriListShell() {
+  const container = document.getElementById('esecutori-container');
+  if (!container) return;
+  const provOptions = (typeof FALLBACK_PROVINCE !== 'undefined' ? FALLBACK_PROVINCE : [])
+    .map(p => `<option value="${p.sigla}">${esc(p.nome)} (${p.sigla})</option>`).join('');
+  const intermediari = await getIntermediariForEsecutori();
+  const intOptions = intermediari.map(i => `<option value="${i.id}">${esc(i.ragione_sociale||'')}</option>`).join('');
+  const toolbar = (pos) => `
+    <div class="ese-toolbar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;font-family:Comfortaa,sans-serif">
+      <input type="text" id="esecutori-search${pos}" placeholder="Cerca ragione sociale, cognome, P.IVA, email..." style="flex:1 1 240px;min-width:200px;padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;font-family:inherit;font-size:0.82rem" onkeydown="if(event.key==='Enter')loadEsecutori(1)">
+      <select id="esecutori-provincia${pos}" style="padding:7px 8px;border:1px solid #cbd5e1;border-radius:6px;font-family:inherit;font-size:0.82rem;max-width:150px">
+        <option value="">Tutte le province</option>${provOptions}
+      </select>
+      <select id="esecutori-intermediario${pos}" style="padding:7px 8px;border:1px solid #cbd5e1;border-radius:6px;font-family:inherit;font-size:0.82rem;max-width:180px">
+        <option value="">Tutti gli intermediari</option>${intOptions}
+      </select>
+      <select id="esecutori-limit${pos}" style="padding:7px 8px;border:1px solid #cbd5e1;border-radius:6px;font-family:inherit;font-size:0.82rem">
+        <option value="10">10</option><option value="25" selected>25</option><option value="50">50</option><option value="100">100</option>
+      </select>
+      <button class="az-btn-save" style="padding:7px 12px;font-size:0.78rem" onclick="loadEsecutori(1)"><i class="fas fa-search"></i> CERCA</button>
+      <button class="az-btn-action" style="padding:7px 12px;font-size:0.78rem" onclick="resetEsecutoriFiltri()"><i class="fas fa-eraser"></i> PULISCI</button>
+      <button class="az-btn-action" style="padding:7px 12px;font-size:0.78rem" onclick="selectSubPage('aziende','create-esecutore')"><i class="fas fa-plus"></i> NUOVO</button>
+      ${pos === '' ? '<span id="esecutori-contatore" style="margin-left:auto;font-size:0.78rem;color:#64748b;font-weight:600"></span>' : '<div id="esecutori-pagination" style="margin-left:auto;display:flex;gap:4px;align-items:center"></div>'}
+    </div>`;
+  container.innerHTML = `
+    <div class="az-detail-wrap" style="max-width:100%;margin:0">
+      <div class="az-detail-title" style="padding:10px 16px;font-size:1rem">
+        <i class="fas fa-user-hard-hat" style="color:#FF8C00;margin-right:8px"></i>ESECUTORI ESTERNI
+      </div>
+      <div class="az-detail-body" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">
+        ${toolbar('')}
+        <div id="esecutori-results" style="max-height:calc(100vh - 280px);overflow:auto;border:1px solid #e2e8f0;border-radius:8px"></div>
+        ${toolbar('-bot')}
+      </div>
+    </div>`;
+  ['search','provincia','intermediario','limit'].forEach(f => {
+    const top = document.getElementById('esecutori-' + f);
+    const bot = document.getElementById('esecutori-' + f + '-bot');
+    if (top && bot) {
+      const evt = (top.tagName === 'SELECT') ? 'change' : 'input';
+      top.addEventListener(evt, () => { bot.value = top.value; });
+      bot.addEventListener(evt, () => { top.value = bot.value; });
+      if (f === 'search') {
+        top.addEventListener('keydown', (e) => { if (e.key === 'Enter') { bot.value = top.value; loadEsecutori(1); } });
+        bot.addEventListener('keydown', (e) => { if (e.key === 'Enter') { top.value = bot.value; loadEsecutori(1); } });
+      }
+    }
+  });
+}
+
+async function loadEsecutori(page = 1) {
+  currentEsecutoriPage = page;
+  if (!document.getElementById('esecutori-results')) {
+    await renderEsecutoriListShell();
+  }
+  const resultsEl = document.getElementById('esecutori-results');
+  const contEl = document.getElementById('esecutori-contatore');
+  const pagEl = document.getElementById('esecutori-pagination');
+  if (!resultsEl) return;
+  resultsEl.innerHTML = '<div class="az-empty-msg" style="padding:32px">Caricamento...</div>';
   try {
-    const search = document.getElementById('esecutori-search')?.value || '';
+    const pickVal = (name, def='') => {
+      const t = document.getElementById('esecutori-' + name)?.value || '';
+      const b = document.getElementById('esecutori-' + name + '-bot')?.value || '';
+      return (t || b || def);
+    };
+    const search = pickVal('search');
+    const provincia = pickVal('provincia');
+    const intermediario = pickVal('intermediario');
+    const limit = pickVal('limit', '25');
+    ['search','provincia','intermediario','limit'].forEach(n => {
+      const val = n==='search'?search:(n==='provincia'?provincia:(n==='intermediario'?intermediario:limit));
+      const t = document.getElementById('esecutori-' + n);
+      const b = document.getElementById('esecutori-' + n + '-bot');
+      if (t) t.value = val;
+      if (b) b.value = val;
+    });
     const params = new URLSearchParams();
     if (search) params.set('search', search);
+    if (provincia) params.set('id_provincia', provincia);
+    if (intermediario) params.set('id_intermediario', intermediario);
+    params.set('limit', limit);
     params.set('page', page);
-    params.set('limit', 50);
-    const res = await fetch(`${API_BASE}/admin/esecutori?${params}`, {
-      headers: authHeaders()
-    });
+    const res = await fetch(`${API_BASE}/esecutori-esterni?${params}`, { headers: authHeaders() });
     const data = await res.json();
-    const raw_ = data.data || data || []; const rows = Array.isArray(raw_) ? raw_ : [];
+    const rows = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+    const pg = data.pagination || { total: rows.length, page: 1, pages: 1 };
+    if (contEl) contEl.textContent = `${pg.total || rows.length} esecutori · Pag. ${pg.page || 1}/${pg.pages || 1}`;
     if (!rows.length) {
-      container.innerHTML = '<div class="empty-state"><i class="fas fa-hammer"></i><p>Nessun esecutore trovato</p></div>';
+      resultsEl.innerHTML = '<div class="az-empty-msg" style="padding:32px"><i class="fas fa-user-slash" style="font-size:2rem;display:block;margin-bottom:10px;color:#cbd5e1"></i>Nessun esecutore trovato</div>';
+      if (pagEl) pagEl.innerHTML = '';
       return;
     }
-    let html = '<table><thead><tr><th>Nome</th><th>Tipologia</th><th>P.IVA</th><th>Email</th><th>Azioni</th></tr></thead><tbody>';
+    let html = '<table class="az-consorzio-table conc-compact" style="margin:0;font-size:0.78rem"><thead><tr>';
+    html += '<th>Ragione Sociale</th><th>Cognome Nome</th><th>P.IVA</th><th>Città</th><th>Pr.</th><th>Intermediario</th><th>Email</th><th style="text-align:right">Propria</th><th style="text-align:right">Altre</th><th style="text-align:center">Azioni</th>';
+    html += '</tr></thead><tbody>';
     rows.forEach(r => {
-      html += `<tr><td>${esc(r.nome||'')}</td><td>${esc(r.tipologia||'')}</td><td>${esc(r.piva||'')}</td><td>${esc(r.email||'')}</td><td><button class="btn btn-sm btn-primary" onclick="editEsecutore(${r.id})"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-danger" onclick="deleteEsecutore(${r.id})"><i class="fas fa-trash"></i></button></td></tr>`;
+      const fmtP = v => (v && parseFloat(v) > 0) ? '€ ' + parseFloat(v).toLocaleString('it-IT', {minimumFractionDigits:0}) : '<span style="color:#cbd5e1">—</span>';
+      const cognomenome = [r.cognome, r.nome].filter(Boolean).join(' ');
+      html += `<tr>
+        <td style="padding:6px 8px"><strong style="color:#1E2D3D">${esc(r.ragione_sociale||'')}</strong></td>
+        <td style="padding:6px 8px">${esc(cognomenome)}</td>
+        <td style="padding:6px 8px">${esc(r.partita_iva||'')}</td>
+        <td style="padding:6px 8px">${esc(r.citta||'')}</td>
+        <td style="padding:6px 8px">${esc(r.provincia_sigla || '')}</td>
+        <td style="padding:6px 8px;font-size:0.72rem">${esc(r.intermediario_ragione_sociale || '')}</td>
+        <td style="padding:6px 8px;font-size:0.72rem">${esc(r.email||'')}</td>
+        <td style="padding:6px 8px;text-align:right;font-weight:600">${fmtP(r.prezzo_propria_zona)}</td>
+        <td style="padding:6px 8px;text-align:right;font-weight:600;color:#FF8C00">${fmtP(r.prezzo_altre_zone)}</td>
+        <td style="padding:4px 6px;text-align:center;white-space:nowrap">
+          <button class="az-btn-action" style="padding:4px 7px;font-size:0.7rem" onclick="viewEsecutore(${r.id})"><i class="fas fa-eye"></i></button>
+          <button class="az-btn-danger" style="padding:4px 7px;font-size:0.7rem;margin-left:2px" onclick="deleteEsecutore(${r.id})"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>`;
     });
     html += '</tbody></table>';
-    container.innerHTML = html;
+    resultsEl.innerHTML = html;
+
+    if (pagEl) {
+      const curr = pg.page || 1;
+      const tot = pg.pages || 1;
+      const btnStyle = 'padding:5px 9px;font-size:0.72rem';
+      let pagH = '';
+      pagH += `<button class="az-btn-action" style="${btnStyle}" ${curr<=1?'disabled':''} onclick="loadEsecutori(1)"><i class="fas fa-angle-double-left"></i></button>`;
+      pagH += `<button class="az-btn-action" style="${btnStyle}" ${curr<=1?'disabled':''} onclick="loadEsecutori(${curr-1})"><i class="fas fa-angle-left"></i></button>`;
+      pagH += `<span style="padding:5px 10px;font-family:Comfortaa,sans-serif;font-weight:600;color:#1E2D3D;font-size:0.78rem">${curr}/${tot}</span>`;
+      pagH += `<button class="az-btn-action" style="${btnStyle}" ${curr>=tot?'disabled':''} onclick="loadEsecutori(${curr+1})"><i class="fas fa-angle-right"></i></button>`;
+      pagH += `<button class="az-btn-action" style="${btnStyle}" ${curr>=tot?'disabled':''} onclick="loadEsecutori(${tot})"><i class="fas fa-angle-double-right"></i></button>`;
+      pagEl.innerHTML = pagH;
+    }
   } catch(e) {
-    container.innerHTML = '<p style="padding:16px;color:red">Errore: ' + esc(e.message) + '</p>';
+    resultsEl.innerHTML = '<div class="az-empty-msg" style="padding:32px;color:#e74c3c">Errore: ' + esc(e.message) + '</div>';
   }
 }
 
-function showNewEsecutoreForm() {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('pageCreateEsecutore').classList.add('active');
-  document.getElementById('es-nome').value = '';
-  document.getElementById('es-tipologia').value = '';
-  document.getElementById('es-piva').value = '';
-  document.getElementById('es-cf').value = '';
-  document.getElementById('es-email').value = '';
-  document.getElementById('es-tel').value = '';
-  window._editEsecutoreId = null;
+async function populateCeIntermediario(selectedId) {
+  const sel = document.getElementById('ce-intermediario');
+  if (!sel) return;
+  const intermediari = await getIntermediariForEsecutori();
+  sel.innerHTML = '<option value="">Nessuno</option>' +
+    intermediari.map(i => `<option value="${i.id}" ${String(i.id)===String(selectedId||'')?'selected':''}>${esc(i.ragione_sociale||'')}</option>`).join('');
 }
 
-async function saveEsecutore(event) {
-  event.preventDefault();
+function resetCreateEsecutoreForm() {
+  ['ce-ragione','ce-cognome','ce-nome','ce-piva','ce-cf','ce-sdi','ce-indirizzo','ce-cap','ce-citta','ce-telefono','ce-cellulare','ce-email','ce-pec','ce-prezzo-propria','ce-prezzo-altre','ce-note'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const p=document.getElementById('ce-provincia');if(p)p.value='';
+  const i=document.getElementById('ce-intermediario');if(i)i.value='';
+  populateCeIntermediario();
+}
+
+async function viewEsecutore(id) {
   try {
-    const data = {
-      nome: document.getElementById('es-nome').value,
-      tipologia: document.getElementById('es-tipologia').value,
-      piva: document.getElementById('es-piva').value,
-      cf: document.getElementById('es-cf').value,
-      email: document.getElementById('es-email').value,
-      telefono: document.getElementById('es-tel').value
-    };
-    const editId = window._editEsecutoreId;
-    const url = editId ? `${API_BASE}/admin/esecutori/${editId}` : `${API_BASE}/admin/esecutori`;
-    const res = await fetch(url, {
-      method: editId ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify(data)
-    });
-    if (!res.ok) throw new Error('Errore nel salvataggio');
-    window._editEsecutoreId = null;
-    alert('Esecutore salvato con successo');
-    searchEsecutoriList();
+    const res = await fetch(`${API_BASE}/esecutori-esterni/${id}`, { headers: authHeaders() });
+    const r = await res.json();
+    if (r.error) { if (typeof showToast==='function') showToast(r.error,'error'); else alert(r.error); return; }
+    const container = document.getElementById('esecutori-container');
+    const provOptions = (typeof FALLBACK_PROVINCE !== 'undefined' ? FALLBACK_PROVINCE : [])
+      .map(p => `<option value="${p.sigla}" ${p.sigla===r.provincia_sigla?'selected':''}>${esc(p.nome)} (${p.sigla})</option>`).join('');
+    const intermediari = await getIntermediariForEsecutori();
+    const intOptions = intermediari.map(i => `<option value="${i.id}" ${String(i.id)===String(r.id_intermediario||'')?'selected':''}>${esc(i.ragione_sociale||'')}</option>`).join('');
+    container.innerHTML = `
+      <div class="az-detail-wrap" style="max-width:100%;margin:0">
+        <div class="az-detail-title" style="padding:10px 16px;font-size:1rem;display:flex;align-items:center;justify-content:space-between">
+          <span><i class="fas fa-user-hard-hat" style="color:#FF8C00;margin-right:8px"></i>${esc(r.ragione_sociale||'Esecutore')}</span>
+          <button class="az-btn-action" style="padding:6px 12px;font-size:0.78rem" onclick="loadEsecutori(currentEsecutoriPage||1)"><i class="fas fa-arrow-left"></i> INDIETRO</button>
+        </div>
+        <div class="az-detail-body" style="padding:14px;display:block">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div class="az-consorzio-section" style="margin:0">
+              <div class="az-consorzio-title"><i class="fas fa-id-card"></i> DATI ANAGRAFICI</div>
+              <div class="az-field-row"><div class="az-field"><label>Ragione Sociale</label><input type="text" id="ve-ragione" value="${esc(r.ragione_sociale||'')}"></div></div>
+              <div class="az-field-row">
+                <div class="az-field"><label>Cognome</label><input type="text" id="ve-cognome" value="${esc(r.cognome||'')}"></div>
+                <div class="az-field"><label>Nome</label><input type="text" id="ve-nome" value="${esc(r.nome||'')}"></div>
+              </div>
+              <div class="az-field-row">
+                <div class="az-field"><label>Partita IVA</label><input type="text" id="ve-piva" value="${esc(r.partita_iva||'')}"></div>
+                <div class="az-field"><label>Codice Fiscale</label><input type="text" id="ve-cf" value="${esc(r.codice_fiscale||'')}"></div>
+              </div>
+              <div class="az-field-row"><div class="az-field"><label>Codice SDI</label><input type="text" id="ve-sdi" value="${esc(r.codice_sdi||'')}"></div></div>
+              <div class="az-field-row"><div class="az-field"><label>Indirizzo</label><input type="text" id="ve-indirizzo" value="${esc(r.indirizzo||'')}"></div></div>
+              <div class="az-field-row-3">
+                <div class="az-field"><label>CAP</label><input type="text" id="ve-cap" value="${esc(r.cap||'')}"></div>
+                <div class="az-field"><label>Città</label><input type="text" id="ve-citta" value="${esc(r.citta||'')}"></div>
+                <div class="az-field"><label>Provincia</label><select id="ve-provincia"><option value="">-</option>${provOptions}</select></div>
+              </div>
+              <div class="az-field-row"><div class="az-field"><label>Note</label><textarea id="ve-note" rows="3">${esc(r.note||'')}</textarea></div></div>
+            </div>
+            <div class="az-consorzio-section" style="margin:0">
+              <div class="az-consorzio-title"><i class="fas fa-address-book"></i> CONTATTI & PREZZI</div>
+              <div class="az-field-row">
+                <div class="az-field"><label>Telefono</label><input type="text" id="ve-telefono" value="${esc(r.telefono||'')}"></div>
+                <div class="az-field"><label>Cellulare</label><input type="text" id="ve-cellulare" value="${esc(r.cellulare||'')}"></div>
+              </div>
+              <div class="az-field-row"><div class="az-field"><label>Email</label><input type="email" id="ve-email" value="${esc(r.email||'')}"></div></div>
+              <div class="az-field-row"><div class="az-field"><label>Indirizzo PEC</label><input type="email" id="ve-pec" value="${esc(r.pec||'')}"></div></div>
+              <div class="az-field-row"><div class="az-field"><label>Intermediario</label><select id="ve-intermediario"><option value="">Nessuno</option>${intOptions}</select></div></div>
+              <div class="az-consorzio-title" style="margin-top:14px"><i class="fas fa-euro-sign"></i> PREZZI MINIMI</div>
+              <div class="az-field-row">
+                <div class="az-field"><label>Propria Zona (€)</label><input type="number" step="0.01" id="ve-prezzo-propria" value="${r.prezzo_propria_zona||''}"></div>
+                <div class="az-field"><label>Altre Zone (€)</label><input type="number" step="0.01" id="ve-prezzo-altre" value="${r.prezzo_altre_zone||''}"></div>
+              </div>
+            </div>
+          </div>
+          <div class="az-buttons" style="margin-top:14px;justify-content:flex-start">
+            <button class="az-btn-save" onclick="saveEsecutore(${r.id})"><i class="fas fa-save"></i> SALVA MODIFICHE</button>
+            <button class="az-btn-action" onclick="loadEsecutori(currentEsecutoriPage||1)"><i class="fas fa-times"></i> ANNULLA</button>
+            <button class="az-btn-danger" onclick="deleteEsecutore(${r.id})"><i class="fas fa-trash"></i> ELIMINA</button>
+          </div>
+        </div>
+      </div>`;
   } catch(e) {
-    alert('Errore: ' + e.message);
+    if (typeof showToast==='function') showToast('Errore: '+e.message,'error'); else alert('Errore: '+e.message);
+  }
+}
+
+async function saveEsecutore(id) {
+  const body = {
+    ragione_sociale: document.getElementById('ve-ragione')?.value,
+    cognome: document.getElementById('ve-cognome')?.value,
+    nome: document.getElementById('ve-nome')?.value,
+    partita_iva: document.getElementById('ve-piva')?.value,
+    codice_fiscale: document.getElementById('ve-cf')?.value,
+    codice_sdi: document.getElementById('ve-sdi')?.value,
+    indirizzo: document.getElementById('ve-indirizzo')?.value,
+    cap: document.getElementById('ve-cap')?.value,
+    citta: document.getElementById('ve-citta')?.value,
+    id_provincia: document.getElementById('ve-provincia')?.value,
+    telefono: document.getElementById('ve-telefono')?.value,
+    cellulare: document.getElementById('ve-cellulare')?.value,
+    email: document.getElementById('ve-email')?.value,
+    pec: document.getElementById('ve-pec')?.value,
+    id_intermediario: document.getElementById('ve-intermediario')?.value,
+    prezzo_propria_zona: document.getElementById('ve-prezzo-propria')?.value,
+    prezzo_altre_zone: document.getElementById('ve-prezzo-altre')?.value,
+    note: document.getElementById('ve-note')?.value
+  };
+  try {
+    const res = await fetch(`${API_BASE}/esecutori-esterni/${id}`, { method:'PUT', headers:{'Content-Type':'application/json',...authHeaders()}, body: JSON.stringify(body)});
+    const j = await res.json();
+    if (j.error) { if (typeof showToast==='function') showToast(j.error,'error'); else alert(j.error); return; }
+    if (typeof showToast==='function') showToast('Esecutore aggiornato','success'); else alert('Esecutore aggiornato');
+    loadEsecutori(currentEsecutoriPage||1);
+  } catch(e) {
+    if (typeof showToast==='function') showToast('Errore: '+e.message,'error'); else alert('Errore: '+e.message);
   }
 }
 
 async function deleteEsecutore(id) {
   if (!confirm('Sei sicuro di voler eliminare questo esecutore?')) return;
   try {
-    await fetch(`${API_BASE}/admin/esecutori/${id}`, {
-      method: 'DELETE',
-      headers: authHeaders()
-    });
-    alert('Esecutore eliminato');
-    searchEsecutori();
+    const res = await fetch(`${API_BASE}/esecutori-esterni/${id}`, { method:'DELETE', headers: authHeaders() });
+    const j = await res.json();
+    if (j.error) { if (typeof showToast==='function') showToast(j.error,'error'); else alert(j.error); return; }
+    if (typeof showToast==='function') showToast('Esecutore eliminato','success'); else alert('Esecutore eliminato');
+    loadEsecutori(currentEsecutoriPage||1);
   } catch(e) {
-    alert('Errore: ' + e.message);
-  }
-}
-
-async function editEsecutore(id) {
-  try {
-    const res = await fetch(`${API_BASE}/admin/esecutori/${id}`, { headers: authHeaders() });
-    const data = await res.json();
-    const r = data.data || data;
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('pageCreateEsecutore').classList.add('active');
-    document.getElementById('es-nome').value = r.nome || '';
-    document.getElementById('es-tipologia').value = r.tipologia || '';
-    document.getElementById('es-piva').value = r.piva || '';
-    document.getElementById('es-cf').value = r.cf || '';
-    document.getElementById('es-email').value = r.email || '';
-    document.getElementById('es-tel').value = r.telefono || '';
-    window._editEsecutoreId = id;
-  } catch(e) {
-    alert('Errore nel caricamento: ' + e.message);
+    if (typeof showToast==='function') showToast('Errore: '+e.message,'error'); else alert('Errore: '+e.message);
   }
 }
 
@@ -12946,13 +13110,46 @@ async function createIntermediario() {
   }
 }
 async function createEsecutore() {
-  const piva = document.getElementById('ce-piva')?.value;
   const ragione = document.getElementById('ce-ragione')?.value;
-  if (!piva || !ragione) { alert('P.IVA e Ragione Sociale sono obbligatori'); return; }
+  const cognome = document.getElementById('ce-cognome')?.value;
+  const nome = document.getElementById('ce-nome')?.value;
+  if (!ragione && !(cognome && nome)) {
+    if (typeof showToast === 'function') showToast('Ragione Sociale oppure (Cognome e Nome) obbligatori','error');
+    else alert('Ragione Sociale oppure (Cognome e Nome) obbligatori');
+    return;
+  }
+  const body = {
+    ragione_sociale: ragione,
+    cognome, nome,
+    partita_iva: document.getElementById('ce-piva')?.value,
+    codice_fiscale: document.getElementById('ce-cf')?.value,
+    codice_sdi: document.getElementById('ce-sdi')?.value,
+    indirizzo: document.getElementById('ce-indirizzo')?.value,
+    cap: document.getElementById('ce-cap')?.value,
+    citta: document.getElementById('ce-citta')?.value,
+    id_provincia: document.getElementById('ce-provincia')?.value,
+    telefono: document.getElementById('ce-telefono')?.value,
+    cellulare: document.getElementById('ce-cellulare')?.value,
+    email: document.getElementById('ce-email')?.value,
+    pec: document.getElementById('ce-pec')?.value,
+    id_intermediario: document.getElementById('ce-intermediario')?.value,
+    prezzo_propria_zona: document.getElementById('ce-prezzo-propria')?.value,
+    prezzo_altre_zone: document.getElementById('ce-prezzo-altre')?.value,
+    note: document.getElementById('ce-note')?.value
+  };
   try {
-    const res = await fetch(`${API_BASE}/admin/esecutori`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ partita_iva: piva, ragione_sociale: ragione, email: document.getElementById('ce-email')?.value, telefono: document.getElementById('ce-telefono')?.value }) });
-    if (res.ok) { alert('Esecutore creato!'); selectSubPage('aziende', 'esecutori'); } else { const d = await res.json(); alert('Errore: ' + (d.error || 'Sconosciuto')); }
-  } catch (err) { alert('Errore: ' + err.message); }
+    const res = await fetch(`${API_BASE}/esecutori-esterni`, { method:'POST', headers:{'Content-Type':'application/json',...authHeaders()}, body: JSON.stringify(body)});
+    const j = await res.json();
+    if (j.error) {
+      if (typeof showToast === 'function') showToast(j.error,'error'); else alert(j.error);
+      return;
+    }
+    if (typeof showToast === 'function') showToast('Esecutore creato!','success'); else alert('Esecutore creato!');
+    resetCreateEsecutoreForm();
+    selectSubPage('aziende','esecutori');
+  } catch (err) {
+    if (typeof showToast === 'function') showToast('Errore: '+err.message,'error'); else alert('Errore: '+err.message);
+  }
 }
 async function searchIntermediariAz() {
   const container = document.getElementById('intermediariAzResults');

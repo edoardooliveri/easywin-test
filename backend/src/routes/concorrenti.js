@@ -18,7 +18,7 @@ export default async function concorrentiRoutes(fastify) {
 
     if (search) {
       conditions.push(
-        `(ragione_sociale ILIKE $${paramIdx} OR indirizzo ILIKE $${paramIdx} OR email ILIKE $${paramIdx})`
+        `(ragione_sociale ILIKE $${paramIdx} OR nome ILIKE $${paramIdx} OR partita_iva ILIKE $${paramIdx} OR codice_fiscale ILIKE $${paramIdx} OR email ILIKE $${paramIdx} OR telefono ILIKE $${paramIdx} OR citta ILIKE $${paramIdx} OR cap ILIKE $${paramIdx} OR indirizzo ILIKE $${paramIdx} OR persona_riferimento ILIKE $${paramIdx})`
       );
       params.push(`%${search}%`);
       paramIdx++;
