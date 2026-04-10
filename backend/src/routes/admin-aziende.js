@@ -1448,8 +1448,16 @@ export default async function adminAziendeRoutes(fastify, opts) {
   fastify.post('/:id/consorzi', async (request, reply) => {
     try {
       const consorzioId = request.params.id;
-      const { id_azienda_membro } = request.body;
-      if (!id_azienda_membro) return reply.status(400).send({ error: 'id_azienda_membro richiesto' });
+      let { id_azienda_membro, partita_iva_membro } = request.body;
+
+      // If only P.IVA provided, look up the company id
+      if (!id_azienda_membro && partita_iva_membro) {
+        const pivaRes = await query('SELECT id FROM aziende WHERE partita_iva = $1 LIMIT 1', [partita_iva_membro.trim()]);
+        if (!pivaRes.rows.length) return reply.status(404).send({ error: `Azienda con P.IVA ${partita_iva_membro} non trovata` });
+        id_azienda_membro = pivaRes.rows[0].id;
+      }
+
+      if (!id_azienda_membro) return reply.status(400).send({ error: 'id_azienda_membro o partita_iva_membro richiesto' });
 
       const res = await query(`
         INSERT INTO consorzi (id_azienda_consorzio, id_azienda_membro, data_inizio, attivo)

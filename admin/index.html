@@ -963,30 +963,31 @@ tbody tr:hover td {
 .detail-label { font-size: 0.8rem; color: var(--text-light); text-transform: uppercase; font-weight: 600; }
 .detail-value { font-size: 0.85rem; font-weight: 500; text-align: right; max-width: 60%; }
 /* ═══ AZIENDA DETAIL VIEW ═══ */
+.az-detail-wrap { font-family: 'Comfortaa', cursive; }
 .az-detail-title {
   background: linear-gradient(135deg, var(--accent-orange), #e67e00);
   color: #fff;
-  padding: 14px 24px;
-  border-radius: 10px 10px 0 0;
+  padding: 16px 26px;
+  border-radius: 14px 14px 0 0;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-family: 'Comfortaa', cursive;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
+  box-shadow: 0 2px 8px rgba(255,140,0,0.15);
 }
 .az-detail-body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   border: 1px solid var(--border);
   border-top: none;
-  border-radius: 0 0 10px 10px;
   background: #fff;
 }
 .az-detail-col {
-  padding: 20px 24px;
+  padding: 22px 26px;
 }
 .az-detail-col:first-child {
-  border-right: 1px solid var(--border);
+  border-right: 1px solid #f0f0f0;
 }
 .az-field {
   margin-bottom: 10px;
@@ -1058,13 +1059,15 @@ tbody tr:hover td {
 }
 .az-buttons {
   display: flex;
-  gap: 10px;
-  padding: 16px 24px;
-  background: #f8f8f8;
+  gap: 12px;
+  padding: 18px 26px;
+  background: linear-gradient(180deg, #fafafa, #f5f5f5);
   border: 1px solid var(--border);
   border-top: none;
-  border-radius: 0 0 10px 10px;
+  border-radius: 0 0 14px 14px;
   flex-wrap: wrap;
+  align-items: center;
+  font-family: 'Comfortaa', cursive;
 }
 .az-btn-save {
   background: linear-gradient(135deg, var(--accent-orange), #e67e00);
@@ -1110,15 +1113,33 @@ tbody tr:hover td {
 }
 .az-btn-danger:hover { color: var(--danger); border-color: var(--danger); background: #fff5f5; }
 .az-consorzio-section {
-  margin-top: 20px;
+  margin-top: 22px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 22px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  font-family: 'Comfortaa', cursive;
 }
 .az-consorzio-title {
   color: var(--accent-orange);
   font-family: 'Comfortaa', cursive;
   font-weight: 700;
-  font-size: 0.9rem;
-  margin-bottom: 12px;
+  font-size: 0.88rem;
+  margin-bottom: 14px;
   text-transform: uppercase;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(255,140,0,0.15);
+}
+.az-table-wrap {
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
 }
 .az-consorzio-table {
   width: 100%;
@@ -1127,21 +1148,75 @@ tbody tr:hover td {
   font-size: 0.78rem;
 }
 .az-consorzio-table th {
-  background: #666;
-  color: #fff;
-  padding: 10px 12px;
+  background: linear-gradient(180deg, #fafafa, #f2f2f2);
+  color: #555;
+  padding: 11px 14px;
   text-align: left;
-  font-weight: 600;
-  font-size: 0.72rem;
+  font-weight: 700;
+  font-size: 0.7rem;
   text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-bottom: 1px solid #e5e5e5;
+  font-family: 'Comfortaa', cursive;
 }
 .az-consorzio-table td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #eee;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f2f2f2;
   color: #444;
+  font-family: 'Comfortaa', cursive;
+  vertical-align: middle;
 }
-.az-consorzio-table tr:hover td {
+.az-consorzio-table tr:last-child td { border-bottom: none; }
+.az-consorzio-table tbody tr:hover td {
   background: rgba(255,140,0,0.04);
+}
+.az-consorzio-table input[type="text"],
+.az-consorzio-table input[type="date"],
+.az-consorzio-table input[type="file"],
+.az-consorzio-table textarea {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-family: 'Comfortaa', cursive;
+  background: #fafafa;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.az-consorzio-table input:focus, .az-consorzio-table textarea:focus {
+  border-color: var(--accent-orange);
+  outline: none;
+  background: #fff;
+}
+.az-consorzio-table textarea { min-height: 48px; resize: vertical; }
+.az-add-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  align-items: center;
+}
+.az-add-row input[type="text"] {
+  flex: 1;
+  padding: 9px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 50px;
+  font-family: 'Comfortaa', cursive;
+  font-size: 0.82rem;
+  background: #fafafa;
+}
+.az-add-row input[type="text"]:focus {
+  border-color: var(--accent-orange);
+  outline: none;
+  background: #fff;
+}
+.az-empty-msg {
+  color: #aaa;
+  padding: 14px 0;
+  font-size: 0.82rem;
+  font-family: 'Comfortaa', cursive;
+  text-align: center;
+  font-style: italic;
 }
 @media (max-width: 900px) {
   .az-detail-body { grid-template-columns: 1fr; }
@@ -12543,6 +12618,8 @@ async function viewAziendaDetailEnhanced(id, currentPage = 1) {
       <button class="btn btn-sm btn-secondary" onclick="searchAziende(${currentPage})"><i class="fas fa-arrow-left"></i> Torna ai risultati</button>
     </div>`;
 
+    html += `<div class="az-detail-wrap">`;
+
     // TITLE BAR
     html += `<div class="az-detail-title"><i class="fas fa-building" style="margin-right:8px"></i> AZIENDA "${v('ragione_sociale')}"</div>`;
 
@@ -12706,27 +12783,31 @@ async function viewAziendaDetailEnhanced(id, currentPage = 1) {
     </div>`;
 
     // ═══════ CONSORZI TABLE ═══════
-    if (data.consorzi && data.consorzi.length > 0) {
+    if (a.consorzio || (data.consorzi && data.consorzi.length > 0)) {
       html += `<div class="az-consorzio-section">
-        <div class="az-consorzio-title"><i class="fas fa-sitemap"></i> AZIENDE COMPONENTI IL CONSORZIO ( ${data.consorzi.length} )</div>
-        <table class="az-consorzio-table">
-          <thead><tr><th>Azienda</th><th>Partita IVA</th><th>Indirizzo</th><th>CAP</th><th>Città</th><th>Provincia</th><th></th></tr></thead>
+        <div class="az-consorzio-title"><i class="fas fa-sitemap"></i> AZIENDE COMPONENTI IL CONSORZIO ( ${data.consorzi ? data.consorzi.length : 0} )</div>
+        <div class="az-table-wrap"><table class="az-consorzio-table">
+          <thead><tr><th>Azienda</th><th>Partita IVA</th><th>Indirizzo</th><th>CAP</th><th>Città</th><th>Provincia</th><th style="width:100px"></th></tr></thead>
           <tbody>`;
-      data.consorzi.forEach(c => {
-        html += `<tr>
-          <td>${esc(c.ragione_sociale_membro||'')}</td>
-          <td>${esc(c.partita_iva_membro||'')}</td>
-          <td>${esc(c.indirizzo_membro||'')}</td>
-          <td>${esc(c.cap_membro||'')}</td>
-          <td>${esc(c.citta_membro||'')}</td>
-          <td>${esc(c.provincia_membro||'')}</td>
-          <td><button class="az-btn-danger" style="padding:4px 12px;font-size:0.7rem" onclick="showToast('Eliminazione membro in sviluppo','info')">ELIMINA</button></td>
-        </tr>`;
-      });
-      html += `</tbody></table>
-        <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
-          <input type="text" id="az_add_membro" placeholder="Inserire l'azienda..." style="flex:1;padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-family:'Comfortaa',cursive;font-size:0.82rem">
-          <button class="az-btn-action" onclick="showToast('Aggiunta membro in sviluppo','info')">AGGIUNGI</button>
+      if (data.consorzi && data.consorzi.length > 0) {
+        data.consorzi.forEach(c => {
+          html += `<tr>
+            <td>${esc(c.ragione_sociale_membro||'')}</td>
+            <td>${esc(c.partita_iva_membro||'')}</td>
+            <td>${esc(c.indirizzo_membro||'')}</td>
+            <td>${esc(c.cap_membro||'')}</td>
+            <td>${esc(c.citta_membro||'')}</td>
+            <td>${esc(c.provincia_membro||'')}</td>
+            <td><button class="az-btn-danger" style="padding:4px 12px;font-size:0.68rem" onclick="eliminaMembroConsorzio(${id},${c.id})">ELIMINA</button></td>
+          </tr>`;
+        });
+      } else {
+        html += `<tr><td colspan="7" class="az-empty-msg">Nessun membro del consorzio</td></tr>`;
+      }
+      html += `</tbody></table></div>
+        <div class="az-add-row">
+          <input type="text" id="az_add_membro_piva" placeholder="Partita IVA azienda membro...">
+          <button class="az-btn-save" style="padding:8px 18px;font-size:0.75rem" onclick="aggiungiMembroConsorzio(${id})">AGGIUNGI</button>
         </div>
       </div>`;
     }
@@ -12734,28 +12815,35 @@ async function viewAziendaDetailEnhanced(id, currentPage = 1) {
     // ═══════ DOCUMENTI ALLEGATI ═══════
     html += `<div class="az-consorzio-section">
       <div class="az-consorzio-title"><i class="fas fa-paperclip"></i> DOCUMENTI ALLEGATI</div>
-      <table class="az-consorzio-table">
-        <thead><tr><th style="width:30%">Documento</th><th style="width:10%">Presente</th><th style="width:20%">Scadenza</th><th style="width:25%">Carica file</th><th style="width:15%"></th></tr></thead>
+      <div class="az-table-wrap"><table class="az-consorzio-table">
+        <thead><tr><th style="width:30%">Documento</th><th style="width:12%;text-align:center">Presente</th><th style="width:20%">Scadenza</th><th style="width:25%">Carica file</th><th style="width:13%"></th></tr></thead>
         <tbody>`;
-    const docTypes = ['Documento di delega', 'Documento di identità', 'Documento SOA', 'Documento CCIAA'];
+    const docTypes = [
+      { label: 'Documento di delega', key: 'delega', presentField: 'presente_documento_delega', scadField: 'data_scadenza_delega' },
+      { label: 'Documento di identità', key: 'identita', presentField: 'presente_documento_identita', scadField: 'data_scadenza_identita' },
+      { label: 'Documento SOA', key: 'soa_doc', presentField: 'presente_documento_soa', scadField: 'data_scadenza_soa' },
+      { label: 'Documento CCIAA', key: 'cciaa_doc', presentField: 'presente_documento_cciaa', scadField: 'data_scadenza_cciaa' }
+    ];
     docTypes.forEach((doc, idx) => {
+      const presente = !!a[doc.presentField];
+      const scadenza = a[doc.scadField] ? a[doc.scadField].substring(0,10) : '';
       html += `<tr>
-        <td>${doc}</td>
-        <td style="text-align:center"><input type="checkbox" disabled></td>
-        <td><input type="date" style="width:100%;padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:0.78rem"></td>
-        <td><input type="file" style="font-size:0.72rem" id="az_doc_${idx}"></td>
+        <td style="font-weight:600">${doc.label}</td>
+        <td style="text-align:center"><input type="checkbox" ${presente?'checked':''} disabled></td>
+        <td><input type="text" class="ew-date" value="${scadenza}" id="az_doc_scad_${idx}" placeholder="Seleziona data..."></td>
+        <td><input type="file" id="az_doc_file_${idx}" style="font-size:0.72rem;background:#fff;padding:4px"></td>
         <td style="text-align:center">
-          <button class="az-btn-action" style="padding:3px 10px;font-size:0.68rem" onclick="showToast('Upload documenti in sviluppo','info')">CARICA</button>
+          <button class="az-btn-action" style="padding:5px 12px;font-size:0.68rem" onclick="caricaDocumento(${id},'${doc.key}',${idx})">CARICA</button>
         </td>
       </tr>`;
     });
-    html += `</tbody></table></div>`;
+    html += `</tbody></table></div></div>`;
 
     // ═══════ NOTE ═══════
     html += `<div class="az-consorzio-section">
-      <div class="az-consorzio-title"><i class="fas fa-sticky-note"></i> NOTE</div>
-      <table class="az-consorzio-table">
-        <thead><tr><th>Data</th><th>Utente</th><th>Nota</th><th>Ricontattare</th><th></th></tr></thead>
+      <div class="az-consorzio-title"><i class="fas fa-sticky-note"></i> NOTE ( ${data.note ? data.note.length : 0} )</div>
+      <div class="az-table-wrap"><table class="az-consorzio-table">
+        <thead><tr><th style="width:110px">Data</th><th style="width:130px">Utente</th><th>Nota</th><th style="width:130px">Ricontattare</th><th style="width:100px"></th></tr></thead>
         <tbody>`;
     if (data.note && data.note.length > 0) {
       data.note.forEach(n => {
@@ -12763,82 +12851,116 @@ async function viewAziendaDetailEnhanced(id, currentPage = 1) {
           <td>${n.data_inserimento ? new Date(n.data_inserimento).toLocaleDateString('it-IT') : '-'}</td>
           <td>${esc(n.username||'')}</td>
           <td>${esc(n.testo||'')}</td>
-          <td>${esc(n.ricontattare||'')}</td>
-          <td></td>
+          <td>${n.ricontattare ? new Date(n.ricontattare).toLocaleDateString('it-IT') : '-'}</td>
+          <td style="text-align:center"><button class="az-btn-danger" style="padding:4px 10px;font-size:0.68rem" onclick="eliminaNotaAzienda(${n.id},${id})">×</button></td>
         </tr>`;
       });
+    } else {
+      html += `<tr><td colspan="5" class="az-empty-msg">Nessuna nota</td></tr>`;
     }
     // Add new note row
-    html += `<tr style="background:#f9f9f9">
-      <td><input type="date" id="az_nota_data" style="width:100%;padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:0.78rem"></td>
-      <td style="font-size:0.78rem;color:#666">Corrente</td>
-      <td><textarea id="az_nota_testo" placeholder="Inserire la nota..." style="width:100%;min-height:50px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:0.78rem;font-family:'Comfortaa',cursive;resize:vertical"></textarea></td>
-      <td><input type="date" id="az_nota_ricont" style="width:100%;padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:0.78rem"></td>
-      <td><button class="az-btn-save" style="padding:6px 14px;font-size:0.72rem" onclick="addNotaAzienda(${id})">AGGIUNGI</button></td>
+    html += `<tr style="background:#fff8f0">
+      <td><input type="text" class="ew-date" id="az_nota_data" placeholder="Oggi"></td>
+      <td style="font-size:0.78rem;color:#666;font-weight:600">Corrente</td>
+      <td><textarea id="az_nota_testo" placeholder="Inserire la nota..."></textarea></td>
+      <td><input type="text" class="ew-date" id="az_nota_ricont" placeholder="Opzionale"></td>
+      <td style="text-align:center"><button class="az-btn-save" style="padding:7px 14px;font-size:0.7rem" onclick="addNotaAzienda(${id})">AGGIUNGI</button></td>
     </tr>`;
-    html += `</tbody></table></div>`;
+    html += `</tbody></table></div></div>`;
 
     // ═══════ DESCRIZIONE SERVIZI ═══════
+    const nInvioDesc = data.eventi ? data.eventi.filter(e => e.tipo === 'descrizione_servizi').length : 0;
     html += `<div class="az-consorzio-section">
-      <div class="az-consorzio-title"><i class="fas fa-concierge-bell"></i> DESCRIZIONE SERVIZI (0)</div>
-      <button class="az-btn-save" style="margin-top:8px" onclick="showToast('Invio descrizione servizi in sviluppo','info')">INVIO DESCRIZIONE SERVIZI</button>
+      <div class="az-consorzio-title"><i class="fas fa-concierge-bell"></i> DESCRIZIONE SERVIZI ( ${nInvioDesc} )</div>
+      <p style="font-size:0.82rem;color:#666;margin:0 0 12px 0">Invia una mail all'azienda con la descrizione dei servizi EasyWin (Bandi, Esiti, Bundle).</p>
+      <button class="az-btn-save" onclick="invioDescrizioneServizi(${id})"><i class="fas fa-paper-plane"></i> INVIO DESCRIZIONE SERVIZI</button>
     </div>`;
 
     // ═══════ RICHIESTA PASSWORD DI PROVA ═══════
+    const nPwdProva = data.eventi ? data.eventi.filter(e => e.tipo === 'password_prova').length : 0;
     html += `<div class="az-consorzio-section">
-      <div class="az-consorzio-title"><i class="fas fa-key"></i> RICHIESTA PASSWORD DI PROVA (0)</div>
-      <button class="az-btn-save" style="margin-top:8px" onclick="showToast('Invio richiesta password in sviluppo','info')">INVIO RICHIESTA PASSWORD DI PROVA</button>
+      <div class="az-consorzio-title"><i class="fas fa-key"></i> RICHIESTA PASSWORD DI PROVA ( ${nPwdProva} )</div>
+      <p style="font-size:0.82rem;color:#666;margin:0 0 12px 0">Attiva un accesso di prova gratuito per l'azienda.</p>
+      <div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
+        <div class="az-field" style="max-width:160px;margin-bottom:0">
+          <label>Servizio</label>
+          <select id="az_prova_serv">
+            <option value="esiti">Esiti</option>
+            <option value="bandi">Bandi</option>
+            <option value="bundle">Bundle</option>
+          </select>
+        </div>
+        <div class="az-field" style="max-width:120px;margin-bottom:0">
+          <label>Giorni</label>
+          <input type="number" id="az_prova_giorni" value="7" min="1" max="90">
+        </div>
+        <button class="az-btn-save" onclick="invioPasswordProva(${id})"><i class="fas fa-paper-plane"></i> INVIO RICHIESTA PASSWORD DI PROVA</button>
+      </div>
     </div>`;
 
     // ═══════ ATTESTAZIONI SOA TABLE ═══════
     html += `<div class="az-consorzio-section">
       <div class="az-consorzio-title"><i class="fas fa-certificate"></i> ATTESTAZIONI ( ${data.attestazioni ? data.attestazioni.length : 0} )</div>`;
+    html += `<div class="az-table-wrap"><table class="az-consorzio-table">
+        <thead><tr><th>Attestazione SOA</th><th style="text-align:center;width:120px">Classifica</th><th style="text-align:center;width:100px">Anno</th><th style="width:100px"></th></tr></thead>
+        <tbody>`;
     if (data.attestazioni && data.attestazioni.length > 0) {
-      html += `<table class="az-consorzio-table">
-          <thead><tr><th>Attestazione SOA</th><th>Classifica</th><th>Anno</th></tr></thead>
-          <tbody>`;
       data.attestazioni.forEach(att => {
         html += `<tr>
-          <td>${esc(att.codice_soa||'')}</td>
+          <td style="font-weight:600">${esc(att.codice_soa||att.categoria||'')}</td>
           <td style="text-align:center">${att.classifica||'-'}</td>
-          <td style="text-align:center">${att.data_rilascio ? new Date(att.data_rilascio).getFullYear() : '-'}</td>
+          <td style="text-align:center">${att.data_rilascio ? new Date(att.data_rilascio).getFullYear() : att.anno||'-'}</td>
+          <td style="text-align:center"><button class="az-btn-danger" style="padding:4px 10px;font-size:0.68rem" onclick="eliminaAttestazione(${att.id},${id})">×</button></td>
         </tr>`;
       });
-      html += `</tbody></table>`;
     } else {
-      html += `<p style="color:#999;padding:10px 0;font-size:0.82rem">Nessuna attestazione</p>`;
+      html += `<tr><td colspan="4" class="az-empty-msg">Nessuna attestazione</td></tr>`;
     }
-    html += `<div style="margin-top:8px"><button class="az-btn-action" onclick="showToast('Modifica attestazioni in sviluppo','info')">MODIFICA ATTESTAZIONI</button></div>
+    html += `</tbody></table></div>
+    <div class="az-add-row">
+      <input type="text" id="az_att_codice" placeholder="Categoria SOA (es. OS07)" style="flex:2">
+      <input type="text" id="az_att_classifica" placeholder="Classifica (I-VIII)" style="flex:1">
+      <input type="text" class="ew-date" id="az_att_data" placeholder="Data rilascio" style="flex:1">
+      <button class="az-btn-save" style="padding:8px 18px;font-size:0.75rem" onclick="aggiungiAttestazione(${id})">AGGIUNGI</button>
+    </div>
     </div>`;
 
     // ═══════ PERSONALE TABLE ═══════
     html += `<div class="az-consorzio-section">
-      <div class="az-consorzio-title"><i class="fas fa-users"></i> PERSONALE</div>`;
+      <div class="az-consorzio-title"><i class="fas fa-users"></i> PERSONALE ( ${data.personale ? data.personale.length : 0} )</div>
+      <div class="az-table-wrap"><table class="az-consorzio-table">
+        <thead><tr><th>Nome</th><th>Ruolo</th><th>Codice Fiscale</th><th style="width:100px"></th></tr></thead>
+        <tbody>`;
     if (data.personale && data.personale.length > 0) {
-      html += `<table class="az-consorzio-table">
-          <thead><tr><th>Nome</th><th>Ruolo</th><th>Codice Fiscale</th></tr></thead>
-          <tbody>`;
       data.personale.forEach(p => {
         const nomeCompleto = [p.nome, p.cognome].filter(Boolean).join(' ');
         html += `<tr>
-          <td>${esc(nomeCompleto||'')}</td>
+          <td style="font-weight:600">${esc(nomeCompleto||'')}</td>
           <td>${esc(p.ruolo||'')}</td>
           <td>${esc(p.codice_fiscale||'')}</td>
+          <td style="text-align:center"><button class="az-btn-danger" style="padding:4px 10px;font-size:0.68rem" onclick="eliminaPersonale(${p.id},${id})">×</button></td>
         </tr>`;
       });
-      html += `</tbody></table>`;
     } else {
-      html += `<p style="color:#999;padding:10px 0;font-size:0.82rem">Nessun personale registrato</p>`;
+      html += `<tr><td colspan="4" class="az-empty-msg">Nessun personale registrato</td></tr>`;
     }
-    html += `</div>`;
+    html += `</tbody></table></div>
+    <div class="az-add-row">
+      <input type="text" id="az_pers_nome" placeholder="Nome" style="flex:1">
+      <input type="text" id="az_pers_cognome" placeholder="Cognome" style="flex:1">
+      <input type="text" id="az_pers_ruolo" placeholder="Ruolo" style="flex:1">
+      <input type="text" id="az_pers_cf" placeholder="Codice Fiscale" style="flex:1">
+      <button class="az-btn-save" style="padding:8px 18px;font-size:0.75rem" onclick="aggiungiPersonale(${id})">AGGIUNGI</button>
+    </div>
+    </div>`;
 
     // ═══════ MODIFICHE (AUDIT LOG) ═══════
     html += `<div class="az-consorzio-section">
-      <div class="az-consorzio-title"><i class="fas fa-history"></i> MODIFICHE</div>`;
+      <div class="az-consorzio-title"><i class="fas fa-history"></i> MODIFICHE ( ${data.eventi ? data.eventi.length : 0} )</div>
+      <div class="az-table-wrap"><table class="az-consorzio-table">
+        <thead><tr><th style="width:120px">Data</th><th>Note</th><th style="width:150px">Utente</th></tr></thead>
+        <tbody>`;
     if (data.eventi && data.eventi.length > 0) {
-      html += `<table class="az-consorzio-table">
-          <thead><tr><th>Data</th><th>Note</th><th>Utente</th></tr></thead>
-          <tbody>`;
       data.eventi.forEach(e => {
         html += `<tr>
           <td>${e.data ? new Date(e.data).toLocaleDateString('it-IT') : e.data_inserimento ? new Date(e.data_inserimento).toLocaleDateString('it-IT') : '-'}</td>
@@ -12846,33 +12968,36 @@ async function viewAziendaDetailEnhanced(id, currentPage = 1) {
           <td>${esc(e.username||'')}</td>
         </tr>`;
       });
-      html += `</tbody></table>`;
     } else {
-      html += `<p style="color:#999;padding:10px 0;font-size:0.82rem">Nessun dato trovato</p>`;
+      html += `<tr><td colspan="3" class="az-empty-msg">Nessun dato trovato</td></tr>`;
     }
-    html += `</div>`;
+    html += `</tbody></table></div></div>`;
 
     // ═══════ GARE RECENTI TABLE ═══════
     if (data.gare_recenti && data.gare_recenti.length > 0) {
       html += `<div class="az-consorzio-section">
         <div class="az-consorzio-title"><i class="fas fa-gavel"></i> GARE RECENTI ( ${data.gare_recenti.length} )</div>
-        <table class="az-consorzio-table">
-          <thead><tr><th>Data</th><th>Titolo</th><th>Importo</th><th>Ribasso</th><th>Pos.</th><th>Vincitrice</th></tr></thead>
+        <div class="az-table-wrap"><table class="az-consorzio-table">
+          <thead><tr><th style="width:110px">Data</th><th>Titolo</th><th style="width:120px">Importo</th><th style="width:100px">Ribasso</th><th style="width:70px;text-align:center">Pos.</th><th style="width:100px;text-align:center">Vincitrice</th></tr></thead>
           <tbody>`;
       data.gare_recenti.forEach(g => {
         html += `<tr>
           <td>${fmtDate(g.data)}</td>
-          <td>${esc((g.titolo||'').substring(0,50))}</td>
+          <td>${esc((g.titolo||'').substring(0,60))}</td>
           <td>${fmtImporto(g.importo)}</td>
           <td>${g.ribasso ? Number(g.ribasso).toFixed(3)+'%' : '-'}</td>
           <td style="text-align:center">${g.posizione||'-'}</td>
-          <td>${g.vincitrice ? '<span style="color:var(--success);font-weight:bold">SI</span>' : 'NO'}</td>
+          <td style="text-align:center">${g.vincitrice ? '<span style="color:var(--success);font-weight:bold">SI</span>' : '<span style="color:#999">NO</span>'}</td>
         </tr>`;
       });
-      html += `</tbody></table></div>`;
+      html += `</tbody></table></div></div>`;
     }
 
+    html += `</div>`; // END az-detail-wrap
+
     container.innerHTML = html;
+    // Init all Flatpickr date inputs in the newly rendered detail view
+    if (typeof initFlatpickrAll === 'function') initFlatpickrAll();
     container.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch(e) { container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Errore: ${e.message}</p></div>`; }
 }
@@ -12939,12 +13064,13 @@ async function saveAziendaDetail(id, currentPage) {
 
 async function addNotaAzienda(idAzienda) {
   const testo = document.getElementById('az_nota_testo')?.value;
+  const ricontattare = document.getElementById('az_nota_ricont')?.value || null;
   if (!testo || !testo.trim()) { showToast('Inserire il testo della nota', 'error'); return; }
   try {
-    const res = await fetch(`${API_BASE}/admin/aziende/note`, {
+    const res = await fetch(`${API_BASE}/admin/aziende/${idAzienda}/note`, {
       method: 'POST',
       headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id_azienda: idAzienda, testo: testo.trim() })
+      body: JSON.stringify({ testo: testo.trim(), ricontattare })
     });
     if (res.ok) {
       showToast('Nota aggiunta', 'success');
@@ -12952,6 +13078,157 @@ async function addNotaAzienda(idAzienda) {
     } else {
       showToast('Errore aggiunta nota', 'error');
     }
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+}
+
+async function eliminaNotaAzienda(idNota, idAzienda) {
+  if (!confirm('Eliminare questa nota?')) return;
+  try {
+    const res = await fetch(`${API_BASE}/admin/aziende/note/${idNota}`, { method: 'DELETE', headers: authHeaders() });
+    if (res.ok) { showToast('Nota eliminata', 'success'); viewAziendaDetailEnhanced(idAzienda, currentAziendePage); }
+    else showToast('Errore eliminazione', 'error');
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+}
+
+// ═══════ PASSWORD DI PROVA ═══════
+async function invioPasswordProva(idAzienda) {
+  const servizio = document.getElementById('az_prova_serv')?.value || 'esiti';
+  const giorni = parseInt(document.getElementById('az_prova_giorni')?.value) || 7;
+  if (!confirm(`Attivare accesso di prova ${servizio.toUpperCase()} per ${giorni} giorni?`)) return;
+  try {
+    const res = await fetch(`${API_BASE}/admin/aziende/${idAzienda}/password-prova`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ giorni, servizio })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast(data.message || 'Password di prova attivata', 'success');
+      viewAziendaDetailEnhanced(idAzienda, currentAziendePage);
+    } else {
+      showToast('Errore: ' + (data.error || 'Attivazione fallita'), 'error');
+    }
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+}
+
+// ═══════ DESCRIZIONE SERVIZI ═══════
+async function invioDescrizioneServizi(idAzienda) {
+  if (!confirm('Inviare la descrizione dei servizi via email a questa azienda?')) return;
+  try {
+    const res = await fetch(`${API_BASE}/admin/aziende/invia-mail`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        destinatari_ids: [idAzienda],
+        oggetto: 'EasyWin - Descrizione servizi',
+        corpo: `Gentile {ragione_sociale},\n\nLe inviamo la descrizione dei nostri servizi EasyWin:\n\n• BANDI: monitoraggio quotidiano bandi di gara italiani ed europei\n• ESITI: database aggiornato degli esiti di gara con ribassi e vincitori\n• BUNDLE: accesso completo a bandi + esiti a tariffa agevolata\n• PRESIDIA: servizio di vigilanza e alert su scadenze e nuovi bandi\n\nPer informazioni e preventivi personalizzati, ci contatti.\n\nCordiali saluti,\nTeam EasyWin`
+      })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast(`Mail inviata (${data.inviate||1})`, 'success');
+      // log event
+      try { await fetch(`${API_BASE}/admin/aziende/${idAzienda}/eventi`, { method: 'POST', headers: { ...authHeaders(), 'Content-Type':'application/json' }, body: JSON.stringify({ tipo: 'descrizione_servizi', descrizione: 'Invio descrizione servizi via email' }) }); } catch(e) {}
+      viewAziendaDetailEnhanced(idAzienda, currentAziendePage);
+    } else {
+      showToast('Errore: ' + (data.error || 'Invio fallito'), 'error');
+    }
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+}
+
+// ═══════ CARICA DOCUMENTO ═══════
+async function caricaDocumento(idAzienda, tipo, idx) {
+  const scadenza = document.getElementById(`az_doc_scad_${idx}`)?.value || null;
+  try {
+    const res = await fetch(`${API_BASE}/admin/aziende/${idAzienda}/documenti`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tipo, scadenza })
+    });
+    if (res.ok) {
+      showToast('Documento registrato', 'success');
+      viewAziendaDetailEnhanced(idAzienda, currentAziendePage);
+    } else {
+      showToast('Errore registrazione', 'error');
+    }
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+}
+
+// ═══════ ATTESTAZIONI ═══════
+async function aggiungiAttestazione(idAzienda) {
+  const codice = document.getElementById('az_att_codice')?.value?.trim();
+  const classifica = document.getElementById('az_att_classifica')?.value?.trim();
+  const data_rilascio = document.getElementById('az_att_data')?.value || null;
+  if (!codice) { showToast('Inserire la categoria SOA', 'error'); return; }
+  try {
+    const res = await fetch(`${API_BASE}/admin/aziende/${idAzienda}/attestazioni`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ codice_soa: codice, categoria: codice, classifica, data_rilascio })
+    });
+    if (res.ok) { showToast('Attestazione aggiunta', 'success'); viewAziendaDetailEnhanced(idAzienda, currentAziendePage); }
+    else showToast('Errore aggiunta', 'error');
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+}
+
+async function eliminaAttestazione(idAtt, idAzienda) {
+  if (!confirm('Eliminare questa attestazione?')) return;
+  try {
+    const res = await fetch(`${API_BASE}/admin/aziende/attestazioni/${idAtt}`, { method: 'DELETE', headers: authHeaders() });
+    if (res.ok) { showToast('Attestazione eliminata', 'success'); viewAziendaDetailEnhanced(idAzienda, currentAziendePage); }
+    else showToast('Errore eliminazione', 'error');
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+}
+
+// ═══════ PERSONALE ═══════
+async function aggiungiPersonale(idAzienda) {
+  const nome = document.getElementById('az_pers_nome')?.value?.trim();
+  const cognome = document.getElementById('az_pers_cognome')?.value?.trim();
+  const ruolo = document.getElementById('az_pers_ruolo')?.value?.trim();
+  const codice_fiscale = document.getElementById('az_pers_cf')?.value?.trim();
+  if (!nome && !cognome) { showToast('Inserire almeno nome o cognome', 'error'); return; }
+  try {
+    const res = await fetch(`${API_BASE}/admin/aziende/${idAzienda}/personale`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, cognome, ruolo, codice_fiscale })
+    });
+    if (res.ok) { showToast('Personale aggiunto', 'success'); viewAziendaDetailEnhanced(idAzienda, currentAziendePage); }
+    else showToast('Errore aggiunta', 'error');
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+}
+
+async function eliminaPersonale(idPers, idAzienda) {
+  if (!confirm('Eliminare questo membro del personale?')) return;
+  try {
+    const res = await fetch(`${API_BASE}/admin/aziende/personale/${idPers}`, { method: 'DELETE', headers: authHeaders() });
+    if (res.ok) { showToast('Personale eliminato', 'success'); viewAziendaDetailEnhanced(idAzienda, currentAziendePage); }
+    else showToast('Errore eliminazione', 'error');
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+}
+
+// ═══════ CONSORZIO MEMBRI ═══════
+async function aggiungiMembroConsorzio(idAzienda) {
+  const piva = document.getElementById('az_add_membro_piva')?.value?.trim();
+  if (!piva) { showToast('Inserire la Partita IVA del membro', 'error'); return; }
+  try {
+    const res = await fetch(`${API_BASE}/admin/aziende/${idAzienda}/consorzi`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ partita_iva_membro: piva })
+    });
+    const data = await res.json();
+    if (res.ok) { showToast('Membro aggiunto', 'success'); viewAziendaDetailEnhanced(idAzienda, currentAziendePage); }
+    else showToast('Errore: ' + (data.error || 'Aggiunta fallita'), 'error');
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+}
+
+async function eliminaMembroConsorzio(idAzienda, idConsorzio) {
+  if (!confirm('Rimuovere questo membro dal consorzio?')) return;
+  try {
+    const res = await fetch(`${API_BASE}/admin/aziende/consorzi/${idConsorzio}`, { method: 'DELETE', headers: authHeaders() });
+    if (res.ok) { showToast('Membro rimosso', 'success'); viewAziendaDetailEnhanced(idAzienda, currentAziendePage); }
+    else showToast('Errore rimozione', 'error');
   } catch(e) { showToast('Errore: ' + e.message, 'error'); }
 }
 
