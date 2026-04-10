@@ -45,12 +45,12 @@ export default async function adminStazioniRoutes(fastify, opts) {
       const params = [];
       const conditions = [];
 
-      // Search by name, VAT, or email
+      // Search by name, VAT, email, or city
       if (search) {
         params.push(`%${search}%`);
         const paramIdx = params.length;
         conditions.push(
-          `(s.nome ILIKE $${paramIdx} OR s.codice_fiscale ILIKE $${paramIdx} OR s.email ILIKE $${paramIdx})`
+          `(s.nome ILIKE $${paramIdx} OR s.codice_fiscale ILIKE $${paramIdx} OR s.email ILIKE $${paramIdx} OR s.citta ILIKE $${paramIdx})`
         );
       }
 

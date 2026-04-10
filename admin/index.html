@@ -13285,21 +13285,31 @@ function afwSearchStazioni() {
   if (!q) { box.classList.remove('active'); box.innerHTML = ''; return; }
   afwSearchTimer = setTimeout(async () => {
     try {
-      const res = await fetch(`${API_BASE}/stazioni?search=${encodeURIComponent(q)}&limit=10`, { headers: authHeaders() });
+      const res = await fetch(`${API_BASE}/admin/stazioni/stazioni?search=${encodeURIComponent(q)}&limit=10&active_only=true`, { headers: authHeaders() });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
-      const rows = data.data || data || [];
+      const rows = data.data || data.stazioni || data || [];
       if (!rows.length) {
         box.innerHTML = '<div class="afw-suggest-item" style="color:#94a3b8;cursor:default">Nessuna stazione trovata</div>';
         box.classList.add('active');
         return;
       }
       box.innerHTML = rows.map(s => {
-        const nome = s.Nome || s.nome || ('Stazione #' + s.id);
-        const meta = [s.citta || s.Citta, s.provincia || s.Provincia, s.partita_iva || s.PartitaIVA].filter(Boolean).join(' · ');
-        return `<div class="afw-suggest-item" onclick="afwSelectStazione(${s.id}, ${JSON.stringify(nome).replace(/"/g,'&quot;')}, ${JSON.stringify(meta).replace(/"/g,'&quot;')})"><div class="afw-s-name">${esc(nome)}</div><div class="afw-s-meta">${esc(meta)}</div></div>`;
+        const nome = s.nome || s.Nome || s.ragione_sociale || ('Stazione #' + s.id);
+        const citta = s.citta || s.Citta || '';
+        const prov = s.sigla_provincia || s.provincia_nome || s.provincia || '';
+        const piva = s.codice_fiscale || s.partita_iva || '';
+        const meta = [citta, prov, piva].filter(Boolean).join(' · ');
+        const safeName = String(nome).replace(/'/g, "\\'");
+        const safeMeta = String(meta).replace(/'/g, "\\'");
+        return `<div class="afw-suggest-item" onclick="afwSelectStazione(${s.id}, '${safeName}', '${safeMeta}')"><div class="afw-s-name">${esc(nome)}</div><div class="afw-s-meta">${esc(meta)}</div></div>`;
       }).join('');
       box.classList.add('active');
-    } catch(e) { console.error('afw search error', e); }
+    } catch(e) {
+      console.error('afw search error', e);
+      box.innerHTML = '<div class="afw-suggest-item" style="color:#dc2626;cursor:default">Errore ricerca stazioni</div>';
+      box.classList.add('active');
+    }
   }, 220);
 }
 
