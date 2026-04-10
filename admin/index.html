@@ -3106,51 +3106,98 @@ span.flatpickr-weekday {
 
       <!-- CREA STAZIONE PAGE -->
       <div id="pageCreateStazione" class="page">
-        <div class="az-detail-wrap" style="max-width:100%;margin:0">
-          <div class="az-detail-title" style="padding:10px 16px;font-size:1rem;display:flex;align-items:center;justify-content:space-between">
-            <span><i class="fas fa-plus-circle" style="color:#FF8C00;margin-right:8px"></i>NUOVA STAZIONE APPALTANTE</span>
-            <button class="az-btn-action" style="padding:6px 12px;font-size:0.78rem" onclick="selectSubPage('stazioni','stazioni')"><i class="fas fa-arrow-left"></i> INDIETRO</button>
+        <style>
+          .cs-page { font-family:Comfortaa,sans-serif; color:#1e293b; }
+          .cs-title { color:#1E2D3D; font-weight:700; font-size:1.05rem; letter-spacing:0.4px; padding:0 0 14px 2px; display:flex; align-items:center; justify-content:space-between; }
+          .cs-title span i { color:#FF8C00; margin-right:10px; }
+          .cs-section { background:#fff; border:1px solid #d4dbe5; padding:22px 24px; margin-bottom:18px; border-radius:16px; box-shadow:0 2px 8px rgba(30,45,61,0.06); }
+          .cs-section-title { color:#1E2D3D; font-weight:700; font-size:0.82rem; text-transform:uppercase; letter-spacing:0.4px; padding-bottom:14px; margin-bottom:16px; border-bottom:1px solid #eef1f6; display:flex; align-items:center; gap:10px; }
+          .cs-section-title i { color:#FF8C00; }
+          .cs-row { display:grid; gap:16px; margin-bottom:14px; }
+          .cs-row:last-child { margin-bottom:0; }
+          .cs-row.r-piva { grid-template-columns:1fr 3fr; }
+          .cs-row.r-addr { grid-template-columns:3fr 1fr 2.5fr 2fr; }
+          .cs-row.r-contatti { grid-template-columns:1fr 1fr; }
+          .cs-row.r-gara { grid-template-columns:2fr 1.2fr 1fr 1fr; align-items:end; }
+          .cs-row.r-geo { grid-template-columns:1fr 1fr; }
+          .cs-field label { display:block; color:#586879; font-size:0.72rem; font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.3px; }
+          .cs-field input[type=text], .cs-field input[type=tel], .cs-field input[type=email], .cs-field input[type=number], .cs-field select, .cs-field textarea { width:100%; padding:9px 12px; border:1px solid #d4dbe5; border-radius:10px; background:#fff; font-family:Comfortaa,sans-serif; font-size:0.82rem; color:#1e293b; box-sizing:border-box; transition:border-color 0.15s; }
+          .cs-field input:focus, .cs-field select:focus, .cs-field textarea:focus { outline:none; border-color:#FF8C00; box-shadow:0 0 0 2px rgba(255,140,0,0.12); }
+          .cs-field textarea { min-height:70px; resize:vertical; font-family:Comfortaa,sans-serif; }
+          .cs-req { color:#dc2626; }
+          .cs-chk { display:flex; align-items:center; gap:8px; padding:10px 12px; background:#f8fafc; border:1px solid #d4dbe5; border-radius:10px; cursor:pointer; font-weight:700; color:#586879; font-size:0.74rem; text-transform:uppercase; }
+          .cs-chk input[type=checkbox] { width:auto; margin:0; accent-color:#FF8C00; }
+          .cs-chk:hover { border-color:#FF8C00; color:#FF8C00; }
+          .cs-actions { display:flex; gap:10px; margin-top:8px; }
+          .cs-btn-save { background:linear-gradient(135deg,#1E2D3D 0%,#2A3F55 100%); color:#fff; border:none; padding:12px 28px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.82rem; letter-spacing:0.5px; border-radius:12px; cursor:pointer; text-transform:uppercase; box-shadow:0 2px 6px rgba(30,45,61,0.2); }
+          .cs-btn-save:hover { background:linear-gradient(135deg,#FF8C00 0%,#ff9d22 100%); }
+          .cs-btn-cancel { background:#fff; color:#586879; border:1px solid #d4dbe5; padding:12px 24px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.82rem; letter-spacing:0.5px; border-radius:12px; cursor:pointer; text-transform:uppercase; }
+          .cs-btn-cancel:hover { background:#f0f2f7; border-color:#FF8C00; color:#FF8C00; }
+          .cs-btn-back { background:#fff; color:#586879; border:1px solid #d4dbe5; padding:8px 16px; font-family:Comfortaa,sans-serif; font-weight:700; font-size:0.74rem; letter-spacing:0.4px; border-radius:10px; cursor:pointer; text-transform:uppercase; }
+          .cs-btn-back:hover { background:#f0f2f7; border-color:#FF8C00; color:#FF8C00; }
+        </style>
+        <div class="cs-page">
+          <div class="cs-title">
+            <span><i class="fas fa-plus-circle"></i>Nuova Stazione Appaltante</span>
+            <button class="cs-btn-back" onclick="selectSubPage('stazioni','stazioni')"><i class="fas fa-arrow-left" style="margin-right:6px"></i>Indietro</button>
           </div>
-          <div class="az-detail-body" style="padding:14px;display:block">
-            <form id="createStazioneForm" onsubmit="handleCreateStazione(event);return false">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-                <div class="az-consorzio-section" style="margin:0">
-                  <div class="az-consorzio-title"><i class="fas fa-id-card"></i> DATI ANAGRAFICI</div>
-                  <div class="az-field-row"><div class="az-field"><label>Ragione Sociale *</label><input type="text" id="cs-ragione" required></div></div>
-                  <div class="az-field-row"><div class="az-field"><label>Codice Fiscale / P.IVA</label><input type="text" id="cs-piva"></div></div>
-                  <div class="az-field-row"><div class="az-field"><label>Indirizzo</label><input type="text" id="cs-indirizzo"></div></div>
-                  <div class="az-field-row-3">
-                    <div class="az-field"><label>CAP</label><input type="text" id="cs-cap"></div>
-                    <div class="az-field"><label>Città</label><input type="text" id="cs-citta"></div>
-                    <div class="az-field"><label>Provincia</label><select id="cs-provincia"><option value="">-</option></select></div>
-                  </div>
-                  <div class="az-field-row"><div class="az-field"><label>Note</label><textarea id="cs-note" rows="3"></textarea></div></div>
-                </div>
-                <div class="az-consorzio-section" style="margin:0">
-                  <div class="az-consorzio-title"><i class="fas fa-address-book"></i> CONTATTI & GEO</div>
-                  <div class="az-field-row">
-                    <div class="az-field"><label>Telefono</label><input type="tel" id="cs-telefono"></div>
-                    <div class="az-field"><label>Email</label><input type="email" id="cs-email"></div>
-                  </div>
-                  <div class="az-field-row">
-                    <div class="az-field"><label>Latitudine</label><input type="number" step="0.000001" id="cs-lat"></div>
-                    <div class="az-field"><label>Longitudine</label><input type="number" step="0.000001" id="cs-lon"></div>
-                  </div>
-                  <div class="az-field-row">
-                    <div class="az-field"><label>Giorni medi pubblicazione</label><input type="number" id="cs-giorni"></div>
-                    <div class="az-field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding-top:22px"><input type="checkbox" id="cs-pub-bando" style="width:auto;margin:0">Pubblica Bando</label></div>
-                  </div>
-                  <div class="az-field-row">
-                    <div class="az-field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="cs-limita-range" style="width:auto;margin:0">Limita range ricerca</label></div>
-                  </div>
-                </div>
+          <form id="createStazioneForm" onsubmit="handleCreateStazione(event);return false">
+            <div class="cs-section">
+              <div class="cs-section-title"><i class="fas fa-id-card"></i>Dati Anagrafici</div>
+              <div class="cs-row r-piva">
+                <div class="cs-field"><label>Partita IVA</label><input type="text" id="cs-piva" maxlength="11" placeholder="inserire la Partita IVA"></div>
+                <div class="cs-field"><label>Ragione Sociale <span class="cs-req">*</span></label><input type="text" id="cs-ragione" placeholder="inserire la Ragione Sociale" required></div>
               </div>
-              <div class="az-buttons" style="margin-top:14px;justify-content:flex-start">
-                <button type="submit" class="az-btn-save"><i class="fas fa-save"></i> CREA STAZIONE</button>
-                <button type="button" class="az-btn-action" onclick="selectSubPage('stazioni','stazioni')"><i class="fas fa-times"></i> ANNULLA</button>
+              <div class="cs-row r-addr">
+                <div class="cs-field"><label>Indirizzo</label><input type="text" id="cs-indirizzo" placeholder="inserire l'indirizzo"></div>
+                <div class="cs-field"><label>CAP</label><input type="text" id="cs-cap" maxlength="5" placeholder="CAP"></div>
+                <div class="cs-field"><label>Città</label><input type="text" id="cs-citta" placeholder="inserire la città"></div>
+                <div class="cs-field"><label>Provincia</label><select id="cs-provincia"><option value="">—</option></select></div>
               </div>
-            </form>
-          </div>
+            </div>
+
+            <div class="cs-section">
+              <div class="cs-section-title"><i class="fas fa-address-book"></i>Contatti e Pubblicazione</div>
+              <div class="cs-row r-contatti">
+                <div class="cs-field"><label>Telefono</label><input type="tel" id="cs-telefono" placeholder="inserire il telefono"></div>
+                <div class="cs-field"><label>Email</label><input type="email" id="cs-email" placeholder="inserire l'email"></div>
+              </div>
+              <div class="cs-row r-gara">
+                <div class="cs-field">
+                  <label>Tipo di gara pubblicata</label>
+                  <select id="cs-tipo-pub-esito">
+                    <option value="0">Nessuna</option>
+                    <option value="1">Completa</option>
+                    <option value="2">Elenco aziende partecipanti e ribasso solo del vincitore</option>
+                    <option value="3">N° partecipanti e ribasso del vincitore</option>
+                    <option value="4">Nessun partecipante</option>
+                    <option value="5">Gara non conclusa</option>
+                  </select>
+                </div>
+                <div class="cs-field"><label>Giorni medi pubblicazione</label><input type="number" id="cs-giorni" placeholder="0"></div>
+                <label class="cs-chk"><input type="checkbox" id="cs-pub-bando">Pubblicazione Bando</label>
+                <label class="cs-chk"><input type="checkbox" id="cs-limita-range">Limita range ricerca</label>
+              </div>
+            </div>
+
+            <div class="cs-section">
+              <div class="cs-section-title"><i class="fas fa-map-marker-alt"></i>Geolocalizzazione</div>
+              <div class="cs-row r-geo">
+                <div class="cs-field"><label>Latitudine</label><input type="number" step="0.000001" id="cs-lat" placeholder="es. 41.902782"></div>
+                <div class="cs-field"><label>Longitudine</label><input type="number" step="0.000001" id="cs-lon" placeholder="es. 12.496366"></div>
+              </div>
+            </div>
+
+            <div class="cs-section">
+              <div class="cs-section-title"><i class="fas fa-sticky-note"></i>Note</div>
+              <div class="cs-field"><textarea id="cs-note" rows="3" placeholder="Note aggiuntive..."></textarea></div>
+            </div>
+
+            <div class="cs-actions">
+              <button type="submit" class="cs-btn-save"><i class="fas fa-save" style="margin-right:8px"></i>Aggiungi Stazione</button>
+              <button type="reset" class="cs-btn-cancel">Annulla</button>
+            </div>
+          </form>
         </div>
       </div>
 
@@ -9302,6 +9349,7 @@ async function handleCreateStazione(event) {
   if (event && event.preventDefault) event.preventDefault();
   try {
     const v = id => document.getElementById(id)?.value || '';
+    const c = id => document.getElementById(id)?.checked || false;
     const ragione = v('cs-ragione').trim();
     if (!ragione) { alert('Ragione Sociale obbligatoria'); return; }
     const body = {
@@ -9313,6 +9361,10 @@ async function handleCreateStazione(event) {
       id_provincia: provSiglaToId(v('cs-provincia')),
       telefono: v('cs-telefono'),
       email: v('cs-email'),
+      tipo_pubblicazione_esito: parseInt(v('cs-tipo-pub-esito')) || 0,
+      giorni_alert_pubblicazione: parseInt(v('cs-giorni')) || 0,
+      pubblicazione_bando: c('cs-pub-bando'),
+      limita_range: c('cs-limita-range'),
       lat: v('cs-lat') || null,
       lon: v('cs-lon') || null,
       note: v('cs-note')
