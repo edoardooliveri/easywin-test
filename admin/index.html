@@ -2763,86 +2763,109 @@ span.flatpickr-weekday {
       <!-- CREA AZIENDA PAGE -->
       <div id="pageCreateAzienda" class="page">
         <div class="page-header">
-          <h1 class="page-title">AZIENDA</h1>
+          <h1 class="page-title">CREA AZIENDA</h1>
+          <p class="page-subtitle" style="color:#94a3b8;font-size:0.88rem;margin-top:4px;margin-bottom:20px">Inserisci i dati per registrare una nuova azienda nel gestionale.</p>
         </div>
 
-        <div class="search-section compact">
-          <form id="createAziendeForm" onsubmit="handleCreateAzienda(event)">
-            <div class="form-row">
-              <div class="form-col">
-                <label>Partita IVA</label>
-                <input type="text" id="ca-piva" required>
+        <form id="createAziendeForm" onsubmit="handleCreateAzienda(event)">
+          <div class="az-detail-wrap">
+
+            <!-- TITLE BAR -->
+            <div class="az-detail-title"><i class="fas fa-plus-circle" style="margin-right:8px"></i> NUOVA AZIENDA</div>
+
+            <!-- TWO-COLUMN FORM -->
+            <div class="az-detail-body">
+
+              <!-- LEFT COLUMN: Anagrafica -->
+              <div class="az-detail-col">
+
+                <div class="az-field-row-3">
+                  <div class="az-field"><label>Partita IVA *</label><input type="text" id="ca-piva" required></div>
+                  <div class="az-field"><label>Codice Fiscale *</label><input type="text" id="ca-cf" required></div>
+                  <div class="az-field"><label>Codice SDI</label><input type="text" id="ca-sdi"></div>
+                </div>
+
+                <div class="az-field"><label>Ragione Sociale *</label><input type="text" id="ca-ragione" required></div>
+
+                <div class="az-field-row">
+                  <div class="az-field" style="flex:3"><label>Indirizzo *</label><input type="text" id="ca-indirizzo" required></div>
+                  <div class="az-field" style="flex:1"><label>CAP</label><input type="text" id="ca-cap" maxlength="5"></div>
+                </div>
+
+                <div class="az-field-row">
+                  <div class="az-field" style="flex:2"><label>Città *</label><input type="text" id="ca-citta" required></div>
+                  <div class="az-field" style="flex:1"><label>Provincia *</label>
+                    <select id="ca-provincia" required><option value="">Seleziona...</option></select>
+                  </div>
+                </div>
+
+                <div class="az-field-row">
+                  <div class="az-field"><label>Telefono</label><input type="tel" id="ca-telefono"></div>
+                  <div class="az-field"><label>Email</label><input type="email" id="ca-email" placeholder="separare con ';'"></div>
+                </div>
+
+                <div class="az-field"><label>Indirizzo PEC</label><input type="email" id="ca-pec"></div>
+
+                <div class="az-field"><label>Note</label><textarea id="ca-note" placeholder="Annotazioni interne..."></textarea></div>
+
               </div>
-              <div class="form-col">
-                <label>Codice Fiscale</label>
-                <input type="text" id="ca-cf" required>
+
+              <!-- RIGHT COLUMN: Dettagli aggiuntivi -->
+              <div class="az-detail-col">
+
+                <div class="az-field-row">
+                  <div class="az-field"><label>Referente</label><input type="text" id="ca-referente" placeholder="Nome e cognome"></div>
+                  <div class="az-field"><label>Telefono referente</label><input type="text" id="ca-tel-referente"></div>
+                </div>
+
+                <div class="az-field-row">
+                  <div class="az-field"><label>Iscrizione CCIAA di</label><input type="text" id="ca-ccia"></div>
+                  <div class="az-field"><label>Data iscrizione CCIA</label><input type="text" class="ew-date" id="ca-data-ccia" placeholder="Seleziona..."></div>
+                </div>
+
+                <div class="az-field-row">
+                  <div class="az-field"><label>Tipologia Attestazione</label><input type="text" id="ca-tipo-att" placeholder="es. SOA"></div>
+                  <div class="az-field"><label>Numero SOA</label><input type="text" id="ca-num-soa"></div>
+                </div>
+
+                <div class="az-field"><label>Società Attestatrice SOA</label><input type="text" id="ca-soc-soa"></div>
+
+                <div class="az-field-row-3">
+                  <div class="az-field"><label>Prezzo Bandi</label><input type="number" step="0.01" id="ca-prezzo-bandi" placeholder="€"></div>
+                  <div class="az-field"><label>Prezzo Esiti</label><input type="number" step="0.01" id="ca-prezzo-esiti" placeholder="€"></div>
+                  <div class="az-field"><label>Prezzo Bundle</label><input type="number" step="0.01" id="ca-prezzo-bundle" placeholder="€"></div>
+                </div>
+
+                <div class="az-field-row-3">
+                  <div class="az-field-check" style="padding-top:18px">
+                    <input type="checkbox" id="ca-send-email">
+                    <label for="ca-send-email">Invia mail</label>
+                  </div>
+                  <div class="az-field-check" style="padding-top:18px">
+                    <input type="checkbox" id="ca-consorzio">
+                    <label for="ca-consorzio">Consorzio</label>
+                  </div>
+                  <div class="az-field-check" style="padding-top:18px">
+                    <input type="checkbox" id="ca-nascondi">
+                    <label for="ca-nascondi">Nascondi</label>
+                  </div>
+                </div>
+
+                <div class="az-field"><label>Username responsabile contatti</label><input type="text" id="ca-responsabile" placeholder="utente"></div>
+
               </div>
-            </div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>Codice SDI</label>
-                <input type="text" id="ca-sdi">
-              </div>
-              <div class="form-col">
-                <label>Ragione Sociale</label>
-                <input type="text" id="ca-ragione" required>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>Indirizzo</label>
-                <input type="text" id="ca-indirizzo" required>
-              </div>
-              <div class="form-col">
-                <label>CAP</label>
-                <input type="text" id="ca-cap">
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>Città</label>
-                <input type="text" id="ca-citta" required>
-              </div>
-              <div class="form-col">
-                <label>Provincia</label>
-                <select id="ca-provincia" required>
-                  <option value="">Seleziona...</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>Telefono</label>
-                <input type="tel" id="ca-telefono">
-              </div>
-              <div class="form-col">
-                <label>Email</label>
-                <input type="email" id="ca-email">
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>Indirizzo PEC</label>
-                <input type="email" id="ca-pec">
-              </div>
-            </div>
-            <div class="form-row full">
-              <div class="form-col">
-                <label>Note</label>
-                <textarea id="ca-note"></textarea>
-              </div>
+
             </div>
 
-            <div class="button-group">
-              <button type="submit" class="btn btn-primary">
-                <i class="fas fa-plus"></i> AGGIUNGI AZIENDA
-              </button>
-              <button type="button" class="btn btn-secondary" onclick="selectSubPage('aziende', 'aziende')">
-                <i class="fas fa-times"></i> ANNULLA
-              </button>
+            <!-- ACTION BUTTONS -->
+            <div class="az-buttons">
+              <button type="submit" class="az-btn-save"><i class="fas fa-save"></i> CONFERMA</button>
+              <button type="button" class="az-btn-action" onclick="selectSubPage('aziende', 'aziende')">ANNULLA</button>
+              <button type="reset" class="az-btn-action">PULISCI FORM</button>
             </div>
-          </form>
-        </div>
+
+          </div>
+        </form>
       </div>
 
       <!-- CREA CONCORRENTE PAGE -->
@@ -7395,6 +7418,7 @@ function selectSubPage(section, subpage) {
   if (subpage === 'concorrenti') loadConcorrenti();
   if (subpage === 'sopralluoghi') loadSopralluoghiAdmin();
   if (subpage === 'tipologia-dati') loadTipologiaDati();
+  if (subpage === 'create-azienda') { setTimeout(() => { if (typeof initFlatpickrAll === 'function') initFlatpickrAll(); }, 50); }
 }
 
 // ════════════════ SEARCH FUNCTIONS ════════════════
@@ -9365,31 +9389,48 @@ function resetRicercaDoppia() {
 async function handleCreateAzienda(event) {
   event.preventDefault();
   try {
+    const val = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+    const chk = (id) => { const el = document.getElementById(id); return el ? el.checked : false; };
+    const num = (id) => { const v = parseFloat(val(id)); return isNaN(v) ? null : v; };
     const body = {
-      partita_iva: document.getElementById('ca-piva').value,
-      codice_fiscale: document.getElementById('ca-cf').value,
-      codice_sdi: document.getElementById('ca-sdi').value,
-      ragione_sociale: document.getElementById('ca-ragione').value,
-      indirizzo: document.getElementById('ca-indirizzo').value,
-      cap: document.getElementById('ca-cap').value,
-      citta: document.getElementById('ca-citta').value,
-      id_provincia: document.getElementById('ca-provincia').value,
-      telefono: document.getElementById('ca-telefono').value,
-      email: document.getElementById('ca-email').value,
-      pec: document.getElementById('ca-pec').value,
-      note: document.getElementById('ca-note').value
+      partita_iva: val('ca-piva'),
+      codice_fiscale: val('ca-cf'),
+      codice_sdi: val('ca-sdi'),
+      ragione_sociale: val('ca-ragione'),
+      indirizzo: val('ca-indirizzo'),
+      cap: val('ca-cap'),
+      citta: val('ca-citta'),
+      id_provincia: val('ca-provincia'),
+      telefono: val('ca-telefono'),
+      email: val('ca-email'),
+      pec: val('ca-pec'),
+      note: val('ca-note'),
+      referente: val('ca-referente'),
+      telefono_referente: val('ca-tel-referente'),
+      ccia: val('ca-ccia'),
+      data_iscrizione_ccia: val('ca-data-ccia') || null,
+      tipologia_attestazione: val('ca-tipo-att'),
+      numero_soa: val('ca-num-soa'),
+      soc_attestatrice_soa: val('ca-soc-soa'),
+      prezzo_bandi: num('ca-prezzo-bandi'),
+      prezzo_esiti: num('ca-prezzo-esiti'),
+      prezzo_bundle: num('ca-prezzo-bundle'),
+      send_email: chk('ca-send-email'),
+      consorzio: chk('ca-consorzio'),
+      nascondi_stato: chk('ca-nascondi'),
+      username_responsabile: val('ca-responsabile')
     };
     const res = await fetch(`${API_BASE}/admin/aziende`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(body)
     });
-    if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Errore creazione'); }
-    alert('Azienda creata con successo!');
+    if (!res.ok) { const err = await res.json().catch(()=>({})); throw new Error(err.error || 'Errore creazione'); }
+    showToast('Azienda creata con successo!', 'success');
     document.getElementById('createAziendeForm').reset();
     selectSubPage('aziende', 'aziende');
     searchAziende();
-  } catch(e) { alert('Errore: ' + e.message); }
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
 }
 
 async function handleCreateStazione(event) {

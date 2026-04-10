@@ -325,38 +325,54 @@ export default async function adminAziendeRoutes(fastify, opts) {
    */
   fastify.post('/', async (request, reply) => {
     try {
-      const {
-        ragione_sociale, nome, indirizzo, cap, citta, provincia_id,
-        partita_iva, codice_fiscale, email, tel,
-        indirizzo_pec, codice_sdi, sito_web, tipologia_attestazione, soc_attestatrice_soa,
-        referente, telefono_referente, username_responsabile, note
-      } = request.body;
+      const b = { ...request.body };
 
-      if (!ragione_sociale || !partita_iva) {
+      // Normalize field name aliases from the frontend
+      if (b.provincia_id && !b.id_provincia) b.id_provincia = b.provincia_id;
+      if (b.pec && !b.indirizzo_pec) b.indirizzo_pec = b.pec;
+      if (b.telefono && !b.tel) b.tel = b.telefono;
+      delete b.provincia_id; delete b.pec; delete b.telefono;
+
+      if (!b.ragione_sociale || !b.partita_iva) {
         return reply.status(400).send({ error: 'ragione_sociale and partita_iva required' });
       }
 
-      const res = await query(`
-        INSERT INTO aziende (
-          ragione_sociale, nome, indirizzo, cap, citta, id_provincia,
-          partita_iva, codice_fiscale, email, tel,
-          indirizzo_pec, codice_sdi, sito_web, tipologia_attestazione, soc_attestatrice_soa,
-          referente, telefono_referente, username_responsabile, note,
-          data_creazione, data_modifica, eliminata, cessata
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6,
-          $7, $8, $9, $10,
-          $11, $12, $13, $14, $15,
-          $16, $17, $18, $19,
-          NOW(), NOW(), 0, 0
-        )
-        RETURNING id
-      `, [
-        ragione_sociale, nome, indirizzo, cap, citta, provincia_id,
-        partita_iva, codice_fiscale, email, tel,
-        indirizzo_pec, codice_sdi, sito_web, tipologia_attestazione, soc_attestatrice_soa,
-        referente, telefono_referente, username_responsabile, note
-      ]);
+      // Allowed insert fields (same as update allowedFields + codice_sdi)
+      const allowedFields = [
+        'ragione_sociale', 'nome', 'indirizzo', 'cap', 'citta', 'id_provincia',
+        'partita_iva', 'codice_fiscale', 'email', 'tel',
+        'indirizzo_pec', 'codice_sdi', 'sito_web',
+        'tipologia_attestazione', 'soc_attestatrice_soa', 'numero_soa',
+        'data_rilascio_attestazione_originaria', 'data_rilascio_attestazione_in_corso',
+        'validita_triennale', 'data_verifica_triennale', 'validita_quinquennale',
+        'ccia', 'data_iscrizione_ccia', 'iso_rilasciato_da', 'iso_scadenza',
+        'referente', 'telefono_referente', 'username_responsabile',
+        'send_email', 'prezzo_bandi', 'prezzo_esiti', 'prezzo_bundle',
+        'scadenza_bandi', 'scadenza_esiti', 'scadenza_bundle',
+        'cessata', 'consorzio', 'note', 'nascondi_stato'
+      ];
+
+      const cols = [];
+      const placeholders = [];
+      const params = [];
+      let idx = 1;
+      for (const f of allowedFields) {
+        if (f in b && b[f] !== '' && b[f] !== undefined) {
+          cols.push(f);
+          placeholders.push(`$${idx++}`);
+          let val = b[f];
+          if (typeof val === 'boolean') val = val ? 1 : 0;
+          params.push(val);
+        }
+      }
+      // Default fields
+      cols.push('data_creazione', 'data_modifica', 'eliminata');
+      placeholders.push('NOW()', 'NOW()', '0');
+
+      const res = await query(
+        `INSERT INTO aziende (${cols.join(', ')}) VALUES (${placeholders.join(', ')}) RETURNING id`,
+        params
+      );
 
       const newId = res.rows[0].id;
 
