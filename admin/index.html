@@ -5051,18 +5051,31 @@ span.flatpickr-weekday {
       <div id="pageCestinoAziende" class="page">
         <div class="page-header">
           <h1 class="page-title">CESTINO AZIENDE</h1>
+          <p class="page-subtitle" style="color:#94a3b8;font-size:0.88rem;margin-top:4px;margin-bottom:20px">Elenco delle aziende eliminate. Puoi ripristinarle o cancellarle definitivamente.</p>
         </div>
 
-        <div class="search-section compact">
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="loadCestinoAziende()">
-              <i class="fas fa-trash"></i> AGGIORNA
-            </button>
+        <div class="az-detail-wrap">
+          <div class="az-detail-title"><i class="fas fa-trash-alt" style="margin-right:8px"></i> AZIENDE NEL CESTINO <span id="cestinoCount" style="float:right;font-weight:600;opacity:0.9">( 0 )</span></div>
+
+          <div style="background:#fff;border:1px solid var(--border);border-top:none;padding:18px 24px;display:flex;gap:12px;align-items:end;flex-wrap:wrap;font-family:'Comfortaa',cursive">
+            <div class="az-field" style="flex:2;min-width:240px;margin-bottom:0">
+              <label>Cerca</label>
+              <input type="text" id="cestinoSearch" placeholder="Ragione sociale, P.IVA, città..." onkeydown="if(event.key==='Enter') loadCestinoAziende(1)">
+            </div>
+            <div class="az-field" style="max-width:120px;margin-bottom:0">
+              <label>Per pagina</label>
+              <select id="cestinoLimit" onchange="loadCestinoAziende(1)">
+                <option>10</option>
+                <option>25</option>
+                <option selected>50</option>
+                <option>100</option>
+              </select>
+            </div>
+            <button class="az-btn-save" onclick="loadCestinoAziende(1)"><i class="fas fa-search"></i> CERCA</button>
+            <button class="az-btn-action" onclick="document.getElementById('cestinoSearch').value='';loadCestinoAziende(1)">PULISCI</button>
           </div>
-        </div>
 
-        <div class="table-container">
-          <div id="cestino-aziende-results"></div>
+          <div id="cestino-aziende-results" style="background:#fff;border:1px solid var(--border);border-top:none;border-radius:0 0 14px 14px;padding:0"></div>
         </div>
       </div>
 
@@ -10673,43 +10686,92 @@ async function searchEsitiModificabili() {
 
 // ════════════════ TRASH/DELETED ITEMS FUNCTIONS ════════════════
 
-async function loadCestinoAziende() {
+let currentCestinoPage = 1;
+async function loadCestinoAziende(page = 1) {
+  currentCestinoPage = page;
+  const container = document.getElementById('cestino-aziende-results');
+  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Caricamento cestino...</p></div>';
   try {
-    const res = await fetch(`${API_BASE}/admin/aziende/cestino`, {
-      headers: authHeaders()
-    });
+    const search = document.getElementById('cestinoSearch')?.value || '';
+    const limit = document.getElementById('cestinoLimit')?.value || 50;
+    const params = new URLSearchParams({ page, limit, search });
+    const res = await fetch(`${API_BASE}/admin/aziende/cestino?${params}`, { headers: authHeaders() });
     const data = await res.json();
-    const raw_ = data.data || data || []; const rows = Array.isArray(raw_) ? raw_ : [];
-    let html = '';
-    if (rows.length) {
-      html = '<table><thead><tr><th>P.IVA</th><th>Ragione Sociale</th><th>Città</th><th>Eliminato</th><th>Azione</th></tr></thead><tbody>';
-      rows.forEach(r => {
-        html += `<tr><td>${esc(r.partita_iva)}</td><td>${esc(r.ragione_sociale)}</td><td>${esc(r.citta||'-')}</td><td>${fmtDate(r.deleted_at)}</td><td><button class="btn btn-sm btn-success" onclick="ripristinaAzienda(${r.id})"><i class="fas fa-undo"></i> Ripristina</button> <button class="btn btn-sm btn-danger" onclick="eliminaAziendaDefinitivo(${r.id})"><i class="fas fa-times"></i></button></td></tr>`;
-      });
-      html += '</tbody></table>';
+    const rows = data.dati || [];
+    const totale = data.totale || 0;
+    const pagine = data.pagine || 1;
+
+    const cnt = document.getElementById('cestinoCount');
+    if (cnt) cnt.textContent = `( ${totale} )`;
+
+    let html = '<div class="az-table-wrap" style="border-radius:0 0 14px 14px;border:none"><table class="az-consorzio-table">';
+    html += `<thead><tr>
+      <th>Ragione Sociale</th>
+      <th style="width:110px">Provincia</th>
+      <th style="width:70px">CAP</th>
+      <th style="width:140px">Città</th>
+      <th style="width:130px">Partita IVA</th>
+      <th style="width:90px;text-align:center">Attestazioni</th>
+      <th style="width:130px">Eliminata il</th>
+      <th style="width:180px;text-align:center">Azioni</th>
+    </tr></thead><tbody>`;
+    if (rows.length === 0) {
+      html += `<tr><td colspan="8" class="az-empty-msg">Nessuna azienda nel cestino</td></tr>`;
     } else {
-      html = '<p style="padding: 16px;">Nessuna azienda nel cestino</p>';
+      rows.forEach(r => {
+        const prov = r.provincia_nome || r.provincia_sigla || '-';
+        html += `<tr>
+          <td style="font-weight:600">${esc(r.ragione_sociale||'')}</td>
+          <td>${esc(prov)}</td>
+          <td>${esc(r.cap||'-')}</td>
+          <td>${esc(r.citta||'-')}</td>
+          <td>${esc(r.partita_iva||'')}</td>
+          <td style="text-align:center">${r.n_attestazioni||0}</td>
+          <td>${r.deleted_at ? new Date(r.deleted_at).toLocaleDateString('it-IT') : '-'}</td>
+          <td style="text-align:center;white-space:nowrap">
+            <button class="az-btn-save" style="padding:5px 12px;font-size:0.68rem;margin-right:4px" onclick="ripristinaAzienda(${r.id})"><i class="fas fa-undo"></i> RIPRISTINA</button>
+            <button class="az-btn-danger" style="padding:5px 10px;font-size:0.68rem" onclick="eliminaAziendaDefinitivo(${r.id})"><i class="fas fa-times"></i></button>
+          </td>
+        </tr>`;
+      });
     }
-    document.getElementById('cestino-aziende-results').innerHTML = html;
+    html += '</tbody></table></div>';
+
+    // Pagination
+    if (pagine > 1) {
+      html += `<div style="display:flex;gap:8px;justify-content:center;align-items:center;padding:16px;font-family:'Comfortaa',cursive;font-size:0.82rem">
+        <button class="az-btn-action" ${page<=1?'disabled style="opacity:0.4"':''} onclick="loadCestinoAziende(1)">« PRIMA</button>
+        <button class="az-btn-action" ${page<=1?'disabled style="opacity:0.4"':''} onclick="loadCestinoAziende(${page-1})">‹ INDIETRO</button>
+        <span style="padding:0 12px;color:#666">Pagina <strong>${page}</strong> di <strong>${pagine}</strong></span>
+        <button class="az-btn-action" ${page>=pagine?'disabled style="opacity:0.4"':''} onclick="loadCestinoAziende(${page+1})">AVANTI ›</button>
+        <button class="az-btn-action" ${page>=pagine?'disabled style="opacity:0.4"':''} onclick="loadCestinoAziende(${pagine})">ULTIMA »</button>
+      </div>`;
+    }
+
+    container.innerHTML = html;
   } catch(e) {
-    document.getElementById('cestino-aziende-results').innerHTML = '<p style="padding: 16px; color: red;">Errore: ' + esc(e.message) + '</p>';
+    container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Errore: ${esc(e.message)}</p></div>`;
   }
 }
 
 async function ripristinaAzienda(id) {
   if (!confirm('Ripristinare questa azienda?')) return;
   try {
-    await fetch(`${API_BASE}/admin/aziende/${id}/ripristina`, { method: 'POST', headers: authHeaders() });
-    loadCestinoAziende();
-  } catch(e) { alert('Errore: ' + e.message); }
+    const res = await fetch(`${API_BASE}/admin/aziende/${id}/ripristina`, { method: 'POST', headers: authHeaders() });
+    if (res.ok) showToast('Azienda ripristinata', 'success');
+    else showToast('Errore ripristino', 'error');
+    loadCestinoAziende(currentCestinoPage);
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
 }
 
 async function eliminaAziendaDefinitivo(id) {
   if (!confirm('Eliminare DEFINITIVAMENTE questa azienda? L\'azione è irreversibile!')) return;
   try {
-    await fetch(`${API_BASE}/admin/aziende/${id}/definitivo`, { method: 'DELETE', headers: authHeaders() });
-    loadCestinoAziende();
-  } catch(e) { alert('Errore: ' + e.message); }
+    const res = await fetch(`${API_BASE}/admin/aziende/${id}/definitivo`, { method: 'DELETE', headers: authHeaders() });
+    if (res.ok) showToast('Azienda eliminata definitivamente', 'success');
+    else showToast('Errore eliminazione', 'error');
+    loadCestinoAziende(currentCestinoPage);
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
 }
 
 async function loadCestinoStazioni() {

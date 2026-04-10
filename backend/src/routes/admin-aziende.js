@@ -494,7 +494,7 @@ export default async function adminAziendeRoutes(fastify, opts) {
       let paramIdx = 1;
 
       if (search) {
-        conditions.push(`a.ragione_sociale ILIKE $${paramIdx}`);
+        conditions.push(`(a.ragione_sociale ILIKE $${paramIdx} OR a.partita_iva ILIKE $${paramIdx} OR a.citta ILIKE $${paramIdx})`);
         params.push(`%${search}%`);
         paramIdx++;
       }
@@ -510,9 +510,13 @@ export default async function adminAziendeRoutes(fastify, opts) {
 
       params.push(limit, offset);
       const dataRes = await query(`
-        SELECT a.id, a.ragione_sociale, a.partita_iva,
-               a.data_modifica AS deleted_at
+        SELECT a.id, a.ragione_sociale, a.partita_iva, a.cap, a.citta,
+               p.nome AS provincia_nome, p.sigla AS provincia_sigla,
+               a.username_responsabile, a.data_inserimento,
+               a.data_modifica AS deleted_at,
+               (SELECT COUNT(*) FROM attestazioni_aziende aa WHERE aa.id_azienda = a.id) AS n_attestazioni
         FROM aziende a
+        LEFT JOIN province p ON a.id_provincia = p.id
         ${whereClause}
         ORDER BY a.data_modifica DESC
         LIMIT $${params.length - 1} OFFSET $${params.length}
