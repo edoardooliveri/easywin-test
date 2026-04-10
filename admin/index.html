@@ -5661,24 +5661,9 @@ span.flatpickr-weekday {
       <!-- PIATTAFORME PAGE -->
       <div id="pagePiattaforme" class="page">
         <div class="page-header">
-          <h1 class="page-title">PIATTAFORME TELEMATICHE</h1>
+          <h1 class="page-title"><i class="fas fa-globe" style="color:#FF8C00;margin-right:10px"></i>PIATTAFORME TELEMATICHE</h1>
         </div>
-        <div class="search-section compact">
-          <div class="form-row">
-            <div class="form-col">
-              <label>Ricerca</label>
-              <input type="text" id="piattaforme-search" placeholder="Nome piattaforma...">
-            </div>
-          </div>
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="searchPiattaforme()"><i class="fas fa-search"></i> CERCA</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('piattaforme-search').value=''"><i class="fas fa-times"></i> RESET</button>
-            <button class="btn btn-success" onclick="showNewPiattaformaForm()"><i class="fas fa-plus"></i> NUOVA</button>
-          </div>
-        </div>
-        <div class="table-container">
-          <div id="piattaforme-results"></div>
-        </div>
+        <div id="piattaformeContainer"></div>
       </div>
 
       <!-- NEW PIATTAFORMA FORM PAGE -->
@@ -12359,32 +12344,113 @@ async function deleteEsecutore(id) {
 }
 
 // ════════════════ PIATTAFORME ════════════════
+function renderPiattaformeShell() {
+  const host = document.getElementById('piattaformeContainer');
+  if (!host) return;
+  host.innerHTML = `
+    <style>
+      .piat-wrap { background:#fff; border:1px solid var(--border,#d4dbe5); border-radius:16px; overflow:hidden; box-shadow:0 4px 14px rgba(30,45,61,0.06); }
+      .piat-head { background:linear-gradient(135deg,#1E2D3D 0%,#2d4258 100%); color:#fff; padding:14px 20px; display:flex; align-items:center; gap:12px; }
+      .piat-head h2 { margin:0; font-size:15px; font-weight:700; letter-spacing:.5px; flex:1; }
+      .piat-count { background:#FF8C00; color:#fff; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700; }
+      .piat-toolbar { background:#f8fafc; padding:12px 20px; border-bottom:1px solid var(--border,#d4dbe5); display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+      .piat-toolbar input[type=text] { border:1px solid var(--border,#d4dbe5); border-radius:10px; padding:9px 14px; font-size:13px; min-width:260px; background:#fff; }
+      .piat-toolbar input[type=text]:focus { outline:none; border-color:#FF8C00; box-shadow:0 0 0 3px rgba(255,140,0,.15); }
+      .piat-btn { border:none; padding:9px 18px; border-radius:12px; font-weight:600; cursor:pointer; font-size:13px; display:inline-flex; align-items:center; gap:8px; transition:all .15s; }
+      .piat-btn-primary { background:linear-gradient(135deg,#FF8C00,#e67e00); color:#fff; }
+      .piat-btn-primary:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(255,140,0,.35); }
+      .piat-btn-ghost { background:#fff; color:#1E2D3D; border:1px solid var(--border,#d4dbe5); }
+      .piat-btn-ghost:hover { background:#f0f2f7; }
+      .piat-btn-danger { background:#fff; color:#dc2626; border:1px solid #fecaca; }
+      .piat-btn-danger:hover { background:#fef2f2; }
+      .piat-tbl-wrap { overflow-x:auto; }
+      .piat-tbl { width:100%; border-collapse:separate; border-spacing:0; font-size:13px; }
+      .piat-tbl thead th { background:#1E2D3D; color:#fff; padding:12px 14px; text-align:left; font-weight:600; font-size:12px; letter-spacing:.3px; border-bottom:2px solid #FF8C00; }
+      .piat-tbl tbody td { padding:14px; border-bottom:1px solid #eef1f5; vertical-align:top; }
+      .piat-tbl tbody tr:hover { background:#f8fafc; }
+      .piat-name a { color:#1E2D3D; font-weight:700; text-decoration:none; font-size:14px; }
+      .piat-name a:hover { color:#FF8C00; }
+      .piat-url a { color:#0369a1; text-decoration:none; font-size:12px; word-break:break-all; }
+      .piat-url a:hover { text-decoration:underline; }
+      .piat-desc { color:#475569; font-size:12px; line-height:1.5; max-width:520px; }
+      .piat-empty { padding:42px 20px; text-align:center; color:#64748b; }
+      .piat-empty i { font-size:42px; color:#cbd5e1; margin-bottom:12px; display:block; }
+      .piat-actions { white-space:nowrap; }
+      .piat-footer { padding:16px 20px; background:#f8fafc; border-top:1px solid var(--border,#d4dbe5); display:flex; gap:10px; justify-content:flex-end; }
+    </style>
+    <div class="piat-wrap">
+      <div class="piat-head">
+        <i class="fas fa-globe"></i>
+        <h2>PIATTAFORME TROVATE</h2>
+        <span class="piat-count" id="piat-count">0</span>
+      </div>
+      <div class="piat-toolbar">
+        <input type="text" id="piattaforme-search" placeholder="Cerca piattaforma per nome..." onkeydown="if(event.key==='Enter') searchPiattaforme()">
+        <button class="piat-btn piat-btn-primary" onclick="searchPiattaforme()"><i class="fas fa-search"></i> CERCA</button>
+        <button class="piat-btn piat-btn-ghost" onclick="document.getElementById('piattaforme-search').value='';searchPiattaforme()"><i class="fas fa-times"></i> PULISCI</button>
+        <div style="flex:1"></div>
+        <button class="piat-btn piat-btn-primary" onclick="showNewPiattaformaForm()"><i class="fas fa-plus"></i> NUOVA PIATTAFORMA</button>
+      </div>
+      <div class="piat-tbl-wrap">
+        <table class="piat-tbl">
+          <thead>
+            <tr>
+              <th style="width:22%">PIATTAFORMA</th>
+              <th style="width:28%">URL</th>
+              <th style="width:40%">DESCRIZIONE</th>
+              <th style="width:10%">AZIONI</th>
+            </tr>
+          </thead>
+          <tbody id="piat-tbody">
+            <tr><td colspan="4" class="piat-empty"><i class="fas fa-spinner fa-spin"></i><div>Caricamento piattaforme...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
 async function searchPiattaforme(page = 1) {
-  const container = document.getElementById('piattaforme-results');
-  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Ricerca in corso...</p></div>';
+  if (!document.getElementById('piat-tbody')) renderPiattaformeShell();
+  const tbody = document.getElementById('piat-tbody');
+  const cntEl = document.getElementById('piat-count');
+  tbody.innerHTML = '<tr><td colspan="4" class="piat-empty"><i class="fas fa-spinner fa-spin"></i><div>Ricerca in corso...</div></td></tr>';
   try {
     const search = document.getElementById('piattaforme-search')?.value || '';
     const params = new URLSearchParams();
     if (search) params.set('search', search);
     params.set('page', page);
-    params.set('limit', 50);
-    const res = await fetch(`${API_BASE}/piattaforme?${params}`, {
-      headers: authHeaders()
-    });
+    params.set('limit', 200);
+    const res = await fetch(`${API_BASE}/piattaforme?${params}`, { headers: authHeaders() });
     const data = await res.json();
-    const raw_ = data.data || data || []; const rows = Array.isArray(raw_) ? raw_ : [];
+    const raw_ = data.dati || data.data || data || [];
+    const rows = Array.isArray(raw_) ? raw_ : [];
+    if (cntEl) cntEl.textContent = rows.length;
     if (!rows.length) {
-      container.innerHTML = '<div class="empty-state"><i class="fas fa-link"></i><p>Nessuna piattaforma trovata</p></div>';
+      tbody.innerHTML = '<tr><td colspan="4" class="piat-empty"><i class="fas fa-globe"></i><div>Nessuna piattaforma trovata</div></td></tr>';
       return;
     }
-    let html = '<table><thead><tr><th>Nome</th><th>URL</th><th>Tipo</th><th>Azioni</th></tr></thead><tbody>';
+    // Sort by name for consistency with old site
+    rows.sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+    let html = '';
     rows.forEach(r => {
-      html += `<tr><td>${esc(r.nome||'')}</td><td><a href="${esc(r.url||'')}" target="_blank" style="color:var(--info)">${esc((r.url||'').substring(0,40))}</a></td><td>${esc(r.tipo||'')}</td><td><button class="btn btn-sm btn-primary" onclick="editPiattaforma(${r.id})"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-danger" onclick="deletePiattaforma(${r.id})"><i class="fas fa-trash"></i></button></td></tr>`;
+      const id = r.id || r.ID;
+      const nome = r.nome || r.Nome || '-';
+      const url = r.url || r.URL || r.Url || '';
+      const desc = (r.descrizione || r.Descrizione || r.note || '').replace(/#ACAPO#/g,'\n').replace(/#Stazione_[^#]+#/g,'').trim();
+      const descShort = desc.length > 400 ? desc.substring(0,400) + '…' : desc;
+      html += `<tr>
+        <td class="piat-name"><a href="#" onclick="editPiattaforma(${id});return false">${esc(nome)}</a></td>
+        <td class="piat-url">${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a>` : '<span style="color:#94a3b8">—</span>'}</td>
+        <td class="piat-desc">${descShort ? esc(descShort).replace(/\n/g,'<br>') : '<span style="color:#94a3b8">—</span>'}</td>
+        <td class="piat-actions">
+          <button class="piat-btn piat-btn-ghost" style="padding:6px 10px;font-size:11px" onclick="editPiattaforma(${id})" title="Modifica"><i class="fas fa-edit"></i></button>
+          <button class="piat-btn piat-btn-danger" style="padding:6px 10px;font-size:11px" onclick="deletePiattaforma(${id})" title="Elimina"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>`;
     });
-    html += '</tbody></table>';
-    container.innerHTML = html;
+    tbody.innerHTML = html;
   } catch(e) {
-    container.innerHTML = '<p style="padding:16px;color:red">Errore: ' + esc(e.message) + '</p>';
+    tbody.innerHTML = `<tr><td colspan="4" class="piat-empty" style="color:#b91c1c"><i class="fas fa-exclamation-triangle"></i><div>Errore: ${esc(e.message)}</div></td></tr>`;
   }
 }
 
