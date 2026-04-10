@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyWin - Demo Albo Fornitori</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --bg: #0f1923;
+    --card: #1a2938;
+    --dark-surface: #243447;
+    --primary: #3b82f6;
+    --info: #60a5fa;
+    --border: rgba(255,255,255,0.08);
+    --text: #e2e8f0;
+    --text-muted: rgba(255,255,255,0.45);
+    --accent-orange: #f59e0b;
+    --danger: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Open Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 20px;
+    min-height: 100vh;
+  }
+  h1, h2, h3, h4 { font-family: 'Comfortaa', cursive; }
+  .demo-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(59,130,246,0.1));
+    border-radius: 16px;
+    border: 1px solid rgba(245,158,11,0.2);
+  }
+  .demo-header h1 { color: var(--accent-orange); font-size: 1.4rem; margin-bottom: 8px; }
+  .demo-header p { color: var(--text-muted); font-size: 0.85rem; }
+  .stazione-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+  }
+  .stazione-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .stazione-header h3 { font-size: 1rem; color: #fff; }
+  .stazione-header .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+  .badge {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .badge-blue { background: rgba(59,130,246,0.15); color: #93c5fd; }
+  .badge-green { background: rgba(34,197,94,0.15); color: #86efac; }
+  .badge-purple { background: rgba(168,85,247,0.15); color: #c4b5fd; }
+  .tab-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .tab-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 0.78rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    background: rgba(34,197,94,0.15);
+    border-color: rgba(34,197,94,0.3);
+    color: #22c55e;
+    font-weight: 600;
+  }
+  .tab-btn:hover { background: rgba(255,255,255,0.08); }
+  .albo-container {
+    background: linear-gradient(135deg, rgba(76,175,80,0.08) 0%, rgba(56,142,60,0.08) 100%);
+    border: 1px solid rgba(76,175,80,0.3);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .no-albo {
+    text-align: center;
+    padding: 40px;
+    background: rgba(0,0,0,0.15);
+    border-radius: 12px;
+    border: 1px dashed rgba(255,255,255,0.15);
+  }
+  .no-albo i { font-size: 48px; color: rgba(255,255,255,0.12); margin-bottom: 12px; display: block; }
+  .no-albo h4 { color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+  .no-albo p { color: rgba(255,255,255,0.25); font-size: 0.9rem; margin-bottom: 16px; }
+  .btn-configure {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    padding: 8px 18px;
+    font-family: 'Comfortaa', cursive;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } }
+  .info-grid strong { color: rgba(255,255,255,0.5); font-size: 0.78rem; display: block; margin-bottom: 4px; }
+  .info-grid p { margin: 0; font-size: 0.88rem; }
+  .info-grid a { color: var(--info); text-decoration: none; word-break: break-all; }
+  .info-grid a:hover { text-decoration: underline; }
+  .section-label { color: rgba(255,255,255,0.5); font-size: 0.78rem; font-weight: 700; margin-bottom: 8px; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .tag-soa { background: rgba(156,39,176,0.15); color: #ce93d8; padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; }
+  .tag-merc { background: rgba(33,150,243,0.15); color: #64b5f6; padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; }
+  .proc-box {
+    background: rgba(0,0,0,0.2);
+    padding: 16px;
+    border-radius: 8px;
+    border-left: 3px solid #4caf50;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    margin-bottom: 16px;
+  }
+  .doc-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+  }
+  .doc-item.obbl {
+    background: rgba(244,67,54,0.08);
+    border: 1px solid rgba(244,67,54,0.25);
+  }
+  .doc-item.opt {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .doc-item span.name { font-size: 0.85rem; line-height: 1.3; }
+  .doc-badge {
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+  .doc-badge.obbl { background: rgba(244,67,54,0.2); color: #ef5350; }
+  .doc-badge.opt { background: rgba(255,152,0,0.15); color: #ffb74d; font-weight: 600; }
+  .note-box {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.6);
+    margin-top: 16px;
+  }
+  .verified-badge {
+    background: rgba(76,175,80,0.2);
+    color: #81c784;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-header">
+  <h1><i class="fas fa-clipboard-check" style="margin-right:8px"></i>Demo Albo Fornitori — EasyWin Admin</h1>
+  <p>Anteprima della sezione "Albo" nella scheda dettaglio stazione appaltante</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- STAZIONE 1: AMIU GENOVA (con albo completo)    -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="stazione-card">
+  <div class="stazione-header">
+    <i class="fas fa-landmark" style="font-size:20px;color:var(--accent-orange)"></i>
+    <div>
+      <h3>A.M.I.U. GENOVA SPA</h3>
+      <span style="color:var(--text-muted);font-size:0.78rem">Genova (GE) — Liguria</span>
+    </div>
+    <div class="badges">
+      <span class="badge badge-blue"><i class="fas fa-file-alt" style="margin-right:4px"></i>42 bandi</span>
+      <span class="badge badge-green"><i class="fas fa-chart-bar" style="margin-right:4px"></i>18 esiti</span>
+      <span class="badge badge-purple"><i class="fas fa-globe" style="margin-right:4px"></i>3 fonti web</span>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn">Dati Generali</button>
+    <button class="tab-btn">Personale</button>
+    <button class="tab-btn">Fonti Web</button>
+    <button class="tab-btn">Iscrizioni</button>
+    <button class="tab-btn">Bandi</button>
+    <button class="tab-btn">Esiti</button>
+    <button class="tab-btn active"><i class="fas fa-clipboard-check" style="margin-right:4px"></i>Albo</button>
+    <button class="tab-btn">Log</button>
+  </div>
+
+  <div class="albo-container">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+      <i class="fas fa-clipboard-check" style="font-size:24px;color:#4caf50"></i>
+      <h4 style="color:#4caf50;margin:0;font-size:1rem">Albo Fornitori Attivo</h4>
+      <span class="verified-badge" style="margin-left:auto"><i class="fas fa-check-circle" style="margin-right:4px"></i>Verificato 2026-04-03</span>
+    </div>
+    <p style="color:rgba(255,255,255,0.6);font-size:0.82rem;margin:0 0 14px 34px;font-style:italic">Albo Fornitori AMIU Genova</p>
+
+    <!-- Info principali -->
+    <div class="info-grid">
+      <div>
+        <strong>PIATTAFORMA</strong>
+        <p>PortaleAppalti (proprietario)</p>
+      </div>
+      <div>
+        <strong>URL ALBO</strong>
+        <p><a href="#"><i class="fas fa-external-link-alt" style="margin-right:4px;font-size:0.7rem"></i>portaleappalti.amiu.genova.it/PortaleAppalti/</a></p>
+      </div>
+      <div>
+        <strong>SCADENZA ISCRIZIONE</strong>
+        <p>03/04/2026</p>
+      </div>
+      <div>
+        <strong>STATO</strong>
+        <p><span style="background:#4caf50;color:#fff;padding:2px 10px;border-radius:12px;font-size:0.8rem"><i class="fas fa-check" style="margin-right:4px"></i>ATTIVO</span></p>
+      </div>
+    </div>
+
+    <!-- Categorie SOA -->
+    <div style="margin-bottom:16px">
+      <div class="section-label">CATEGORIE MERCEOLOGICHE</div>
+      <div class="tag-row">
+        <span class="tag-merc">Servizi ambientali</span>
+        <span class="tag-merc">Raccolta rifiuti</span>
+        <span class="tag-merc">Pulizia</span>
+        <span class="tag-merc">Forniture</span>
+        <span class="tag-merc">Lavori</span>
+      </div>
+    </div>
+
+    <!-- Procedura -->
+    <div style="margin-bottom:16px">
+      <div class="section-label">PROCEDURA DI ISCRIZIONE</div>
+      <div class="proc-box">Iscrizione sul portale appalti AMIU Genova. Compilare domanda online con requisiti art. 6 del Regolamento.
+
+ATTENZIONE: Iscrizioni riaperte dal 2 marzo 2026, scadenza 3 aprile 2026.</div>
+    </div>
+
+    <!-- Documenti richiesti -->
+    <div style="margin-bottom:16px">
+      <div class="section-label">DOCUMENTI RICHIESTI PER L'ISCRIZIONE</div>
+
+      <div style="font-size:0.72rem;color:#ef5350;font-weight:700;margin-bottom:6px;margin-top:4px">
+        <i class="fas fa-exclamation-circle" style="margin-right:4px"></i>OBBLIGATORI (6)
+      </div>
+
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;font-size:0.9rem;min-width:18px;text-align:center"></i>
+        <span class="name">Requisiti generali e idoneità professionale (art. 6 Regolamento)</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;font-size:0.9rem;min-width:18px;text-align:center"></i>
+        <span class="name">Idoneità tecnico-professionale</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;font-size:0.9rem;min-width:18px;text-align:center"></i>
+        <span class="name">Capacità economico-finanziaria</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;font-size:0.9rem;min-width:18px;text-align:center"></i>
+        <span class="name">Iscrizione CCIAA</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;font-size:0.9rem;min-width:18px;text-align:center"></i>
+        <span class="name">DURC regolare</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;font-size:0.9rem;min-width:18px;text-align:center"></i>
+        <span class="name">Dichiarazione assenza cause esclusione</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+    </div>
+
+    <!-- Note -->
+    <div class="note-box">
+      <i class="fas fa-info-circle" style="margin-right:6px;opacity:0.5"></i>
+      Iscrizioni periodiche con scadenze. Verificare apertura bando iscrizione sul sito AMIU.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- STAZIONE 2: ANAS (con SOA)                     -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="stazione-card">
+  <div class="stazione-header">
+    <i class="fas fa-landmark" style="font-size:20px;color:var(--accent-orange)"></i>
+    <div>
+      <h3>ANAS SPA — COMPARTIMENTO LIGURIA</h3>
+      <span style="color:var(--text-muted);font-size:0.78rem">Genova (GE) — Liguria</span>
+    </div>
+    <div class="badges">
+      <span class="badge badge-blue"><i class="fas fa-file-alt" style="margin-right:4px"></i>87 bandi</span>
+      <span class="badge badge-green"><i class="fas fa-chart-bar" style="margin-right:4px"></i>52 esiti</span>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn">Dati Generali</button>
+    <button class="tab-btn">Personale</button>
+    <button class="tab-btn">Fonti Web</button>
+    <button class="tab-btn">Bandi</button>
+    <button class="tab-btn">Esiti</button>
+    <button class="tab-btn active"><i class="fas fa-clipboard-check" style="margin-right:4px"></i>Albo</button>
+    <button class="tab-btn">Log</button>
+  </div>
+
+  <div class="albo-container">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+      <i class="fas fa-clipboard-check" style="font-size:24px;color:#4caf50"></i>
+      <h4 style="color:#4caf50;margin:0;font-size:1rem">Albo Fornitori Attivo</h4>
+      <span class="verified-badge" style="margin-left:auto"><i class="fas fa-check-circle" style="margin-right:4px"></i>Verificato 2026-04-03</span>
+    </div>
+    <p style="color:rgba(255,255,255,0.6);font-size:0.82rem;margin:0 0 14px 34px;font-style:italic">Elenco Nazionale Operatori Economici ANAS</p>
+
+    <div class="info-grid">
+      <div>
+        <strong>PIATTAFORMA</strong>
+        <p>Portale Procurement ANAS</p>
+      </div>
+      <div>
+        <strong>URL ALBO</strong>
+        <p><a href="#"><i class="fas fa-external-link-alt" style="margin-right:4px;font-size:0.7rem"></i>stradeanas.it/it/fornitori/albi-fornitori</a></p>
+      </div>
+      <div>
+        <strong>SCADENZA ISCRIZIONE</strong>
+        <p style="color:rgba(255,255,255,0.35)">Sempre aperta</p>
+      </div>
+      <div>
+        <strong>STATO</strong>
+        <p><span style="background:#4caf50;color:#fff;padding:2px 10px;border-radius:12px;font-size:0.8rem"><i class="fas fa-check" style="margin-right:4px"></i>ATTIVO</span></p>
+      </div>
+    </div>
+
+    <!-- Categorie SOA -->
+    <div style="margin-bottom:16px">
+      <div class="section-label">CATEGORIE SOA ACCETTATE</div>
+      <div class="tag-row">
+        <span class="tag-soa">OG3</span>
+        <span class="tag-soa">OG4</span>
+        <span class="tag-soa">OG6</span>
+        <span class="tag-soa">OS10</span>
+        <span class="tag-soa">OS11</span>
+        <span class="tag-soa">OS12A</span>
+        <span class="tag-soa">OS18A</span>
+        <span class="tag-soa">OS21</span>
+        <span class="tag-soa">OS24</span>
+        <span class="tag-soa">OS34</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div class="section-label">CATEGORIE MERCEOLOGICHE</div>
+      <div class="tag-row">
+        <span class="tag-merc">Lavori stradali</span>
+        <span class="tag-merc">Manutenzione viabilità</span>
+        <span class="tag-merc">Servizi ingegneria</span>
+        <span class="tag-merc">Forniture stradali</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div class="section-label">PROCEDURA DI ISCRIZIONE</div>
+      <div class="proc-box">Iscrizione gratuita al Portale Procurement ANAS. Elenco unico nazionale per tutte le società del gruppo ANAS/FS.
+
+Dopo la richiesta, ANAS valuta i requisiti. Operatori qualificati vengono invitati a procedure negoziate senza bando pubblico.
+
+5 classi di importo lavori fino a 5 milioni euro (aggiornamento dic 2024, revisione 5 del regolamento).</div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div class="section-label">DOCUMENTI RICHIESTI PER L'ISCRIZIONE</div>
+
+      <div style="font-size:0.72rem;color:#ef5350;font-weight:700;margin-bottom:6px;margin-top:4px">
+        <i class="fas fa-exclamation-circle" style="margin-right:4px"></i>OBBLIGATORI (5)
+      </div>
+
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;min-width:18px;text-align:center"></i>
+        <span class="name">Registrazione Portale Procurement ANAS</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;min-width:18px;text-align:center"></i>
+        <span class="name">Requisiti generali art. 94-95 D.Lgs 36/2023</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;min-width:18px;text-align:center"></i>
+        <span class="name">Attestazione SOA (per lavori)</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;min-width:18px;text-align:center"></i>
+        <span class="name">Requisiti economico-finanziari</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;min-width:18px;text-align:center"></i>
+        <span class="name">Documentazione firmata digitalmente</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+
+      <div style="font-size:0.72rem;color:#ffb74d;font-weight:600;margin-bottom:6px;margin-top:12px">
+        <i class="fas fa-info-circle" style="margin-right:4px"></i>OPZIONALI / CONDIZIONALI (1)
+      </div>
+
+      <div class="doc-item opt">
+        <i class="fas fa-file-alt" style="color:#ff9800;min-width:18px;text-align:center"></i>
+        <span class="name">Certificazione ISO 9001 (per classifiche > 516.000€)</span>
+        <span class="doc-badge opt">Opzionale</span>
+      </div>
+    </div>
+
+    <div class="note-box">
+      <i class="fas fa-info-circle" style="margin-right:6px;opacity:0.5"></i>
+      Elenco nazionale unico. Regolamento rev. 5 (dic 2024). Classi importo aggiornate per D.Lgs 36/2023.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- STAZIONE 3: SENZA ALBO                         -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="stazione-card">
+  <div class="stazione-header">
+    <i class="fas fa-landmark" style="font-size:20px;color:var(--accent-orange)"></i>
+    <div>
+      <h3>A.P.S.P. OPERE SOCIALI N.S. DELLA MISERICORDIA</h3>
+      <span style="color:var(--text-muted);font-size:0.78rem">Savona (SV) — Liguria</span>
+    </div>
+    <div class="badges">
+      <span class="badge badge-blue"><i class="fas fa-file-alt" style="margin-right:4px"></i>3 bandi</span>
+      <span class="badge badge-green"><i class="fas fa-chart-bar" style="margin-right:4px"></i>1 esito</span>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn">Dati Generali</button>
+    <button class="tab-btn">Bandi</button>
+    <button class="tab-btn">Esiti</button>
+    <button class="tab-btn active"><i class="fas fa-clipboard-check" style="margin-right:4px"></i>Albo</button>
+    <button class="tab-btn">Log</button>
+  </div>
+
+  <div class="no-albo">
+    <i class="fas fa-clipboard"></i>
+    <h4>Nessun Albo Fornitori</h4>
+    <p>Questa stazione non ha ancora un albo fornitori configurato.</p>
+    <button class="btn-configure"><i class="fas fa-plus" style="margin-right:4px"></i>Configura Albo Fornitori</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- STAZIONE 4: ALER (su Sintel)                   -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="stazione-card">
+  <div class="stazione-header">
+    <i class="fas fa-landmark" style="font-size:20px;color:var(--accent-orange)"></i>
+    <div>
+      <h3>ALER PAVIA-LODI</h3>
+      <span style="color:var(--text-muted);font-size:0.78rem">Pavia (PV) — Lombardia</span>
+    </div>
+    <div class="badges">
+      <span class="badge badge-blue"><i class="fas fa-file-alt" style="margin-right:4px"></i>28 bandi</span>
+      <span class="badge badge-green"><i class="fas fa-chart-bar" style="margin-right:4px"></i>15 esiti</span>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn">Dati Generali</button>
+    <button class="tab-btn">Personale</button>
+    <button class="tab-btn">Fonti Web</button>
+    <button class="tab-btn">Bandi</button>
+    <button class="tab-btn">Esiti</button>
+    <button class="tab-btn active"><i class="fas fa-clipboard-check" style="margin-right:4px"></i>Albo</button>
+    <button class="tab-btn">Log</button>
+  </div>
+
+  <div class="albo-container">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+      <i class="fas fa-clipboard-check" style="font-size:24px;color:#4caf50"></i>
+      <h4 style="color:#4caf50;margin:0;font-size:1rem">Albo Fornitori Attivo</h4>
+      <span class="verified-badge" style="margin-left:auto"><i class="fas fa-check-circle" style="margin-right:4px"></i>Verificato 2026-04-03</span>
+    </div>
+    <p style="color:rgba(255,255,255,0.6);font-size:0.82rem;margin:0 0 14px 34px;font-style:italic">Elenco Fornitori Telematico SINTEL - ALER Pavia-Lodi</p>
+
+    <div class="info-grid">
+      <div>
+        <strong>PIATTAFORMA</strong>
+        <p>Sintel (ARIA Lombardia)</p>
+      </div>
+      <div>
+        <strong>URL ALBO</strong>
+        <p><a href="#"><i class="fas fa-external-link-alt" style="margin-right:4px;font-size:0.7rem"></i>sintel.regione.lombardia.it</a></p>
+      </div>
+      <div>
+        <strong>SCADENZA ISCRIZIONE</strong>
+        <p style="color:rgba(255,255,255,0.35)">Sempre aperta</p>
+      </div>
+      <div>
+        <strong>STATO</strong>
+        <p><span style="background:#4caf50;color:#fff;padding:2px 10px;border-radius:12px;font-size:0.8rem"><i class="fas fa-check" style="margin-right:4px"></i>ATTIVO</span></p>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div class="section-label">CATEGORIE MERCEOLOGICHE</div>
+      <div class="tag-row">
+        <span class="tag-merc">Lavori edili</span>
+        <span class="tag-merc">Manutenzione edifici</span>
+        <span class="tag-merc">Servizi tecnici</span>
+        <span class="tag-merc">Forniture</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div class="section-label">PROCEDURA DI ISCRIZIONE</div>
+      <div class="proc-box">1) Registrarsi su Sintel (ariaspa.it)
+2) Richiedere accreditamento al Elenco Fornitori Telematico di ALER Pavia-Lodi
+3) Compilare autocertificazione artt. 80-83
+4) Selezionare categorie merceologiche
+5) Rinnovare autocertificazione ogni 180 giorni
+
+Operatori non registrati su Sintel non verranno contattati.</div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div class="section-label">DOCUMENTI RICHIESTI PER L'ISCRIZIONE</div>
+
+      <div style="font-size:0.72rem;color:#ef5350;font-weight:700;margin-bottom:6px;margin-top:4px">
+        <i class="fas fa-exclamation-circle" style="margin-right:4px"></i>OBBLIGATORI (7)
+      </div>
+
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;min-width:18px;text-align:center"></i>
+        <span class="name">Registrazione piattaforma SINTEL</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;min-width:18px;text-align:center"></i>
+        <span class="name">Accreditamento EFT specifico ALER Pavia-Lodi</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;min-width:18px;text-align:center"></i>
+        <span class="name">Autocertificazione artt. 80 e 83 D.Lgs 50/2016 (validità 180 gg)</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;min-width:18px;text-align:center"></i>
+        <span class="name">Iscrizione CCIAA per attività pertinenti</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;min-width:18px;text-align:center"></i>
+        <span class="name">Dichiarazione capacità economico-finanziaria (D.P.R. 445/2000)</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;min-width:18px;text-align:center"></i>
+        <span class="name">Firma digitale</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+      <div class="doc-item obbl">
+        <i class="fas fa-file-signature" style="color:#ef5350;min-width:18px;text-align:center"></i>
+        <span class="name">PEC</span>
+        <span class="doc-badge obbl">OBBLIGATORIO</span>
+      </div>
+    </div>
+
+    <div class="note-box">
+      <i class="fas fa-info-circle" style="margin-right:6px;opacity:0.5"></i>
+      L'elenco è sempre aperto. L'iscrizione è valida per tutta la durata dell'elenco, previa conferma requisiti. Sedi: Pavia (via Parodi 35) e Lodi (via Haussmann 11/7).
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

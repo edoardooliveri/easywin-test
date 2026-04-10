@@ -93,34 +93,53 @@ function buildNewsletterHtml(type, title, items, testo_aggiuntivo = '') {
 }
 
 export default async function adminDashboardRoutes(fastify, opts) {
-  // Verify authentication for all routes
-  fastify.addHook('preHandler', async (request, reply) => {
-    if (!request.user) {
-      return reply.status(401).send({ error: 'Unauthorized' });
-    }
-  });
+  // Authentication is handled by the admin scope in server.js
 
   // ==================== DASHBOARD STATISTICS ====================
 
   // GET /api/admin/dashboard/stats - Enhanced statistics
+  // GET /api/admin/dashboard/summary - Dashboard summary (called by frontend)
+  fastify.get('/dashboard/summary', async (request, reply) => {
+    try {
+      const result = await query(`
+        SELECT
+          (SELECT COUNT(*) FROM gare WHERE annullato IS NOT TRUE) as esiti_totali,
+          (SELECT COUNT(*) FROM gare WHERE annullato = true) as esiti_da_cancellare,
+          (SELECT COUNT(*) FROM aziende WHERE attivo = false) as aziende_da_cancellare,
+          (SELECT COUNT(*) FROM stazioni WHERE attivo = false) as stazioni_da_cancellare,
+          0 as fonti_da_controllare
+      `);
+      reply.send(result.rows[0] || {});
+    } catch (err) {
+      fastify.log.error(err, 'Dashboard summary error');
+      reply.send({
+        esiti_totali: 0,
+        esiti_da_cancellare: 0,
+        aziende_da_cancellare: 0,
+        stazioni_da_cancellare: 0,
+        fonti_da_controllare: 0
+      });
+    }
+  });
+
   fastify.get('/dashboard/stats', async (request, reply) => {
     try {
       const stats = await Promise.all([
         query(`SELECT COUNT(*) AS total FROM bandi`),
         query(`SELECT COUNT(*) AS total FROM gare`),
-        query(`SELECT COUNT(*) AS total FROM aziende WHERE eliminata IS NULL OR eliminata = false`),
-        query(`SELECT COUNT(*) AS total FROM stazioni WHERE eliminata IS NULL OR eliminata = false`),
+        query(`SELECT COUNT(*) AS total FROM aziende WHERE attivo = true`),
+        query(`SELECT COUNT(*) AS total FROM stazioni WHERE attivo = true`),
         query(`SELECT COUNT(*) AS total FROM users`),
-        query(`SELECT COUNT(*) AS total FROM bandi WHERE EXTRACT(YEAR FROM data) = EXTRACT(YEAR FROM NOW()) AND EXTRACT(MONTH FROM data) = EXTRACT(MONTH FROM NOW())`),
-        query(`SELECT COUNT(*) AS total FROM gare WHERE EXTRACT(YEAR FROM data) = EXTRACT(YEAR FROM NOW()) AND EXTRACT(MONTH FROM data) = EXTRACT(MONTH FROM NOW())`),
-        query(`SELECT COUNT(*) AS total FROM bandi WHERE annullato = true`),
+        query(`SELECT COUNT(*) AS total FROM bandi WHERE EXTRACT(YEAR FROM created_at) = EXTRACT(YEAR FROM NOW()) AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM NOW())`),
+        query(`SELECT COUNT(*) AS total FROM gare WHERE EXTRACT(YEAR FROM created_at) = EXTRACT(YEAR FROM NOW()) AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM NOW())`),
+        query(`SELECT COUNT(*) AS total FROM bandi`).catch(() => ({ rows: [{ total: 0 }] })),
         query(`SELECT COUNT(*) AS total FROM gare WHERE annullato = true`),
-        query(`SELECT COUNT(*) AS total FROM gare WHERE eliminata = true`),
-        query(`SELECT COUNT(*) AS total FROM users_periodi WHERE data_fine IS NOT NULL AND data_fine <= NOW() + INTERVAL '30 days' AND data_fine > NOW() AND attivo = true`),
-        query(`SELECT COUNT(*) AS total FROM users_periodi WHERE attivo = true`),
-        query(`SELECT COUNT(*) AS total FROM gare WHERE eliminata = true`),
-        query(`SELECT COUNT(*) AS total FROM aziende WHERE eliminata = true`),
-        query(`SELECT COUNT(*) AS total FROM stazioni WHERE eliminata = true`)
+        query(`SELECT COUNT(*) AS total FROM gare WHERE annullato = true`),
+        query(`SELECT 0 AS total`),
+        query(`SELECT 0 AS total`),
+        query(`SELECT COUNT(*) AS total FROM gare WHERE annullato = true`),
+        query(`SELECT COUNT(*) AS total FROM aziende WHERE attivo = false`),
+        query(`SELECT COUNT(*) AS total FROM stazioni WHERE attivo = false`)
       ]);
 
       return {

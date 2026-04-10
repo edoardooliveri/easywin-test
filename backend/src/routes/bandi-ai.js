@@ -190,8 +190,8 @@ REGOLE:
         // Mark as AI-processed with confidence and store extracted data
         await query(
           `UPDATE bandi SET "ai_processed" = true, "ai_confidence" = $1,
-           "ai_extracted_data" = $2, "LastUpdate" = NOW()
-           WHERE "id_bando" = $3`,
+           "ai_extracted_data" = $2, "updated_at" = NOW()
+           WHERE "id" = $3`,
           [extracted.confidence || 0.5, JSON.stringify(extracted), bandoId]
         );
       }
@@ -288,51 +288,51 @@ REGOLE:
     // Stats generali
     const stats = await query(`
       SELECT
-        COUNT(*) FILTER (WHERE "Provenienza" = 'Presidia') AS totale_presidia,
-        COUNT(*) FILTER (WHERE "Provenienza" = 'Presidia' AND "ai_processed" = true) AS compilati_ai,
-        COUNT(*) FILTER (WHERE "Provenienza" = 'Presidia' AND ("ai_processed" IS NULL OR "ai_processed" = false)) AS da_compilare,
-        COUNT(*) FILTER (WHERE "Provenienza" = 'Presidia' AND "ai_confidence" IS NOT NULL AND "ai_confidence" < 0.6) AS bassa_confidenza,
-        ROUND(AVG("ai_confidence") FILTER (WHERE "Provenienza" = 'Presidia' AND "ai_processed" = true)::numeric, 2) AS media_confidenza
+        COUNT(*) FILTER (WHERE "provenienza" = 'Presidia') AS totale_presidia,
+        COUNT(*) FILTER (WHERE "provenienza" = 'Presidia' AND "ai_processed" = true) AS compilati_ai,
+        COUNT(*) FILTER (WHERE "provenienza" = 'Presidia' AND ("ai_processed" IS NULL OR "ai_processed" = false)) AS da_compilare,
+        COUNT(*) FILTER (WHERE "provenienza" = 'Presidia' AND "ai_confidence" IS NOT NULL AND "ai_confidence" < 0.6) AS bassa_confidenza,
+        ROUND(AVG("ai_confidence") FILTER (WHERE "provenienza" = 'Presidia' AND "ai_processed" = true)::numeric, 2) AS media_confidenza
       FROM bandi
-      WHERE "Annullato" = false
+      WHERE "annullato" = false
     `);
 
     // Bandi da compilare (Presidia, non AI-processed, che hanno allegati PDF)
     const pendingWithPdf = await query(`
-      SELECT b."id_bando", b."Titolo", b."CodiceCIG", b."Stazione",
-             b."DataPubblicazione", b."ImportoSO",
+      SELECT b."id", b."oggetto", b."cig", b."stazione",
+             b."data_pubblicazione", b."importo_so",
              COUNT(a."id") AS n_allegati_pdf
       FROM bandi b
-      INNER JOIN allegati_bando a ON a."id_bando" = b."id_bando" AND a."NomeFile" ILIKE '%.pdf'
-      WHERE b."Provenienza" = 'Presidia'
+      INNER JOIN allegati_bando a ON a."id_bando" = b."id" AND a."nome_file" ILIKE '%.pdf'
+      WHERE b."provenienza" = 'Presidia'
         AND (b."ai_processed" IS NULL OR b."ai_processed" = false)
-        AND b."Annullato" = false
-      GROUP BY b."id_bando"
-      ORDER BY b."DataPubblicazione" DESC
+        AND b."annullato" = false
+      GROUP BY b."id"
+      ORDER BY b."data_pubblicazione" DESC
       LIMIT 50
     `);
 
     // Bandi da compilare SENZA allegati PDF (non processabili automaticamente)
     const pendingNoPdf = await query(`
-      SELECT b."id_bando", b."Titolo", b."CodiceCIG", b."Stazione", b."DataPubblicazione"
+      SELECT b."id", b."oggetto", b."cig", b."stazione", b."data_pubblicazione"
       FROM bandi b
-      LEFT JOIN allegati_bando a ON a."id_bando" = b."id_bando" AND a."NomeFile" ILIKE '%.pdf'
-      WHERE b."Provenienza" = 'Presidia'
+      LEFT JOIN allegati_bando a ON a."id_bando" = b."id" AND a."nome_file" ILIKE '%.pdf'
+      WHERE b."provenienza" = 'Presidia'
         AND (b."ai_processed" IS NULL OR b."ai_processed" = false)
-        AND b."Annullato" = false
+        AND b."annullato" = false
         AND a."id" IS NULL
-      ORDER BY b."DataPubblicazione" DESC
+      ORDER BY b."data_pubblicazione" DESC
       LIMIT 30
     `);
 
     // Ultimi bandi compilati dall'AI
     const recentlyProcessed = await query(`
-      SELECT b."id_bando", b."Titolo", b."CodiceCIG", b."Stazione",
-             b."DataPubblicazione", b."ImportoSO", b."ImportoCO",
+      SELECT b."id", b."oggetto", b."cig", b."stazione",
+             b."data_pubblicazione", b."importo_so", b."importo_co",
              b."ai_confidence", b."ai_processed_at",
              b."ai_extracted_data"
       FROM bandi b
-      WHERE b."Provenienza" = 'Presidia' AND b."ai_processed" = true AND b."Annullato" = false
+      WHERE b."provenienza" = 'Presidia' AND b."ai_processed" = true AND b."annullato" = false
       ORDER BY b."ai_processed_at" DESC
       LIMIT 30
     `);
@@ -352,14 +352,14 @@ REGOLE:
     const { id } = request.params;
 
     // Get bando
-    const bandoRes = await query('SELECT "id_bando", "Titolo" FROM bandi WHERE "id_bando" = $1', [id]);
+    const bandoRes = await query('SELECT "id", "oggetto" FROM bandi WHERE "id" = $1', [id]);
     if (bandoRes.rows.length === 0) return reply.status(404).send({ error: 'Bando non trovato' });
 
     // Get PDF allegati
     const allegatiRes = await query(
-      `SELECT "NomeFile", "Documento" FROM allegati_bando
-       WHERE "id_bando" = $1 AND "NomeFile" ILIKE '%.pdf'
-       ORDER BY "LastUpdate" DESC LIMIT 3`,
+      `SELECT "nome_file", "documento" FROM allegati_bando
+       WHERE "id_bando" = $1 AND "nome_file" ILIKE '%.pdf'
+       ORDER BY "updated_at" DESC LIMIT 3`,
       [id]
     );
 
@@ -376,8 +376,8 @@ REGOLE:
 
       // Reload bando for response
       const updated = await query(
-        `SELECT "Titolo", "ai_processed", "ai_confidence", "ai_extracted_data", "ai_processed_at"
-         FROM bandi WHERE "id_bando" = $1`,
+        `SELECT "oggetto", "ai_processed", "ai_confidence", "ai_extracted_data", "ai_processed_at"
+         FROM bandi WHERE "id" = $1`,
         [id]
       );
 
@@ -403,9 +403,9 @@ REGOLE:
 
     // Get PDF allegati for this bando
     const allegatiRes = await query(
-      `SELECT "NomeFile", "Documento" FROM allegati_bando
-       WHERE "id_bando" = $1 AND "NomeFile" ILIKE '%.pdf'
-       ORDER BY "LastUpdate" DESC LIMIT 3`,
+      `SELECT "nome_file", "documento" FROM allegati_bando
+       WHERE "id_bando" = $1 AND "nome_file" ILIKE '%.pdf'
+       ORDER BY "updated_at" DESC LIMIT 3`,
       [bando_id]
     );
 
@@ -415,9 +415,9 @@ REGOLE:
 
     // Get current bando data for comparison
     const bandoRes = await query(
-      `SELECT "Titolo", "CodiceCIG", "ImportoSO", "ImportoCO", "Stazione", "DataOfferta",
-              "Indirizzo", "Citta", "Regione", "id_soa", "id_criterio", "ai_extracted_data"
-       FROM bandi WHERE "id_bando" = $1`,
+      `SELECT "oggetto", "cig", "importo_so", "importo_co", "stazione", "data_scadenza",
+              "indirizzo", "citta", "regione", "id_soa", "id_criterio", "ai_extracted_data"
+       FROM bandi WHERE "id" = $1`,
       [bando_id]
     );
 
@@ -434,10 +434,10 @@ REGOLE:
 
       // Get updated bando
       const bandoAfter = await query(
-        `SELECT "Titolo", "CodiceCIG", "ImportoSO", "ImportoCO", "Stazione", "DataOfferta",
-                "Indirizzo", "Citta", "Regione", "id_soa", "id_criterio", "ai_extracted_data",
+        `SELECT "oggetto", "cig", "importo_so", "importo_co", "stazione", "data_scadenza",
+                "indirizzo", "citta", "regione", "id_soa", "id_criterio", "ai_extracted_data",
                 "ai_confidence", "ai_processed"
-         FROM bandi WHERE "id_bando" = $1`,
+         FROM bandi WHERE "id" = $1`,
         [bando_id]
       );
 
@@ -466,11 +466,11 @@ REGOLE:
 
     // Find Presidia bandi not yet AI-processed that have PDF allegati
     const bandiRes = await query(
-      `SELECT DISTINCT b."id_bando", b."Titolo", b."CodiceCIG"
+      `SELECT DISTINCT b."id", b."oggetto", b."cig"
        FROM bandi b
-       INNER JOIN allegati_bando a ON a."id_bando" = b."id_bando" AND a."NomeFile" ILIKE '%.pdf'
-       WHERE b."Provenienza" = 'Presidia' AND (b."ai_processed" IS NULL OR b."ai_processed" = false)
-       ORDER BY b."DataPubblicazione" DESC
+       INNER JOIN allegati_bando a ON a."id_bando" = b."id" AND a."nome_file" ILIKE '%.pdf'
+       WHERE b."provenienza" = 'Presidia' AND (b."ai_processed" IS NULL OR b."ai_processed" = false)
+       ORDER BY b."data_pubblicazione" DESC
        LIMIT $1`,
       [limit]
     );
@@ -481,19 +481,19 @@ REGOLE:
       try {
         // Get PDF
         const pdfRes = await query(
-          `SELECT "NomeFile", "Documento" FROM allegati_bando
-           WHERE "id_bando" = $1 AND "NomeFile" ILIKE '%.pdf' LIMIT 1`,
-          [bando.id_bando]
+          `SELECT "nome_file", "documento" FROM allegati_bando
+           WHERE "id_bando" = $1 AND "nome_file" ILIKE '%.pdf' LIMIT 1`,
+          [bando.id]
         );
 
         if (pdfRes.rows.length > 0) {
-          await processAllegatoWithAI(bando.id_bando, pdfRes.rows[0].Documento, pdfRes.rows[0].NomeFile, fastify);
+          await processAllegatoWithAI(bando.id, pdfRes.rows[0].documento, pdfRes.rows[0].nome_file, fastify);
           results.processed++;
-          results.details.push({ id: bando.id_bando, titolo: bando.Titolo, status: 'ok' });
+          results.details.push({ id: bando.id, titolo: bando.oggetto, status: 'ok' });
         }
       } catch (err) {
         results.errors++;
-        results.details.push({ id: bando.id_bando, titolo: bando.Titolo, status: 'error', error: err.message });
+        results.details.push({ id: bando.id, titolo: bando.oggetto, status: 'error', error: err.message });
       }
     }
 
@@ -512,18 +512,18 @@ async function updateBandoFromAi(bandoId, data, username, confirmed = false) {
 
     // Map AI fields to DB fields
     const mapping = {
-      "Titolo": data.titolo,
-      "CodiceCIG": data.codice_cig,
-      "ImportoSO": parseNumber(data.importo_lavori),
-      "ImportoCO": parseNumber(data.importo_sicurezza),
-      "OneriProgettazione": parseNumber(data.oneri_progettazione),
-      "ImportoManodopera": parseNumber(data.importo_manodopera),
-      "DataOfferta": data.data_scadenza_offerta || null,
-      "Indirizzo": data.luogo_esecuzione?.indirizzo,
-      "Citta": data.luogo_esecuzione?.citta,
-      "Regione": data.luogo_esecuzione?.regione,
-      "CAP": data.luogo_esecuzione?.cap,
-      "NDecimali": data.decimali_ribasso ? parseInt(data.decimali_ribasso) : null
+      "oggetto": data.titolo,
+      "cig": data.codice_cig,
+      "importo_so": parseNumber(data.importo_lavori),
+      "importo_co": parseNumber(data.importo_sicurezza),
+      "oneri_progettazione": parseNumber(data.oneri_progettazione),
+      "importo_manodopera": parseNumber(data.importo_manodopera),
+      "data_scadenza": data.data_scadenza_offerta || null,
+      "indirizzo": data.luogo_esecuzione?.indirizzo,
+      "citta": data.luogo_esecuzione?.citta,
+      "regione": data.luogo_esecuzione?.regione,
+      "cap": data.luogo_esecuzione?.cap,
+      "n_decimali": data.decimali_ribasso ? parseInt(data.decimali_ribasso) : null
     };
 
     for (const [field, value] of Object.entries(mapping)) {
@@ -536,13 +536,13 @@ async function updateBandoFromAi(bandoId, data, username, confirmed = false) {
 
     // Set stazione if extracted
     if (data.stazione_appaltante) {
-      updates.push(`"Stazione" = $${idx}`);
+      updates.push(`"stazione" = $${idx}`);
       values.push(data.stazione_appaltante);
       idx++;
 
       // Try to match stazione in DB
       const staz = await client.query(
-        `SELECT "id" FROM stazioni WHERE "Nome" ILIKE $1 LIMIT 1`,
+        `SELECT "id" FROM stazioni WHERE "denominazione" ILIKE $1 LIMIT 1`,
         [`%${data.stazione_appaltante}%`]
       );
       if (staz.rows.length > 0) {
@@ -555,12 +555,12 @@ async function updateBandoFromAi(bandoId, data, username, confirmed = false) {
     // Set criterio if extracted
     if (data.criterio_aggiudicazione) {
       const crit = await client.query(
-        `SELECT "id_criterio" FROM criteri WHERE "Criterio" ILIKE $1 LIMIT 1`,
+        `SELECT "id" FROM criteri WHERE "nome" ILIKE $1 LIMIT 1`,
         [`%${data.criterio_aggiudicazione}%`]
       );
       if (crit.rows.length > 0) {
         updates.push(`"id_criterio" = $${idx}`);
-        values.push(crit.rows[0].id_criterio);
+        values.push(crit.rows[0].id);
         idx++;
       }
     }
@@ -581,7 +581,7 @@ async function updateBandoFromAi(bandoId, data, username, confirmed = false) {
     if (updates.length > 0) {
       values.push(bandoId);
       await client.query(
-        `UPDATE bandi SET ${updates.join(', ')} WHERE "id_bando" = $${idx}`,
+        `UPDATE bandi SET ${updates.join(', ')} WHERE "id" = $${idx}`,
         values
       );
     }
@@ -597,14 +597,14 @@ async function createBandoFromAiData(data, fileBuffer, fileName, username) {
     let id_stazione = null;
     if (data.stazione_appaltante) {
       const staz = await client.query(
-        `SELECT "id" FROM stazioni WHERE "Nome" ILIKE $1 LIMIT 1`,
+        `SELECT "id" FROM stazioni WHERE "denominazione" ILIKE $1 LIMIT 1`,
         [`%${data.stazione_appaltante}%`]
       );
       if (staz.rows.length > 0) {
         id_stazione = staz.rows[0].id;
       } else {
         const newStaz = await client.query(
-          `INSERT INTO stazioni ("Nome") VALUES ($1) RETURNING "id"`,
+          `INSERT INTO stazioni ("denominazione") VALUES ($1) RETURNING "id"`,
           [data.stazione_appaltante]
         );
         id_stazione = newStaz.rows[0].id;
@@ -621,22 +621,22 @@ async function createBandoFromAiData(data, fileBuffer, fileName, username) {
     // Find criterio
     let id_criterio = null;
     if (data.criterio_aggiudicazione) {
-      const crit = await client.query(`SELECT "id_criterio" FROM criteri WHERE "Criterio" ILIKE $1 LIMIT 1`, [`%${data.criterio_aggiudicazione}%`]);
-      if (crit.rows.length > 0) id_criterio = crit.rows[0].id_criterio;
+      const crit = await client.query(`SELECT "id" FROM criteri WHERE "nome" ILIKE $1 LIMIT 1`, [`%${data.criterio_aggiudicazione}%`]);
+      if (crit.rows.length > 0) id_criterio = crit.rows[0].id;
     }
 
     // Insert bando
     const bandoResult = await client.query(
       `INSERT INTO bandi (
-        "id_bando", "Titolo", "id_stazione", "Stazione", "DataPubblicazione",
-        "CodiceCIG", "id_soa", "id_criterio",
-        "ImportoSO", "ImportoCO", "OneriProgettazione", "ImportoManodopera",
-        "DataOfferta",
-        "Indirizzo", "Citta", "Regione", "CAP",
-        "NDecimali", "Provenienza",
-        "InseritoDa"
+        "id", "oggetto", "id_stazione", "stazione", "data_pubblicazione",
+        "cig", "id_soa", "id_criterio",
+        "importo_so", "importo_co", "oneri_progettazione", "importo_manodopera",
+        "data_scadenza",
+        "indirizzo", "citta", "regione", "cap",
+        "n_decimali", "provenienza",
+        "created_by"
       ) VALUES (uuid_generate_v4(),$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
-      RETURNING "id_bando"`,
+      RETURNING "id"`,
       [
         data.titolo || 'Bando da analisi AI',
         id_stazione, data.stazione_appaltante,
@@ -653,7 +653,7 @@ async function createBandoFromAiData(data, fileBuffer, fileName, username) {
       ]
     );
 
-    const bandoId = bandoResult.rows[0].id_bando;
+    const bandoId = bandoResult.rows[0].id;
 
     return bandoId;
   });

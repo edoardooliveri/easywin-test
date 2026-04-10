@@ -100,7 +100,7 @@ export default async function apiPubblicaRoutes(fastify, opts) {
       } = request.query;
 
       const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
-      const conditions = ['b.abilitato = true', 'b.annullato = false'];
+      const conditions = ['b.annullato IS NOT TRUE', 'b.annullato IS NOT TRUE'];
       const params = [];
       let paramIdx = 1;
 
@@ -218,7 +218,7 @@ export default async function apiPubblicaRoutes(fastify, opts) {
           b.id_soa AS id_soa,
           b.descrizione AS descrizione
          FROM bandi b
-         WHERE b.id_bando = $1 AND b.abilitato = true AND b.annullato = false
+         WHERE b.id_bando = $1 AND b.annullato IS NOT TRUE
          LIMIT 1`,
         [id]
       );
@@ -365,7 +365,7 @@ export default async function apiPubblicaRoutes(fastify, opts) {
           g.ribasso AS ribasso_medio,
           g.id_soa AS id_soa
          FROM gare g
-         WHERE g.id = $1 AND g.abilitato = true AND g.annullato = false
+         WHERE g.id = $1 AND g.annullato IS NOT TRUE
          LIMIT 1`,
         [id]
       );
@@ -490,7 +490,7 @@ export default async function apiPubblicaRoutes(fastify, opts) {
           a.telefono AS telefono,
           a.email AS email
          FROM aziende a
-         WHERE a.id = $1 AND a.abilitato = true AND a.annullato = false
+         WHERE a.id = $1 AND a.attivo = true
          LIMIT 1`,
         [id]
       );
@@ -621,7 +621,7 @@ export default async function apiPubblicaRoutes(fastify, opts) {
           s.latitudine AS latitudine,
           s.longitudine AS longitudine
          FROM stazioni s
-         WHERE s.id = $1 AND s.abilitato = true AND s.annullato = false
+         WHERE s.id = $1 AND s.attivo = true
          LIMIT 1`,
         [id]
       );

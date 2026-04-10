@@ -1,7 +1,34 @@
 import { query } from '../db/pool.js';
 import { sendEmail } from '../services/email-service.js';
 import crypto from 'crypto';
-import xml from 'xml';
+
+// Simple RSS XML builder (no external dependency)
+function escapeXml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function buildRss(channelTitle, channelLink, channelDesc, items) {
+  const itemsXml = items.map(item =>
+    `    <item>
+      <title>${escapeXml(item.title)}</title>
+      <description>${escapeXml(item.description)}</description>
+      <pubDate>${item.pubDate}</pubDate>
+      <link>${escapeXml(item.link)}</link>
+      <guid>${escapeXml(item.guid)}</guid>
+    </item>`
+  ).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>${escapeXml(channelTitle)}</title>
+    <link>${escapeXml(channelLink)}</link>
+    <description>${escapeXml(channelDesc)}</description>
+    <language>it-it</language>
+    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+${itemsXml}
+  </channel>
+</rss>`;
+}
 
 export default async function pubblicoRoutes(fastify, opts) {
 
@@ -17,54 +44,37 @@ export default async function pubblicoRoutes(fastify, opts) {
     try {
       const result = await query(
         `SELECT
-          b."id_bando" AS id,
-          b."Titolo" AS titolo,
-          b."DataPubblicazione" AS data_pubblicazione,
-          COALESCE(s."Nome", b."Stazione") AS stazione,
-          b."Regione" AS provincia,
-          b."ImportoSO" AS importo,
-          b."CodiceCIG" AS codice_cig
+          b.id AS id,
+          b.titolo AS titolo,
+          b.data_pubblicazione AS data_pubblicazione,
+          COALESCE(s.nome, '') AS stazione,
+          p.nome AS provincia,
+          b.importo_so AS importo,
+          b.codice_cig AS codice_cig
          FROM bandi b
-         LEFT JOIN stazioni s ON b."id_stazione" = s."id"
-         WHERE b."Abilitato" = true AND b."Annullato" = false
-         ORDER BY b."DataPubblicazione" DESC
+         LEFT JOIN stazioni s ON b.id_stazione = s.id
+         LEFT JOIN province p ON s.id_provincia = p.id
+         WHERE b.annullato IS NOT TRUE
+         ORDER BY b.data_pubblicazione DESC
          LIMIT 50`,
         []
       );
 
+      const frontUrl = process.env.FRONTEND_URL || 'https://easywin.it';
       const items = result.rows.map(r => ({
-        item: [
-          { title: r.titolo },
-          { description: `Stazione: ${r.stazione}, Importo: ${r.importo ? Number(r.importo).toLocaleString('it-IT') + ' €' : 'N/A'}, CIG: ${r.codice_cig || 'N/A'}` },
-          { pubDate: new Date(r.data_pubblicazione).toUTCString() },
-          { link: `${process.env.FRONTEND_URL || 'https://easywin.it'}/bandi/${r.id}` },
-          { guid: `bando-${r.id}` }
-        ]
+        title: r.titolo,
+        description: `Stazione: ${r.stazione}, Importo: ${r.importo ? Number(r.importo).toLocaleString('it-IT') + ' €' : 'N/A'}, CIG: ${r.codice_cig || 'N/A'}`,
+        pubDate: new Date(r.data_pubblicazione).toUTCString(),
+        link: `${frontUrl}/bandi/${r.id}`,
+        guid: `bando-${r.id}`
       }));
 
-      const rssContent = xml({
-        rss: [
-          {
-            _attr: { version: '2.0', 'xmlns:content': 'http://purl.org/rss/1.0/modules/content/' }
-          },
-          {
-            channel: [
-              { title: 'EasyWin - Bandi' },
-              { link: process.env.FRONTEND_URL || 'https://easywin.it' },
-              { description: 'Ultimi bandi pubblicati sulla piattaforma EasyWin' },
-              { language: 'it-it' },
-              { lastBuildDate: new Date().toUTCString() },
-              ...items
-            ]
-          }
-        ]
-      });
-
+      const rssContent = buildRss('EasyWin - Bandi', frontUrl, 'Ultimi bandi pubblicati sulla piattaforma EasyWin', items);
       reply.type('application/rss+xml; charset=utf-8');
       return rssContent;
     } catch (err) {
-      fastify.log.error({ err: err.message }, 'RSS bandi error');
-      return reply.status(500).send({ error: 'Errore generazione RSS' });
+      fastify.log.error({ err: err.message, stack: err.stack }, 'RSS bandi error');
+      return reply.status(500).send({ error: 'Errore generazione RSS', detail: err.message });
     }
   });
 
@@ -76,49 +86,32 @@ export default async function pubblicoRoutes(fastify, opts) {
     try {
       const result = await query(
         `SELECT
-          g."id" AS id,
-          g."Titolo" AS titolo,
-          g."Data" AS data,
-          COALESCE(s."nome", g."Stazione") AS stazione,
-          g."regione" AS provincia,
-          g."importo" AS importo,
-          (SELECT a."ragione_sociale" FROM dettaglio_gara dg JOIN aziende a ON dg.id_azienda = a.id WHERE dg.id_gara = g."id" AND dg.vincitrice = true LIMIT 1) AS vincitore
+          g.id AS id,
+          g.titolo AS titolo,
+          g.data AS data,
+          COALESCE(s.nome, '') AS stazione,
+          p.nome AS provincia,
+          g.importo AS importo,
+          (SELECT a.ragione_sociale FROM dettaglio_gara dg JOIN aziende a ON dg.id_azienda = a.id WHERE dg.id_gara = g.id AND dg.vincitrice = true LIMIT 1) AS vincitore
          FROM gare g
-         LEFT JOIN stazioni s ON g."id_stazione" = s."id"
-         WHERE g."Abilitato" = true AND g."Annullato" = false
-         ORDER BY g."Data" DESC
+         LEFT JOIN stazioni s ON g.id_stazione = s.id
+         LEFT JOIN province p ON s.id_provincia = p.id
+         WHERE g.annullato IS NOT TRUE
+         ORDER BY g.data DESC
          LIMIT 50`,
         []
       );
 
+      const frontUrl = process.env.FRONTEND_URL || 'https://easywin.it';
       const items = result.rows.map(r => ({
-        item: [
-          { title: r.titolo },
-          { description: `Stazione: ${r.stazione}, Importo: ${r.importo ? Number(r.importo).toLocaleString('it-IT') + ' €' : 'N/A'}, Vincitore: ${r.vincitore || 'Da definire'}` },
-          { pubDate: new Date(r.data).toUTCString() },
-          { link: `${process.env.FRONTEND_URL || 'https://easywin.it'}/esiti/${r.id}` },
-          { guid: `esito-${r.id}` }
-        ]
+        title: r.titolo,
+        description: `Stazione: ${r.stazione}, Importo: ${r.importo ? Number(r.importo).toLocaleString('it-IT') + ' €' : 'N/A'}, Vincitore: ${r.vincitore || 'Da definire'}`,
+        pubDate: new Date(r.data).toUTCString(),
+        link: `${frontUrl}/esiti/${r.id}`,
+        guid: `esito-${r.id}`
       }));
 
-      const rssContent = xml({
-        rss: [
-          {
-            _attr: { version: '2.0', 'xmlns:content': 'http://purl.org/rss/1.0/modules/content/' }
-          },
-          {
-            channel: [
-              { title: 'EasyWin - Esiti' },
-              { link: process.env.FRONTEND_URL || 'https://easywin.it' },
-              { description: 'Ultimi esiti pubblicati sulla piattaforma EasyWin' },
-              { language: 'it-it' },
-              { lastBuildDate: new Date().toUTCString() },
-              ...items
-            ]
-          }
-        ]
-      });
-
+      const rssContent = buildRss('EasyWin - Esiti', frontUrl, 'Ultimi esiti pubblicati sulla piattaforma EasyWin', items);
       reply.type('application/rss+xml; charset=utf-8');
       return rssContent;
     } catch (err) {
@@ -137,18 +130,19 @@ export default async function pubblicoRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          b."id_bando" AS id,
-          b."Titolo" AS titolo,
-          b."DataPubblicazione" AS data_pubblicazione,
-          COALESCE(s."Nome", b."Stazione") AS stazione,
-          b."Regione" AS provincia,
-          b."ImportoSO" AS importo,
-          b."CodiceCIG" AS codice_cig
+          b.id AS id,
+          b.titolo AS titolo,
+          b.data_pubblicazione AS data_pubblicazione,
+          COALESCE(s.nome, '') AS stazione,
+          p.nome AS provincia,
+          b.importo_so AS importo,
+          b.codice_cig AS codice_cig
          FROM bandi b
-         LEFT JOIN stazioni s ON b."id_stazione" = s."id"
-         WHERE b."Abilitato" = true AND b."Annullato" = false
-           AND b."Regione" = $1
-         ORDER BY b."DataPubblicazione" DESC
+         LEFT JOIN stazioni s ON b.id_stazione = s.id
+         LEFT JOIN province p ON s.id_provincia = p.id
+         WHERE b.annullato IS NOT TRUE
+           AND p.sigla = $1
+         ORDER BY b.data_pubblicazione DESC
          LIMIT 50`,
         [codice_provincia]
       );
@@ -199,17 +193,18 @@ export default async function pubblicoRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          g."id" AS id,
-          g."Titolo" AS titolo,
-          g."Data" AS data,
-          COALESCE(s."Nome", g."Stazione") AS stazione,
-          g."Regione" AS provincia,
-          g."Importo" AS importo
+          g.id AS id,
+          g.titolo AS titolo,
+          g.data AS data,
+          COALESCE(s.nome, '') AS stazione,
+          p.nome AS provincia,
+          g.importo AS importo
          FROM gare g
-         LEFT JOIN stazioni s ON g."id_stazione" = s."id"
-         WHERE g."Abilitato" = true AND g."Annullato" = false
-           AND g."Regione" = $1
-         ORDER BY g."Data" DESC
+         LEFT JOIN stazioni s ON g.id_stazione = s.id
+         LEFT JOIN province p ON s.id_provincia = p.id
+         WHERE g.annullato IS NOT TRUE
+           AND p.sigla = $1
+         ORDER BY g.data DESC
          LIMIT 50`,
         [codice_provincia]
       );
@@ -268,7 +263,7 @@ export default async function pubblicoRoutes(fastify, opts) {
 
       // Find user by email
       const userResult = await query(
-        `SELECT "UserName", "Email", "FirstName" FROM users WHERE "Email" = $1 LIMIT 1`,
+        `SELECT username, email, first_name FROM users WHERE email = $1 LIMIT 1`,
         [email]
       );
 
@@ -285,10 +280,10 @@ export default async function pubblicoRoutes(fastify, opts) {
 
       // Store token in database
       await query(
-        `INSERT INTO password_reset_tokens (token, "UserName", expires_at, created_at)
+        `INSERT INTO password_reset_tokens (token, username, expires_at, created_at)
          VALUES ($1, $2, $3, NOW())
          ON CONFLICT (token) DO UPDATE SET expires_at = $3, created_at = NOW()`,
-        [resetToken, user.UserName, expiresAt]
+        [resetToken, user.username, expiresAt]
       );
 
       // Send email
@@ -299,7 +294,7 @@ export default async function pubblicoRoutes(fastify, opts) {
             <h1 style="color: #F5C518; font-family: 'Brush Script MT', cursive; margin: 0;">EasyWin</h1>
           </div>
           <div style="padding: 24px; background: #fff;">
-            <p>Caro ${user.FirstName || 'Utente'},</p>
+            <p>Caro ${user.first_name || 'Utente'},</p>
             <p>Hai richiesto il reset della password. Clicca il link sottostante per procedere:</p>
             <p><a href="${resetLink}" style="background: #F5C518; color: #333; padding: 12px 24px; border-radius: 4px; text-decoration: none; display: inline-block; font-weight: bold;">Reset Password</a></p>
             <p style="color: #666; font-size: 12px;">Questo link è valido per 24 ore. Se non hai richiesto il reset, ignora questo messaggio.</p>
@@ -328,7 +323,7 @@ export default async function pubblicoRoutes(fastify, opts) {
       const { token } = request.params;
 
       const result = await query(
-        `SELECT "UserName", expires_at FROM password_reset_tokens
+        `SELECT username, expires_at FROM password_reset_tokens
          WHERE token = $1 AND expires_at > NOW()
          LIMIT 1`,
         [token]
@@ -359,7 +354,7 @@ export default async function pubblicoRoutes(fastify, opts) {
 
       // Validate token
       const tokenResult = await query(
-        `SELECT "UserName", expires_at FROM password_reset_tokens
+        `SELECT username, expires_at FROM password_reset_tokens
          WHERE token = $1 AND expires_at > NOW()
          LIMIT 1`,
         [token]
@@ -369,7 +364,7 @@ export default async function pubblicoRoutes(fastify, opts) {
         return reply.status(400).send({ error: 'Token non valido o scaduto' });
       }
 
-      const username = tokenResult.rows[0].UserName;
+      const username = tokenResult.rows[0].username;
 
       // Hash new password
       const bcrypt = (await import('bcryptjs')).default;
@@ -377,7 +372,7 @@ export default async function pubblicoRoutes(fastify, opts) {
 
       // Update user password
       await query(
-        `UPDATE users SET "PasswordHash" = $1 WHERE "UserName" = $2`,
+        `UPDATE users SET password_hash = $1 WHERE username = $2`,
         [hashedPassword, username]
       );
 
@@ -420,7 +415,7 @@ export default async function pubblicoRoutes(fastify, opts) {
 
       // Update user
       await query(
-        `UPDATE users SET "NewsletterEnabled" = false WHERE "Email" = $1`,
+        `UPDATE users SET newsletter_enabled = false WHERE email = $1`,
         [email]
       );
 
@@ -444,8 +439,8 @@ export default async function pubblicoRoutes(fastify, opts) {
       }
 
       const result = await query(
-        `UPDATE users SET "NewsletterEnabled" = true WHERE "Email" = $1
-         RETURNING "Email"`,
+        `UPDATE users SET newsletter_enabled = true WHERE email = $1
+         RETURNING email`,
         [email]
       );
 
@@ -483,24 +478,25 @@ export default async function pubblicoRoutes(fastify, opts) {
       // Haversine formula for distance calculation
       const result = await query(
         `SELECT
-          b."id_bando" AS id,
-          b."Titolo" AS titolo,
-          b."DataPubblicazione" AS data_pubblicazione,
-          COALESCE(s."Nome", b."Stazione") AS stazione,
-          b."Regione" AS provincia,
-          b."ImportoSO" AS importo,
-          b."CodiceCIG" AS codice_cig,
-          COALESCE(s."Latitudine", 0) AS lat,
-          COALESCE(s."Longitudine", 0) AS lon,
-          (6371 * acos(cos(radians($1)) * cos(radians(COALESCE(s."Latitudine", 0))) *
-           cos(radians(COALESCE(s."Longitudine", 0)) - radians($2)) +
-           sin(radians($1)) * sin(radians(COALESCE(s."Latitudine", 0))))) AS distanza_km
+          b.id AS id,
+          b.titolo AS titolo,
+          b.data_pubblicazione AS data_pubblicazione,
+          COALESCE(s.nome, '') AS stazione,
+          p.nome AS provincia,
+          b.importo_so AS importo,
+          b.codice_cig AS codice_cig,
+          COALESCE(p.lat, 0) AS lat,
+          COALESCE(p.lng, 0) AS lon,
+          (6371 * acos(cos(radians($1)) * cos(radians(COALESCE(p.lat, 0))) *
+           cos(radians(COALESCE(p.lng, 0)) - radians($2)) +
+           sin(radians($1)) * sin(radians(COALESCE(p.lat, 0))))) AS distanza_km
          FROM bandi b
-         LEFT JOIN stazioni s ON b."id_stazione" = s."id"
-         WHERE b."Abilitato" = true AND b."Annullato" = false
-           AND (6371 * acos(cos(radians($1)) * cos(radians(COALESCE(s."Latitudine", 0))) *
-           cos(radians(COALESCE(s."Longitudine", 0)) - radians($2)) +
-           sin(radians($1)) * sin(radians(COALESCE(s."Latitudine", 0))))) <= $3
+         LEFT JOIN stazioni s ON b.id_stazione = s.id
+         LEFT JOIN province p ON s.id_provincia = p.id
+         WHERE b.annullato IS NOT TRUE
+           AND (6371 * acos(cos(radians($1)) * cos(radians(COALESCE(p.lat, 0))) *
+           cos(radians(COALESCE(p.lng, 0)) - radians($2)) +
+           sin(radians($1)) * sin(radians(COALESCE(p.lat, 0))))) <= $3
          ORDER BY distanza_km ASC
          LIMIT $4`,
         [latitude, longitude, radius, limit]
@@ -542,23 +538,24 @@ export default async function pubblicoRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          g."id" AS id,
-          g."Titolo" AS titolo,
-          g."Data" AS data,
-          COALESCE(s."Nome", g."Stazione") AS stazione,
-          g."Regione" AS provincia,
-          g."Importo" AS importo,
-          COALESCE(s."Latitudine", 0) AS lat,
-          COALESCE(s."Longitudine", 0) AS lon,
-          (6371 * acos(cos(radians($1)) * cos(radians(COALESCE(s."Latitudine", 0))) *
-           cos(radians(COALESCE(s."Longitudine", 0)) - radians($2)) +
-           sin(radians($1)) * sin(radians(COALESCE(s."Latitudine", 0))))) AS distanza_km
+          g.id AS id,
+          g.titolo AS titolo,
+          g.data AS data,
+          COALESCE(s.nome, '') AS stazione,
+          p.nome AS provincia,
+          g.importo AS importo,
+          COALESCE(p.lat, 0) AS lat,
+          COALESCE(p.lng, 0) AS lon,
+          (6371 * acos(cos(radians($1)) * cos(radians(COALESCE(p.lat, 0))) *
+           cos(radians(COALESCE(p.lng, 0)) - radians($2)) +
+           sin(radians($1)) * sin(radians(COALESCE(p.lat, 0))))) AS distanza_km
          FROM gare g
-         LEFT JOIN stazioni s ON g."id_stazione" = s."id"
-         WHERE g."Abilitato" = true AND g."Annullato" = false
-           AND (6371 * acos(cos(radians($1)) * cos(radians(COALESCE(s."Latitudine", 0))) *
-           cos(radians(COALESCE(s."Longitudine", 0)) - radians($2)) +
-           sin(radians($1)) * sin(radians(COALESCE(s."Latitudine", 0))))) <= $3
+         LEFT JOIN stazioni s ON g.id_stazione = s.id
+         LEFT JOIN province p ON s.id_provincia = p.id
+         WHERE g.annullato IS NOT TRUE
+           AND (6371 * acos(cos(radians($1)) * cos(radians(COALESCE(p.lat, 0))) *
+           cos(radians(COALESCE(p.lng, 0)) - radians($2)) +
+           sin(radians($1)) * sin(radians(COALESCE(p.lat, 0))))) <= $3
          ORDER BY distanza_km ASC
          LIMIT $4`,
         [latitude, longitude, radius, limit]
@@ -698,22 +695,22 @@ export default async function pubblicoRoutes(fastify, opts) {
   fastify.get('/statistiche', async (request, reply) => {
     try {
       const bandiResult = await query(
-        `SELECT COUNT(*) as count FROM bandi WHERE "Abilitato" = true AND "Annullato" = false`,
+        `SELECT COUNT(*) as count FROM bandi WHERE annullato IS NOT TRUE`,
         []
       );
 
       const esitiResult = await query(
-        `SELECT COUNT(*) as count FROM gare WHERE "Abilitato" = true AND "Annullato" = false`,
+        `SELECT COUNT(*) as count FROM gare WHERE annullato = false`,
         []
       );
 
       const stazioniResult = await query(
-        `SELECT COUNT(*) as count FROM stazioni WHERE "Abilitato" = true AND "Annullato" = false`,
+        `SELECT COUNT(*) as count FROM stazioni WHERE attivo = true`,
         []
       );
 
       const aziendResult = await query(
-        `SELECT COUNT(*) as count FROM aziende WHERE "Abilitato" = true AND "Annullato" = false`,
+        `SELECT COUNT(*) as count FROM aziende WHERE attivo = true`,
         []
       );
 

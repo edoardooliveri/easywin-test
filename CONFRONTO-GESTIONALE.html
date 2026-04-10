@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyWin — Confronto Vecchio vs Nuovo Gestionale</title>
+<style>
+  :root {
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --gray: #64748b;
+    --dark: #0f172a;
+    --card-bg: #1e293b;
+    --border: #334155;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--dark);
+    color: #e2e8f0;
+    line-height: 1.6;
+    padding: 2rem;
+  }
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--gray);
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .summary-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.2rem;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .summary-card .number { font-size: 2rem; font-weight: 700; }
+  .summary-card .label { font-size: 0.85rem; color: var(--gray); margin-top: 0.3rem; }
+  .green { color: var(--green); }
+  .yellow { color: var(--yellow); }
+  .red { color: var(--red); }
+  .blue { color: var(--blue); }
+
+  .section {
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 1rem 1.5rem;
+    background: rgba(59,130,246,0.1);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+  .section-header h2 { font-size: 1.1rem; }
+  .section-header .badge {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-complete { background: rgba(34,197,94,0.2); color: var(--green); }
+  .badge-partial { background: rgba(234,179,8,0.2); color: var(--yellow); }
+  .badge-missing { background: rgba(239,68,68,0.2); color: var(--red); }
+  .badge-new { background: rgba(59,130,246,0.2); color: var(--blue); }
+
+  .section-body { padding: 1rem 1.5rem; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  th {
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    background: rgba(255,255,255,0.05);
+    border-bottom: 2px solid var(--border);
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  td {
+    padding: 0.5rem 0.8rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    vertical-align: top;
+  }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .status-icon { font-size: 1rem; }
+  .note { color: var(--gray); font-size: 0.82rem; font-style: italic; }
+
+  .priority-section {
+    background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(234,179,8,0.1));
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+  }
+  .priority-section h2 {
+    color: var(--red);
+    margin-bottom: 1rem;
+  }
+  .priority-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .priority-item:last-child { border-bottom: none; }
+  .priority-num {
+    background: var(--red);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+</style>
+</head>
+<body>
+
+<h1>Confronto Gestionale: Vecchio vs Nuovo</h1>
+<p class="subtitle">Analisi completa di tutte le funzionalita — Aggiornato 8 Aprile 2026</p>
+
+<div class="legend">
+  <span class="legend-item"><span class="status-icon green">&#10004;</span> Completo</span>
+  <span class="legend-item"><span class="status-icon yellow">&#9679;</span> Parziale / Da collegare</span>
+  <span class="legend-item"><span class="status-icon red">&#10008;</span> Mancante</span>
+  <span class="legend-item"><span class="status-icon blue">&#9733;</span> Nuovo (non esiste nel vecchio)</span>
+</div>
+
+<div class="summary-grid">
+  <div class="summary-card">
+    <div class="number green">~70%</div>
+    <div class="label">Backend Endpoints Costruiti</div>
+  </div>
+  <div class="summary-card">
+    <div class="number yellow">~55%</div>
+    <div class="label">Frontend Pagine Collegate</div>
+  </div>
+  <div class="summary-card">
+    <div class="number red">~15</div>
+    <div class="label">Funzioni Mancanti Critiche</div>
+  </div>
+  <div class="summary-card">
+    <div class="number blue">6</div>
+    <div class="label">Funzioni Nuove (AI)</div>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div class="section">
+  <div class="section-header">
+    <h2>1. DASHBOARD</h2>
+    <span class="badge badge-partial">PARZIALE</span>
+  </div>
+  <div class="section-body">
+    <table>
+      <tr><th>Funzionalita</th><th>Vecchio</th><th>Nuovo</th><th>Stato</th></tr>
+      <tr>
+        <td>Contatore "Esiti da completare"</td>
+        <td>Si — mostra N. esiti incompleti</td>
+        <td>Endpoint esiste (admin-dashboard.js), pagina pageHome ha stats grid</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>Contatore "Fonti da controllare"</td>
+        <td>Si — N. fonti web con problemi</td>
+        <td>Endpoint fonti-web.js esiste, widget nel dashboard</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>Abbonamenti bloccati (lista + ricerca)</td>
+        <td>Si — tabella con ricerca</td>
+        <td>Sezione completa in pageAmministrazione tab Generale</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Filtro scadenze abbonamenti</td>
+        <td>Si — date range + filtro agente</td>
+        <td>Presente in pageAmministrazione + pageScadenze dedicata</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Clienti personali</td>
+        <td>Si — lista clienti assegnati</td>
+        <td>Presente in dashboard Amministrazione</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Statistiche generali (bandi, esiti, aziende, utenti)</td>
+        <td>No — non presente</td>
+        <td>pageHome ha stats grid completo</td>
+        <td><span class="status-icon blue">&#9733;</span></td>
+      </tr>
+    </table>
+    <p class="note">Nota: Il dashboard nel nuovo e piu ricco del vecchio. Manca solo il collegamento frontend-backend per i contatori dinamici.</p>
+  </div>
+</div>
+
+<!-- ===== AZIENDE ===== -->
+<div class="section">
+  <div class="section-header">
+    <h2>2. AZIENDE</h2>
+    <span class="badge badge-complete">COMPLETO</span>
+  </div>
+  <div class="section-body">
+    <table>
+      <tr><th>Funzionalita</th><th>Vecchio</th><th>Nuovo</th><th>Stato</th></tr>
+      <tr>
+        <td>Lista aziende con ricerca</td>
+        <td>96.333 records, ricerca per nome/P.IVA</td>
+        <td>pageAziende con ricerca avanzata + 39 endpoints backend</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Crea / Modifica Azienda</td>
+        <td>Form completo</td>
+        <td>pageCreateAzienda con tutti i campi</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Cestino Aziende</td>
+        <td>Soft delete + ripristino</td>
+        <td>Cestino con ripristino — endpoint + pagina</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Concorrenti</td>
+        <td>Lista separata, crea concorrente</td>
+        <td>pageConcorrenti + pageCreateConcorrente + concorrenti.js (7 endpoints)</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Imprese / Casellario / CCIAA</td>
+        <td>3 sottosezioni di ricerca esterna</td>
+        <td>pageImprese, pageCasellario, pageCCIAA</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>Intermediari</td>
+        <td>Non presente nel vecchio</td>
+        <td>pageIntermediariAziende + CRUD completo</td>
+        <td><span class="status-icon blue">&#9733;</span></td>
+      </tr>
+      <tr>
+        <td>Esecutori Esterni</td>
+        <td>Non presente nel vecchio</td>
+        <td>pageEsecutoriAziende + CRUD completo</td>
+        <td><span class="status-icon blue">&#9733;</span></td>
+      </tr>
+      <tr>
+        <td>Gestione Attestazioni SOA</td>
+        <td>Integrata nella scheda azienda</td>
+        <td>Endpoint attestazioni in admin-aziende.js</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Note / Eventi azienda</td>
+        <td>Log storico</td>
+        <td>Endpoints note + eventi in admin-aziende.js</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== STAZIONI ===== -->
+<div class="section">
+  <div class="section-header">
+    <h2>3. STAZIONI APPALTANTI</h2>
+    <span class="badge badge-complete">COMPLETO</span>
+  </div>
+  <div class="section-body">
+    <table>
+      <tr><th>Funzionalita</th><th>Vecchio</th><th>Nuovo</th><th>Stato</th></tr>
+      <tr>
+        <td>Lista stazioni con ricerca</td>
+        <td>16.721 records</td>
+        <td>pageStazioni + admin-stazioni.js (39 endpoints)</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Crea Stazione (form completo)</td>
+        <td>P.IVA, Ragione Sociale, Indirizzo, Cap, Citta, Provincia, Telefono, Email, Tipo gara, Giorni medi, Pubblicazione, Lat/Long, Note</td>
+        <td>pageCreateStazione con tutti i campi + personale, presidia</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Cestino Stazioni</td>
+        <td>Soft delete + ripristino</td>
+        <td>Presente con endpoint restore</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Fonti Web</td>
+        <td>Categoria, Province, Stazione, Tipologia Controllo, Differenze, Generiche/Specifiche</td>
+        <td>fonti-web.js (24 endpoints) + pagina frontend</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Piattaforme Digitali</td>
+        <td>Gestito come campo della stazione</td>
+        <td>Sezione dedicata — piattaforme.js (6 endpoints) + pagePiattaforme</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>AI matching/categories/verifica</td>
+        <td>Non presente</td>
+        <td>Funzionalita AI integrate in admin-stazioni.js</td>
+        <td><span class="status-icon blue">&#9733;</span></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== BANDI ===== -->
+<div class="section">
+  <div class="section-header">
+    <h2>4. BANDI (Sezione piu complessa)</h2>
+    <span class="badge badge-partial">PARZIALE</span>
+  </div>
+  <div class="section-body">
+    <h3 style="margin-bottom:0.8rem; color:#94a3b8;">4A. Lista Bandi e Ricerca</h3>
+    <table>
+      <tr><th>Funzionalita</th><th>Vecchio</th><th>Nuovo</th><th>Stato</th></tr>
+      <tr>
+        <td>Ricerca avanzata (20+ filtri)</td>
+        <td>Stazione, Oggetto, CIG, SOA, Tipologia, Criterio, Province, Date, Importi, Visibilita, Provenienza, Fonte</td>
+        <td>pageBandi ha tutti i filtri equivalenti + filtri avanzati espandibili</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Lista risultati con paginazione</td>
+        <td>Tabella con colonne: Stato, Stazione, Oggetto, SOA, Importo, Scadenza, Apertura, Data Creazione</td>
+        <td>Tabella equivalente con paginazione</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+    </table>
+
+    <h3 style="margin:1.2rem 0 0.8rem; color:#94a3b8;">4B. Azioni per Riga nella Lista (13+ bottoni)</h3>
+    <table>
+      <tr><th>Azione</th><th>Vecchio</th><th>Nuovo</th><th>Stato</th></tr>
+      <tr>
+        <td>VIS. (Visualizza scheda)</td>
+        <td>Apre dettaglio bando in nuova tab</td>
+        <td>Pagina dettaglio bando</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>MOD. (Modifica)</td>
+        <td>Apre form modifica</td>
+        <td>pageCreateBando in modalita edit</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>POSTICIPA</td>
+        <td>Posticipa la scadenza del bando</td>
+        <td>Endpoint da verificare</td>
+        <td><span class="status-icon red">&#10008;</span></td>
+      </tr>
+      <tr>
+        <td>LB (Lettera Bando)</td>
+        <td>Genera/visualizza lettera del bando</td>
+        <td>Non implementato</td>
+        <td><span class="status-icon red">&#10008;</span></td>
+      </tr>
+      <tr>
+        <td>E (Esito collegato)</td>
+        <td>Mostra l'esito associato</td>
+        <td>Link esito in bandi-servizi.js</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>DA DESTIN (Da destinare)</td>
+        <td>Segna il bando come "da destinare" ai clienti</td>
+        <td>Non implementato</td>
+        <td><span class="status-icon red">&#10008;</span></td>
+      </tr>
+      <tr>
+        <td>AVVISO</td>
+        <td>Invia avviso/notifica ai clienti</td>
+        <td>Newsletter system esiste ma non il singolo avviso bando</td>
+        <td><span class="status-icon red">&#10008;</span></td>
+      </tr>
+      <tr>
+        <td>VERIFICA</td>
+        <td>Verifica stato/dati del bando</td>
+        <td>Endpoint verifica in bandi.js</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>AZZERA</td>
+        <td>Resetta/azzera il bando</td>
+        <td>Non implementato</td>
+        <td><span class="status-icon red">&#10008;</span></td>
+      </tr>
+      <tr>
+        <td>MB (Mail Bando)</td>
+        <td>Invia email del bando</td>
+        <td>Newsletter bandi esiste, singolo invio da verificare</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>CONVERTI (in Esito)</td>
+        <td>Converte un bando in esito</td>
+        <td>Presente in bandi.js/bandi-servizi.js</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>ALLEGA ES. (Allega Esito)</td>
+        <td>Collega un esito esistente al bando</td>
+        <td>Endpoint associazione presente</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>MOD. LITE (Modifica leggera)</td>
+        <td>Modifica rapida solo campi principali</td>
+        <td>Non implementato come modalita separata</td>
+        <td><span class="status-icon red">&#10008;</span></td>
+      </tr>
+    </table>
+
+    <h3 style="margin:1.2rem 0 0.8rem; color:#94a3b8;">4C. Azioni Inline (sotto ogni riga)</h3>
+    <table>
+      <tr><th>Azione</th><th>Vecchio</th><th>Nuovo</th><th>Stato</th></tr>
+      <tr>
+        <td>APA / APS / ATA / ATS / PC / PS / TUTTI</td>
+        <td>Filtri rapidi partecipanti per tipo</td>
+        <td>Non implementato come toggle rapido</td>
+        <td><span class="status-icon red">&#10008;</span></td>
+      </tr>
+      <tr>
+        <td>VERIFICA (link)</td>
+        <td>Verifica link della fonte dati</td>
+        <td>Endpoint verifica link presente</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>LINK ELABORATI</td>
+        <td>Accesso diretto agli elaborati</td>
+        <td>pageElaborati esiste</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>CREA SCRITTURA</td>
+        <td>Crea scrittura dal bando</td>
+        <td>pageScritture esiste, endpoint da collegare</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>CREA APERTURA</td>
+        <td>Crea apertura dal bando</td>
+        <td>pageAperture esiste, endpoint da collegare</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+    </table>
+
+    <h3 style="margin:1.2rem 0 0.8rem; color:#94a3b8;">4D. Dettaglio Bando (Scheda Singola)</h3>
+    <table>
+      <tr><th>Funzionalita</th><th>Vecchio</th><th>Nuovo</th><th>Stato</th></tr>
+      <tr>
+        <td>Campi informativi completi</td>
+        <td>Stazione, Province, Oggetto, Tipologia, Criterio, SOA, Importi, Date, Visibilita, Decimali, Dati creazione, Fonte Dati, Tipo Spedizione, Piattaforma, Tipo Sopralluogo</td>
+        <td>pageCreateBando ha campi equivalenti</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>MODIFICA</td>
+        <td>Entra in modalita edit</td>
+        <td>Form edit presente</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>CLONA</td>
+        <td>Duplica il bando</td>
+        <td>Endpoint clone in bandi.js</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>ASSOCIA ESITO</td>
+        <td>Collega un esito al bando</td>
+        <td>Endpoint presente in bandi-servizi.js</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>CONVERTI IN ESITO</td>
+        <td>Trasforma bando in esito</td>
+        <td>Endpoint presente</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Tabella Link (VERIFICA/AGGIORNA/MODIFICA/ELIMINA/AGGIUNGI)</td>
+        <td>Gestione completa link fonte dati</td>
+        <td>Endpoints link management in bandi-servizi.js</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>Allegati (11 slot)</td>
+        <td>Bando, Disciplinare, Allegati, Elaborati, Rettifica 1-5, Chiarimenti, Esito</td>
+        <td>Sistema upload file da implementare nel frontend</td>
+        <td><span class="status-icon red">&#10008;</span></td>
+      </tr>
+      <tr>
+        <td>Sezione Range + Statistico</td>
+        <td>Range statistico predittivo sul bando</td>
+        <td>range-statistico.js esiste come modulo separato</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+    </table>
+
+    <h3 style="margin:1.2rem 0 0.8rem; color:#94a3b8;">4E. Sotto-sezioni Bandi</h3>
+    <table>
+      <tr><th>Sotto-sezione</th><th>Vecchio</th><th>Nuovo</th><th>Stato</th></tr>
+      <tr>
+        <td>Calendario</td>
+        <td>Vista calendario scadenze</td>
+        <td>pageCalendarioFull + calendario.js (15 endpoints)</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Agenda Mensile</td>
+        <td>Vista mensile eventi</td>
+        <td>pageAgendaMensile</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Appuntamenti</td>
+        <td>Gestione appuntamenti legati ai bandi</td>
+        <td>pageAppuntamenti — collegamento backend da verificare</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>Scritture</td>
+        <td>Documenti/scritture per gare</td>
+        <td>pageScritture — collegamento backend da verificare</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>Aperture</td>
+        <td>Tracking aperture buste</td>
+        <td>pageAperture — collegamento backend da verificare</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>Elaborati</td>
+        <td>Documenti elaborati</td>
+        <td>pageElaborati — collegamento backend da verificare</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>Bandi Incompleti</td>
+        <td>Lista bandi senza tutti i dati</td>
+        <td>pageBandiIncompleti + endpoint</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Bandi Rettificati</td>
+        <td>Lista bandi con rettifiche</td>
+        <td>pageBandiRettificati + endpoint</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Import Bandi</td>
+        <td>Import massivo da file</td>
+        <td>pageImportBandi + bandi-import.js (15 endpoints)</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Bandi AI</td>
+        <td>Non presente</td>
+        <td>pageBandiAI + bandi-ai.js — analisi automatica PDF</td>
+        <td><span class="status-icon blue">&#9733;</span></td>
+      </tr>
+      <tr>
+        <td>Tipologia Bando / Criterio Aggiudicazione</td>
+        <td>Gestiti come lookup</td>
+        <td>Pagine dedicate: pageTipologiaBando, pageCriterioAggiudicazione</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== ESITI ===== -->
+<div class="section">
+  <div class="section-header">
+    <h2>5. ESITI</h2>
+    <span class="badge badge-partial">PARZIALE</span>
+  </div>
+  <div class="section-body">
+    <h3 style="margin-bottom:0.8rem; color:#94a3b8;">5A. Lista e Ricerca</h3>
+    <table>
+      <tr><th>Funzionalita</th><th>Vecchio</th><th>Nuovo</th><th>Stato</th></tr>
+      <tr>
+        <td>Ricerca avanzata con filtri multipli</td>
+        <td>Stazione, Oggetto, CIG, SOA, Tipologia, Criterio, Decreto, Partecipazione, Inserito da, Approvazione, Date, Importi, N. Partecipanti, Tipologia Dati, Annullamento</td>
+        <td>pageEsiti con tutti i filtri equivalenti</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Lista con colori per stato</td>
+        <td>Verde=confermato, Rosso=gara in corso/non conclusa</td>
+        <td>Tabella con colonne stato, colori da verificare</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>Colonne lista: Stato, Stazione, Oggetto, SOA, Importo, Vincitore, Ribasso+Lettera+Partecipanti, Data Apertura, Data Creazione</td>
+        <td>Completo</td>
+        <td>Struttura tabella equivalente</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Bottoni ESITO / ELIMINA per riga</td>
+        <td>Accesso rapido + eliminazione</td>
+        <td>Azioni per riga presenti</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+    </table>
+
+    <h3 style="margin:1.2rem 0 0.8rem; color:#94a3b8;">5B. Dettaglio Esito</h3>
+    <table>
+      <tr><th>Funzionalita</th><th>Vecchio</th><th>Nuovo</th><th>Stato</th></tr>
+      <tr>
+        <td>Scheda esito (tutti i campi)</td>
+        <td>Stazione, Provincia, Oggetto+CIG, Data Apertura, Importo, SOA, Tipo Calcolo, Tipologia Gara, Tipologia Dato, N. Partecipanti, Vincitore, Ribasso, Piattaforma</td>
+        <td>pageCreateEsito con campi equivalenti</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Graduatoria colorata</td>
+        <td>Tabella con colori: Rosso=Taglio Ali, Verde chiaro=sotto Media, Verde scuro+logo=Anomala, Ciano=Vincitrice</td>
+        <td>Graduatoria con CRUD — colori da implementare nel frontend</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>Spiegazione calcolo</td>
+        <td>Testo che spiega il metodo di calcolo usato e il risultato</td>
+        <td>Backend simulazioni.js calcola, frontend da collegare</td>
+        <td><span class="status-icon yellow">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td>Tab DETTAGLI</td>
+        <td>Informazioni aggiuntive sull'esito</td>
+        <td>Sezione dettagli presente</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Tab ATI (Associazioni Temporanee Imprese)</td>
+        <td>Gestione raggruppamenti imprese</td>
+        <td>Endpoint ATI/Avvalimenti in esiti.js (30+ endpoints)</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>RENDI MODIFICABILE</td>
+        <td>Sblocca esito per modifica</td>
+        <td>Endpoint lock/unlock in esiti.js</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>CLONA</td>
+        <td>Duplica l'esito</td>
+        <td>Endpoint presente</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>CREA BANDO (dall'esito)</td>
+        <td>Crea bando collegato</td>
+        <td>Endpoint presente</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>ESP. PDF / ESP. XLS</td>
+        <td>Esportazione in 2 formati</td>
+        <td>esiti-export.js con pdfkit + exceljs (gia testato e funzionante)</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>MODIFICA DETTAGLI / MODIFICA ATI-AVVALIMENTI</td>
+        <td>Form separati per dettagli e ATI</td>
+        <td>Endpoints presenti in esiti.js</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+    </table>
+
+    <h3 style="margin:1.2rem 0 0.8rem; color:#94a3b8;">5C. Sotto-sezioni Esiti</h3>
+    <table>
+      <tr><th>Sotto-sezione</th><th>Vecchio</th><th>Nuovo</th><th>Stato</th></tr>
+      <tr>
+        <td>Esiti Incompleti</td>
+        <td>Lista esiti con dati mancanti</td>
+        <td>pageEsitiIncompleti + endpoint</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Cestino Esiti</td>
+        <td>Esiti eliminati ripristinabili</td>
+        <td>Cestino con ripristino</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Esiti Modificabili</td>
+        <td>Lista esiti sbloccati</td>
+        <td>pageEsitiModificabili</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Tipologia di Dati</td>
+        <td>Gestione lookup tipologie</td>
+        <td>pageTipologiaDati</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Esiti da Abilitare</td>
+        <td>Esiti in attesa di pubblicazione (nel vecchio era una colonna Conf./Abilit.)</td>
+        <td>pageEsitiDaAbilitare</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Esiti AI</td>
+        <td>Non presente</td>
+        <td>pageEsitiAI + esiti-ai.js — analisi PDF automatica</td>
+        <td><span class="status-icon blue">&#9733;</span></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== UTENTI ===== -->
+<div class="section">
+  <div class="section-header">
+    <h2>6. UTENTI</h2>
+    <span class="badge badge-complete">COMPLETO</span>
+  </div>
+  <div class="section-body">
+    <table>
+      <tr><th>Funzionalita</th><th>Vecchio</th><th>Nuovo</th><th>Stato</th></tr>
+      <tr>
+        <td>Ricerca avanzata utenti</td>
+        <td>Ragione Sociale, P.IVA, Cognome, Nome, Username, Stato, Effettivi/Prova, Province, Ruoli (14 tipi), 5 filtri date abbonamento</td>
+        <td>pageUtenti con filtri equivalenti + ordinamento</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Crea/Modifica Utente</td>
+        <td>Form completo con ruoli</td>
+        <td>pageCreateUtente + 46 endpoints admin-utenti.js</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>14 Ruoli (Administrator, Agent, Bandi, BandiNewsletter, etc.)</td>
+        <td>Sistema ruoli nel vecchio</td>
+        <td>Role management in admin-dashboard.js</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Scadenze abbonamenti</td>
+        <td>Sezione dedicata</td>
+        <td>pageScadenze con filtri date multiple</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>Gestione Agenti</td>
+        <td>Non presente come sezione separata</td>
+        <td>pageAgenti — sezione dedicata</td>
+        <td><span class="status-icon blue">&#9733;</span></td>
+      </tr>
+      <tr>
+        <td>Incaricati</td>
+        <td>Non presente come sezione separata</td>
+        <td>pageIncaricati</td>
+        <td><span class="status-icon blue">&#9733;</span></td>
+      </tr>
+      <tr>
+        <td>Controllo Accessi (login monitoring)</td>
+        <td>Non presente</td>
+        <td>pageControlloAccessi — tracking login</td>
+        <td><span class="status-icon blue">&#9733;</span></td>
+      </tr>
+      <tr>
+        <td>Fatturazione (Periodi + Fatture + Pagamenti)</td>
+        <td>Non presente come modulo integrato</td>
+        <td>pageFatturazione con 3 tab dedicate</td>
+        <td><span class="status-icon blue">&#9733;</span></td>
+      </tr>
+      <tr>
+        <td>Inserimenti tracking</td>
+        <td>Non presente</td>
+        <td>pageInserimenti</td>
+        <td><span class="status-icon blue">&#9733;</span></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== RICERCA DOPPIA ===== -->
+<div class="section">
+  <div class="section-header">
+    <h2>7. RICERCA DOPPIA</h2>
+    <span class="badge badge-complete">COMPLETO</span>
+  </div>
+  <div class="section-body">
+    <table>
+      <tr><th>Funzionalita</th><th>Vecchio</th><th>Nuovo</th><th>Stato</th></tr>
+      <tr>
+        <td>Ricerca combinata Bandi+Esiti</td>
+        <td>Ricerca su entrambe le tabelle</td>
+        <td>pageRicercaDoppia + ricerca-doppia.js (4 endpoints)</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+      <tr>
+        <td>CREA ESITO da risultato bando</td>
+        <td>Bottone CREA ESITO nella lista risultati</td>
+        <td>Endpoint creazione esito da bando</td>
+        <td><span class="status-icon green">&#10004;</span></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== FUNZIONALITA NUOVE ===== -->
+<div class="section">
+  <div class="section-header">
+    <h2>8. FUNZIONALITA NUOVE (non presenti nel vecchio)</h2>
+    <span class="badge badge-new">NUOVO</span>
+  </div>
+  <div class="section-body">
+    <table>
+      <tr><th>Funzionalita</th><th>Descrizione</th><th>Backend</th><th>Frontend</th></tr>
+      <tr>
+        <td><span class="blue">&#9733;</span> Sopralluoghi AI</td>
+        <td>Mappa interattiva, calendario, preventivi, pagamenti, collaboratori</td>
+        <td>sopralluoghi-map.js (15 endpoints)</td>
+        <td>7 sottopagine dedicate (Dashboard, Mappa, Calendario, Richieste, Pagamenti, Collaboratori)</td>
+      </tr>
+      <tr>
+        <td><span class="blue">&#9733;</span> Albi Fornitori AI</td>
+        <td>Dashboard, raccomandazioni AI, iscrizioni, monitoraggio scadenze</td>
+        <td>albi-fornitori.js (19 endpoints)</td>
+        <td>6 sottopagine (Dashboard, Stazioni con Albo, Raccomandazioni, Richieste, Iscrizioni, Scadenze)</td>
+      </tr>
+      <tr>
+        <td><span class="blue">&#9733;</span> Bandi AI</td>
+        <td>Analisi automatica PDF, auto-compilazione campi</td>
+        <td>bandi-ai.js (6 endpoints)</td>
+        <td>pageBandiAI</td>
+      </tr>
+      <tr>
+        <td><span class="blue">&#9733;</span> Esiti AI</td>
+        <td>Analisi PDF esiti, estrazione graduatorie</td>
+        <td>esiti-ai.js (6 endpoints)</td>
+        <td>pageEsitiAI</td>
+      </tr>
+      <tr>
+        <td><span class="blue">&#9733;</span> Fatturazione Completa</td>
+        <td>Periodi, fatture/proforma, pagamenti con 3 tab</td>
+        <td>Integrato in admin-utenti.js</td>
+        <td>pageFatturazione</td>
+      </tr>
+      <tr>
+        <td><span class="blue">&#9733;</span> Controllo Accessi</td>
+        <td>Monitoring login, tracking accessi</td>
+        <td>Login tracking in admin-dashboard.js</td>
+        <td>pageControlloAccessi</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== PRIORITA ===== -->
+<div class="priority-section">
+  <h2>PRIORITA: Cosa Manca e Va Costruito</h2>
+  <p style="color:#94a3b8; margin-bottom:1rem; font-size:0.9rem;">Queste sono le funzionalita presenti nel vecchio gestionale che mancano nel nuovo o sono solo parzialmente implementate.</p>
+
+  <div class="priority-item">
+    <span class="priority-num">1</span>
+    <div>
+      <strong style="color:var(--red);">Allegati Bando (11 slot upload)</strong><br>
+      <span style="color:#94a3b8; font-size:0.88rem;">Il vecchio ha 11 slot: Bando, Disciplinare, Allegati, Elaborati, Rettifica 1-5, Chiarimenti, Esito. Sistema upload file completamente da implementare nel frontend del nuovo. Backend bandi-servizi.js ha 51 endpoint ma upload file non chiaro.</span>
+    </div>
+  </div>
+
+  <div class="priority-item">
+    <span class="priority-num">2</span>
+    <div>
+      <strong style="color:var(--red);">Azioni rapide nella lista bandi</strong><br>
+      <span style="color:#94a3b8; font-size:0.88rem;">Mancano: POSTICIPA, LB (Lettera Bando), DA DESTIN, AVVISO, AZZERA, MOD. LITE. Queste sono azioni che gli operatori usano quotidianamente per gestire i bandi dalla lista senza entrare nel dettaglio.</span>
+    </div>
+  </div>
+
+  <div class="priority-item">
+    <span class="priority-num">3</span>
+    <div>
+      <strong style="color:var(--red);">Filtri rapidi partecipanti (APA/APS/ATA/ATS/PC/PS/TUTTI)</strong><br>
+      <span style="color:#94a3b8; font-size:0.88rem;">Toggle inline per filtrare le offerte per tipo. Fondamentale per l'operativita quotidiana — serve nella lista bandi come azione rapida per riga.</span>
+    </div>
+  </div>
+
+  <div class="priority-item">
+    <span class="priority-num">4</span>
+    <div>
+      <strong style="color:var(--yellow);">Graduatoria colorata negli esiti</strong><br>
+      <span style="color:#94a3b8; font-size:0.88rem;">Backend c'e (calcoli, CRUD graduatoria), ma il frontend deve mostrare i colori: Rosso=Taglio Ali, Verde chiaro=sotto Media, Verde scuro=Anomala, Ciano=Vincitrice. Anche la spiegazione del calcolo va collegata.</span>
+    </div>
+  </div>
+
+  <div class="priority-item">
+    <span class="priority-num">5</span>
+    <div>
+      <strong style="color:var(--yellow);">Collegamento frontend-backend sottosezioni Bandi</strong><br>
+      <span style="color:#94a3b8; font-size:0.88rem;">Le pagine Appuntamenti, Scritture, Aperture, Elaborati esistono nel frontend ma potrebbero non essere collegate al backend. Verificare e completare le API calls JavaScript.</span>
+    </div>
+  </div>
+
+  <div class="priority-item">
+    <span class="priority-num">6</span>
+    <div>
+      <strong style="color:var(--yellow);">Dashboard contatori dinamici</strong><br>
+      <span style="color:#94a3b8; font-size:0.88rem;">Il dashboard ha i widget ma i contatori (esiti da completare, fonti da controllare) devono essere collegati ai dati reali del database.</span>
+    </div>
+  </div>
+
+  <div class="priority-item">
+    <span class="priority-num">7</span>
+    <div>
+      <strong style="color:var(--yellow);">Singolo avviso bando via email</strong><br>
+      <span style="color:#94a3b8; font-size:0.88rem;">Il sistema newsletter esiste per invii massivi, ma manca l'azione "AVVISO" per inviare notifica su un singolo bando a clienti specifici. Anche MB (Mail Bando) da completare.</span>
+    </div>
+  </div>
+
+  <div class="priority-item">
+    <span class="priority-num">8</span>
+    <div>
+      <strong style="color:var(--yellow);">Migrazione database Phase 3</strong><br>
+      <span style="color:#94a3b8; font-size:0.88rem;">Le tabelle grandi (bandi ~900MB, dettaglio_gara ~596MB) devono ancora essere migrate completamente. Senza dati reali, il gestionale non puo funzionare a pieno regime.</span>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:2rem; padding:1.5rem; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:12px;">
+  <h2 style="color:var(--green); margin-bottom:0.8rem;">RIEPILOGO</h2>
+  <p style="margin-bottom:0.8rem;">Il nuovo gestionale copre <strong>circa il 70-75% delle funzionalita del vecchio</strong>, con l'aggiunta di 6 moduli completamente nuovi (AI, Fatturazione, Controllo Accessi).</p>
+  <p style="margin-bottom:0.8rem;">Le aree <strong>Aziende, Stazioni, Utenti e Ricerca Doppia</strong> sono sostanzialmente complete con piu funzionalita del vecchio.</p>
+  <p style="margin-bottom:0.8rem;">Le aree <strong>Bandi ed Esiti</strong> hanno la struttura principale ma mancano alcune azioni operative quotidiane (allegati, azioni rapide lista, colori graduatoria).</p>
+  <p>Il lavoro piu urgente e: <strong>1) Sistema allegati bandi, 2) Azioni rapide lista bandi, 3) Colori graduatoria esiti, 4) Collegamento frontend-backend sottosezioni.</strong></p>
+</div>
+
+<p style="text-align:center; margin-top:2rem; color:var(--gray); font-size:0.8rem;">
+  Documento generato il 8 Aprile 2026 — Confronto basato su analisi diretta del vecchio gestionale (95.110.135.38:8080) e del codice sorgente del nuovo sito
+</p>
+
+</body>
+</html>

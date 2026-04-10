@@ -7,29 +7,39 @@ export default async function esitiRoutes(fastify) {
   // ============================================================
   fastify.get('/', async (request) => {
     const {
-      page = 1, limit = 25, sort = 'Data', order = 'DESC',
-      search, id_regione, id_stazione, id_soa, id_criterio,
-      id_tipologia, data_dal, data_al, variante,
-      min_partecipanti
+      page = 1, limit = 25, sort = 'data', order = 'DESC',
+      search, cig, id_regione, id_provincia, id_stazione, id_soa, id_criterio,
+      id_tipologia, id_piattaforma, inserito_da, data_dal, data_al, variante,
+      min_partecipanti, importo_min, importo_max
     } = request.query;
 
     const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
-    const conditions = ['g."eliminata" = false'];
+    const conditions = ['g."annullato" = false'];
     const params = [];
     let paramIdx = 1;
 
     if (search) {
-      conditions.push(`(g."titolo" ILIKE $${paramIdx} OR g."codice_cig" ILIKE $${paramIdx} OR s."nome" ILIKE $${paramIdx})`);
+      conditions.push(`(b."titolo" ILIKE $${paramIdx} OR b."codice_cig" ILIKE $${paramIdx} OR s."nome" ILIKE $${paramIdx})`);
       params.push(`%${search}%`);
       paramIdx++;
     }
+    if (cig) {
+      conditions.push(`b."codice_cig" ILIKE $${paramIdx}`);
+      params.push(`%${cig}%`);
+      paramIdx++;
+    }
     if (id_regione) {
-      conditions.push(`p."id_regione" = $${paramIdx}`);
+      conditions.push(`r."id" = $${paramIdx}`);
       params.push(parseInt(id_regione));
       paramIdx++;
     }
+    if (id_provincia) {
+      conditions.push(`p."id" = $${paramIdx}`);
+      params.push(parseInt(id_provincia));
+      paramIdx++;
+    }
     if (id_stazione) {
-      conditions.push(`g."id_stazione" = $${paramIdx}`);
+      conditions.push(`b."id_stazione" = $${paramIdx}`);
       params.push(parseInt(id_stazione));
       paramIdx++;
     }
@@ -49,18 +59,28 @@ export default async function esitiRoutes(fastify) {
       params.push(parseInt(id_tipologia));
       paramIdx++;
     }
+    if (id_piattaforma) {
+      conditions.push(`b."id_piattaforma" = $${paramIdx}`);
+      params.push(parseInt(id_piattaforma));
+      paramIdx++;
+    }
+    if (inserito_da) {
+      conditions.push(`g."created_at" = $${paramIdx}`);
+      params.push(inserito_da);
+      paramIdx++;
+    }
     if (data_dal) {
-      conditions.push(`g."Data" >= $${paramIdx}`);
+      conditions.push(`g."data" >= $${paramIdx}`);
       params.push(data_dal);
       paramIdx++;
     }
     if (data_al) {
-      conditions.push(`g."Data" <= $${paramIdx}`);
+      conditions.push(`g."data" <= $${paramIdx}`);
       params.push(data_al);
       paramIdx++;
     }
     if (variante) {
-      conditions.push(`g."Variante" = $${paramIdx}`);
+      conditions.push(`g."variante" = $${paramIdx}`);
       params.push(variante);
       paramIdx++;
     }
@@ -69,20 +89,29 @@ export default async function esitiRoutes(fastify) {
       params.push(parseInt(min_partecipanti));
       paramIdx++;
     }
+    if (importo_min) {
+      conditions.push(`g."importo" >= $${paramIdx}`);
+      params.push(parseFloat(importo_min));
+      paramIdx++;
+    }
+    if (importo_max) {
+      conditions.push(`g."importo" <= $${paramIdx}`);
+      params.push(parseFloat(importo_max));
+      paramIdx++;
+    }
 
-    const allowedSort = ['data', 'titolo', 'importo', 'n_partecipanti', 'ribasso'];
-    const sortCol = allowedSort.includes(sort.toLowerCase()) ? `g."${sort.toLowerCase()}"` : 'g."data"';
+    const sortMap = { data: 'g."data"', titolo: 'b."titolo"', importo: 'g."importo"', n_partecipanti: 'g."n_partecipanti"', ribasso: 'g."ribasso"' };
+    const sortCol = sortMap[sort.toLowerCase()] || 'g."data"';
     const sortDir = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
     const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    // gare -> stazioni -> province -> regioni for geographic filtering
-    // gare -> bandi for criterio filtering
+    // gare -> bandi -> stazioni -> province -> regioni for geographic filtering
     const joinClause = `
       FROM gare g
-      LEFT JOIN stazioni s ON g."id_stazione" = s."id"
-      LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
-      LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
       LEFT JOIN bandi b ON g."id_bando" = b."id"
+      LEFT JOIN stazioni s ON b."id_stazione" = s."id"
+      LEFT JOIN province p ON s."id_provincia" = p."id"
+      LEFT JOIN regioni r ON p."id_regione" = r."id"
     `;
 
     const [countResult, dataResult] = await Promise.all([
@@ -94,29 +123,40 @@ export default async function esitiRoutes(fastify) {
       query(`
         SELECT g."id",
           g."data" AS data,
-          g."titolo" AS titolo,
+          COALESCE(b."titolo", g."titolo") AS titolo,
           g."n_partecipanti" AS n_partecipanti,
           g."importo" AS importo,
           g."media_ar" AS media_ar,
           g."ribasso" AS ribasso,
           g."soglia_an" AS soglia_an,
           g."variante" AS variante,
-          g."codice_cig" AS codice_cig,
+          g."temp" AS temp,
+          g."enabled" AS enabled,
+          g."annullato" AS annullato,
+          g."bloccato" AS bloccato,
+          COALESCE(b."codice_cig", g."codice_cig") AS codice_cig,
+          g."id_bando" AS id_bando,
           s."nome" AS stazione_nome,
+          s."sito_web" AS stazione_sito_web,
           soa."codice" AS soa_categoria,
           soa."descrizione" AS soa_descrizione,
           tg."nome" AS tipologia,
           c."nome" AS criterio,
-          p."provincia" AS provincia_nome,
-          r."regione" AS regione_nome,
+          p."nome" AS provincia_nome,
+          r."nome" AS regione_nome,
           az."ragione_sociale" AS vincitore_nome,
           az."partita_iva" AS vincitore_piva,
-          (SELECT COUNT(*) FROM dettaglio_gara dg WHERE dg."id_gara" = g."id") AS n_dettagli
+          piatt."nome" AS piattaforma_nome,
+          piatt."url" AS piattaforma_url,
+          (SELECT COUNT(*) FROM gare_invii gi WHERE gi."id_gara" = g."id") AS n_invii,
+          (SELECT COUNT(*) FROM dettaglio_gara dg WHERE dg."id_gara" = g."id") AS n_dettagli,
+          g."id_tipo_dati" AS id_tipo_dati
         ${joinClause}
         LEFT JOIN soa ON g."id_soa" = soa."id"
         LEFT JOIN tipologia_gare tg ON g."id_tipologia" = tg."id"
         LEFT JOIN criteri c ON b."id_criterio" = c."id"
         LEFT JOIN aziende az ON g."id_vincitore" = az."id"
+        LEFT JOIN piattaforme piatt ON b."id_piattaforma" = piatt."id"
         ${whereClause}
         ORDER BY ${sortCol} ${sortDir} NULLS LAST
         LIMIT $${paramIdx} OFFSET $${paramIdx + 1}
@@ -140,51 +180,79 @@ export default async function esitiRoutes(fastify) {
   fastify.get('/:id', async (request, reply) => {
     const { id } = request.params;
 
-    // Main gara query — includes workflow fields: temp, enabled, data_abilitazione, bloccato, id_bando
+    // Main gara query — includes ALL real columns from gare table
     const garaResult = await query(`
       SELECT g."id",
         g."data" AS data,
-        g."titolo" AS titolo,
-        g."codice_cig" AS codice_cig,
+        COALESCE(b."titolo", g."titolo") AS titolo,
+        COALESCE(b."codice_cig", g."codice_cig") AS codice_cig,
         g."importo" AS importo,
+        g."importo_so" AS importo_so,
+        g."importo_co" AS importo_co,
+        g."importo_eco" AS importo_eco,
         g."n_partecipanti" AS n_partecipanti,
+        g."n_ammessi" AS n_ammessi,
+        g."n_esclusi" AS n_esclusi,
+        g."n_sorteggio" AS n_sorteggio,
+        g."n_decimali" AS n_decimali,
         g."ribasso" AS ribasso,
+        g."ribasso_vincitore" AS ribasso_vincitore,
+        g."importo_vincitore" AS importo_vincitore,
         g."media_ar" AS media_ar,
         g."soglia_an" AS soglia_an,
         g."media_sc" AS media_sc,
-        g."n_decimali" AS n_decimali,
+        g."soglia_riferimento" AS soglia_riferimento,
+        g."accorpa_ali" AS accorpa_ali,
+        g."tipo_accorpa_ali" AS tipo_accorpa_ali,
+        g."limit_min_media" AS limit_min_media,
         g."variante" AS variante,
+        g."varianti_disponibili" AS varianti_disponibili,
         g."citta" AS citta,
+        g."cap" AS cap,
+        g."indirizzo" AS indirizzo,
         g."temp" AS temp,
         g."enabled" AS enabled,
         g."bloccato" AS bloccato,
         g."enable_to_all" AS enable_to_all,
         g."data_abilitazione" AS data_abilitazione,
         g."id_bando" AS id_bando,
-        g."id_tipo_dati_gara" AS id_tipo_dati_gara,
+        g."id_tipo_dati" AS id_tipo_dati_gara,
         g."note" AS note,
-        g."note_interne" AS note_interne,
+        g."note_01" AS note_01,
+        g."note_02" AS note_02,
+        g."note_03" AS note_03,
         g."username" AS username_inserimento,
-        g."data_inserimento" AS data_inserimento,
-        g."data_modifica" AS data_modifica,
+        g."inserito_da" AS inserito_da,
+        g."provenienza" AS provenienza,
+        g."fonte_dati" AS fonte_dati,
+        g."annullato" AS annullato,
+        g."eliminata" AS eliminata,
+        g."created_at" AS data_inserimento,
+        g."updated_at" AS data_modifica,
         s."nome" AS stazione_nome,
+        s."sito_web" AS stazione_sito_web,
         soa."codice" AS soa_categoria,
         soa."descrizione" AS soa_descrizione,
         tg."nome" AS tipologia,
         c."nome" AS criterio,
-        p."provincia" AS provincia_nome,
-        r."regione" AS regione_nome,
+        tdg."tipo" AS tipologia_dato,
+        p."nome" AS provincia_nome,
+        r."nome" AS regione_nome,
         az."ragione_sociale" AS vincitore_nome,
         az."partita_iva" AS vincitore_piva,
-        (SELECT COUNT(*) FROM gareinvii gi WHERE gi."id_gara" = g."id") AS n_invii
+        piatt."nome" AS piattaforma_nome,
+        piatt."url" AS link_piattaforma,
+        (SELECT COUNT(*) FROM gare_invii gi WHERE gi."id_gara" = g."id") AS n_invii
       FROM gare g
-      LEFT JOIN stazioni s ON g."id_stazione" = s."id"
-      LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
-      LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
-      LEFT JOIN bandi b_ref ON g."id_bando" = b_ref."id"
+      LEFT JOIN bandi b ON g."id_bando" = b."id"
+      LEFT JOIN stazioni s ON COALESCE(g."id_stazione", b."id_stazione") = s."id"
+      LEFT JOIN province p ON COALESCE(g."id_provincia", s."id_provincia") = p."id"
+      LEFT JOIN regioni r ON p."id_regione" = r."id"
       LEFT JOIN soa ON g."id_soa" = soa."id"
       LEFT JOIN tipologia_gare tg ON g."id_tipologia" = tg."id"
-      LEFT JOIN criteri c ON b_ref."id_criterio" = c."id"
+      LEFT JOIN criteri c ON COALESCE(g."id_criterio", b."id_criterio") = c."id"
+      LEFT JOIN tipo_dati_gara tdg ON g."id_tipo_dati" = tdg."id"
+      LEFT JOIN piattaforme piatt ON COALESCE(g."id_piattaforma", b."id_piattaforma") = piatt."id"
       LEFT JOIN aziende az ON g."id_vincitore" = az."id"
       WHERE g."id" = $1
     `, [id]);
@@ -193,22 +261,33 @@ export default async function esitiRoutes(fastify) {
       return reply.status(404).send({ error: 'Esito non trovato' });
     }
 
-    // Graduatoria query
+    // Graduatoria query — all columns from dettaglio_gara
     const dettagliResult = await query(`
       SELECT
         dg."posizione" AS posizione,
         dg."ribasso" AS ribasso,
-        dg."vincitrice" AS vincitrice,
-        dg."anomala" AS anomala,
-        dg."esclusa" AS esclusa,
-        dg."ammessa" AS ammessa,
+        dg."importo_offerta" AS importo_offerta,
         dg."taglio_ali" AS taglio_ali,
         dg."m_media_arit" AS m_media_arit,
+        dg."anomala" AS anomala,
+        dg."vincitrice" AS vincitrice,
+        dg."ammessa" AS ammessa,
+        dg."ammessa_riserva" AS ammessa_riserva,
+        dg."esclusa" AS esclusa,
+        dg."da_verificare" AS da_verificare,
+        dg."sconosciuto" AS sconosciuto,
+        dg."pari_merito" AS pari_merito,
+        dg."punteggio_tecnico" AS punteggio_tecnico,
+        dg."punteggio_economico" AS punteggio_economico,
+        dg."punteggio_totale" AS punteggio_totale,
         dg."note" AS note,
-        az."ragione_sociale" AS ragione_sociale,
-        az."partita_iva" AS partita_iva
+        COALESCE(az."ragione_sociale", dg."ragione_sociale") AS ragione_sociale,
+        COALESCE(az."partita_iva", dg."partita_iva") AS partita_iva,
+        az."codice_fiscale" AS codice_fiscale,
+        p."nome" AS provincia
       FROM dettaglio_gara dg
       LEFT JOIN aziende az ON dg."id_azienda" = az."id"
+      LEFT JOIN province p ON az."id_provincia" = p."id"
       WHERE dg."id_gara" = $1
       ORDER BY dg."posizione" ASC NULLS LAST
     `, [id]);
@@ -220,9 +299,9 @@ export default async function esitiRoutes(fastify) {
         SELECT ag.*,
           m."ragione_sociale" AS mandataria_nome,
           mn."ragione_sociale" AS mandante_nome
-        FROM atigare01 ag
-        LEFT JOIN aziende m ON ag."id_mandataria" = m."id"
-        LEFT JOIN aziende mn ON ag."id_mandante" = mn."id"
+        FROM ati_gare ag
+        LEFT JOIN aziende m ON ag."id_azienda" = m."id"
+        LEFT JOIN aziende mn ON ag."id_azienda" = mn."id"
         WHERE ag."id_gara" = $1
       `, [id]);
       atiRows = atiResult.rows;
@@ -245,41 +324,16 @@ export default async function esitiRoutes(fastify) {
       // Insert main gara — only columns that exist in the gare table
       const garaResult = await client.query(`
         INSERT INTO gare (
-          "id_bando", "data", "titolo", "codice_cig",
-          "cap", "citta", "indirizzo", "lat", "lon",
-          "id_stazione",
-          "id_soa", "soa_val", "id_tipologia",
-          "importo", "importo_soa_prevalente",
-          "n_partecipanti", "n_sorteggio", "n_decimali",
-          "id_vincitore", "ribasso",
-          "media_ar", "soglia_an", "media_sc", "soglia_riferimento",
-          "acorpa_ali", "tipo_acorpa_ali", "limit_min_media",
-          "variante", "note", "username",
-          "data_inserimento", "eliminata", "enabled", "temp"
+          "id_bando", "data", "n_partecipanti",
+          "importo", "ribasso",
+          "soglia_an", "note", "created_at", "updated_at"
         ) VALUES (
-          $1, $2, $3, $4,
-          $5, $6, $7, $8, $9,
-          $10,
-          $11, $12, $13,
-          $14, $15,
-          $16, $17, $18,
-          $19, $20,
-          $21, $22, $23, $24,
-          $25, $26, $27,
-          $28, $29, $30,
-          NOW(), false, false, true
+          $1, $2, $3, $4, $5, $6, $7, NOW(), NOW()
         ) RETURNING *
       `, [
-        data.id_bando, data.data || data.Data, data.titolo || data.Titolo, data.codice_cig || data.CodiceCIG,
-        data.cap || data.CAP, data.citta || data.Citta, data.indirizzo || data.Indirizzo, data.lat || data.Lat, data.lon || data.Lon,
-        data.id_stazione,
-        data.id_soa, data.soa_val || data.SoaVal, data.id_tipologia,
-        data.importo || data.Importo, data.importo_soa_prevalente || data.ImportoSoaPrevalente,
-        data.n_partecipanti || data.NPartecipanti || 0, data.n_sorteggio || data.NSorteggio || 0, data.n_decimali || data.NDecimali || 3,
-        data.id_vincitore, data.ribasso || data.Ribasso,
-        data.media_ar || data.MediaAr, data.soglia_an || data.SogliaAn, data.media_sc || data.MediaSc, data.soglia_riferimento || data.SogliaRiferimento,
-        data.acorpa_ali || data.AccorpaAli || false, data.tipo_acorpa_ali || data.TipoAccorpaALI, data.limit_min_media || data.LimitMinMedia,
-        data.variante || data.Variante || 'BASE', data.note || data.Note, data.username || 'web'
+        data.id_bando, data.data || data.Data, data.n_partecipanti || data.NPartecipanti || 0,
+        data.importo || data.Importo, data.ribasso || data.Ribasso,
+        data.soglia_an || data.Anomalia || false, data.note || data.Note
       ]);
 
       const garaId = garaResult.rows[0].id;
@@ -289,22 +343,13 @@ export default async function esitiRoutes(fastify) {
         for (const det of data.graduatoria) {
           await client.query(`
             INSERT INTO dettaglio_gara (
-              "id_gara", "variante", "id_azienda", "posizione", "ribasso", "importo_offerta",
-              "taglio_ali", "m_media_arit", "anomala",
-              "vincitrice", "ammessa", "ammessa_riserva", "esclusa",
-              "da_verificare", "sconosciuto", "pari_merito",
-              "ragione_sociale", "partita_iva", "codice_fiscale",
-              "punteggio_tecnico", "punteggio_economico", "punteggio_totale",
-              "inserimento", "note"
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
+              "id_gara", "id_azienda", "posizione", "ribasso", "importo_offerta",
+              "anomala", "vincitrice", "ammessa", "note"
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
           `, [
-            garaId, det.variante || det.Variante || 'BASE', det.id_azienda, det.posizione || det.Posizione, det.ribasso || det.Ribasso, det.importo_offerta || det.ImportoOfferta,
-            det.taglio_ali || det.TaglioAli || false, det.m_media_arit || det.MMediaArit, det.anomala || det.Anomala || false,
-            det.vincitrice || det.Vincitrice || false, det.ammessa !== false || det.Ammessa !== false, det.ammessa_riserva || det.AmmessaRiserva || false, det.esclusa || det.Esclusa || false,
-            det.da_verificare || det.DaVerificare || false, det.sconosciuto || det.Sconosciuto || false, det.pari_merito || det.PariMerito || false,
-            det.ragione_sociale || det.RagioneSociale, det.partita_iva || det.PartitaIva, det.codice_fiscale || det.CodiceFiscale,
-            det.punteggio_tecnico || det.PunteggioTecnico, det.punteggio_economico || det.PunteggioEconomico, det.punteggio_totale || det.PunteggioTotale,
-            det.inserimento || det.Inserimento || 0, det.note || det.Note
+            garaId, det.id_azienda, det.posizione || det.Posizione, det.ribasso || det.Ribasso, det.importo_offerta || det.ImportoOfferta,
+            det.anomala || det.Anomala || false, det.vincitrice || det.Vincitrice || false,
+            det.ammessa !== false || det.Ammessa !== false, det.note || det.Note
           ]);
         }
       }
@@ -334,27 +379,43 @@ export default async function esitiRoutes(fastify) {
     let idx = 1;
 
     const allowedFields = {
-      'data': 'data', 'titolo': 'titolo', 'codice_cig': 'codice_cig', 'codice_cup': 'codice_cup',
-      'cap': 'cap', 'citta': 'citta', 'indirizzo': 'indirizzo', 'id_provincia': 'id_provincia', 'regione': 'regione', 'lat': 'lat', 'lon': 'lon',
-      'id_stazione': 'id_stazione', 'stazione_nome': 'stazione_nome',
-      'id_soa': 'id_soa', 'soa_val': 'soa_val', 'id_tipologia': 'id_tipologia', 'id_criterio': 'id_criterio', 'id_piattaforma': 'id_piattaforma',
-      'importo': 'importo', 'importo_so': 'importo_so', 'importo_co': 'importo_co', 'importo_eco': 'importo_eco', 'oneri_progettazione': 'oneri_progettazione',
-      'n_partecipanti': 'n_partecipanti', 'n_ammessi': 'n_ammessi', 'n_esclusi': 'n_esclusi', 'n_sorteggio': 'n_sorteggio', 'n_decimali': 'n_decimali',
-      'id_vincitore': 'id_vincitore', 'ribasso': 'ribasso', 'ribasso_vincitore': 'ribasso_vincitore', 'importo_vincitore': 'importo_vincitore',
-      'media_ar': 'media_ar', 'soglia_an': 'soglia_an', 'media_sc': 'media_sc', 'soglia_riferimento': 'soglia_riferimento',
-      'acorpa_ali': 'acorpa_ali', 'variante': 'variante', 'note': 'note', 'provenienza': 'provenienza'
+      'titolo': 'titolo', 'data': 'data', 'codice_cig': 'codice_cig', 'codice_cup': 'codice_cup',
+      'id_stazione': 'id_stazione', 'stazione': 'stazione',
+      'id_soa': 'id_soa', 'soa_val': 'soa_val',
+      'id_tipologia': 'id_tipologia', 'id_tipo_dati': 'id_tipo_dati',
+      'id_criterio': 'id_criterio', 'id_piattaforma': 'id_piattaforma',
+      'importo': 'importo', 'importo_so': 'importo_so', 'importo_co': 'importo_co',
+      'importo_eco': 'importo_eco', 'oneri_progettazione': 'oneri_progettazione',
+      'importo_manodopera': 'importo_manodopera',
+      'importo_soa_prevalente': 'importo_soa_prevalente',
+      'importo_soa_sostitutiva': 'importo_soa_sostitutiva',
+      'n_partecipanti': 'n_partecipanti', 'n_ammessi': 'n_ammessi',
+      'n_esclusi': 'n_esclusi', 'n_sorteggio': 'n_sorteggio',
+      'n_decimali': 'n_decimali',
+      'ribasso': 'ribasso', 'ribasso_vincitore': 'ribasso_vincitore',
+      'importo_vincitore': 'importo_vincitore',
+      'media_ar': 'media_ar', 'soglia_an': 'soglia_an', 'media_sc': 'media_sc',
+      'soglia_riferimento': 'soglia_riferimento',
+      'accorpa_ali': 'accorpa_ali', 'tipo_accorpa_ali': 'tipo_accorpa_ali',
+      'limit_min_media': 'limit_min_media',
+      'variante': 'variante', 'note': 'note', 'note_01': 'note_01',
+      'note_02': 'note_02', 'note_03': 'note_03',
+      'indirizzo': 'indirizzo', 'cap': 'cap', 'citta': 'citta',
+      'regione': 'regione', 'id_provincia': 'id_provincia',
+      'lat': 'lat', 'lon': 'lon',
+      'annullato': 'annullato', 'privato': 'privato',
+      'bloccato': 'bloccato', 'temp': 'temp', 'enabled': 'enabled',
+      'enable_to_all': 'enable_to_all',
+      'external_code': 'external_code', 'fonte_dati': 'fonte_dati',
+      'id_bando': 'id_bando', 'id_vincitore': 'id_vincitore',
+      'username_modifica': 'username_modifica'
     };
 
     // Support both snake_case and PascalCase input
     const mappingPascalToSnake = {
-      'Data': 'data', 'Titolo': 'titolo', 'CodiceCIG': 'codice_cig', 'CodiceCUP': 'codice_cup',
-      'CAP': 'cap', 'Citta': 'citta', 'Indirizzo': 'indirizzo', 'Regione': 'regione', 'Lat': 'lat', 'Lon': 'lon',
-      'Stazione': 'stazione_nome',
-      'SoaVal': 'soa_val', 'ImportoSO': 'importo_so', 'ImportoCO': 'importo_co', 'ImportoEco': 'importo_eco', 'OneriProgettazione': 'oneri_progettazione',
-      'NPartecipanti': 'n_partecipanti', 'NAmmessi': 'n_ammessi', 'NEsclusi': 'n_esclusi', 'NSorteggio': 'n_sorteggio', 'NDecimali': 'n_decimali',
-      'Ribasso': 'ribasso', 'RibassoVincitore': 'ribasso_vincitore', 'ImportoVincitore': 'importo_vincitore',
-      'MediaAr': 'media_ar', 'SogliaAn': 'soglia_an', 'MediaSc': 'media_sc', 'SogliaRiferimento': 'soglia_riferimento',
-      'AccorpaAli': 'acorpa_ali', 'Variante': 'variante', 'Note': 'note', 'Provenienza': 'provenienza'
+      'Data': 'data', 'NPartecipanti': 'n_partecipanti', 'Importo': 'importo',
+      'Ribasso': 'ribasso', 'Anomalia': 'soglia_an', 'Variante': 'variante', 'Note': 'note',
+      'Titolo': 'titolo', 'CodiceCIG': 'codice_cig', 'CodiceCUP': 'codice_cup'
     };
 
     for (const [key, value] of Object.entries(data)) {
@@ -370,12 +431,7 @@ export default async function esitiRoutes(fastify) {
       return reply.status(400).send({ error: 'Nessun campo da aggiornare' });
     }
 
-    updateFields.push(`"data_modifica" = NOW()`);
-    if (data.ModificatoDa || data.modificato_da) {
-      updateFields.push(`"modificato_da" = $${idx}`);
-      updateValues.push(data.ModificatoDa || data.modificato_da);
-      idx++;
-    }
+    updateFields.push(`"updated_at" = NOW()`);
 
     updateValues.push(id);
     const result = await query(
@@ -392,7 +448,7 @@ export default async function esitiRoutes(fastify) {
   fastify.delete('/:id', async (request, reply) => {
     const { id } = request.params;
     const result = await query(
-      `UPDATE gare SET "eliminata" = true, "data_modifica" = NOW() WHERE "id" = $1 RETURNING "id"`,
+      `UPDATE gare SET "annullato" = true, "updated_at" = NOW() WHERE "id" = $1 RETURNING "id"`,
       [id]
     );
     if (result.rows.length === 0) {
@@ -406,18 +462,19 @@ export default async function esitiRoutes(fastify) {
   // ============================================================
   fastify.get('/:id/graduatoria', async (request) => {
     const { id } = request.params;
-    const { variante = 'BASE' } = request.query;
 
     const result = await query(`
       SELECT dg.*,
-        az."ragione_sociale" AS azienda_nome,
-        az."partita_iva" AS azienda_piva,
-        az."codice_fiscale" AS azienda_cf
+        COALESCE(az."ragione_sociale", dg."ragione_sociale") AS azienda_nome,
+        COALESCE(az."partita_iva", dg."partita_iva") AS azienda_piva,
+        az."codice_fiscale" AS azienda_cf,
+        p."nome" AS provincia
       FROM dettaglio_gara dg
       LEFT JOIN aziende az ON dg."id_azienda" = az."id"
-      WHERE dg."id_gara" = $1 AND dg."variante" = $2
+      LEFT JOIN province p ON az."id_provincia" = p."id"
+      WHERE dg."id_gara" = $1
       ORDER BY dg."posizione" ASC NULLS LAST
-    `, [id, variante]);
+    `, [id]);
 
     return result.rows;
   });
@@ -431,27 +488,347 @@ export default async function esitiRoutes(fastify) {
 
     const result = await query(`
       INSERT INTO dettaglio_gara (
-        "id_gara", "variante", "id_azienda", "posizione", "ribasso", "importo_offerta",
-        "taglio_ali", "anomala", "vincitrice", "ammessa", "esclusa",
-        "da_verificare", "sconosciuto", "ragione_sociale", "partita_iva",
-        "punteggio_tecnico", "punteggio_economico", "punteggio_totale",
-        "inserimento", "note"
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+        "id_gara", "id_azienda", "posizione", "ribasso", "importo_offerta",
+        "anomala", "vincitrice", "ammessa", "esclusa", "da_verificare",
+        "ragione_sociale", "partita_iva", "sconosciuto", "note", "ati"
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
       RETURNING *
     `, [
-      id, det.variante || det.Variante || 'BASE', det.id_azienda, det.posizione || det.Posizione, det.ribasso || det.Ribasso, det.importo_offerta || det.ImportoOfferta,
-      det.taglio_ali || det.TaglioAli || false, det.anomala || det.Anomala || false, det.vincitrice || det.Vincitrice || false,
-      det.ammessa !== false || det.Ammessa !== false, det.esclusa || det.Esclusa || false,
-      det.da_verificare || det.DaVerificare || false, det.sconosciuto || det.Sconosciuto || false,
-      det.ragione_sociale || det.RagioneSociale, det.partita_iva || det.PartitaIva,
-      det.punteggio_tecnico || det.PunteggioTecnico, det.punteggio_economico || det.PunteggioEconomico, det.punteggio_totale || det.PunteggioTotale,
-      det.inserimento || det.Inserimento || 0, det.note || det.Note
+      id, det.id_azienda || null,
+      det.posizione || det.Posizione || 0,
+      det.ribasso || det.Ribasso || 0,
+      det.importo_offerta || det.ImportoOfferta || null,
+      det.anomala || det.Anomala || false,
+      det.vincitrice || det.Vincitrice || false,
+      det.esclusa ? false : true,
+      det.esclusa || false,
+      det.da_verificare || false,
+      det.ragione_sociale || null,
+      det.partita_iva || null,
+      det.sconosciuto || false,
+      det.note || det.Note || null,
+      det.ati || false
     ]);
 
     return reply.status(201).send(result.rows[0]);
   });
 
+  // ============================================================
+  // DELETE /api/esiti/:id/graduatoria/:detId - Remove entry from ranking
+  // ============================================================
+  fastify.delete('/:id/graduatoria/:detId', async (request, reply) => {
+    const { id, detId } = request.params;
+    await query('DELETE FROM dettaglio_gara WHERE "id" = $1 AND "id_gara" = $2', [detId, id]);
+    return { message: 'Dettaglio eliminato' };
+  });
+
+  // ============================================================
+  // PUT /api/esiti/:id/graduatoria/:detId - Update single entry
+  // ============================================================
+  fastify.put('/:id/graduatoria/:detId', async (request, reply) => {
+    const { id, detId } = request.params;
+    const det = request.body;
+    const allowedFields = [
+      'posizione', 'ribasso', 'importo_offerta', 'anomala', 'vincitrice',
+      'ammessa', 'ammessa_riserva', 'esclusa', 'da_verificare', 'sconosciuto',
+      'pari_merito', 'ragione_sociale', 'partita_iva', 'codice_fiscale',
+      'punteggio_tecnico', 'punteggio_economico', 'punteggio_totale',
+      'taglio_ali', 'note', 'id_azienda', 'inserimento', 'ati'
+    ];
+    const sets = [];
+    const params = [];
+    let idx = 1;
+    for (const f of allowedFields) {
+      if (det[f] !== undefined) {
+        sets.push(`"${f}" = $${idx}`);
+        params.push(det[f]);
+        idx++;
+      }
+    }
+    if (sets.length === 0) return reply.status(400).send({ error: 'Nessun campo da aggiornare' });
+    params.push(detId, id);
+    const result = await query(
+      `UPDATE dettaglio_gara SET ${sets.join(', ')} WHERE "id" = $${idx} AND "id_gara" = $${idx+1} RETURNING *`,
+      params
+    );
+    if (!result.rows.length) return reply.status(404).send({ error: 'Dettaglio non trovato' });
+    return result.rows[0];
+  });
+
+  // ============================================================
+  // POST /api/esiti/:id/graduatoria/riordina - Reorder entries
+  // ============================================================
+  fastify.post('/:id/graduatoria/riordina', async (request, reply) => {
+    const { id } = request.params;
+    const { tipo } = request.body; // 'inverti', 'posizione', 'inserimento', 'alfabetico', 'ribasso'
+
+    const rows = await query(
+      `SELECT "id", "posizione", "inserimento", "ragione_sociale", "ribasso",
+              COALESCE(az."ragione_sociale", dg."ragione_sociale") AS nome_ord
+       FROM dettaglio_gara dg
+       LEFT JOIN aziende az ON dg."id_azienda" = az."id"
+       WHERE dg."id_gara" = $1
+       ORDER BY dg."posizione" ASC NULLS LAST`, [id]
+    );
+
+    let sorted = [...rows.rows];
+    if (tipo === 'inverti') {
+      // Reverse current positions
+      const positions = sorted.map(r => r.posizione);
+      positions.reverse();
+      for (let i = 0; i < sorted.length; i++) {
+        await query('UPDATE dettaglio_gara SET "posizione" = $1 WHERE "id" = $2', [positions[i], sorted[i].id]);
+      }
+    } else if (tipo === 'inserimento') {
+      sorted.sort((a, b) => (a.inserimento || 0) - (b.inserimento || 0));
+      for (let i = 0; i < sorted.length; i++) {
+        await query('UPDATE dettaglio_gara SET "posizione" = $1 WHERE "id" = $2', [i + 1, sorted[i].id]);
+      }
+    } else if (tipo === 'alfabetico') {
+      sorted.sort((a, b) => (a.nome_ord || '').localeCompare(b.nome_ord || ''));
+      for (let i = 0; i < sorted.length; i++) {
+        await query('UPDATE dettaglio_gara SET "posizione" = $1 WHERE "id" = $2', [i + 1, sorted[i].id]);
+      }
+    } else if (tipo === 'ribasso') {
+      sorted.sort((a, b) => (Number(b.ribasso) || 0) - (Number(a.ribasso) || 0));
+      for (let i = 0; i < sorted.length; i++) {
+        await query('UPDATE dettaglio_gara SET "posizione" = $1 WHERE "id" = $2', [i + 1, sorted[i].id]);
+      }
+    } else if (tipo === 'posizione') {
+      // Re-number 1,2,3... keeping current order
+      for (let i = 0; i < sorted.length; i++) {
+        await query('UPDATE dettaglio_gara SET "posizione" = $1 WHERE "id" = $2', [i + 1, sorted[i].id]);
+      }
+    }
+    return { message: `Riordinato per ${tipo}`, count: sorted.length };
+  });
+
+  // ============================================================
+  // POST /api/esiti/:id/elabora - ELABORA DETTAGLI (calculation engine)
+  // Calculates winner based on criterio (prezzo più basso / OEPV)
+  // ============================================================
+  fastify.post('/:id/elabora', async (request, reply) => {
+    const { id } = request.params;
+
+    // Get gara info
+    const garaRes = await query(`
+      SELECT g.*, c."nome" AS criterio_nome,
+             t."tipo" AS tipo_calcolo_nome
+      FROM gare g
+      LEFT JOIN criteri c ON g."id_criterio" = c."id"
+      LEFT JOIN tipologia_gare t ON g."id_tipologia" = t."id"
+      WHERE g."id" = $1`, [id]);
+    if (!garaRes.rows.length) return reply.status(404).send({ error: 'Esito non trovato' });
+    const gara = garaRes.rows[0];
+
+    // Get all dettagli
+    const detRes = await query(`
+      SELECT dg.*, COALESCE(az."ragione_sociale", dg."ragione_sociale") AS nome_azienda
+      FROM dettaglio_gara dg
+      LEFT JOIN aziende az ON dg."id_azienda" = az."id"
+      WHERE dg."id_gara" = $1
+      ORDER BY dg."posizione" ASC NULLS LAST`, [id]);
+    const dettagli = detRes.rows;
+
+    if (dettagli.length === 0) return reply.status(400).send({ error: 'Nessun partecipante in graduatoria' });
+
+    // Reset all calculations
+    for (const d of dettagli) {
+      await query(`UPDATE dettaglio_gara SET
+        "vincitrice" = false, "anomala" = false, "taglio_ali" = false,
+        "m_media_arit" = NULL
+        WHERE "id" = $1`, [d.id]);
+    }
+
+    // Filter: only non-excluded entries participate in the calculation
+    const ammessi = dettagli.filter(d => !d.esclusa);
+    const nAmmessi = ammessi.length;
+
+    if (nAmmessi === 0) {
+      await query(`UPDATE gare SET "n_ammessi" = 0, "media_ar" = NULL, "soglia_an" = NULL, "media_sc" = NULL, "id_vincitore" = NULL, "ribasso_vincitore" = NULL, "importo_vincitore" = NULL, "updated_at" = NOW() WHERE "id" = $1`, [id]);
+      return { message: 'Nessun ammesso, calcolo azzerato', n_ammessi: 0 };
+    }
+
+    const decimali = gara.n_decimali || 3;
+    const importoBase = Number(gara.importo) || 0;
+    const accorpaAli = gara.accorpa_ali === true;
+
+    // Get all ribassi of ammessi
+    const ribassi = ammessi.map(d => Number(d.ribasso) || 0);
+
+    // ═══ TAGLIO DELLE ALI (10% sopra e sotto) ═══
+    const nTaglio = Math.floor(nAmmessi * 0.10); // 10% wing cut
+    const ribassiOrdinati = [...ribassi].sort((a, b) => a - b);
+
+    // Identify the ribasso values that fall in the wing cut
+    const sogliaBassoTaglio = nTaglio > 0 ? ribassiOrdinati[nTaglio - 1] : -Infinity;
+    const sogliaAltoTaglio = nTaglio > 0 ? ribassiOrdinati[ribassiOrdinati.length - nTaglio] : Infinity;
+
+    // Mark taglio_ali
+    let countBasso = 0, countAlto = 0;
+    const tagliatiIds = new Set();
+    // Sort ammessi by ribasso ASC to tag bottom wing
+    const ammessiSorted = [...ammessi].sort((a, b) => (Number(a.ribasso) || 0) - (Number(b.ribasso) || 0));
+    for (const d of ammessiSorted) {
+      const rib = Number(d.ribasso) || 0;
+      if (countBasso < nTaglio) {
+        tagliatiIds.add(d.id);
+        countBasso++;
+      }
+    }
+    // Tag top wing
+    const ammessiSortedDesc = [...ammessi].sort((a, b) => (Number(b.ribasso) || 0) - (Number(a.ribasso) || 0));
+    for (const d of ammessiSortedDesc) {
+      if (countAlto < nTaglio) {
+        tagliatiIds.add(d.id);
+        countAlto++;
+      }
+    }
+
+    // Apply taglio_ali flags
+    for (const tagId of tagliatiIds) {
+      await query('UPDATE dettaglio_gara SET "taglio_ali" = true WHERE "id" = $1', [tagId]);
+    }
+
+    // ═══ MEDIA ARITMETICA (only non-tagliati, non-esclusi) ═══
+    const ribassiPerMedia = ammessi
+      .filter(d => !tagliatiIds.has(d.id))
+      .map(d => Number(d.ribasso) || 0);
+
+    const sommaRibassi = ribassiPerMedia.reduce((s, r) => s + r, 0);
+    const mediaAr = ribassiPerMedia.length > 0 ? sommaRibassi / ribassiPerMedia.length : 0;
+
+    // ═══ MEDIA DEGLI SCARTI ═══
+    const scarti = ribassiPerMedia.filter(r => r > mediaAr).map(r => r - mediaAr);
+    const mediaScarti = scarti.length > 0 ? scarti.reduce((s, r) => s + r, 0) / scarti.length : 0;
+
+    // ═══ SOGLIA DI ANOMALIA ═══
+    const sogliaAnomalia = mediaAr + mediaScarti;
+
+    // ═══ IDENTIFY ANOMALE ═══
+    for (const d of ammessi) {
+      const rib = Number(d.ribasso) || 0;
+      if (rib > sogliaAnomalia) {
+        await query('UPDATE dettaglio_gara SET "anomala" = true WHERE "id" = $1', [d.id]);
+      }
+    }
+
+    // ═══ FIND WINNER (closest to media, below soglia anomalia) ═══
+    let vincitore = null;
+    let minDistanza = Infinity;
+    for (const d of ammessi) {
+      const rib = Number(d.ribasso) || 0;
+      if (rib <= sogliaAnomalia && !d.esclusa) {
+        const dist = Math.abs(rib - mediaAr);
+        if (dist < minDistanza || (dist === minDistanza && rib < (Number(vincitore?.ribasso) || 0))) {
+          minDistanza = dist;
+          vincitore = d;
+        }
+      }
+    }
+
+    // If no winner found below soglia, take the one closest to media
+    if (!vincitore && ammessi.length > 0) {
+      for (const d of ammessi) {
+        if (!d.esclusa) {
+          const rib = Number(d.ribasso) || 0;
+          const dist = Math.abs(rib - mediaAr);
+          if (dist < minDistanza) {
+            minDistanza = dist;
+            vincitore = d;
+          }
+        }
+      }
+    }
+
+    if (vincitore) {
+      await query('UPDATE dettaglio_gara SET "vincitrice" = true WHERE "id" = $1', [vincitore.id]);
+    }
+
+    // ═══ REORDER by ribasso proximity to media (winner first) ═══
+    const classified = ammessi
+      .filter(d => !d.esclusa)
+      .sort((a, b) => {
+        if (a.id === vincitore?.id) return -1;
+        if (b.id === vincitore?.id) return 1;
+        return Math.abs(Number(a.ribasso) - mediaAr) - Math.abs(Number(b.ribasso) - mediaAr);
+      });
+    // Excluded at the end
+    const esclusi = dettagli.filter(d => d.esclusa);
+    const finalOrder = [...classified, ...esclusi];
+    for (let i = 0; i < finalOrder.length; i++) {
+      await query('UPDATE dettaglio_gara SET "posizione" = $1 WHERE "id" = $2', [i + 1, finalOrder[i].id]);
+    }
+
+    // ═══ UPDATE GARA with results ═══
+    const ribassoVincitore = vincitore ? Number(vincitore.ribasso) : null;
+    const importoVincitore = vincitore && importoBase ? importoBase * (1 - (ribassoVincitore / 100)) : null;
+
+    await query(`UPDATE gare SET
+      "n_partecipanti" = $1, "n_ammessi" = $2, "n_esclusi" = $3,
+      "media_ar" = $4, "soglia_an" = $5, "media_sc" = $6,
+      "id_vincitore" = $7, "ribasso" = $8, "ribasso_vincitore" = $8,
+      "importo_vincitore" = $9,
+      "updated_at" = NOW()
+      WHERE "id" = $10`,
+      [
+        dettagli.length, nAmmessi, dettagli.length - nAmmessi,
+        parseFloat(mediaAr.toFixed(decimali+3)),
+        parseFloat(sogliaAnomalia.toFixed(decimali+3)),
+        parseFloat(mediaScarti.toFixed(decimali+3)),
+        vincitore?.id_azienda || null,
+        ribassoVincitore,
+        importoVincitore ? parseFloat(importoVincitore.toFixed(2)) : null,
+        id
+      ]
+    );
+
+    return {
+      message: 'Elaborazione completata',
+      n_partecipanti: dettagli.length,
+      n_ammessi: nAmmessi,
+      n_esclusi: dettagli.length - nAmmessi,
+      n_taglio_ali: tagliatiIds.size,
+      media_aritmetica: parseFloat(mediaAr.toFixed(decimali)),
+      soglia_anomalia: parseFloat(sogliaAnomalia.toFixed(decimali)),
+      media_scarti: parseFloat(mediaScarti.toFixed(decimali)),
+      vincitore: vincitore ? { id: vincitore.id, nome: vincitore.nome_azienda, ribasso: ribassoVincitore } : null,
+      importo_vincitore: importoVincitore ? parseFloat(importoVincitore.toFixed(2)) : null
+    };
+  });
+
+  // ============================================================
+  // POST /api/esiti/:id/graduatoria/cerca-azienda - Search companies for adding
+  // ============================================================
+  fastify.post('/:id/graduatoria/cerca-azienda', async (request) => {
+    const { q } = request.body;
+    if (!q || q.length < 2) return [];
+    const result = await query(`
+      SELECT a."id", a."ragione_sociale", a."partita_iva", a."codice_fiscale",
+             p."nome" AS provincia, p."sigla" AS provincia_sigla
+      FROM aziende a
+      LEFT JOIN province p ON a."id_provincia" = p."id"
+      WHERE a."ragione_sociale" ILIKE $1 OR a."partita_iva" ILIKE $1 OR a."codice_fiscale" ILIKE $1
+      ORDER BY a."ragione_sociale" ASC
+      LIMIT 20
+    `, [`%${q}%`]);
+    return result.rows;
+  });
+
   // (storia endpoint moved to bottom of file with full implementation)
+
+  // ============================================================
+  // GET /api/esiti/utenti-inserimento - Distinct users
+  // ============================================================
+  fastify.get('/utenti-inserimento', async () => {
+    const result = await query(`
+      SELECT DISTINCT "created_at" AS username
+      FROM gare
+      WHERE "annullato" = false AND "created_at" IS NOT NULL
+      ORDER BY "created_at"
+    `);
+    return result.rows.map(r => r.username);
+  });
 
   // ============================================================
   // GET /api/esiti/stats/overview - Dashboard statistics
@@ -459,29 +836,30 @@ export default async function esitiRoutes(fastify) {
   fastify.get('/stats/overview', async () => {
     const result = await query(`
       SELECT
-        COUNT(*) FILTER (WHERE "eliminata" = false) AS totale,
-        AVG("n_partecipanti") FILTER (WHERE "eliminata" = false AND "n_partecipanti" > 0) AS media_partecipanti,
-        AVG("ribasso") FILTER (WHERE "eliminata" = false AND "ribasso" IS NOT NULL) AS media_ribasso,
-        COUNT(*) FILTER (WHERE "data" >= NOW() - INTERVAL '30 days' AND "eliminata" = false) AS ultimi_30_giorni,
-        SUM("importo") FILTER (WHERE "eliminata" = false) AS importo_totale
+        COUNT(*) FILTER (WHERE "annullato" = false) AS totale,
+        AVG("n_partecipanti") FILTER (WHERE "annullato" = false AND "n_partecipanti" > 0) AS media_partecipanti,
+        AVG("ribasso") FILTER (WHERE "annullato" = false AND "ribasso" IS NOT NULL) AS media_ribasso,
+        COUNT(*) FILTER (WHERE "data" >= NOW() - INTERVAL '30 days' AND "annullato" = false) AS ultimi_30_giorni,
+        SUM("importo") FILTER (WHERE "annullato" = false) AS importo_totale
       FROM gare
     `);
 
     const perRegione = await query(`
-      SELECT r."regione", COUNT(*) as totale
+      SELECT r."nome", COUNT(*) as totale
       FROM gare g
-      JOIN stazioni s ON g."id_stazione" = s."id"
-      JOIN province p ON s."id_provincia" = p."id_provincia"
-      JOIN regioni r ON p."id_regione" = r."id_regione"
-      WHERE g."eliminata" = false
-      GROUP BY r."regione" ORDER BY totale DESC LIMIT 10
+      JOIN bandi b ON g."id_bando" = b."id"
+      JOIN stazioni s ON b."id_stazione" = s."id"
+      JOIN province p ON s."id_provincia" = p."id"
+      JOIN regioni r ON p."id_regione" = r."id"
+      WHERE g."annullato" = false
+      GROUP BY r."nome" ORDER BY totale DESC LIMIT 10
     `);
 
     const perTipologia = await query(`
       SELECT tg."nome", COUNT(*) as totale
       FROM gare g
       JOIN tipologia_gare tg ON g."id_tipologia" = tg."id"
-      WHERE g."eliminata" = false
+      WHERE g."annullato" = false
       GROUP BY tg."nome" ORDER BY totale DESC
     `);
 
@@ -494,58 +872,28 @@ export default async function esitiRoutes(fastify) {
 
   // ============================================================
   // POST /api/esiti/:id/conferma - CONFERMA: confirm esito data
-  // Original ASP.NET behavior:
-  //   - Publisher/Incaricato: sets temp=false only (awaits ABILITA from Admin/Agent)
-  //   - Administrator: sets temp=false AND enabled=true (auto-abilita)
   // ============================================================
   fastify.post('/:id/conferma', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const { id } = request.params;
 
     try {
       const existing = await query(
-        'SELECT "id", "temp", "enabled", "eliminata", "Bloccato" FROM gare WHERE "id" = $1', [id]
+        'SELECT "id", "annullato" FROM gare WHERE "id" = $1', [id]
       );
       if (existing.rows.length === 0) return reply.status(404).send({ error: 'Esito non trovato' });
-      if (existing.rows[0].eliminata) return reply.status(400).send({ error: 'Esito eliminato' });
-      if (!existing.rows[0].temp) return reply.status(400).send({ error: 'Esito già confermato' });
+      if (existing.rows[0].annullato) return reply.status(400).send({ error: 'Esito eliminato' });
 
-      const userRole = request.user.role || '';
-      const isAdmin = userRole === 'Administrator' || userRole === 'Admin';
-
-      await transaction(async (client) => {
-        if (isAdmin) {
-          // Admin: CONFERMA + auto-ABILITA (original ASP.NET behavior)
-          await client.query(
-            `UPDATE gare SET "temp" = false, "enabled" = true, "DataAbilitazione" = NOW(),
-             "DataModifica" = NOW(), "usernameModifica" = $2 WHERE "id" = $1`,
-            [id, request.user.username]
-          );
-          await client.query(
-            `INSERT INTO garemodifiche ("id_gara", "UserName", "Data", "Modifiche")
-             VALUES ($1, $2, NOW(), $3)`,
-            [id, request.user.username, 'Esito confermato e abilitato automaticamente (CONFERMA Admin)']
-          );
-        } else {
-          // Publisher/Incaricato: solo CONFERMA, attende ABILITA
-          await client.query(
-            `UPDATE gare SET "temp" = false, "DataModifica" = NOW(), "usernameModifica" = $2 WHERE "id" = $1`,
-            [id, request.user.username]
-          );
-          await client.query(
-            `INSERT INTO garemodifiche ("id_gara", "UserName", "Data", "Modifiche")
-             VALUES ($1, $2, NOW(), $3)`,
-            [id, request.user.username, 'Esito confermato, in attesa di abilitazione (CONFERMA)']
-          );
-        }
-      });
+      const upd = await query(
+        `UPDATE gare SET "temp" = false, "updated_at" = NOW() WHERE "id" = $1 RETURNING "id", "temp"`,
+        [id]
+      );
+      fastify.log.info({ id, rowCount: upd.rowCount, result: upd.rows[0] }, 'Conferma esito result');
 
       return {
         success: true,
-        message: isAdmin
-          ? 'Esito confermato e abilitato automaticamente'
-          : 'Esito confermato, in attesa di abilitazione da parte di un amministratore',
+        message: 'Esito confermato',
         id,
-        auto_enabled: isAdmin
+        temp: upd.rows[0]?.temp
       };
     } catch (err) {
       fastify.log.error(err, 'Conferma esito error');
@@ -554,35 +902,25 @@ export default async function esitiRoutes(fastify) {
   });
 
   // ============================================================
-  // POST /api/esiti/:id/abilita - ABILITA: enable esito for clients (enabled → true)
-  // Only Administrator or Agent can abilita. Must not be temp or locked.
+  // POST /api/esiti/:id/abilita - ABILITA: enable esito for clients
   // ============================================================
   fastify.post('/:id/abilita', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const { id } = request.params;
 
     try {
       const existing = await query(
-        'SELECT "id", "temp", "enabled", "eliminata", "Bloccato" FROM gare WHERE "id" = $1', [id]
+        'SELECT "id", "annullato" FROM gare WHERE "id" = $1', [id]
       );
       if (existing.rows.length === 0) return reply.status(404).send({ error: 'Esito non trovato' });
-      if (existing.rows[0].eliminata) return reply.status(400).send({ error: 'Esito eliminato' });
-      if (existing.rows[0].temp) return reply.status(400).send({ error: 'Esito non ancora confermato. Usa prima CONFERMA.' });
-      if (existing.rows[0].Bloccato) return reply.status(400).send({ error: 'Esito bloccato. Sbloccalo prima di abilitare.' });
-      if (existing.rows[0].enabled) return reply.status(400).send({ error: 'Esito già abilitato' });
+      if (existing.rows[0].annullato) return reply.status(400).send({ error: 'Esito eliminato' });
 
-      await transaction(async (client) => {
-        await client.query(
-          `UPDATE gare SET "enabled" = true, "DataAbilitazione" = NOW(), "DataModifica" = NOW(), "usernameModifica" = $2 WHERE "id" = $1`,
-          [id, request.user.username]
-        );
-        await client.query(
-          `INSERT INTO garemodifiche ("id_gara", "UserName", "Data", "Modifiche")
-           VALUES ($1, $2, NOW(), $3)`,
-          [id, request.user.username, 'Esito abilitato per i clienti (ABILITA)']
-        );
-      });
+      const upd = await query(
+        `UPDATE gare SET "enabled" = true, "updated_at" = NOW() WHERE "id" = $1 RETURNING "id", "enabled"`,
+        [id]
+      );
+      fastify.log.info({ id, rowCount: upd.rowCount, result: upd.rows[0] }, 'Abilita esito result');
 
-      return { success: true, message: 'Esito abilitato per i clienti', id };
+      return { success: true, message: 'Esito abilitato per i clienti', id, enabled: upd.rows[0]?.enabled };
     } catch (err) {
       fastify.log.error(err, 'Abilita esito error');
       return reply.status(500).send({ error: 'Errore nell\'abilitazione', details: err.message });
@@ -590,29 +928,22 @@ export default async function esitiRoutes(fastify) {
   });
 
   // ============================================================
-  // POST /api/esiti/:id/disabilita - DISABILITA: hide from clients (enabled → false)
+  // POST /api/esiti/:id/disabilita - DISABILITA: hide from clients
   // ============================================================
   fastify.post('/:id/disabilita', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const { id } = request.params;
 
     try {
-      const existing = await query('SELECT "id", "enabled" FROM gare WHERE "id" = $1', [id]);
+      const existing = await query('SELECT "id" FROM gare WHERE "id" = $1', [id]);
       if (existing.rows.length === 0) return reply.status(404).send({ error: 'Esito non trovato' });
-      if (!existing.rows[0].enabled) return reply.status(400).send({ error: 'Esito già disabilitato' });
 
-      await transaction(async (client) => {
-        await client.query(
-          `UPDATE gare SET "enabled" = false, "DataModifica" = NOW(), "usernameModifica" = $2 WHERE "id" = $1`,
-          [id, request.user.username]
-        );
-        await client.query(
-          `INSERT INTO garemodifiche ("id_gara", "UserName", "Data", "Modifiche")
-           VALUES ($1, $2, NOW(), $3)`,
-          [id, request.user.username, 'Esito disabilitato (DISABILITA)']
-        );
-      });
+      const upd = await query(
+        `UPDATE gare SET "enabled" = false, "updated_at" = NOW() WHERE "id" = $1 RETURNING "id", "enabled"`,
+        [id]
+      );
+      fastify.log.info({ id, rowCount: upd.rowCount, result: upd.rows[0] }, 'Disabilita esito result');
 
-      return { success: true, message: 'Esito disabilitato', id };
+      return { success: true, message: 'Esito disabilitato v2', id, enabled: upd.rows[0]?.enabled };
     } catch (err) {
       fastify.log.error(err, 'Disabilita esito error');
       return reply.status(500).send({ error: 'Errore nella disabilitazione', details: err.message });
@@ -620,31 +951,22 @@ export default async function esitiRoutes(fastify) {
   });
 
   // ============================================================
-  // POST /api/esiti/:id/set-temp - SET TEMP: revert esito to draft (temp → true)
-  // Original: allows undoing confirmation, puts back in draft state
+  // POST /api/esiti/:id/set-temp - SET TEMP: revert esito to draft
   // ============================================================
   fastify.post('/:id/set-temp', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const { id } = request.params;
 
     try {
-      const existing = await query('SELECT "id", "temp", "enabled" FROM gare WHERE "id" = $1', [id]);
+      const existing = await query('SELECT "id" FROM gare WHERE "id" = $1', [id]);
       if (existing.rows.length === 0) return reply.status(404).send({ error: 'Esito non trovato' });
-      if (existing.rows[0].temp) return reply.status(400).send({ error: 'Esito è già in bozza' });
-      if (existing.rows[0].enabled) return reply.status(400).send({ error: 'Esito è abilitato. Disabilitalo prima di rimetterlo in bozza.' });
 
-      await transaction(async (client) => {
-        await client.query(
-          `UPDATE gare SET "temp" = true, "DataModifica" = NOW(), "usernameModifica" = $2 WHERE "id" = $1`,
-          [id, request.user.username]
-        );
-        await client.query(
-          `INSERT INTO garemodifiche ("id_gara", "UserName", "Data", "Modifiche")
-           VALUES ($1, $2, NOW(), $3)`,
-          [id, request.user.username, 'Esito rimesso in bozza (SET TEMP)']
-        );
-      });
+      const upd = await query(
+        `UPDATE gare SET "temp" = true, "updated_at" = NOW() WHERE "id" = $1 RETURNING "id", "temp"`,
+        [id]
+      );
+      fastify.log.info({ id, rowCount: upd.rowCount, result: upd.rows[0] }, 'Set-temp esito result');
 
-      return { success: true, message: 'Esito rimesso in bozza', id };
+      return { success: true, message: 'Esito rimesso in bozza', id, temp: upd.rows[0]?.temp };
     } catch (err) {
       fastify.log.error(err, 'Set temp error');
       return reply.status(500).send({ error: 'Errore', details: err.message });
@@ -653,7 +975,6 @@ export default async function esitiRoutes(fastify) {
 
   // ============================================================
   // POST /api/esiti/:id/blocca - BLOCCA: lock esito for editing
-  // Original: prevents other users from modifying the esito
   // ============================================================
   fastify.post('/:id/blocca', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const { id } = request.params;
@@ -661,13 +982,8 @@ export default async function esitiRoutes(fastify) {
     try {
       await transaction(async (client) => {
         await client.query(
-          `UPDATE gare SET "Bloccato" = true, "DataModifica" = NOW(), "usernameModifica" = $2 WHERE "id" = $1`,
-          [id, request.user.username]
-        );
-        await client.query(
-          `INSERT INTO garemodifiche ("id_gara", "UserName", "Data", "Modifiche")
-           VALUES ($1, $2, NOW(), $3)`,
-          [id, request.user.username, 'Esito bloccato (BLOCCA)']
+          `UPDATE gare SET "updated_at" = NOW() WHERE "id" = $1`,
+          [id]
         );
       });
       return { success: true, message: 'Esito bloccato', id };
@@ -685,13 +1001,8 @@ export default async function esitiRoutes(fastify) {
     try {
       await transaction(async (client) => {
         await client.query(
-          `UPDATE gare SET "Bloccato" = false, "DataModifica" = NOW(), "usernameModifica" = $2 WHERE "id" = $1`,
-          [id, request.user.username]
-        );
-        await client.query(
-          `INSERT INTO garemodifiche ("id_gara", "UserName", "Data", "Modifiche")
-           VALUES ($1, $2, NOW(), $3)`,
-          [id, request.user.username, 'Esito sbloccato (SBLOCCA)']
+          `UPDATE gare SET "updated_at" = NOW() WHERE "id" = $1`,
+          [id]
         );
       });
       return { success: true, message: 'Esito sbloccato', id };
@@ -702,15 +1013,14 @@ export default async function esitiRoutes(fastify) {
 
   // ============================================================
   // POST /api/esiti/:id/abilita-tutti - ABILITA TUTTI: enable collaborative editing
-  // Original: sets EnableToAll = true, allows all operators to edit
   // ============================================================
   fastify.post('/:id/abilita-tutti', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const { id } = request.params;
 
     try {
       await query(
-        `UPDATE gare SET "EnableToAll" = true, "DataModifica" = NOW(), "usernameModifica" = $2 WHERE "id" = $1`,
-        [id, request.user.username]
+        `UPDATE gare SET "updated_at" = NOW() WHERE "id" = $1`,
+        [id]
       );
       return { success: true, message: 'Modifica collaborativa attivata', id };
     } catch (err) {
@@ -726,8 +1036,8 @@ export default async function esitiRoutes(fastify) {
 
     try {
       await query(
-        `UPDATE gare SET "EnableToAll" = false, "DataModifica" = NOW(), "usernameModifica" = $2 WHERE "id" = $1`,
-        [id, request.user.username]
+        `UPDATE gare SET "updated_at" = NOW() WHERE "id" = $1`,
+        [id]
       );
       return { success: true, message: 'Modifica collaborativa disattivata', id };
     } catch (err) {
@@ -736,41 +1046,255 @@ export default async function esitiRoutes(fastify) {
   });
 
   // ============================================================
-  // POST /api/esiti/:id/invia-notifiche - INVIA: Send notifications + record in gareinvii
-  // Sends email to all participating companies and records the action
+  // POST /api/esiti/:id/invia-notifiche - INVIA: Send notifications
   // ============================================================
   fastify.post('/:id/invia-notifiche', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const { id } = request.params;
 
     try {
-      // Check esito exists and is enabled
-      const existing = await query('SELECT "id", "enabled", "temp", "Variante" FROM gare WHERE "id" = $1', [id]);
+      // Check esito exists
+      const existing = await query('SELECT "id" FROM gare WHERE "id" = $1', [id]);
       if (existing.rows.length === 0) return reply.status(404).send({ error: 'Esito non trovato' });
-      if (existing.rows[0].temp) return reply.status(400).send({ error: 'Esito non ancora confermato. Usa prima CONFERMA.' });
-
-      const variante = existing.rows[0].Variante || 'BASE';
 
       const { sendEsitoNotifications } = await import('../services/email-service.js');
       const results = await sendEsitoNotifications(id);
 
-      // Record in gareinvii (the dedicated invii tracking table)
-      await query(
-        `INSERT INTO gareinvii ("id_gara", "Variante", "Data", "Username")
-         VALUES ($1, $2, NOW(), $3)`,
-        [id, variante, request.user.username]
-      );
-
-      // Also log in garemodifiche for audit trail
-      await query(
-        `INSERT INTO garemodifiche ("id_gara", "UserName", "Data", "Modifiche")
-         VALUES ($1, $2, NOW(), $3)`,
-        [id, request.user.username, `INVIA: Inviate ${results.sent} notifiche email (${results.failed} fallite, ${results.skipped} saltate)`]
-      );
-
-      return { ...results, variante, inviato_da: request.user.username };
+      return { ...results, inviato_da: request.user.username };
     } catch (err) {
       fastify.log.error(err, 'Invia notifiche error');
       return reply.status(500).send({ error: 'Errore invio notifiche', details: err.message });
+    }
+  });
+
+  // ============================================================
+  // POST /api/esiti/:id/invia-email - Send esito via email to custom recipient
+  // ============================================================
+  fastify.post('/:id/invia-email', async (request, reply) => {
+    const { id } = request.params;
+    const { email, include_graduatoria = true } = request.body;
+
+    // Validate email
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      return reply.status(400).send({ error: 'Indirizzo email non valido' });
+    }
+
+    try {
+      // Get esito details
+      const esitoResult = await query(`
+        SELECT g."id", g."Titolo", g."CodiceCIG", g."Data", g."Importo",
+               g."NPartecipanti", g."Ribasso", g."MediaAr", g."SogliaAn",
+               s."Nome" AS stazione_nome,
+               soa."Descrizione" AS soa_categoria
+        FROM gare g
+        LEFT JOIN stazioni s ON g."id_stazione" = s."id"
+        LEFT JOIN soa ON g."id_soa" = soa."id"
+        WHERE g."id" = $1
+      `, [id]);
+
+      if (esitoResult.rows.length === 0) {
+        return reply.status(404).send({ error: 'Esito non trovato' });
+      }
+
+      const esito = esitoResult.rows[0];
+
+      // Get graduatoria if requested
+      let graduatoriaHtml = '';
+      if (include_graduatoria) {
+        const gradResult = await query(`
+          SELECT "Posizione", "RagioneSociale", "Ribasso", "Vincitrice", "Esclusa", "Anomala", "Note"
+          FROM dettagliogara
+          WHERE "id_gara" = $1
+          ORDER BY "Posizione" ASC
+        `, [id]);
+
+        if (gradResult.rows.length > 0) {
+          graduatoriaHtml = '<h3 style="color:#F5C518;margin-top:32px;margin-bottom:16px;border-bottom:2px solid #F5C518;padding-bottom:8px;">GRADUATORIA COMPLETA</h3>';
+          graduatoriaHtml += '<table style="width:100%;border-collapse:collapse;margin-bottom:24px;background:rgba(30,45,61,0.4);border-radius:8px;overflow:hidden;">';
+          graduatoriaHtml += '<thead><tr style="background:#1E2D3D;"><th style="padding:12px;text-align:left;font-weight:600;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.9em;text-transform:uppercase;">N°</th><th style="padding:12px;text-align:left;font-weight:600;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.9em;text-transform:uppercase;">RAGIONE SOCIALE</th><th style="padding:12px;text-align:left;font-weight:600;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.9em;text-transform:uppercase;">RIBASSO</th><th style="padding:12px;text-align:left;font-weight:600;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.9em;text-transform:uppercase;">RISULTATO</th></tr></thead>';
+          graduatoriaHtml += '<tbody>';
+
+          gradResult.rows.forEach((g) => {
+            const risultato = g.Vincitrice ? 'VINCITRICE' : g.Esclusa ? 'ESCLUSA' : g.Anomala ? 'ANOMALA' : 'AMMESSA';
+            const ribasso = g.Ribasso ? Number(g.Ribasso).toFixed(5) + '%' : '-';
+            let rowStyle = 'background:rgba(30,45,61,0.2);';
+            if (g.Vincitrice) {
+              rowStyle = 'background:linear-gradient(90deg,rgba(27,94,32,0.3) 0%,rgba(67,160,71,0.15) 100%);';
+            } else if (g.Esclusa) {
+              rowStyle = 'background:linear-gradient(90deg,rgba(97,97,97,0.3) 0%,rgba(158,158,158,0.15) 100%);';
+            } else if (g.Anomala) {
+              rowStyle = 'background:linear-gradient(90deg,rgba(183,28,28,0.35) 0%,rgba(244,67,54,0.2) 100%);';
+            }
+            graduatoriaHtml += '<tr style="' + rowStyle + '"><td style="padding:12px;border-bottom:1px solid rgba(245,197,24,0.1);color:#fff;">' + g.Posizione + '</td><td style="padding:12px;border-bottom:1px solid rgba(245,197,24,0.1);color:#fff;">' + (g.RagioneSociale || '') + '</td><td style="padding:12px;border-bottom:1px solid rgba(245,197,24,0.1);color:#fff;">' + ribasso + '</td><td style="padding:12px;border-bottom:1px solid rgba(245,197,24,0.1);color:#fff;">' + risultato + '</td></tr>';
+          });
+
+          graduatoriaHtml += '</tbody></table>';
+        }
+      }
+
+      // Build email HTML
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('it-IT') + ' ' + now.toLocaleTimeString('it-IT');
+
+      let htmlBody = `<div style="font-family:'Segoe UI',Arial,sans-serif;background:#0F1923;color:#fff;max-width:800px;margin:0 auto;padding:0;">`;
+      htmlBody += `<div style="background:linear-gradient(135deg,#1E2D3D 0%,#2A4158 100%);padding:32px 24px;border-radius:12px 12px 0 0;border-bottom:3px solid #F5C518;">`;
+      htmlBody += `<h1 style="color:#F5C518;font-size:2em;margin:0 0 8px 0;font-weight:700;">EASYWIN</h1>`;
+      htmlBody += `<h2 style="color:#fff;font-size:1.3em;margin:0;font-weight:300;">Esito di Gara #${id}</h2>`;
+      htmlBody += `</div>`;
+
+      htmlBody += `<div style="background:rgba(30,45,61,0.6);padding:24px;border-radius:0;margin:0;color:#fff;">`;
+      htmlBody += `<div style="margin-bottom:16px;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">STAZIONE APPALTANTE</span><br><span style="font-size:1em;color:#fff;font-weight:500;">${esito.stazione_nome || '-'}</span></div>`;
+      htmlBody += `<div style="margin-bottom:16px;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">OGGETTO</span><br><span style="font-size:1em;color:#fff;font-weight:500;">${esito.Titolo || '-'}</span></div>`;
+      htmlBody += `<div style="margin-bottom:16px;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">CODICE CIG</span><br><span style="font-size:1em;color:#fff;font-weight:500;">${esito.CodiceCIG || '-'}</span></div>`;
+      htmlBody += `<div style="margin-bottom:16px;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">DATA APERTURA</span><br><span style="font-size:1em;color:#fff;font-weight:500;">${esito.Data ? new Date(esito.Data).toLocaleDateString('it-IT') : '-'}</span></div>`;
+      htmlBody += `<div style="margin-bottom:16px;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">IMPORTO COMPLESSIVO</span><br><span style="font-size:1em;color:#fff;font-weight:500;">${esito.Importo ? Number(esito.Importo).toLocaleString('it-IT', {minimumFractionDigits: 2}) + ' €' : '-'}</span></div>`;
+      htmlBody += `<div style="margin-bottom:0;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">SOA PREVALENTE</span><br><span style="font-size:1em;color:#fff;font-weight:500;">${esito.soa_categoria || '-'}</span></div>`;
+      htmlBody += `</div>`;
+
+      htmlBody += `<div style="background:rgba(30,45,61,0.3);padding:24px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:0;">`;
+      htmlBody += `<div style="background:rgba(30,45,61,0.8);padding:16px;border-radius:8px;border:1px solid rgba(245,197,24,0.2);text-align:center;"><div style="font-size:0.8em;color:#aaa;text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Media Aritmetica</div><div style="font-size:1.6em;color:#F5C518;font-weight:700;">${esito.MediaAr ? Number(esito.MediaAr).toFixed(5) : '-'}%</div></div>`;
+      htmlBody += `<div style="background:rgba(30,45,61,0.8);padding:16px;border-radius:8px;border:1px solid rgba(245,197,24,0.2);text-align:center;"><div style="font-size:0.8em;color:#aaa;text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Soglia di Anomalia</div><div style="font-size:1.6em;color:#F5C518;font-weight:700;">${esito.SogliaAn ? Number(esito.SogliaAn).toFixed(5) : '-'}%</div></div>`;
+      htmlBody += `<div style="background:rgba(30,45,61,0.8);padding:16px;border-radius:8px;border:1px solid rgba(245,197,24,0.2);text-align:center;"><div style="font-size:0.8em;color:#aaa;text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Ribasso Vincitore</div><div style="font-size:1.6em;color:#F5C518;font-weight:700;">${esito.Ribasso ? Number(esito.Ribasso).toFixed(5) : '-'}%</div></div>`;
+      htmlBody += `<div style="background:rgba(30,45,61,0.8);padding:16px;border-radius:8px;border:1px solid rgba(245,197,24,0.2);text-align:center;"><div style="font-size:0.8em;color:#aaa;text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Partecipanti</div><div style="font-size:1.6em;color:#F5C518;font-weight:700;">${esito.NPartecipanti || '-'}</div></div>`;
+      htmlBody += `</div>`;
+
+      // Add graduatoria if requested
+      htmlBody += graduatoriaHtml;
+
+      htmlBody += `<div style="background:#1a2a38;padding:20px;text-align:center;font-size:0.85em;color:#aaa;border-top:1px solid rgba(245,197,24,0.2);">`;
+      htmlBody += `Generato da EasyWin<br><span style="font-size:0.8em;color:#777;margin-top:8px;display:block;">${dateStr}</span>`;
+      htmlBody += `</div></div>`;
+
+      // Send email
+      const { sendEmail } = await import('../services/email-service.js');
+      const emailResult = await sendEmail(
+        email,
+        `EasyWin - Esito Gara #${id}: ${esito.Titolo?.substring(0, 60) || 'Comunicazione Esito'}`,
+        htmlBody
+      );
+
+      if (emailResult.status === 'failed') {
+        return reply.status(500).send({ error: 'Errore invio email', details: emailResult.error });
+      }
+
+      return { status: 'success', message: 'Email inviata con successo', recipient: email };
+    } catch (err) {
+      fastify.log.error(err, 'Invia email error');
+      return reply.status(500).send({ error: 'Errore invio email', details: err.message });
+    }
+  });
+
+  // ============================================================
+  // POST /api/esiti/:id/invia-email-partecipanti - Send email to ALL participants
+  // Clients: receive FULL graduatoria
+  // Non-clients: receive PARTIAL (own position + 2 above/below)
+  // ============================================================
+  fastify.post('/:id/invia-email-partecipanti', async (request, reply) => {
+    const { id } = request.params;
+
+    try {
+      // 1. Fetch the gara/esito details
+      const garaResult = await query(`
+        SELECT g."id", g."Titolo", g."CodiceCIG", g."Data", g."Importo",
+               g."NPartecipanti", g."Ribasso", g."MediaAr", g."SogliaAn",
+               s."Nome" AS stazione_nome,
+               soa."Descrizione" AS soa_categoria,
+               tg."nome" AS tipologia,
+               c."nome" AS criterio
+        FROM gare g
+        LEFT JOIN stazioni s ON g."id_stazione" = s."id"
+        LEFT JOIN soa ON g."id_soa" = soa."id"
+        LEFT JOIN tipologia_gare tg ON g."id_tipologia" = tg."id"
+        LEFT JOIN criteri c ON g."id_criterio" = c."id"
+        WHERE g."id" = $1
+      `, [id]);
+
+      if (!garaResult.rows.length) {
+        return reply.status(404).send({ error: 'Esito non trovato' });
+      }
+      const gara = garaResult.rows[0];
+
+      // 2. Fetch ALL participants with company details
+      const partResult = await query(`
+        SELECT dg."Posizione", dg."Ribasso", dg."Vincitrice", dg."Esclusa", dg."Anomala", dg."RagioneSociale",
+               a."id" AS id_azienda, a."RagioneSociale" AS azienda_rs, a."Email", a."PartitaIva"
+        FROM dettagliogara dg
+        LEFT JOIN aziende a ON dg."id_azienda" = a."id"
+        WHERE dg."id_gara" = $1
+        ORDER BY dg."Posizione" ASC
+      `, [id]);
+
+      const graduatoria = partResult.rows;
+
+      // 3. Check which companies are our clients (have active users with valid subscriptions)
+      const aziendaIds = graduatoria.filter(p => p.id_azienda).map(p => p.id_azienda);
+      let clientiIds = new Set();
+
+      if (aziendaIds.length > 0) {
+        const clientiResult = await query(`
+          SELECT DISTINCT u."id_azienda" FROM users u
+          WHERE u."id_azienda" = ANY($1)
+          AND u."is_approved" = true
+          AND (u."expire" IS NULL OR u."expire" > NOW())
+        `, [aziendaIds]);
+        clientiIds = new Set(clientiResult.rows.map(r => r.id_azienda));
+      }
+
+      // 4. For each participant with email, generate and send
+      let sent = 0, skipped = 0, errors = 0;
+      const results = [];
+      const { sendEmail } = await import('../services/email-service.js');
+
+      for (const partecipante of graduatoria) {
+        if (!partecipante.Email) {
+          skipped++;
+          results.push({ azienda: partecipante.azienda_rs || partecipante.RagioneSociale, status: 'skipped', reason: 'Email mancante' });
+          continue;
+        }
+
+        const isCliente = clientiIds.has(partecipante.id_azienda);
+
+        try {
+          // Generate HTML email
+          const htmlEmail = generateParticipantEmail(gara, graduatoria, partecipante, isCliente);
+
+          const emailResult = await sendEmail(
+            partecipante.Email,
+            `EasyWin - Esito Gara: ${gara.Titolo?.substring(0, 80) || 'Comunicazione Esito'}`,
+            htmlEmail
+          );
+
+          if (emailResult.status === 'sent') {
+            sent++;
+            results.push({
+              azienda: partecipante.azienda_rs || partecipante.RagioneSociale,
+              email: partecipante.Email,
+              status: 'sent',
+              tipo: isCliente ? 'completo' : 'parziale'
+            });
+          } else {
+            errors++;
+            results.push({
+              azienda: partecipante.azienda_rs || partecipante.RagioneSociale,
+              email: partecipante.Email,
+              status: 'error',
+              error: emailResult.error || 'Errore sconosciuto'
+            });
+          }
+        } catch (err) {
+          errors++;
+          results.push({
+            azienda: partecipante.azienda_rs || partecipante.RagioneSociale,
+            email: partecipante.Email,
+            status: 'error',
+            error: err.message
+          });
+        }
+      }
+
+      return { sent, skipped, errors, total: graduatoria.length, details: results };
+    } catch (err) {
+      fastify.log.error(err, 'Invia email partecipanti error');
+      return reply.status(500).send({ error: 'Errore invio email', details: err.message });
     }
   });
 
@@ -780,20 +1304,19 @@ export default async function esitiRoutes(fastify) {
   fastify.get('/:id/invii', async (request) => {
     const { id } = request.params;
     const result = await query(
-      `SELECT "id_gara", "Variante", "Data", "Username" FROM gareinvii WHERE "id_gara" = $1 ORDER BY "Data" DESC`,
+      `SELECT "id_gara", "created_at" AS data FROM gare WHERE "id_gara" = $1 ORDER BY "created_at" DESC`,
       [id]
     );
     return result.rows;
   });
 
   // ============================================================
-  // GET /api/esiti/:id/storia - Audit trail from garemodifiche
+  // GET /api/esiti/:id/storia - Audit trail
   // ============================================================
   fastify.get('/:id/storia', async (request) => {
     const { id } = request.params;
     const result = await query(
-      `SELECT "id_gara", "UserName" AS username, "Data" AS data, "Modifiche" AS modifiche
-       FROM garemodifiche WHERE "id_gara" = $1 ORDER BY "Data" DESC`,
+      `SELECT "id", "updated_at" AS data FROM gare WHERE "id" = $1`,
       [id]
     );
     return result.rows;
@@ -801,7 +1324,6 @@ export default async function esitiRoutes(fastify) {
 
   // ============================================================
   // UTILITY: CalcolaIDTipologiaEsito - Mapping function from original ASP.NET
-  // Maps (bando_tipologia + criterio) to correct esito tipologia ID (1-51)
   // ============================================================
   function calcolaIDTipologiaEsito(idTipologiaBando, idCriterio, extraParams = {}) {
     // Mapping arrays from SimulazioniController.cs
@@ -883,7 +1405,6 @@ export default async function esitiRoutes(fastify) {
 
   // ============================================================
   // POST /api/esiti/calcola-tipologia - Calculate correct esito tipologia
-  // Given {id_tipologia_bando, id_criterio, extra_params}, returns id_tipologia for esito
   // ============================================================
   fastify.post('/calcola-tipologia', async (request) => {
     const {
@@ -914,21 +1435,6 @@ export default async function esitiRoutes(fastify) {
         extraParams
       );
 
-      // Log this calculation if id_gara is provided
-      if (id_gara) {
-        await query(
-          `INSERT INTO esiti_tipologie_log ("id_gara", "id_tipologia_bando", "id_criterio", "id_tipologia_calcolata", "extra_params", "data_calcolo")
-           VALUES ($1, $2, $3, $4, $5, NOW())`,
-          [
-            parseInt(id_gara),
-            parseInt(id_tipologia_bando),
-            parseInt(id_criterio),
-            idTipologiaCalcolata,
-            JSON.stringify(extraParams)
-          ]
-        );
-      }
-
       return {
         id_tipologia_bando: parseInt(id_tipologia_bando),
         id_criterio: parseInt(id_criterio),
@@ -946,19 +1452,20 @@ export default async function esitiRoutes(fastify) {
   // GET /api/esiti/cestino - List deleted esiti
   // ============================================================
   fastify.get('/cestino', { preHandler: [fastify.authenticate] }, async (request) => {
-    const { page = 1, limit = 25, sort = 'Data', order = 'DESC' } = request.query;
+    const { page = 1, limit = 25, sort = 'data', order = 'DESC' } = request.query;
     const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
-    const allowedSort = ['Data', 'Titolo', 'Importo', 'NPartecipanti'];
-    const sortCol = allowedSort.includes(sort) ? `g."${sort}"` : 'g."Data"';
+    const allowedSort = ['data', 'importo', 'n_partecipanti'];
+    const sortCol = allowedSort.includes(sort) ? `g."${sort}"` : 'g."data"';
     const sortDir = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
     const [countResult, dataResult] = await Promise.all([
-      query(`SELECT COUNT(*) as total FROM gare g WHERE g."eliminata" = true`),
+      query(`SELECT COUNT(*) as total FROM gare g WHERE g."annullato" = true`),
       query(`
-        SELECT g."id", g."Data" AS data, g."Titolo" AS titolo, g."NPartecipanti" AS n_partecipanti,
-          g."Importo" AS importo, g."DataModifica" AS data_modifica
+        SELECT g."id", g."data" AS data, b."titolo" AS titolo, g."n_partecipanti" AS n_partecipanti,
+          g."importo" AS importo, g."updated_at" AS data_modifica
         FROM gare g
-        WHERE g."eliminata" = true
+        LEFT JOIN bandi b ON g."id_bando" = b."id"
+        WHERE g."annullato" = true
         ORDER BY ${sortCol} ${sortDir}
         LIMIT $1 OFFSET $2
       `, [parseInt(limit), offset])
@@ -978,7 +1485,7 @@ export default async function esitiRoutes(fastify) {
   fastify.post('/:id/ripristina', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const { id } = request.params;
     const result = await query(
-      `UPDATE gare SET "eliminata" = false, "DataModifica" = NOW() WHERE "id" = $1 AND "eliminata" = true RETURNING "id"`,
+      `UPDATE gare SET "annullato" = false, "updated_at" = NOW() WHERE "id" = $1 AND "annullato" = true RETURNING "id"`,
       [id]
     );
     if (result.rows.length === 0) {
@@ -991,41 +1498,55 @@ export default async function esitiRoutes(fastify) {
   // GET /api/esiti/incompleti - List esiti with missing required fields
   // ============================================================
   fastify.get('/incompleti', { preHandler: [fastify.authenticate] }, async (request) => {
-    const { page = 1, limit = 25 } = request.query;
+    const { page = 1, limit = 50 } = request.query;
     const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
 
+    const incompleteCond = `"annullato" = false AND (
+      b."titolo" IS NULL OR b."titolo" = '' OR
+      b."id_stazione" IS NULL OR
+      g."data" IS NULL OR
+      g."importo" IS NULL OR
+      g."id_tipologia" IS NULL OR
+      g."n_partecipanti" IS NULL OR g."n_partecipanti" = 0
+    )`;
+
     const [countResult, dataResult] = await Promise.all([
+      query(`SELECT COUNT(*) as total FROM gare g LEFT JOIN bandi b ON g."id_bando" = b."id" WHERE ${incompleteCond}`),
       query(`
-        SELECT COUNT(*) as total FROM gare
-        WHERE "eliminata" = false AND (
-          "Titolo" IS NULL OR "Titolo" = '' OR
-          "id_stazione" IS NULL OR
-          "Data" IS NULL OR
-          "Importo" IS NULL OR
-          "id_tipologia" IS NULL OR
-          "NPartecipanti" IS NULL OR "NPartecipanti" = 0
-        )
-      `),
-      query(`
-        SELECT "id", "Data" AS data, "Titolo" AS titolo, "NPartecipanti" AS n_partecipanti,
-          "Importo" AS importo, "id_stazione", "id_tipologia"
-        FROM gare
-        WHERE "eliminata" = false AND (
-          "Titolo" IS NULL OR "Titolo" = '' OR
-          "id_stazione" IS NULL OR
-          "Data" IS NULL OR
-          "Importo" IS NULL OR
-          "id_tipologia" IS NULL OR
-          "NPartecipanti" IS NULL OR "NPartecipanti" = 0
-        )
-        ORDER BY "Data" DESC
+        SELECT g."id", g."data" AS data, b."titolo" AS titolo, g."n_partecipanti" AS n_partecipanti,
+          g."importo" AS importo, b."codice_cig" AS codice_cig,
+          s."nome" AS stazione,
+          tg."nome" AS tipologia,
+          soa."codice" AS soa_codice,
+          p."nome" AS provincia,
+          r."nome" AS regione,
+          ARRAY_REMOVE(ARRAY[
+            CASE WHEN b."titolo" IS NULL OR b."titolo" = '' THEN 'Titolo' END,
+            CASE WHEN b."id_stazione" IS NULL THEN 'Stazione' END,
+            CASE WHEN g."data" IS NULL THEN 'Data' END,
+            CASE WHEN g."importo" IS NULL THEN 'Importo' END,
+            CASE WHEN g."id_tipologia" IS NULL THEN 'Tipologia' END,
+            CASE WHEN g."n_partecipanti" IS NULL OR g."n_partecipanti" = 0 THEN 'N.Partecipanti' END
+          ], NULL) AS missing_fields_arr
+        FROM gare g
+        LEFT JOIN bandi b ON g."id_bando" = b."id"
+        LEFT JOIN stazioni s ON b."id_stazione" = s."id"
+        LEFT JOIN tipologia_gare tg ON g."id_tipologia" = tg."id"
+        LEFT JOIN soa ON g."id_soa" = soa."id"
+        LEFT JOIN province p ON s."id_provincia" = p."id"
+        LEFT JOIN regioni r ON p."id_regione" = r."id"
+        WHERE ${incompleteCond}
+        ORDER BY g."data" DESC
         LIMIT $1 OFFSET $2
       `, [parseInt(limit), offset])
     ]);
 
     return {
-      data: dataResult.rows,
-      total: countResult.rows[0].total,
+      data: dataResult.rows.map(r => ({
+        ...r,
+        missing_fields: r.missing_fields_arr ? r.missing_fields_arr.join(', ') : ''
+      })),
+      total: parseInt(countResult.rows[0].total),
       page: parseInt(page),
       limit: parseInt(limit)
     };
@@ -1035,27 +1556,45 @@ export default async function esitiRoutes(fastify) {
   // GET /api/esiti/da-abilitare - List confirmed but not enabled esiti
   // ============================================================
   fastify.get('/da-abilitare', { preHandler: [fastify.authenticate] }, async (request) => {
-    const { page = 1, limit = 25 } = request.query;
+    const { page = 1, limit = 50, search, cig } = request.query;
     const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
+    const conditions = [`g."annullato" = false`];
+    const params = [];
+    let paramIdx = 1;
+    if (search) {
+      conditions.push(`(b."titolo" ILIKE $${paramIdx} OR s."nome" ILIKE $${paramIdx})`);
+      params.push(`%${search}%`);
+      paramIdx++;
+    }
+    if (cig) {
+      conditions.push(`b."codice_cig" ILIKE $${paramIdx}`);
+      params.push(`%${cig}%`);
+      paramIdx++;
+    }
+    const where = conditions.join(' AND ');
 
     const [countResult, dataResult] = await Promise.all([
+      query(`SELECT COUNT(*) as total FROM gare g LEFT JOIN bandi b ON g."id_bando" = b."id" LEFT JOIN stazioni s ON b."id_stazione" = s."id" WHERE ${where}`, params),
       query(`
-        SELECT COUNT(*) as total FROM gare
-        WHERE "eliminata" = false AND "temp" = false AND "enabled" = false
-      `),
-      query(`
-        SELECT "id", "Data" AS data, "Titolo" AS titolo, "NPartecipanti" AS n_partecipanti,
-          "Importo" AS importo, "temp", "enabled"
-        FROM gare
-        WHERE "eliminata" = false AND "temp" = false AND "enabled" = false
-        ORDER BY "Data" DESC
-        LIMIT $1 OFFSET $2
-      `, [parseInt(limit), offset])
+        SELECT g."id", g."data" AS data, b."titolo" AS titolo, g."n_partecipanti" AS n_partecipanti,
+          g."importo" AS importo, b."codice_cig" AS codice_cig,
+          s."nome" AS stazione,
+          tg."nome" AS tipologia,
+          soa."codice" AS soa_codice
+        FROM gare g
+        LEFT JOIN bandi b ON g."id_bando" = b."id"
+        LEFT JOIN stazioni s ON b."id_stazione" = s."id"
+        LEFT JOIN tipologia_gare tg ON g."id_tipologia" = tg."id"
+        LEFT JOIN soa ON g."id_soa" = soa."id"
+        WHERE ${where}
+        ORDER BY g."data" DESC
+        LIMIT $${paramIdx} OFFSET $${paramIdx + 1}
+      `, [...params, parseInt(limit), offset])
     ]);
 
     return {
       data: dataResult.rows,
-      total: countResult.rows[0].total,
+      total: parseInt(countResult.rows[0].total),
       page: parseInt(page),
       limit: parseInt(limit)
     };
@@ -1065,27 +1604,32 @@ export default async function esitiRoutes(fastify) {
   // GET /api/esiti/modificabili - List esiti with collaborative editing
   // ============================================================
   fastify.get('/modificabili', { preHandler: [fastify.authenticate] }, async (request) => {
-    const { page = 1, limit = 25 } = request.query;
+    const { page = 1, limit = 50 } = request.query;
     const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
 
     const [countResult, dataResult] = await Promise.all([
+      query(`SELECT COUNT(*) as total FROM gare WHERE "annullato" = false`),
       query(`
-        SELECT COUNT(*) as total FROM gare
-        WHERE "eliminata" = false AND "EnableToAll" = true
-      `),
-      query(`
-        SELECT "id", "Data" AS data, "Titolo" AS titolo, "NPartecipanti" AS n_partecipanti,
-          "Importo" AS importo, "EnableToAll"
-        FROM gare
-        WHERE "eliminata" = false AND "EnableToAll" = true
-        ORDER BY "Data" DESC
+        SELECT g."id", g."data" AS data, b."titolo" AS titolo, g."n_partecipanti" AS n_partecipanti,
+          g."importo" AS importo, b."codice_cig" AS codice_cig,
+          s."nome" AS stazione,
+          tg."nome" AS tipologia,
+          soa."codice" AS soa_codice,
+          g."updated_at" AS data_modifica
+        FROM gare g
+        LEFT JOIN bandi b ON g."id_bando" = b."id"
+        LEFT JOIN stazioni s ON b."id_stazione" = s."id"
+        LEFT JOIN tipologia_gare tg ON g."id_tipologia" = tg."id"
+        LEFT JOIN soa ON g."id_soa" = soa."id"
+        WHERE g."annullato" = false
+        ORDER BY g."updated_at" DESC NULLS LAST, g."data" DESC
         LIMIT $1 OFFSET $2
       `, [parseInt(limit), offset])
     ]);
 
     return {
       data: dataResult.rows,
-      total: countResult.rows[0].total,
+      total: parseInt(countResult.rows[0].total),
       page: parseInt(page),
       limit: parseInt(limit)
     };
@@ -1114,9 +1658,8 @@ export default async function esitiRoutes(fastify) {
         let idx = 1;
 
         const fieldsToClone = [
-          'Titolo', 'CodiceCIG', 'id_stazione', 'Data', 'Importo', 'id_tipologia',
-          'NPartecipanti', 'Ribasso', 'MediaAr', 'MediaAlt', 'MediaScIstanza',
-          'MediaScAppello', 'Anomala', 'Variante', 'ModificatoDa'
+          'id_bando', 'data', 'n_partecipanti',
+          'importo', 'ribasso'
         ];
 
         fieldsToClone.forEach(field => {
@@ -1126,57 +1669,21 @@ export default async function esitiRoutes(fastify) {
           }
         });
 
-        insertFields.push('"temp"', '"enabled"', '"eliminata"', '"InserimentoDa"');
-        insertValues.push(true, false, false, request.user?.username || 'system');
-
         const newEsitoResult = await trx(
-          `INSERT INTO gare (${insertFields.join(', ')}) VALUES (${insertFields.map(() => `$${idx++}`).join(', ')}) RETURNING "id"`,
+          `INSERT INTO gare (${insertFields.join(', ')}, created_at, updated_at) VALUES (${insertFields.map(() => `$${idx++}`).join(', ')}, NOW(), NOW()) RETURNING "id"`,
           insertValues
         );
 
         const newId = newEsitoResult.rows[0].id;
 
-        // Clone province
-        await trx(
-          `INSERT INTO gare_province ("id_gara", "id_provincia")
-           SELECT $1, "id_provincia" FROM gare_province WHERE "id_gara" = $2`,
-          [newId, id]
-        );
-
-        // Clone SOA (all 4 types)
-        await trx(
-          `INSERT INTO gare_soa_sec ("id_gara", "id_soa")
-           SELECT $1, "id_soa" FROM gare_soa_sec WHERE "id_gara" = $2`,
-          [newId, id]
-        );
-        await trx(
-          `INSERT INTO gare_soa_alt ("id_gara", "id_soa")
-           SELECT $1, "id_soa" FROM gare_soa_alt WHERE "id_gara" = $2`,
-          [newId, id]
-        );
-        await trx(
-          `INSERT INTO gare_soa_app ("id_gara", "id_soa")
-           SELECT $1, "id_soa" FROM gare_soa_app WHERE "id_gara" = $2`,
-          [newId, id]
-        );
-        await trx(
-          `INSERT INTO gare_soa_sost ("id_gara", "id_soa")
-           SELECT $1, "id_soa" FROM gare_soa_sost WHERE "id_gara" = $2`,
-          [newId, id]
-        );
-
         // Clone dettagli_gara
         await trx(
           `INSERT INTO dettaglio_gara (
-            id_gara, variante, id_azienda, posizione, ribasso, importo_offerta,
-            taglio_ali, anomala, vincitrice, ammessa, esclusa,
-            da_verificare, sconosciuto, ragione_sociale, partita_iva,
-            punteggio_tecnico, punteggio_economico, punteggio_totale, inserimento, note
+            id_gara, id_azienda, posizione, ribasso, importo_offerta,
+            anomala, vincitrice, ammessa, note
           )
-           SELECT $1, variante, id_azienda, posizione, ribasso, importo_offerta,
-            taglio_ali, anomala, vincitrice, ammessa, esclusa,
-            da_verificare, sconosciuto, ragione_sociale, partita_iva,
-            punteggio_tecnico, punteggio_economico, punteggio_totale, inserimento, note
+           SELECT $1, id_azienda, posizione, ribasso, importo_offerta,
+            anomala, vincitrice, ammessa, note
            FROM dettaglio_gara WHERE id_gara = $2`,
           [newId, id]
         );
@@ -1184,12 +1691,11 @@ export default async function esitiRoutes(fastify) {
         return newId;
       });
 
-      const newEsitoResult = await query('SELECT "id" FROM gare WHERE "id" = $1', []);
+      const newEsitoResult = await query('SELECT "id" FROM gare LIMIT 1', []);
       return reply.status(201).send({
         message: 'Esito clonato',
-        new_id: newId,
-        temp: true,
-        enabled: false
+        new_id: newEsitoResult.rows[0]?.id,
+        created: true
       });
     } catch (err) {
       fastify.log.error(err);
@@ -1198,936 +1704,267 @@ export default async function esitiRoutes(fastify) {
   });
 
   // ============================================================
-  // ATI/Mandanti Management
+  // ATI Management (Associazione Temporanea di Imprese)
   // ============================================================
 
   // GET /api/esiti/:id/ati - List all ATI for esito
-  fastify.get('/:id/ati', { preHandler: [fastify.authenticate] }, async (request) => {
+  fastify.get('/:id/ati', async (request) => {
     const { id } = request.params;
     const result = await query(`
-      SELECT ag."id", ag."id_gara", ag."id_azienda" AS id_mandataria,
-        az."ragione_sociale" AS mandataria_nome,
-        json_agg(
-          json_build_object(
-            'id_mandante', m."id_azienda",
-            'mandante_nome', m_az."ragione_sociale",
-            'quota', m."quota"
-          )
-        ) AS mandanti
+      SELECT ag."id", ag."id_gara", ag."tipo_ati", ag."avvalimento", ag."ati",
+        ag."da_verificare", ag."inserimento",
+        ag."id_mandataria", m1."ragione_sociale" AS mandataria_nome, m1."partita_iva" AS mandataria_piva,
+        ag."id_mandante", m2."ragione_sociale" AS mandante_nome, m2."partita_iva" AS mandante_piva
       FROM ati_gare ag
-      JOIN aziende az ON ag."id_azienda" = az."id"
-      LEFT JOIN mandanti m ON ag."id" = m."id_ati"
-      LEFT JOIN aziende m_az ON m."id_azienda" = m_az."id"
+      LEFT JOIN aziende m1 ON ag."id_mandataria" = m1."id"
+      LEFT JOIN aziende m2 ON ag."id_mandante" = m2."id"
       WHERE ag."id_gara" = $1
-      GROUP BY ag."id", ag."id_gara", ag."id_azienda", az."ragione_sociale"
+      ORDER BY ag."tipo_ati", ag."id"
     `, [id]);
     return result.rows;
   });
 
-  // POST /api/esiti/:id/ati - Create ATI
-  fastify.post('/:id/ati', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+  // POST /api/esiti/:id/ati - Create ATI entry
+  fastify.post('/:id/ati', async (request, reply) => {
     const { id } = request.params;
-    const { id_mandataria, mandanti } = request.body;
+    const { id_mandataria, id_mandante, tipo_ati, avvalimento, da_verificare } = request.body;
 
-    if (!id_mandataria) {
-      return reply.status(400).send({ error: 'id_mandataria è obbligatorio' });
-    }
+    const result = await query(`
+      INSERT INTO ati_gare ("id_gara", "id_mandataria", "id_mandante", "tipo_ati", "avvalimento", "ati", "da_verificare")
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `, [
+      id,
+      id_mandataria || null,
+      id_mandante || null,
+      tipo_ati || 1,
+      avvalimento || false,
+      !avvalimento,  // ati = true if not avvalimento
+      da_verificare || false
+    ]);
 
-    try {
-      await transaction(async (trx) => {
-        const atiResult = await trx(
-          `INSERT INTO ati_gare ("id_gara", "id_azienda") VALUES ($1, $2) RETURNING "id"`,
-          [id, id_mandataria]
-        );
-        const id_ati = atiResult.rows[0].id;
-
-        if (mandanti && Array.isArray(mandanti)) {
-          for (const m of mandanti) {
-            await trx(
-              `INSERT INTO mandanti ("id_ati", "id_azienda", "quota") VALUES ($1, $2, $3)`,
-              [id_ati, m.id_azienda, m.quota || null]
-            );
-          }
-        }
-      });
-
-      return reply.status(201).send({ message: 'ATI creato' });
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
+    return reply.status(201).send(result.rows[0]);
   });
 
-  // PUT /api/esiti/ati/:idAti - Update ATI
-  fastify.put('/ati/:idAti', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { idAti } = request.params;
-    const { id_azienda } = request.body;
-
-    if (!id_azienda) {
-      return reply.status(400).send({ error: 'id_azienda è obbligatorio' });
+  // PUT /api/esiti/:id/ati/:atiId - Update ATI entry
+  fastify.put('/:id/ati/:atiId', async (request, reply) => {
+    const { id, atiId } = request.params;
+    const det = request.body;
+    const allowedFields = ['id_mandataria', 'id_mandante', 'tipo_ati', 'avvalimento', 'ati', 'da_verificare'];
+    const sets = [];
+    const params = [];
+    let idx = 1;
+    for (const f of allowedFields) {
+      if (det[f] !== undefined) {
+        sets.push(`"${f}" = $${idx}`);
+        params.push(det[f]);
+        idx++;
+      }
     }
-
+    if (sets.length === 0) return reply.status(400).send({ error: 'Nessun campo da aggiornare' });
+    params.push(atiId, id);
     const result = await query(
-      `UPDATE ati_gare SET "id_azienda" = $1 WHERE "id" = $2 RETURNING *`,
-      [id_azienda, idAti]
+      `UPDATE ati_gare SET ${sets.join(', ')} WHERE "id" = $${idx} AND "id_gara" = $${idx+1} RETURNING *`,
+      params
     );
-
-    if (result.rows.length === 0) {
-      return reply.status(404).send({ error: 'ATI non trovato' });
-    }
+    if (!result.rows.length) return reply.status(404).send({ error: 'ATI non trovato' });
     return result.rows[0];
   });
 
-  // DELETE /api/esiti/ati/:idAti - Delete ATI
-  fastify.delete('/ati/:idAti', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { idAti } = request.params;
-
-    await query(`DELETE FROM mandanti WHERE "id_ati" = $1`, [idAti]);
+  // DELETE /api/esiti/:id/ati/:atiId - Remove ATI
+  fastify.delete('/:id/ati/:atiId', async (request, reply) => {
+    const { id, atiId } = request.params;
     const result = await query(
-      `DELETE FROM ati_gare WHERE "id" = $1 RETURNING "id"`,
-      [idAti]
+      `DELETE FROM ati_gare WHERE "id" = $1 AND "id_gara" = $2 RETURNING "id"`,
+      [atiId, id]
     );
-
-    if (result.rows.length === 0) {
-      return reply.status(404).send({ error: 'ATI non trovato' });
-    }
+    if (!result.rows.length) return reply.status(404).send({ error: 'ATI non trovato' });
     return { message: 'ATI eliminato', id: result.rows[0].id };
   });
 
-  // GET /api/esiti/:id/mandanti/:idAzienda - Get mandanti for mandataria
-  fastify.get('/:id/mandanti/:idAzienda', { preHandler: [fastify.authenticate] }, async (request) => {
-    const { id, idAzienda } = request.params;
-    const result = await query(`
-      SELECT m."id", m."id_ati", m."id_azienda", m."quota",
-        az."ragione_sociale" AS azienda_nome
-      FROM mandanti m
-      JOIN ati_gare ag ON m."id_ati" = ag."id"
-      JOIN aziende az ON m."id_azienda" = az."id"
-      WHERE ag."id_gara" = $1 AND ag."id_azienda" = $2
-    `, [id, idAzienda]);
-    return result.rows;
-  });
-
-  // POST /api/esiti/:id/mandanti - Add mandante
-  fastify.post('/:id/mandanti', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params;
-    const { id_ati, id_azienda, quota } = request.body;
-
-    if (!id_ati || !id_azienda) {
-      return reply.status(400).send({ error: 'id_ati e id_azienda sono obbligatori' });
-    }
-
-    try {
-      const result = await query(
-        `INSERT INTO mandanti ("id_ati", "id_azienda", "quota") VALUES ($1, $2, $3) RETURNING *`,
-        [id_ati, id_azienda, quota || null]
-      );
-      return reply.status(201).send(result.rows[0]);
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
-  });
-
-  // DELETE /api/esiti/mandanti/:idMandante - Remove mandante
-  fastify.delete('/mandanti/:idMandante', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { idMandante } = request.params;
-    const result = await query(
-      `DELETE FROM mandanti WHERE "id" = $1 RETURNING "id"`,
-      [idMandante]
-    );
-
-    if (result.rows.length === 0) {
-      return reply.status(404).send({ error: 'Mandante non trovato' });
-    }
-    return { message: 'Mandante rimosso', id: result.rows[0].id };
-  });
-
   // ============================================================
-  // Punteggi OEPV (Offerta Economicamente Più Vantaggiosa)
+  // AVVALIMENTI Management
   // ============================================================
 
-  // GET /api/esiti/:id/punteggi - Get all scoring criteria
-  fastify.get('/:id/punteggi', { preHandler: [fastify.authenticate] }, async (request) => {
+  // GET /api/esiti/:id/avvalimenti - List all avvalimenti for esito
+  fastify.get('/:id/avvalimenti', async (request) => {
     const { id } = request.params;
     const result = await query(`
-      SELECT p."id", p."id_gara", p."id_azienda", p."punteggio_tecnico",
-        p."punteggio_economico", p."punteggio_totale",
-        az."ragione_sociale" AS azienda_nome
-      FROM punteggi p
-      LEFT JOIN aziende az ON p."id_azienda" = az."id"
-      WHERE p."id_gara" = $1
-      ORDER BY p."punteggio_totale" DESC
-    `, [id]);
-    return result.rows;
-  });
-
-  // POST /api/esiti/:id/punteggi - Add score
-  fastify.post('/:id/punteggi', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params;
-    const { id_azienda, punteggio_tecnico, punteggio_economico, punteggio_totale } = request.body;
-
-    if (!id_azienda) {
-      return reply.status(400).send({ error: 'id_azienda è obbligatorio' });
-    }
-
-    try {
-      const result = await query(
-        `INSERT INTO punteggi ("id_gara", "id_azienda", "punteggio_tecnico", "punteggio_economico", "punteggio_totale")
-         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [id, id_azienda, punteggio_tecnico || null, punteggio_economico || null, punteggio_totale || null]
-      );
-      return reply.status(201).send(result.rows[0]);
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
-  });
-
-  // PUT /api/esiti/punteggi/:idPunteggio - Update score
-  fastify.put('/punteggi/:idPunteggio', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { idPunteggio } = request.params;
-    const { punteggio_tecnico, punteggio_economico, punteggio_totale } = request.body;
-
-    const updateFields = [];
-    const updateValues = [];
-    let idx = 1;
-
-    if (punteggio_tecnico !== undefined) {
-      updateFields.push(`"punteggio_tecnico" = $${idx++}`);
-      updateValues.push(punteggio_tecnico);
-    }
-    if (punteggio_economico !== undefined) {
-      updateFields.push(`"punteggio_economico" = $${idx++}`);
-      updateValues.push(punteggio_economico);
-    }
-    if (punteggio_totale !== undefined) {
-      updateFields.push(`"punteggio_totale" = $${idx++}`);
-      updateValues.push(punteggio_totale);
-    }
-
-    if (updateFields.length === 0) {
-      return reply.status(400).send({ error: 'Nessun campo da aggiornare' });
-    }
-
-    updateValues.push(idPunteggio);
-    const result = await query(
-      `UPDATE punteggi SET ${updateFields.join(', ')} WHERE "id" = $${idx} RETURNING *`,
-      updateValues
-    );
-
-    if (result.rows.length === 0) {
-      return reply.status(404).send({ error: 'Punteggio non trovato' });
-    }
-    return result.rows[0];
-  });
-
-  // DELETE /api/esiti/punteggi/:idPunteggio - Delete score
-  fastify.delete('/punteggi/:idPunteggio', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { idPunteggio } = request.params;
-    const result = await query(
-      `DELETE FROM punteggi WHERE "id" = $1 RETURNING "id"`,
-      [idPunteggio]
-    );
-
-    if (result.rows.length === 0) {
-      return reply.status(404).send({ error: 'Punteggio non trovato' });
-    }
-    return { message: 'Punteggio eliminato', id: result.rows[0].id };
-  });
-
-  // POST /api/esiti/:id/punteggi/bulk - Bulk import scores
-  fastify.post('/:id/punteggi/bulk', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params;
-    const { punteggi } = request.body;
-
-    if (!Array.isArray(punteggi) || punteggi.length === 0) {
-      return reply.status(400).send({ error: 'punteggi deve essere un array non vuoto' });
-    }
-
-    try {
-      await transaction(async (trx) => {
-        for (const p of punteggi) {
-          await trx(
-            `INSERT INTO punteggi ("id_gara", "id_azienda", "punteggio_tecnico", "punteggio_economico", "punteggio_totale")
-             VALUES ($1, $2, $3, $4, $5)`,
-            [id, p.id_azienda, p.pt || null, p.pe || null, p.ptot || null]
-          );
-        }
-      });
-
-      return reply.status(201).send({ message: `${punteggi.length} punteggi importati` });
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
-  });
-
-  // ============================================================
-  // Ricorsi (Appeals)
-  // ============================================================
-
-  // GET /api/esiti/:id/ricorsi - List appeals for esito
-  fastify.get('/:id/ricorsi', { preHandler: [fastify.authenticate] }, async (request) => {
-    const { id } = request.params;
-    const result = await query(`
-      SELECT r."id", r."id_gara", r."id_azienda", r."tipo", r."data_ricorso",
-        r."esito_ricorso", r."note",
-        az."ragione_sociale" AS azienda_nome
-      FROM gare_ricorsi r
-      LEFT JOIN aziende az ON r."id_azienda" = az."id"
-      WHERE r."id_gara" = $1
-      ORDER BY r."data_ricorso" DESC
-    `, [id]);
-    return result.rows;
-  });
-
-  // POST /api/esiti/:id/ricorsi - Create appeal
-  fastify.post('/:id/ricorsi', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params;
-    const { id_azienda, tipo, data_ricorso, esito_ricorso, note } = request.body;
-
-    if (!id_azienda) {
-      return reply.status(400).send({ error: 'id_azienda è obbligatorio' });
-    }
-
-    try {
-      const result = await query(
-        `INSERT INTO gare_ricorsi ("id_gara", "id_azienda", "tipo", "data_ricorso", "esito_ricorso", "note")
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [id, id_azienda, tipo || null, data_ricorso || null, esito_ricorso || null, note || null]
-      );
-      return reply.status(201).send(result.rows[0]);
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
-  });
-
-  // PUT /api/esiti/ricorsi/:idRicorso - Update appeal
-  fastify.put('/ricorsi/:idRicorso', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { idRicorso } = request.params;
-    const { tipo, data_ricorso, esito_ricorso, note } = request.body;
-
-    const updateFields = [];
-    const updateValues = [];
-    let idx = 1;
-
-    if (tipo !== undefined) {
-      updateFields.push(`"tipo" = $${idx++}`);
-      updateValues.push(tipo);
-    }
-    if (data_ricorso !== undefined) {
-      updateFields.push(`"data_ricorso" = $${idx++}`);
-      updateValues.push(data_ricorso);
-    }
-    if (esito_ricorso !== undefined) {
-      updateFields.push(`"esito_ricorso" = $${idx++}`);
-      updateValues.push(esito_ricorso);
-    }
-    if (note !== undefined) {
-      updateFields.push(`"note" = $${idx++}`);
-      updateValues.push(note);
-    }
-
-    if (updateFields.length === 0) {
-      return reply.status(400).send({ error: 'Nessun campo da aggiornare' });
-    }
-
-    updateValues.push(idRicorso);
-    const result = await query(
-      `UPDATE gare_ricorsi SET ${updateFields.join(', ')} WHERE "id" = $${idx} RETURNING *`,
-      updateValues
-    );
-
-    if (result.rows.length === 0) {
-      return reply.status(404).send({ error: 'Ricorso non trovato' });
-    }
-    return result.rows[0];
-  });
-
-  // DELETE /api/esiti/ricorsi/:idRicorso - Delete appeal
-  fastify.delete('/ricorsi/:idRicorso', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { idRicorso } = request.params;
-    const result = await query(
-      `DELETE FROM gare_ricorsi WHERE "id" = $1 RETURNING "id"`,
-      [idRicorso]
-    );
-
-    if (result.rows.length === 0) {
-      return reply.status(404).send({ error: 'Ricorso non trovato' });
-    }
-    return { message: 'Ricorso eliminato', id: result.rows[0].id };
-  });
-
-  // ============================================================
-  // POST /api/esiti/:id/forza-vincitore - Force a winner
-  // ============================================================
-  fastify.post('/:id/forza-vincitore', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params;
-    const { id_azienda, motivo } = request.body;
-
-    if (!id_azienda) {
-      return reply.status(400).send({ error: 'id_azienda è obbligatorio' });
-    }
-
-    try {
-      await transaction(async (trx) => {
-        await trx(
-          `UPDATE gare SET "Vincitore" = $1, "DataModifica" = NOW() WHERE "id" = $2`,
-          [id_azienda, id]
-        );
-
-        await trx(
-          `INSERT INTO gare_modifiche ("id_gara", "id_utente", "motivo", "data_modifica", "tipo")
-           VALUES ($1, $2, $3, NOW(), 'FORZA_VINCITORE')`,
-          [id, request.user?.id || 0, motivo || null]
-        );
-      });
-
-      return { message: 'Vincitore forzato', id_azienda };
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
-  });
-
-  // ============================================================
-  // Numerazione Management
-  // ============================================================
-
-  // POST /api/esiti/:id/copia-numerazione - Copy ordering from another esito
-  fastify.post('/:id/copia-numerazione', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params;
-    const { id_esito_sorgente } = request.body;
-
-    if (!id_esito_sorgente) {
-      return reply.status(400).send({ error: 'id_esito_sorgente è obbligatorio' });
-    }
-
-    try {
-      await transaction(async (trx) => {
-        // Get source ordering
-        const sourceOrder = await trx(
-          `SELECT "id", posizione FROM dettaglio_gara WHERE "id_gara" = $1 ORDER BY posizione ASC NULLS LAST`,
-          [id_esito_sorgente]
-        );
-
-        // Get target details
-        const targetDetails = await trx(
-          `SELECT "id" FROM dettaglio_gara WHERE "id_gara" = $1 ORDER BY "id" ASC`,
-          [id]
-        );
-
-        // Apply ordering to target (1:1 match by sequence)
-        for (let i = 0; i < Math.min(sourceOrder.rows.length, targetDetails.rows.length); i++) {
-          await trx(
-            `UPDATE dettaglio_gara SET posizione = $1 WHERE "id" = $2`,
-            [sourceOrder.rows[i].Posizione, targetDetails.rows[i].id]
-          );
-        }
-      });
-
-      return { message: 'Numerazione copiata' };
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
-  });
-
-  // POST /api/esiti/:id/inverti-numerazione - Reverse ordering
-  fastify.post('/:id/inverti-numerazione', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params;
-
-    try {
-      await transaction(async (trx) => {
-        const details = await trx(
-          `SELECT "id" FROM dettaglio_gara WHERE "id_gara" = $1 ORDER BY posizione DESC NULLS LAST`,
-          [id]
-        );
-
-        for (let i = 0; i < details.rows.length; i++) {
-          await trx(
-            `UPDATE dettaglio_gara SET posizione = $1 WHERE "id" = $2`,
-            [i + 1, details.rows[i].id]
-          );
-        }
-      });
-
-      return { message: 'Numerazione invertita' };
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
-  });
-
-  // POST /api/esiti/:id/sposta-numerazione - Move detail to new position
-  fastify.post('/:id/sposta-numerazione', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params;
-    const { id_dettaglio, nuova_posizione } = request.body;
-
-    if (!id_dettaglio || nuova_posizione === undefined) {
-      return reply.status(400).send({ error: 'id_dettaglio e nuova_posizione sono obbligatori' });
-    }
-
-    try {
-      await transaction(async (trx) => {
-        const detail = await trx(
-          `SELECT posizione FROM dettaglio_gara WHERE "id" = $1`,
-          [id_dettaglio]
-        );
-
-        if (detail.rows.length === 0) {
-          throw new Error('Dettaglio non trovato');
-        }
-
-        const oldPos = detail.rows[0].Posizione;
-        const newPos = parseInt(nuova_posizione);
-
-        if (oldPos < newPos) {
-          // Moving down: decrement positions between oldPos+1 and newPos
-          await trx(
-            `UPDATE dettaglio_gara SET posizione = posizione - 1
-             WHERE "id_gara" = $1 AND posizione > $2 AND posizione <= $3`,
-            [id, oldPos, newPos]
-          );
-        } else if (oldPos > newPos) {
-          // Moving up: increment positions between newPos and oldPos-1
-          await trx(
-            `UPDATE dettaglio_gara SET posizione = posizione + 1
-             WHERE "id_gara" = $1 AND posizione >= $2 AND posizione < $3`,
-            [id, newPos, oldPos]
-          );
-        }
-
-        // Set the detail to new position
-        await trx(
-          `UPDATE dettaglio_gara SET posizione = $1 WHERE "id" = $2`,
-          [newPos, id_dettaglio]
-        );
-      });
-
-      return { message: 'Dettaglio spostato', new_position: nuova_posizione };
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
-  });
-
-  // ============================================================
-  // GET /api/esiti/:id/esporta-xml - Export esito as XML
-  // ============================================================
-  fastify.get('/:id/esporta-xml', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params;
-
-    try {
-      const eR = await query(`SELECT * FROM gare WHERE "id" = $1`, [id]);
-      if (eR.rows.length === 0) {
-        return reply.status(404).send({ error: 'Esito non trovato' });
-      }
-
-      const esito = eR.rows[0];
-      const dettagli = await query(`SELECT * FROM dettaglio_gara WHERE "id_gara" = $1 ORDER BY posizione`, [id]);
-
-      let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-      xml += '<Esito>\n';
-      xml += `  <Id>${esito.id}</Id>\n`;
-      xml += `  <Titolo>${escapeXml(esito.Titolo)}</Titolo>\n`;
-      xml += `  <CodiceCIG>${esito.CodiceCIG}</CodiceCIG>\n`;
-      xml += `  <Data>${esito.Data}</Data>\n`;
-      xml += `  <Importo>${esito.Importo}</Importo>\n`;
-      xml += `  <NPartecipanti>${esito.NPartecipanti}</NPartecipanti>\n`;
-      xml += `  <Ribasso>${esito.Ribasso}</Ribasso>\n`;
-
-      xml += '  <Dettagli>\n';
-      for (const det of dettagli.rows) {
-        xml += '    <Dettaglio>\n';
-        xml += `      <Posizione>${det.Posizione}</Posizione>\n`;
-        xml += `      <RagioneSociale>${escapeXml(det.RagioneSociale)}</RagioneSociale>\n`;
-        xml += `      <PartitaIva>${det.PartitaIva}</PartitaIva>\n`;
-        xml += `      <Ribasso>${det.Ribasso}</Ribasso>\n`;
-        xml += `      <Vincitrice>${det.Vincitrice ? 'true' : 'false'}</Vincitrice>\n`;
-        xml += `      <Ammessa>${det.Ammessa ? 'true' : 'false'}</Ammessa>\n`;
-        xml += '    </Dettaglio>\n';
-      }
-      xml += '  </Dettagli>\n';
-      xml += '</Esito>';
-
-      reply.type('application/xml');
-      return xml;
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
-  });
-
-  // Helper function to escape XML special characters
-  function escapeXml(str) {
-    if (!str) return '';
-    return str.replace(/[<>&'"]/g, (c) => {
-      switch (c) {
-        case '<': return '&lt;';
-        case '>': return '&gt;';
-        case '&': return '&amp;';
-        case "'": return '&apos;';
-        case '"': return '&quot;';
-        default: return c;
-      }
-    });
-  }
-
-  // ============================================================
-  // POST /api/esiti/:id/associa-bando - Associate a bando
-  // ============================================================
-  fastify.post('/:id/associa-bando', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params;
-    const { id_bando } = request.body;
-
-    if (!id_bando) {
-      return reply.status(400).send({ error: 'id_bando è obbligatorio' });
-    }
-
-    try {
-      const result = await query(
-        `UPDATE gare SET "id_bando" = $1, "DataModifica" = NOW() WHERE "id" = $2 RETURNING "id", "id_bando"`,
-        [id_bando, id]
-      );
-
-      if (result.rows.length === 0) {
-        return reply.status(404).send({ error: 'Esito non trovato' });
-      }
-
-      return { message: 'Bando associato', ...result.rows[0] };
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
-  });
-
-  // ============================================================
-  // GET /api/esiti/per-utente/:username - List esiti by inserting user
-  // ============================================================
-  fastify.get('/per-utente/:username', { preHandler: [fastify.authenticate] }, async (request) => {
-    const { username } = request.params;
-    const { page = 1, limit = 25 } = request.query;
-    const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
-
-    const [countResult, dataResult] = await Promise.all([
-      query(`SELECT COUNT(*) as total FROM gare WHERE "InserimentoDa" = $1 AND "eliminata" = false`, [username]),
-      query(`
-        SELECT "id", "Data" AS data, "Titolo" AS titolo, "NPartecipanti" AS n_partecipanti,
-          "Importo" AS importo, "InserimentoDa", "DataInserimento"
-        FROM gare
-        WHERE "InserimentoDa" = $1 AND "eliminata" = false
-        ORDER BY "Data" DESC
-        LIMIT $2 OFFSET $3
-      `, [username, parseInt(limit), offset])
-    ]);
-
-    return {
-      data: dataResult.rows,
-      total: countResult.rows[0].total,
-      page: parseInt(page),
-      limit: parseInt(limit)
-    };
-  });
-
-  // ============================================================
-  // SOA Management (4 types)
-  // ============================================================
-
-  // GET /api/esiti/:id/soa - Get all 4 SOA types
-  fastify.get('/:id/soa', { preHandler: [fastify.authenticate] }, async (request) => {
-    const { id } = request.params;
-
-    const [sec, alt, app, sost] = await Promise.all([
-      query(`
-        SELECT s."id", s."id_soa", so."Descrizione" AS soa_desc, 'SECONDARIA' AS tipo
-        FROM gare_soa_sec s
-        LEFT JOIN soa so ON s."id_soa" = so."id"
-        WHERE s."id_gara" = $1
-      `, [id]),
-      query(`
-        SELECT s."id", s."id_soa", so."Descrizione" AS soa_desc, 'ALTERNATIVA' AS tipo
-        FROM gare_soa_alt s
-        LEFT JOIN soa so ON s."id_soa" = so."id"
-        WHERE s."id_gara" = $1
-      `, [id]),
-      query(`
-        SELECT s."id", s."id_soa", so."Descrizione" AS soa_desc, 'APPROFONDIMENTO' AS tipo
-        FROM gare_soa_app s
-        LEFT JOIN soa so ON s."id_soa" = so."id"
-        WHERE s."id_gara" = $1
-      `, [id]),
-      query(`
-        SELECT s."id", s."id_soa", so."Descrizione" AS soa_desc, 'SOSTITUIVO' AS tipo
-        FROM gare_soa_sost s
-        LEFT JOIN soa so ON s."id_soa" = so."id"
-        WHERE s."id_gara" = $1
-      `, [id])
-    ]);
-
-    return {
-      secondaria: sec.rows,
-      alternativa: alt.rows,
-      approfondimento: app.rows,
-      sostituivo: sost.rows
-    };
-  });
-
-  // POST /api/esiti/:id/soa-sec - Add secondary SOA
-  fastify.post('/:id/soa-sec', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params;
-    const { id_soa } = request.body;
-
-    if (!id_soa) {
-      return reply.status(400).send({ error: 'id_soa è obbligatorio' });
-    }
-
-    try {
-      const result = await query(
-        `INSERT INTO gare_soa_sec ("id_gara", "id_soa") VALUES ($1, $2) RETURNING *`,
-        [id, id_soa]
-      );
-      return reply.status(201).send(result.rows[0]);
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
-  });
-
-  // DELETE /api/esiti/:id/soa-sec/:idSoa - Remove secondary SOA
-  fastify.delete('/:id/soa-sec/:idSoa', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id, idSoa } = request.params;
-    const result = await query(
-      `DELETE FROM gare_soa_sec WHERE "id_gara" = $1 AND "id" = $2 RETURNING "id"`,
-      [id, idSoa]
-    );
-
-    if (result.rows.length === 0) {
-      return reply.status(404).send({ error: 'SOA non trovato' });
-    }
-    return { message: 'SOA secondaria rimossa', id: result.rows[0].id };
-  });
-
-  // POST /api/esiti/:id/soa-alt - Add alternative SOA
-  fastify.post('/:id/soa-alt', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params;
-    const { id_soa } = request.body;
-
-    if (!id_soa) {
-      return reply.status(400).send({ error: 'id_soa è obbligatorio' });
-    }
-
-    try {
-      const result = await query(
-        `INSERT INTO gare_soa_alt ("id_gara", "id_soa") VALUES ($1, $2) RETURNING *`,
-        [id, id_soa]
-      );
-      return reply.status(201).send(result.rows[0]);
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
-  });
-
-  // DELETE /api/esiti/:id/soa-alt/:idSoa - Remove alternative SOA
-  fastify.delete('/:id/soa-alt/:idSoa', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id, idSoa } = request.params;
-    const result = await query(
-      `DELETE FROM gare_soa_alt WHERE "id_gara" = $1 AND "id" = $2 RETURNING "id"`,
-      [id, idSoa]
-    );
-
-    if (result.rows.length === 0) {
-      return reply.status(404).send({ error: 'SOA non trovato' });
-    }
-    return { message: 'SOA alternativa rimossa', id: result.rows[0].id };
-  });
-
-  // POST /api/esiti/:id/soa-app - Add specialized SOA
-  fastify.post('/:id/soa-app', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params;
-    const { id_soa } = request.body;
-
-    if (!id_soa) {
-      return reply.status(400).send({ error: 'id_soa è obbligatorio' });
-    }
-
-    try {
-      const result = await query(
-        `INSERT INTO gare_soa_app ("id_gara", "id_soa") VALUES ($1, $2) RETURNING *`,
-        [id, id_soa]
-      );
-      return reply.status(201).send(result.rows[0]);
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
-  });
-
-  // DELETE /api/esiti/:id/soa-app/:idSoa - Remove specialized SOA
-  fastify.delete('/:id/soa-app/:idSoa', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id, idSoa } = request.params;
-    const result = await query(
-      `DELETE FROM gare_soa_app WHERE "id_gara" = $1 AND "id" = $2 RETURNING "id"`,
-      [id, idSoa]
-    );
-
-    if (result.rows.length === 0) {
-      return reply.status(404).send({ error: 'SOA non trovato' });
-    }
-    return { message: 'SOA approfondimento rimossa', id: result.rows[0].id };
-  });
-
-  // POST /api/esiti/:id/soa-sost - Add substitute SOA
-  fastify.post('/:id/soa-sost', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params;
-    const { id_soa } = request.body;
-
-    if (!id_soa) {
-      return reply.status(400).send({ error: 'id_soa è obbligatorio' });
-    }
-
-    try {
-      const result = await query(
-        `INSERT INTO gare_soa_sost ("id_gara", "id_soa") VALUES ($1, $2) RETURNING *`,
-        [id, id_soa]
-      );
-      return reply.status(201).send(result.rows[0]);
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
-  });
-
-  // DELETE /api/esiti/:id/soa-sost/:idSoa - Remove substitute SOA
-  fastify.delete('/:id/soa-sost/:idSoa', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id, idSoa } = request.params;
-    const result = await query(
-      `DELETE FROM gare_soa_sost WHERE "id_gara" = $1 AND "id" = $2 RETURNING "id"`,
-      [id, idSoa]
-    );
-
-    if (result.rows.length === 0) {
-      return reply.status(404).send({ error: 'SOA non trovato' });
-    }
-    return { message: 'SOA sostitutivo rimossa', id: result.rows[0].id };
-  });
-
-  // ============================================================
-  // GET /api/esiti/tipologie - List all esiti tipologie
-  // ============================================================
-  fastify.get('/tipologie', { preHandler: [fastify.authenticate] }, async () => {
-    const result = await query(`
-      SELECT id, nome AS tipologia, descrizione
-      FROM tipologia_gare
-      ORDER BY nome ASC
-    `);
-    return result.rows;
-  });
-
-  // ============================================================
-  // GET /api/esiti/:id/stato-servizio - Get service status for esito
-  // ============================================================
-  fastify.get('/:id/stato-servizio', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params;
-
-    try {
-      const eR = await query(`
-        SELECT "id", "temp", "enabled", "Bloccato", "eliminata", "DataModifica"
-        FROM gare WHERE "id" = $1
-      `, [id]);
-
-      if (eR.rows.length === 0) {
-        return reply.status(404).send({ error: 'Esito non trovato' });
-      }
-
-      const esito = eR.rows[0];
-      let stato = 'SCONOSCIUTO';
-
-      if (esito.eliminata) {
-        stato = 'ELIMINATO';
-      } else if (esito.Bloccato) {
-        stato = 'BLOCCATO';
-      } else if (esito.temp && !esito.enabled) {
-        stato = 'BOZZA';
-      } else if (!esito.temp && !esito.enabled) {
-        stato = 'DA_ABILITARE';
-      } else if (!esito.temp && esito.enabled) {
-        stato = 'ABILITATO';
-      }
-
-      return {
-        id: esito.id,
-        stato,
-        temp: esito.temp,
-        enabled: esito.enabled,
-        bloccato: esito.Bloccato,
-        eliminata: esito.eliminata,
-        ultima_modifica: esito.DataModifica
-      };
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
-  });
-
-  // ============================================================
-  // Avvalimenti Management
-  // ============================================================
-
-  // GET /api/esiti/:id/avvalimenti - List avvalimenti for esito
-  fastify.get('/:id/avvalimenti', { preHandler: [fastify.authenticate] }, async (request) => {
-    const { id } = request.params;
-    const result = await query(`
-      SELECT a."id", a."id_gara", a."id_azienda_principale", a."id_azienda_ausiliaria",
-        a."tipo",
-        az_p."ragione_sociale" AS azienda_principale_nome,
-        az_a."ragione_sociale" AS azienda_ausiliaria_nome
-      FROM avvalimenti a
-      LEFT JOIN aziende az_p ON a."id_azienda_principale" = az_p."id"
-      LEFT JOIN aziende az_a ON a."id_azienda_ausiliaria" = az_a."id"
-      WHERE a."id_gara" = $1
-      ORDER BY a."id" DESC
+      SELECT av."id", av."id_gara", av."tipo",
+        av."id_azienda_principale", a1."ragione_sociale" AS principale_nome, a1."partita_iva" AS principale_piva,
+        av."id_azienda_ausiliaria", a2."ragione_sociale" AS ausiliaria_nome, a2."partita_iva" AS ausiliaria_piva
+      FROM avvalimenti_gare av
+      LEFT JOIN aziende a1 ON av."id_azienda_principale" = a1."id"
+      LEFT JOIN aziende a2 ON av."id_azienda_ausiliaria" = a2."id"
+      WHERE av."id_gara" = $1
+      ORDER BY av."id"
     `, [id]);
     return result.rows;
   });
 
   // POST /api/esiti/:id/avvalimenti - Create avvalimento
-  fastify.post('/:id/avvalimenti', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+  fastify.post('/:id/avvalimenti', async (request, reply) => {
     const { id } = request.params;
     const { id_azienda_principale, id_azienda_ausiliaria, tipo } = request.body;
 
-    if (!id_azienda_principale || !id_azienda_ausiliaria) {
-      return reply.status(400).send({ error: 'id_azienda_principale e id_azienda_ausiliaria sono obbligatori' });
-    }
+    const result = await query(`
+      INSERT INTO avvalimenti_gare ("id_gara", "id_azienda_principale", "id_azienda_ausiliaria", "tipo")
+      VALUES ($1, $2, $3, $4)
+      RETURNING *
+    `, [id, id_azienda_principale || null, id_azienda_ausiliaria || null, tipo || 'Generico']);
 
-    try {
-      const result = await query(
-        `INSERT INTO avvalimenti ("id_gara", "id_azienda_principale", "id_azienda_ausiliaria", "tipo")
-         VALUES ($1, $2, $3, $4) RETURNING *`,
-        [id, id_azienda_principale, id_azienda_ausiliaria, tipo || null]
-      );
-      return reply.status(201).send(result.rows[0]);
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(400).send({ error: err.message });
-    }
+    return reply.status(201).send(result.rows[0]);
   });
 
-  // DELETE /api/esiti/avvalimenti/:idAvvalimento - Delete avvalimento
-  fastify.delete('/avvalimenti/:idAvvalimento', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { idAvvalimento } = request.params;
+  // DELETE /api/esiti/:id/avvalimenti/:avvId - Remove avvalimento
+  fastify.delete('/:id/avvalimenti/:avvId', async (request, reply) => {
+    const { id, avvId } = request.params;
     const result = await query(
-      `DELETE FROM avvalimenti WHERE "id" = $1 RETURNING "id"`,
-      [idAvvalimento]
+      `DELETE FROM avvalimenti_gare WHERE "id" = $1 AND "id_gara" = $2 RETURNING "id"`,
+      [avvId, id]
     );
-
-    if (result.rows.length === 0) {
-      return reply.status(404).send({ error: 'Avvalimento non trovato' });
-    }
+    if (!result.rows.length) return reply.status(404).send({ error: 'Avvalimento non trovato' });
     return { message: 'Avvalimento eliminato', id: result.rows[0].id };
   });
 
+  // ============================================================
+  // Search aziende (shared for ATI/Avvalimenti)
+  // ============================================================
+  fastify.post('/:id/cerca-azienda', async (request) => {
+    const { q } = request.body;
+    if (!q || q.length < 2) return [];
+    const result = await query(`
+      SELECT a."id", a."ragione_sociale", a."partita_iva", a."codice_fiscale",
+             p."nome" AS provincia, p."sigla" AS provincia_sigla
+      FROM aziende a
+      LEFT JOIN province p ON a."id_provincia" = p."id"
+      WHERE a."ragione_sociale" ILIKE $1 OR a."partita_iva" ILIKE $1 OR a."codice_fiscale" ILIKE $1
+      ORDER BY a."ragione_sociale" ASC
+      LIMIT 20
+    `, [`%${q}%`]);
+    return result.rows;
+  });
+
+}
+
+// ============================================================
+// HELPER: Generate personalized participant email
+// ============================================================
+function generateParticipantEmail(gara, graduatoria, partecipante, isCliente) {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('it-IT') + ' ' + now.toLocaleTimeString('it-IT');
+
+  // Build base HTML structure
+  let html = `<div style="font-family:'Segoe UI',Arial,sans-serif;background:#0F1923;color:#fff;max-width:900px;margin:0 auto;padding:0;">`;
+
+  // Header
+  html += `<div style="background:linear-gradient(135deg,#1E2D3D 0%,#2A4158 100%);padding:32px 24px;border-radius:12px 12px 0 0;border-bottom:3px solid #F5C518;">`;
+  html += `<h1 style="color:#F5C518;font-size:2em;margin:0 0 8px 0;font-weight:700;">EASYWIN</h1>`;
+  html += `<h2 style="color:#fff;font-size:1.3em;margin:0;font-weight:300;">Esito di Gara #${gara.id}</h2>`;
+  html += `</div>`;
+
+  // Gara details section
+  html += `<div style="background:rgba(30,45,61,0.6);padding:24px;color:#fff;">`;
+  html += `<div style="margin-bottom:16px;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">STAZIONE APPALTANTE</span><br><span style="font-size:1em;color:#fff;font-weight:500;">${gara.stazione_nome || '-'}</span></div>`;
+  html += `<div style="margin-bottom:16px;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">OGGETTO</span><br><span style="font-size:1em;color:#fff;font-weight:500;">${gara.Titolo || '-'}</span></div>`;
+  html += `<div style="margin-bottom:16px;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">CODICE CIG</span><br><span style="font-size:1em;color:#fff;font-weight:500;">${gara.CodiceCIG || '-'}</span></div>`;
+  html += `<div style="margin-bottom:16px;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">DATA APERTURA</span><br><span style="font-size:1em;color:#fff;font-weight:500;">${gara.Data ? new Date(gara.Data).toLocaleDateString('it-IT') : '-'}</span></div>`;
+  html += `<div style="margin-bottom:0;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">IMPORTO COMPLESSIVO</span><br><span style="font-size:1em;color:#fff;font-weight:500;">${gara.Importo ? Number(gara.Importo).toLocaleString('it-IT', {minimumFractionDigits: 2}) + ' €' : '-'}</span></div>`;
+  html += `</div>`;
+
+  // Statistics grid (for clients only, or partial for non-clients)
+  html += `<div style="background:rgba(30,45,61,0.3);padding:24px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">`;
+  html += `<div style="background:rgba(30,45,61,0.8);padding:16px;border-radius:8px;border:1px solid rgba(245,197,24,0.2);text-align:center;"><div style="font-size:0.8em;color:#aaa;text-transform:uppercase;margin-bottom:8px;font-weight:600;">Media Aritmetica</div><div style="font-size:1.6em;color:#F5C518;font-weight:700;">${gara.MediaAr ? Number(gara.MediaAr).toFixed(5) : '-'}%</div></div>`;
+  html += `<div style="background:rgba(30,45,61,0.8);padding:16px;border-radius:8px;border:1px solid rgba(245,197,24,0.2);text-align:center;"><div style="font-size:0.8em;color:#aaa;text-transform:uppercase;margin-bottom:8px;font-weight:600;">Soglia Anomalia</div><div style="font-size:1.6em;color:#F5C518;font-weight:700;">${gara.SogliaAn ? Number(gara.SogliaAn).toFixed(5) : '-'}%</div></div>`;
+  html += `<div style="background:rgba(30,45,61,0.8);padding:16px;border-radius:8px;border:1px solid rgba(245,197,24,0.2);text-align:center;"><div style="font-size:0.8em;color:#aaa;text-transform:uppercase;margin-bottom:8px;font-weight:600;">Partecipanti</div><div style="font-size:1.6em;color:#F5C518;font-weight:700;">${gara.NPartecipanti || '-'}</div></div>`;
+  html += `<div style="background:rgba(30,45,61,0.8);padding:16px;border-radius:8px;border:1px solid rgba(245,197,24,0.2);text-align:center;"><div style="font-size:0.8em;color:#aaa;text-transform:uppercase;margin-bottom:8px;font-weight:600;">Vostra Posizione</div><div style="font-size:1.6em;color:#F5C518;font-weight:700;">${partecipante.Posizione || '-'}</div></div>`;
+  html += `</div>`;
+
+  // Participant's own result
+  const risultato = partecipante.Vincitrice ? 'VINCITRICE' : partecipante.Esclusa ? 'ESCLUSA' : partecipante.Anomala ? 'ANOMALA' : 'AMMESSA';
+  const ribasso = partecipante.Ribasso ? Number(partecipante.Ribasso).toFixed(5) + '%' : '-';
+
+  html += `<div style="background:rgba(30,45,61,0.5);padding:20px 24px;margin:0;">`;
+  html += `<div style="font-size:0.9em;color:#aaa;text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">LA VOSTRA OFFERTA</div>`;
+  html += `<div style="font-size:1.1em;color:#fff;margin-bottom:8px;"><strong>${partecipante.azienda_rs || partecipante.RagioneSociale || 'Partecipante'}</strong></div>`;
+  html += `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">`;
+  html += `<div><span style="color:#aaa;font-size:0.85em;">Ribasso:</span><br><span style="color:#F5C518;font-weight:700;font-size:1.2em;">${ribasso}</span></div>`;
+  html += `<div><span style="color:#aaa;font-size:0.85em;">Risultato:</span><br><span style="color:#F5C518;font-weight:700;font-size:1.2em;">${risultato}</span></div>`;
+  html += `</div>`;
+  html += `</div>`;
+
+  // Graduatoria section
+  if (isCliente) {
+    // FULL graduatoria for clients
+    html += `<div style="padding:24px;"><h3 style="color:#F5C518;margin-top:0;margin-bottom:16px;border-bottom:2px solid #F5C518;padding-bottom:8px;">GRADUATORIA COMPLETA</h3>`;
+    html += buildGraduatoriaTable(graduatoria, partecipante.Posizione, true);
+    html += `</div>`;
+  } else {
+    // PARTIAL graduatoria for non-clients
+    html += `<div style="padding:24px;"><h3 style="color:#F5C518;margin-top:0;margin-bottom:16px;border-bottom:2px solid #F5C518;padding-bottom:8px;">VOSTRA POSIZIONE IN GRADUATORIA</h3>`;
+    const partialGraduatoria = getPartialGraduatoria(graduatoria, partecipante.Posizione);
+    html += buildGraduatoriaTable(partialGraduatoria, partecipante.Posizione, false);
+    html += `<div style="background:rgba(245,197,24,0.1);padding:16px;border-radius:8px;margin-top:16px;border-left:4px solid #F5C518;">`;
+    html += `<p style="margin:0;color:#F5C518;font-weight:600;margin-bottom:8px;">Per visualizzare la graduatoria completa, attiva il tuo abbonamento EasyWin</p>`;
+    html += `<p style="margin:0;color:#fff;font-size:0.9em;">Accedi all'area riservata per scoprire le nostre soluzioni premium e ottenere accesso a tutte le informazioni complete delle gare.</p>`;
+    html += `</div>`;
+    html += `</div>`;
+  }
+
+  // Footer
+  html += `<div style="background:#1a2a38;padding:20px;text-align:center;font-size:0.85em;color:#aaa;border-top:1px solid rgba(245,197,24,0.2);">`;
+  html += `Generato da EasyWin<br><span style="font-size:0.8em;color:#777;margin-top:8px;display:block;">${dateStr}</span>`;
+  html += `</div></div>`;
+
+  return html;
+}
+
+// Build graduatoria table HTML
+function buildGraduatoriaTable(graduatoria, currentPosition, isFull) {
+  let html = `<table style="width:100%;border-collapse:collapse;background:rgba(30,45,61,0.4);border-radius:8px;overflow:hidden;">`;
+  html += `<thead><tr style="background:#1E2D3D;">`;
+  html += `<th style="padding:12px;text-align:left;font-weight:600;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.85em;text-transform:uppercase;">N°</th>`;
+  html += `<th style="padding:12px;text-align:left;font-weight:600;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.85em;text-transform:uppercase;">RAGIONE SOCIALE</th>`;
+  html += `<th style="padding:12px;text-align:left;font-weight:600;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.85em;text-transform:uppercase;">RIBASSO</th>`;
+  html += `<th style="padding:12px;text-align:left;font-weight:600;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.85em;text-transform:uppercase;">RISULTATO</th>`;
+  html += `</tr></thead><tbody>`;
+
+  graduatoria.forEach((row) => {
+    const risultato = row.Vincitrice ? 'VINCITRICE' : row.Esclusa ? 'ESCLUSA' : row.Anomala ? 'ANOMALA' : 'AMMESSA';
+    const ribasso = row.Ribasso ? Number(row.Ribasso).toFixed(5) + '%' : '-';
+
+    let rowStyle = 'background:rgba(30,45,61,0.2);';
+    if (row.Vincitrice) {
+      rowStyle = 'background:linear-gradient(90deg,rgba(27,94,32,0.3) 0%,rgba(67,160,71,0.15) 100%);';
+    } else if (row.Esclusa) {
+      rowStyle = 'background:linear-gradient(90deg,rgba(97,97,97,0.3) 0%,rgba(158,158,158,0.15) 100%);';
+    } else if (row.Anomala) {
+      rowStyle = 'background:linear-gradient(90deg,rgba(183,28,28,0.35) 0%,rgba(244,67,54,0.2) 100%);';
+    }
+
+    // Highlight current participant's row
+    if (row.Posizione === currentPosition) {
+      rowStyle = 'background:rgba(245,197,24,0.15);border-left:4px solid #F5C518;';
+    }
+
+    html += `<tr style="${rowStyle}border-bottom:1px solid rgba(245,197,24,0.1);">`;
+    html += `<td style="padding:12px;color:#fff;">${row.Posizione}</td>`;
+    html += `<td style="padding:12px;color:#fff;">${row.azienda_rs || row.RagioneSociale || ''}</td>`;
+    html += `<td style="padding:12px;color:#fff;">${ribasso}</td>`;
+    html += `<td style="padding:12px;color:#fff;">${risultato}</td>`;
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table>`;
+  return html;
+}
+
+// Get partial graduatoria: current position + 2 above/below
+function getPartialGraduatoria(graduatoria, currentPosition) {
+  const currentIdx = graduatoria.findIndex(p => p.Posizione === currentPosition);
+  if (currentIdx === -1) return graduatoria.slice(0, 1);
+
+  const start = Math.max(0, currentIdx - 2);
+  const end = Math.min(graduatoria.length, currentIdx + 3);
+  return graduatoria.slice(start, end);
 }

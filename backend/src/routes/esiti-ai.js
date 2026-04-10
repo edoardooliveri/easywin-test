@@ -224,14 +224,14 @@ export default async function esitiAiRoutes(fastify) {
   // ============================================================
   fastify.get('/pending', async () => {
     const result = await query(`
-      SELECT g."id", g."Titolo", g."CodiceCIG", g."Data", g."Importo",
-        g."NPartecipanti",
-        s."Nome" AS stazione_nome
+      SELECT g."id", g."oggetto", g."cig", g."data_gara", g."importo_aggiudicazione",
+        g."numero_partecipanti",
+        s."denominazione" AS stazione_nome
       FROM gare g
       LEFT JOIN stazioni s ON g."id_stazione" = s."id"
-      LEFT JOIN bandi b ON g."id_bando" = b."id_bando"
-      WHERE b."Provenienza" = 'AI'
-      ORDER BY g."Data" DESC
+      LEFT JOIN bandi b ON g."id_bando" = b."id"
+      WHERE b."provenienza" = 'AI'
+      ORDER BY g."data_gara" DESC
     `);
     return result.rows;
   });
@@ -272,7 +272,7 @@ export default async function esitiAiRoutes(fastify) {
 
       // Mark as reviewed in gare table
       await query(
-        `UPDATE gare SET "Note" = COALESCE("Note",'') || $1 WHERE "id" = $2`,
+        `UPDATE gare SET "note" = COALESCE("note",'') || $1 WHERE "id" = $2`,
         [
           `\n[Revisionato: ${reviewedData.reviewed_at || new Date().toISOString()}]` +
           (reviewedData.note_revisore ? ` Note revisore: ${reviewedData.note_revisore}` : ''),
@@ -325,7 +325,7 @@ export default async function esitiAiRoutes(fastify) {
 
     if (!bandoId && codice_cig) {
       const bando = await query(
-        `SELECT "id_bando" FROM bandi WHERE "CodiceCIG" = $1 AND "Annullato" = false LIMIT 1`,
+        `SELECT "id" FROM bandi WHERE "cig" = $1 AND "annullato" = false LIMIT 1`,
         [codice_cig]
       );
       if (bando.rows.length === 0) {
@@ -355,8 +355,8 @@ async function matchAzienda(ragioneSociale, partitaIva, codiceFiscale, options =
   // Priority 1: Match by P.IVA (most reliable)
   if (partitaIva) {
     const byPiva = await query(
-      `SELECT "id", "RagioneSociale", "PartitaIva", "CodiceFiscale"
-       FROM aziende WHERE "PartitaIva" = $1 LIMIT 1`,
+      `SELECT "id", "ragione_sociale", "codice_fiscale", "codice_fiscale"
+       FROM aziende WHERE "codice_fiscale" = $1 LIMIT 1`,
       [partitaIva.replace(/\s/g, '')]
     );
     if (byPiva.rows.length > 0) {
@@ -367,8 +367,8 @@ async function matchAzienda(ragioneSociale, partitaIva, codiceFiscale, options =
   // Priority 2: Match by codice fiscale
   if (codiceFiscale) {
     const byCf = await query(
-      `SELECT "id", "RagioneSociale", "PartitaIva", "CodiceFiscale"
-       FROM aziende WHERE "CodiceFiscale" = $1 LIMIT 1`,
+      `SELECT "id", "ragione_sociale", "codice_fiscale", "codice_fiscale"
+       FROM aziende WHERE "codice_fiscale" = $1 LIMIT 1`,
       [codiceFiscale.replace(/\s/g, '')]
     );
     if (byCf.rows.length > 0) {
@@ -379,10 +379,10 @@ async function matchAzienda(ragioneSociale, partitaIva, codiceFiscale, options =
   // Priority 3: Fuzzy match by name (trigram similarity)
   if (ragioneSociale) {
     const byName = await query(`
-      SELECT "id", "RagioneSociale", "PartitaIva", "CodiceFiscale",
-        similarity("RagioneSociale", $1) AS sim
+      SELECT "id", "ragione_sociale", "codice_fiscale", "codice_fiscale",
+        similarity("ragione_sociale", $1) AS sim
       FROM aziende
-      WHERE similarity("RagioneSociale", $1) > 0.4
+      WHERE similarity("ragione_sociale", $1) > 0.4
       ORDER BY sim DESC
       LIMIT 3
     `, [ragioneSociale]);
@@ -406,11 +406,11 @@ async function matchAzienda(ragioneSociale, partitaIva, codiceFiscale, options =
   if (options.id_soa && (options.provincia || options.id_provincia)) {
     try {
       const soaMatch = await query(`
-        SELECT a."id", a."RagioneSociale", a."PartitaIva", a."Citta", a."Provincia",
-               similarity(a."RagioneSociale", $1) AS sim
+        SELECT a."id", a."ragione_sociale", a."codice_fiscale", a."citta", a."provincia",
+               similarity(a."ragione_sociale", $1) AS sim
         FROM aziende a
         INNER JOIN aziende_soa asoa ON a."id" = asoa."id_azienda" AND asoa."id_soa" = $2
-        WHERE a."Provincia" = $3 OR a."id_provincia" = $4
+        WHERE a."provincia" = $3 OR a."id_provincia" = $4
         ORDER BY sim DESC
         LIMIT 5
       `, [ragioneSociale, options.id_soa, options.provincia, options.id_provincia]);
@@ -440,7 +440,7 @@ async function createEsitoFromAiData(aiData, pdfBuffer, filename) {
     let id_stazione = null;
     if (aiData.stazione_appaltante) {
       const st = await client.query(
-        `SELECT "id" FROM stazioni WHERE similarity("Nome", $1) > 0.4 ORDER BY similarity("Nome", $1) DESC LIMIT 1`,
+        `SELECT "id" FROM stazioni WHERE similarity("denominazione", $1) > 0.4 ORDER BY similarity("denominazione", $1) DESC LIMIT 1`,
         [aiData.stazione_appaltante]
       );
       if (st.rows.length > 0) id_stazione = st.rows[0].id;
@@ -455,7 +455,7 @@ async function createEsitoFromAiData(aiData, pdfBuffer, filename) {
       };
       const critName = critMap[aiData.criterio_aggiudicazione] || aiData.criterio_aggiudicazione;
       const cr = await client.query(
-        `SELECT "id_criterio" FROM criteri WHERE "Criterio" ILIKE $1 LIMIT 1`,
+        `SELECT "id" FROM criteri WHERE "nome" ILIKE $1 LIMIT 1`,
         [`%${critName}%`]
       );
       if (cr.rows.length > 0) id_criterio = cr.rows[0].id_criterio;
@@ -465,7 +465,7 @@ async function createEsitoFromAiData(aiData, pdfBuffer, filename) {
     let id_soa = null;
     if (aiData.categoria_soa) {
       const soaResult = await client.query(
-        `SELECT "id" FROM soa WHERE "Descrizione" ILIKE $1 LIMIT 1`,
+        `SELECT "id" FROM soa WHERE "descrizione" ILIKE $1 LIMIT 1`,
         [`%${aiData.categoria_soa}%`]
       );
       if (soaResult.rows.length > 0) id_soa = soaResult.rows[0].id;
@@ -476,7 +476,7 @@ async function createEsitoFromAiData(aiData, pdfBuffer, filename) {
     let procedura_negoziata = false;
     if (aiData.codice_cig) {
       const bando = await client.query(
-        `SELECT "id_bando" FROM bandi WHERE "CodiceCIG" = $1 AND "Annullato" = false LIMIT 1`,
+        `SELECT "id" FROM bandi WHERE "cig" = $1 AND "annullato" = false LIMIT 1`,
         [aiData.codice_cig]
       );
       if (bando.rows.length > 0) {
@@ -489,14 +489,14 @@ async function createEsitoFromAiData(aiData, pdfBuffer, filename) {
     // Create gara
     const garaResult = await client.query(`
       INSERT INTO gare (
-        "id_bando", "Data", "Titolo", "CodiceCIG",
-        "id_stazione", "Stazione",
+        "id_bando", "data_gara", "oggetto", "cig",
+        "id_stazione", "stazione",
         "id_soa", "id_criterio",
-        "Importo", "ImportoSO",
-        "NPartecipanti", "NDecimali",
-        "Ribasso", "MediaAr", "SogliaAn", "MediaSc",
-        "Provenienza",
-        "Note", "InseritoDa"
+        "importo_aggiudicazione", "importo_so",
+        "numero_partecipanti", "n_decimali",
+        "ribasso_aggiudicazione", "media_ar", "soglia_an", "media_sc",
+        "provenienza",
+        "note", "created_by"
       ) VALUES (
         $1, $2, $3, $4,
         $5, $6,
@@ -536,10 +536,10 @@ async function createEsitoFromAiData(aiData, pdfBuffer, filename) {
 
         await client.query(`
           INSERT INTO dettaglio_gara (
-            "id_gara", "id_azienda", "Posizione", "Ribasso",
-            "Anomala", "Vincitrice", "Esclusa",
-            "DaVerificare", "Sconosciuto", "RagioneSociale", "PartitaIva",
-            "Inserimento", "Note"
+            "id_gara", "id_azienda", "posizione", "ribasso",
+            "anomala", "vincitrice", "esclusa",
+            "da_verificare", "sconosciuto", "ragione_sociale", "partita_iva",
+            "inserimento", "note"
           ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
         `, [
           garaId,
@@ -565,7 +565,7 @@ async function createEsitoFromAiData(aiData, pdfBuffer, filename) {
       const winnerMatch = await matchAzienda(winner.ragione_sociale, winner.partita_iva, winner.codice_fiscale);
       if (winnerMatch.found) {
         await client.query(
-          `UPDATE gare SET "id_vincitore" = $1, "Ribasso" = $2 WHERE "id" = $3`,
+          `UPDATE gare SET "id_vincitore" = $1, "ribasso_aggiudicazione" = $2 WHERE "id" = $3`,
           [winnerMatch.azienda.id, winner.ribasso, garaId]
         );
       }

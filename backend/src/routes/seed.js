@@ -18,9 +18,9 @@ export default async function seedRoutes(fastify, opts) {
       return reply.status(400).send({ error: 'SQL required' });
     }
 
-    // Only allow INSERT, SELECT, SET, and sequence operations
+    // Only allow INSERT, SELECT, SET, ALTER, and sequence operations
     const upper = sql.trim().toUpperCase();
-    const allowed = ['INSERT', 'SELECT', 'SET', 'WITH'];
+    const allowed = ['INSERT', 'SELECT', 'SET', 'WITH', 'ALTER'];
     const firstWord = upper.split(/\s+/)[0];
     if (!allowed.includes(firstWord) && !upper.startsWith('--')) {
       return reply.status(400).send({ error: 'Only INSERT/SELECT/SET statements allowed' });

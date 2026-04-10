@@ -69,15 +69,15 @@ export default async function bandiImportRoutes(fastify, opts) {
 
       const result = await query(
         `INSERT INTO bandi (
-          "Titolo", "CIG", "Importo", "Data", "id_stazione", "id_regione", "id_provincia",
-          "id_soa", "id_criterio", "id_tipologia_bandi", "Note", "DataOfferta", "DataApertura",
-          "ImportoSO", "ImportoCO", "OneriProgettazione", "ImportoEco", "ImportoManodopera",
-          "Temp", "Abilitato", "Fonte", "DataCreazione", "CreatedBy"
+          "oggetto", "cig", "importo_aggiudicazione", "data_gara", "id_stazione", "id_regione", "id_provincia",
+          "id_soa", "id_criterio", "id_tipologia_bandi", "note", "data_scadenza", "data_apertura",
+          "importo_so", "importo_co", "oneri_progettazione", "importo_eco", "importo_manodopera",
+          "temp", "attivo", "fonte", "created_at", "created_by"
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
           $14, $15, $16, $17, $18, true, false, 'manuale', NOW(), $19
         )
-        RETURNING id, "Titolo", "CIG", "Data"`,
+        RETURNING id, "oggetto", "cig", "data_gara"`,
         [
           titolo, cig, importo, data, id_stazione, id_regione, id_provincia,
           id_soa, criterii, tipologia, note, data_offerta, data_apertura,
@@ -115,7 +115,7 @@ export default async function bandiImportRoutes(fastify, opts) {
           // Check for duplicates by CIG
           if (bando.cig) {
             const existing = await query(
-              `SELECT id FROM bandi WHERE "CIG" = $1 LIMIT 1`,
+              `SELECT id FROM bandi WHERE "cig" = $1 LIMIT 1`,
               [bando.cig]
             );
             if (existing.rows.length > 0) {
@@ -127,8 +127,8 @@ export default async function bandiImportRoutes(fastify, opts) {
           // Insert bando
           await query(
             `INSERT INTO bandi (
-              "Titolo", "CIG", "Importo", "Data", "id_stazione", "id_regione", "id_provincia",
-              "id_soa", "Note", "Temp", "Abilitato", "Fonte", "DataCreazione", "CreatedBy"
+              "oggetto", "cig", "importo_aggiudicazione", "data_gara", "id_stazione", "id_regione", "id_provincia",
+              "id_soa", "note", "temp", "attivo", "fonte", "created_at", "created_by"
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true, false, 'bulk-import', NOW(), $10)`,
             [
               bando.titolo, bando.cig, bando.importo, bando.data,
@@ -195,7 +195,7 @@ export default async function bandiImportRoutes(fastify, opts) {
           // Check for duplicates by CIG
           if (presidiaBando.cig) {
             const existing = await query(
-              `SELECT id FROM bandi WHERE "CIG" = $1`,
+              `SELECT id FROM bandi WHERE "cig" = $1`,
               [presidiaBando.cig]
             );
             if (existing.rows.length > 0) {
@@ -207,8 +207,8 @@ export default async function bandiImportRoutes(fastify, opts) {
           // Insert bando from Presidia
           await query(
             `INSERT INTO bandi (
-              "Titolo", "CIG", "Importo", "Data", "id_stazione", "id_regione",
-              "Temp", "Abilitato", "Fonte", "DataCreazione", "CreatedBy"
+              "oggetto", "cig", "importo_aggiudicazione", "data_gara", "id_stazione", "id_regione",
+              "temp", "attivo", "fonte", "created_at", "created_by"
             ) VALUES ($1, $2, $3, $4, $5, $6, true, false, 'presidia', NOW(), $7)`,
             [
               presidiaBando.oggetto || presidiaBando.titolo,
@@ -277,7 +277,7 @@ export default async function bandiImportRoutes(fastify, opts) {
           // Check for duplicates
           if (cig) {
             const existing = await query(
-              `SELECT id FROM bandi WHERE "CIG" = $1`,
+              `SELECT id FROM bandi WHERE "cig" = $1`,
               [cig]
             );
             if (existing.rows.length > 0) {
@@ -289,7 +289,7 @@ export default async function bandiImportRoutes(fastify, opts) {
           // Insert bando
           await query(
             `INSERT INTO bandi (
-              "Titolo", "CIG", "Importo", "Data", "Temp", "Abilitato", "Fonte", "DataCreazione", "CreatedBy"
+              "oggetto", "cig", "importo_aggiudicazione", "data_gara", "temp", "attivo", "fonte", "created_at", "created_by"
             ) VALUES ($1, $2, $3, $4, true, false, 'maggioli', NOW(), $5)`,
             [titolo, cig, importo, data, request.user.username]
           );
@@ -349,7 +349,7 @@ export default async function bandiImportRoutes(fastify, opts) {
           // Check for duplicates
           if (cig) {
             const existing = await query(
-              `SELECT id FROM bandi WHERE "CIG" = $1`,
+              `SELECT id FROM bandi WHERE "cig" = $1`,
               [cig]
             );
             if (existing.rows.length > 0) {
@@ -361,7 +361,7 @@ export default async function bandiImportRoutes(fastify, opts) {
           // Insert bando
           await query(
             `INSERT INTO bandi (
-              "Titolo", "CIG", "Importo", "Data", "Temp", "Abilitato", "Fonte", "DataCreazione", "CreatedBy"
+              "oggetto", "cig", "importo_aggiudicazione", "data_gara", "temp", "attivo", "fonte", "created_at", "created_by"
             ) VALUES ($1, $2, $3, $4, true, false, 'csv-import', NOW(), $5)`,
             [titolo, cig, importo, data, request.user.username]
           );
@@ -392,19 +392,19 @@ export default async function bandiImportRoutes(fastify, opts) {
     try {
       // Find duplicates by CIG
       const cigDuplicates = await query(`
-        SELECT array_agg(id) AS ids, "CIG", COUNT(*) AS count
+        SELECT array_agg(id) AS ids, "cig", COUNT(*) AS count
         FROM bandi
-        WHERE "CIG" IS NOT NULL AND "CIG" != ''
-        GROUP BY "CIG"
+        WHERE "cig" IS NOT NULL AND "cig" != ''
+        GROUP BY "cig"
         HAVING COUNT(*) > 1
         ORDER BY count DESC
       `);
 
       // Find near-duplicates by title similarity
       const allBandi = await query(`
-        SELECT id, "Titolo", "CIG", "id_stazione", "Data"
+        SELECT id, "oggetto", "cig", "id_stazione", "data_gara"
         FROM bandi
-        WHERE "Temp" = false OR "Temp" IS NULL
+        WHERE "temp" = false OR "temp" IS NULL
         ORDER BY id
       `);
 
@@ -413,15 +413,15 @@ export default async function bandiImportRoutes(fastify, opts) {
 
       for (let i = 0; i < bandi.length; i++) {
         for (let j = i + 1; j < bandi.length; j++) {
-          const similarity = stringSimilarity(bandi[i].Titolo, bandi[j].Titolo);
+          const similarity = stringSimilarity(bandi[i].oggetto, bandi[j].oggetto);
           if (similarity > 0.85) {
             similars.push({
               id1: bandi[i].id,
               id2: bandi[j].id,
-              titolo1: bandi[i].Titolo,
-              titolo2: bandi[j].Titolo,
-              cig1: bandi[i].CIG,
-              cig2: bandi[j].CIG,
+              titolo1: bandi[i].oggetto,
+              titolo2: bandi[j].oggetto,
+              cig1: bandi[i].cig,
+              cig2: bandi[j].cig,
               similarity: Math.round(similarity * 100)
             });
           }
@@ -514,10 +514,10 @@ export default async function bandiImportRoutes(fastify, opts) {
       }
 
       const details = await query(
-        `SELECT id, "Titolo", "CIG", "Data", "Fonte", "DataCreazione"
-         FROM bandi WHERE "DataCreazione" >= (SELECT data_import FROM bandi_import_log WHERE id = $1) - INTERVAL '1 hour'
-         AND "DataCreazione" <= (SELECT data_import FROM bandi_import_log WHERE id = $1) + INTERVAL '1 hour'
-         AND "Fonte" = (SELECT fonte FROM bandi_import_log WHERE id = $1)
+        `SELECT id, "oggetto", "cig", "data_gara", "fonte", "created_at"
+         FROM bandi WHERE "created_at" >= (SELECT data_import FROM bandi_import_log WHERE id = $1) - INTERVAL '1 hour'
+         AND "created_at" <= (SELECT data_import FROM bandi_import_log WHERE id = $1) + INTERVAL '1 hour'
+         AND "fonte" = (SELECT fonte FROM bandi_import_log WHERE id = $1)
          LIMIT 100`,
         [id]
       );
@@ -648,7 +648,7 @@ export default async function bandiImportRoutes(fastify, opts) {
       const { tipo } = request.params;
 
       const result = await query(
-        `SELECT bl.id, bl.id_bando, bl.url, bl.descrizione, b."Titolo" AS bando_titolo, b."CIG"
+        `SELECT bl.id, bl.id_bando, bl.url, bl.descrizione, b."oggetto" AS bando_titolo, b."cig"
          FROM bandi_links bl
          JOIN bandi b ON bl.id_bando = b.id
          WHERE bl.tipo = $1
@@ -673,7 +673,7 @@ export default async function bandiImportRoutes(fastify, opts) {
       const { id } = request.params;
 
       const result = await query(
-        `SELECT bl.id, bl.id_bando, bl.url, bl.tipo, bl.descrizione, b."Titolo" AS bando_titolo
+        `SELECT bl.id, bl.id_bando, bl.url, bl.tipo, bl.descrizione, b."oggetto" AS bando_titolo
          FROM bandi_links bl
          JOIN bandi b ON bl.id_bando = b.id
          WHERE bl.id_piattaforma = $1

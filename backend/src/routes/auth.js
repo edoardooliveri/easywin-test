@@ -32,10 +32,15 @@ export default async function authRoutes(fastify, opts) {
       }
 
       const result = await query(
-        `SELECT "id" AS user_id, "username", "email", "nome", "cognome",
-                "attivo", "password_hash"
-         FROM users
-         WHERE "username" = $1 OR "email" = $1
+        `SELECT u."id" AS user_id, u."username", u."email", u."nome", u."cognome",
+                u."attivo", u."password_hash", u."ruolo",
+                u."ruolo_dettagliato", u."bandi_enabled", u."esiti_enabled",
+                u."esiti_light_enabled", u."simulazioni_enabled",
+                u."newsletter_bandi", u."newsletter_esiti",
+                u."data_scadenza", u."bloccato", u."motivo_blocco",
+                u."codice_agente", u."id_azienda"
+         FROM users u
+         WHERE u."username" = $1 OR u."email" = $1
          LIMIT 1`,
         [username]
       );
@@ -46,9 +51,22 @@ export default async function authRoutes(fastify, opts) {
 
       const user = result.rows[0];
 
-      // Check if user is approved
+      // Check if user is approved/active
       if (user.attivo === false) {
-        return reply.status(403).send({ error: 'Account non attivo' });
+        return reply.status(403).send({ error: 'Account non attivo. Contattare l\'assistenza.' });
+      }
+
+      // Check if user is blocked
+      if (user.bloccato === true) {
+        const motivo = user.motivo_blocco ? ` Motivo: ${user.motivo_blocco}` : '';
+        return reply.status(403).send({ error: `Account bloccato.${motivo} Contattare l'assistenza.` });
+      }
+
+      // Check subscription expiry
+      const isExpired = user.data_scadenza && new Date(user.data_scadenza) < new Date();
+      if (isExpired && user.ruolo !== 'admin' && user.ruolo !== 'superadmin') {
+        // Allow login but flag as expired — frontend will show limited access
+        user._isExpired = true;
       }
 
       // Password validation: handle legacy migration from ASP.NET Membership
@@ -73,12 +91,59 @@ export default async function authRoutes(fastify, opts) {
         }
       }
 
+      // Build permissions object
+      const permissions = {
+        bandi: user.bandi_enabled !== false,
+        esiti: user.esiti_enabled !== false,
+        esiti_light: user.esiti_light_enabled === true,
+        simulazioni: user.simulazioni_enabled !== false,
+        newsletter_bandi: user.newsletter_bandi === true,
+        newsletter_esiti: user.newsletter_esiti === true
+      };
+
+      // Admin/superadmin get everything
+      const isAdmin = user.ruolo === 'admin' || user.ruolo === 'superadmin';
+      if (isAdmin) {
+        permissions.bandi = true;
+        permissions.esiti = true;
+        permissions.esiti_light = false; // admin sees full esiti, not light
+        permissions.simulazioni = true;
+        permissions.newsletter_bandi = true;
+        permissions.newsletter_esiti = true;
+        permissions.admin = true;
+        permissions.gestionale = true;
+      }
+
+      // Agente gets gestionale access
+      if (user.ruolo === 'agente') {
+        permissions.gestionale = true;
+        permissions.agente = true;
+      }
+
+      // Incaricato gets limited gestionale
+      if (user.ruolo === 'incaricato') {
+        permissions.gestionale = true;
+        permissions.incaricato = true;
+      }
+
+      // Operatore gets publishing access
+      if (user.ruolo === 'operatore') {
+        permissions.gestionale = true;
+        permissions.operatore = true;
+      }
+
       const token = fastify.jwt.sign({
         userId: user.user_id,
         username: user.username,
         email: user.email,
         nome: user.nome,
-        cognome: user.cognome
+        cognome: user.cognome,
+        ruolo: user.ruolo || 'utente',
+        ruolo_dettagliato: user.ruolo_dettagliato || null,
+        id_azienda: user.id_azienda || null,
+        permissions,
+        isExpired: user._isExpired || false,
+        data_scadenza: user.data_scadenza || null
       }, { expiresIn: '24h' });
 
       return {
@@ -88,7 +153,13 @@ export default async function authRoutes(fastify, opts) {
           username: user.username,
           email: user.email,
           nome: user.nome,
-          cognome: user.cognome
+          cognome: user.cognome,
+          ruolo: user.ruolo || 'utente',
+          ruolo_dettagliato: user.ruolo_dettagliato || null,
+          id_azienda: user.id_azienda || null,
+          permissions,
+          isExpired: user._isExpired || false,
+          data_scadenza: user.data_scadenza || null
         }
       };
     } catch (err) {
@@ -97,14 +168,35 @@ export default async function authRoutes(fastify, opts) {
     }
   });
 
+  // POST /api/auth/dev-login — Dev-only login bypass (only in development)
+  if (process.env.NODE_ENV !== 'production') {
+    fastify.post('/dev-login', async (request, reply) => {
+      const token = fastify.jwt.sign({
+        userId: 'dev-admin-001',
+        username: 'admin-dev',
+        email: 'admin@easywin.it',
+        nome: 'Admin',
+        cognome: 'Dev',
+        ruolo: 'superadmin',
+        permissions: { gestionale: true, bandi: true, esiti: true, simulazioni: true, admin: true }
+      }, { expiresIn: '24h' });
+      return { token, user: { username: 'admin-dev', ruolo: 'superadmin', nome: 'Admin', cognome: 'Dev', permissions: { gestionale: true, bandi: true, esiti: true, simulazioni: true, admin: true } } };
+    });
+  }
+
   // GET /api/auth/me
   fastify.get('/me', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     try {
       const result = await query(
-        `SELECT "id" AS user_id, "username", "email", "nome", "cognome",
-                "ruolo", "attivo"
-         FROM users
-         WHERE "username" = $1`,
+        `SELECT u."id" AS user_id, u."username", u."email", u."nome", u."cognome",
+                u."ruolo", u."attivo", u."ruolo_dettagliato",
+                u."bandi_enabled", u."esiti_enabled", u."esiti_light_enabled",
+                u."simulazioni_enabled", u."newsletter_bandi", u."newsletter_esiti",
+                u."data_scadenza", u."bloccato", u."id_azienda",
+                a."ragione_sociale" AS azienda_nome
+         FROM users u
+         LEFT JOIN aziende a ON u."id_azienda" = a."id"
+         WHERE u."username" = $1`,
         [request.user.username]
       );
 
@@ -113,14 +205,37 @@ export default async function authRoutes(fastify, opts) {
       }
 
       const u = result.rows[0];
+      const isAdmin = u.ruolo === 'admin' || u.ruolo === 'superadmin';
+      const isExpired = u.data_scadenza && new Date(u.data_scadenza) < new Date();
+
+      const permissions = {
+        bandi: isAdmin || u.bandi_enabled !== false,
+        esiti: isAdmin || u.esiti_enabled !== false,
+        esiti_light: !isAdmin && u.esiti_light_enabled === true,
+        simulazioni: isAdmin || u.simulazioni_enabled !== false,
+        newsletter_bandi: isAdmin || u.newsletter_bandi === true,
+        newsletter_esiti: isAdmin || u.newsletter_esiti === true,
+        admin: isAdmin,
+        gestionale: isAdmin || u.ruolo === 'agente' || u.ruolo === 'incaricato' || u.ruolo === 'operatore',
+        agente: u.ruolo === 'agente',
+        incaricato: u.ruolo === 'incaricato',
+        operatore: u.ruolo === 'operatore'
+      };
+
       return {
         id: u.user_id,
         username: u.username,
         email: u.email,
         nome: u.nome,
         cognome: u.cognome,
-        ruolo: u.ruolo,
-        approvato: u.attivo
+        ruolo: u.ruolo || 'utente',
+        ruolo_dettagliato: u.ruolo_dettagliato,
+        attivo: u.attivo,
+        id_azienda: u.id_azienda,
+        azienda_nome: u.azienda_nome,
+        permissions,
+        isExpired: isExpired && !isAdmin,
+        data_scadenza: u.data_scadenza
       };
     } catch (err) {
       fastify.log.error({ err: err.message }, '/me error');

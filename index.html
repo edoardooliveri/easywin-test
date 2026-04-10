@@ -56,7 +56,7 @@
         <a href="formazione.html">Formazione</a>
         <a href="contattaci.html">Contattaci</a>
         <a href="abbonamento.html" class="btn-nav btn-bordered">Abbonamento</a>
-        <a href="login.html" class="btn-nav btn-bordered">Login</a>
+        <a href="#area-riservata" class="btn-nav btn-bordered">Login</a>
     </div>
     <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')">
         <span></span><span></span><span></span>
@@ -422,185 +422,36 @@
     </div>
 </section>
 
-<!-- ULTIME AGGIUDICAZIONI TABLE -->
-<section id="aggiudicazioni" class="section section-alt">
+<!-- ULTIMI BANDI -->
+<section id="bandi" class="section">
     <div class="container">
-        <h2 class="table-title fade-up">Ultime Aggiudicazioni di Gara</h2>
-        <div class="table-wrapper fade-up">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Data Apertura</th>
-                        <th>Stazione Appaltante</th>
-                        <th>Prov.</th>
-                        <th>Oggetto dell'Appalto</th>
-                        <th>Importo</th>
-                        <th>Cat. SOA</th>
-                        <th>Ribasso</th>
-                        <th>N. Partec.</th>
-                        <th>Aggiudicatario</th>
-                    </tr>
-                </thead>
-                <tbody id="aggiudicazioni-tbody">
-                    <tr>
-                        <td>25/03/2026</td>
-                        <td>Comune di Bologna</td>
-                        <td>BO</td>
-                        <td>Lavori di rifacimento piazza San Francesco e vie limitrofe</td>
-                        <td class="col-importo">&euro; 1.250.000</td>
-                        <td class="col-soa"><span class="soa-badge">OG3</span></td>
-                        <td class="col-ribasso">18,725%</td>
-                        <td class="col-partecipanti">23</td>
-                        <td><a href="#" class="visualizza-link">Impresa Rossi S.r.l.</a></td>
-                    </tr>
-                    <tr>
-                        <td>22/03/2026</td>
-                        <td>Provincia di Palermo</td>
-                        <td>PA</td>
-                        <td>Manutenzione straordinaria edifici scolastici del comprensorio</td>
-                        <td class="col-importo">&euro; 890.000</td>
-                        <td class="col-soa"><span class="soa-badge">OG1</span></td>
-                        <td class="col-ribasso">22,340%</td>
-                        <td class="col-partecipanti">18</td>
-                        <td><a href="#" class="visualizza-link">Edil Sud S.p.A.</a></td>
-                    </tr>
-                    <tr>
-                        <td>20/03/2026</td>
-                        <td>Regione Piemonte</td>
-                        <td>TO</td>
-                        <td>Realizzazione impianto fotovoltaico sede regionale</td>
-                        <td class="col-importo">&euro; 2.100.000</td>
-                        <td class="col-soa"><span class="soa-badge">OG9</span></td>
-                        <td class="col-ribasso">15,890%</td>
-                        <td class="col-partecipanti">31</td>
-                        <td><a href="#" class="visualizza-link">Green Energy Soc. Coop.</a></td>
-                    </tr>
-                    <tr>
-                        <td>18/03/2026</td>
-                        <td>Comune di Venezia</td>
-                        <td>VE</td>
-                        <td>Restauro conservativo Palazzo Ducale - Lotto 3</td>
-                        <td class="col-importo">&euro; 3.450.000</td>
-                        <td class="col-soa"><span class="soa-badge">OG2</span></td>
-                        <td class="col-ribasso">12,150%</td>
-                        <td class="col-partecipanti">14</td>
-                        <td><a href="#" class="visualizza-link">Restauri Veneti S.r.l.</a></td>
-                    </tr>
-                    <tr>
-                        <td>15/03/2026</td>
-                        <td>ANAS S.p.A.</td>
-                        <td>GE</td>
-                        <td>Ammodernamento tratto autostradale A12 km 45-52</td>
-                        <td class="col-importo">&euro; 8.750.000</td>
-                        <td class="col-soa"><span class="soa-badge">OG3</span></td>
-                        <td class="col-ribasso">19,450%</td>
-                        <td class="col-partecipanti">9</td>
-                        <td><a href="#" class="visualizza-link">Consorzio Ligure Costruzioni</a></td>
-                    </tr>
-                    <tr>
-                        <td>12/03/2026</td>
-                        <td>ASL Roma 1</td>
-                        <td>RM</td>
-                        <td>Adeguamento antisismico Ospedale San Camillo</td>
-                        <td class="col-importo">&euro; 4.200.000</td>
-                        <td class="col-soa"><span class="soa-badge">OG12</span></td>
-                        <td class="col-ribasso">16,780%</td>
-                        <td class="col-partecipanti">12</td>
-                        <td><a href="#" class="visualizza-link">Tecnoedil Roma S.p.A.</a></td>
-                    </tr>
-                </tbody>
-            </table>
+        <h2 class="table-title fade-up">Ultimi Bandi di Gara Pubblicati</h2>
+        <style>
+            #home-bandi-list > div, #home-esiti-list > div { margin-bottom: 20px; }
+            @media (max-width: 768px) {
+                #home-bandi-list .home-grid4, #home-esiti-list .home-grid4 { grid-template-columns: 1fr 1fr !important; }
+                #home-bandi-list .home-footer, #home-esiti-list .home-footer { flex-direction: column; }
+                #home-bandi-list .home-footer button, #home-esiti-list .home-footer button { justify-content: center; width: 100%; }
+            }
+        </style>
+        <div id="home-bandi-list" class="fade-up" style="display:flex;flex-direction:column;gap:0;">
+            <div style="text-align:center;padding:60px 20px;"><i class="fas fa-spinner fa-spin" style="font-size:2em;color:#FF8C00;"></i><p style="margin-top:12px;color:#94a3b8;">Caricamento bandi...</p></div>
         </div>
         <div class="table-section-footer fade-up">
-            <a href="aggiudicazioni.html" class="btn-outline">Vedi tutte le aggiudicazioni <i class="fas fa-arrow-right"></i></a>
+            <a href="bandi-di-gara.html" class="btn-outline">Vedi tutti i bandi <i class="fas fa-arrow-right"></i></a>
         </div>
     </div>
 </section>
 
-<!-- ULTIMI BANDI TABLE -->
-<section id="bandi" class="section">
+<!-- ULTIME AGGIUDICAZIONI -->
+<section id="aggiudicazioni" class="section section-alt">
     <div class="container">
-        <h2 class="table-title fade-up">Ultimi Bandi di Gara Pubblicati</h2>
-        <div class="table-wrapper fade-up">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Scadenza</th>
-                        <th>Stazione Appaltante</th>
-                        <th>Prov.</th>
-                        <th>Oggetto dell'Appalto</th>
-                        <th>Importo a base d'asta</th>
-                        <th>Cat. SOA</th>
-                        <th>Criterio</th>
-                        <th>CIG</th>
-                    </tr>
-                </thead>
-                <tbody id="bandi-tbody">
-                    <tr>
-                        <td>15/04/2026</td>
-                        <td>Comune di Milano</td>
-                        <td>MI</td>
-                        <td>Lavori di manutenzione stradale ordinaria e straordinaria - Zone 4-5</td>
-                        <td class="col-importo">&euro; 1.850.000</td>
-                        <td class="col-soa"><span class="soa-badge">OG3</span></td>
-                        <td class="col-criterio"><span class="criterio-tag prezzo">Prezzo più basso</span></td>
-                        <td><a href="#" class="visualizza-link">A04F2B8C91</a></td>
-                    </tr>
-                    <tr>
-                        <td>20/04/2026</td>
-                        <td>Provincia di Roma</td>
-                        <td>RM</td>
-                        <td>Costruzione nuovo polo scolastico Via Tiburtina</td>
-                        <td class="col-importo">&euro; 5.200.000</td>
-                        <td class="col-soa"><span class="soa-badge">OG1</span></td>
-                        <td class="col-criterio"><span class="criterio-tag oepv">OEPV</span></td>
-                        <td><a href="#" class="visualizza-link">B12E3D7A45</a></td>
-                    </tr>
-                    <tr>
-                        <td>28/04/2026</td>
-                        <td>Regione Liguria</td>
-                        <td>GE</td>
-                        <td>Servizi di consulenza tecnica per progettazione porto turistico</td>
-                        <td class="col-importo">&euro; 320.000</td>
-                        <td class="col-soa"><span class="soa-badge">-</span></td>
-                        <td class="col-criterio"><span class="criterio-tag oepv">OEPV</span></td>
-                        <td><a href="#" class="visualizza-link">C78A1F3E22</a></td>
-                    </tr>
-                    <tr>
-                        <td>05/05/2026</td>
-                        <td>Città Metropolitana di Torino</td>
-                        <td>TO</td>
-                        <td>Realizzazione pista ciclabile collegamento Torino-Rivoli</td>
-                        <td class="col-importo">&euro; 2.400.000</td>
-                        <td class="col-soa"><span class="soa-badge">OG3</span></td>
-                        <td class="col-criterio"><span class="criterio-tag prezzo">Prezzo più basso</span></td>
-                        <td><a href="#" class="visualizza-link">D56B9C4E18</a></td>
-                    </tr>
-                    <tr>
-                        <td>10/05/2026</td>
-                        <td>Comune di Firenze</td>
-                        <td>FI</td>
-                        <td>Rifacimento impianto illuminazione pubblica centro storico LED</td>
-                        <td class="col-importo">&euro; 980.000</td>
-                        <td class="col-soa"><span class="soa-badge">OG10</span></td>
-                        <td class="col-criterio"><span class="criterio-tag prezzo">Prezzo più basso</span></td>
-                        <td><a href="#" class="visualizza-link">E23F8A1B67</a></td>
-                    </tr>
-                    <tr>
-                        <td>18/05/2026</td>
-                        <td>Autorità Portuale di Napoli</td>
-                        <td>NA</td>
-                        <td>Dragaggio e consolidamento banchine porto commerciale</td>
-                        <td class="col-importo">&euro; 12.500.000</td>
-                        <td class="col-soa"><span class="soa-badge">OG7</span></td>
-                        <td class="col-criterio"><span class="criterio-tag oepv">OEPV</span></td>
-                        <td><a href="#" class="visualizza-link">F91D2E5C34</a></td>
-                    </tr>
-                </tbody>
-            </table>
+        <h2 class="table-title fade-up">Ultime Aggiudicazioni di Gara</h2>
+        <div id="home-esiti-list" class="fade-up" style="display:flex;flex-direction:column;gap:0;">
+            <div style="text-align:center;padding:60px 20px;"><i class="fas fa-spinner fa-spin" style="font-size:2em;color:#FF8C00;"></i><p style="margin-top:12px;color:#94a3b8;">Caricamento esiti...</p></div>
         </div>
         <div class="table-section-footer fade-up">
-            <a href="bandi-di-gara.html" class="btn-outline">Vedi tutti i bandi <i class="fas fa-arrow-right"></i></a>
+            <a href="aggiudicazioni.html" class="btn-outline">Vedi tutte le aggiudicazioni <i class="fas fa-arrow-right"></i></a>
         </div>
     </div>
 </section>
@@ -695,6 +546,31 @@
     </div>
 </section>
 
+
+<!-- AREA RISERVATA (LOGIN) -->
+<section id="area-riservata" class="section section-alt">
+    <div class="container">
+        <div class="section-header fade-up" style="text-align:center;">
+            <h2 class="section-title">Area Riservata</h2>
+            <p class="section-desc">Accedi con le tue credenziali per accedere al portale clienti o al gestionale.</p>
+        </div>
+        <div class="contact-form-wrapper fade-up" style="max-width:450px;margin:0 auto;">
+            <form id="area-riservata-form" class="contact-form">
+                <div class="form-group">
+                    <input type="text" id="area-username" placeholder="Username o Email" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="area-password" placeholder="Password" required autocomplete="current-password">
+                </div>
+                <div id="area-riservata-message" style="margin-bottom:12px;display:none;font-size:13px;"></div>
+                <button type="submit" class="btn btn-primary" style="width:100%;">Accedi <i class="fas fa-sign-in-alt"></i></button>
+                <div style="margin-top:12px;text-align:center;">
+                    <a href="#" onclick="showRecovery(event)" style="color:var(--primary);font-size:13px;">Password dimenticata?</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
 
 <!-- FOOTER -->
 <footer>
@@ -890,6 +766,38 @@ document.getElementById('reset-form')?.addEventListener('submit', async (e) => {
     }
 });
 
+// Check if already logged in — update area riservata section
+(function checkAlreadyLoggedIn() {
+  const token = localStorage.getItem('auth_token') || localStorage.getItem('easywin_token');
+  if (!token) return;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('easywin_token');
+      localStorage.removeItem('easywin_user');
+      return;
+    }
+    // User is logged in — replace form with links
+    const formWrapper = document.querySelector('#area-riservata .contact-form-wrapper');
+    if (formWrapper) {
+      const nome = payload.nome || payload.username || 'Utente';
+      const perms = payload.permissions || {};
+      let links = '<a href="clienti/index.html" class="btn btn-primary" style="display:block;margin-bottom:12px;text-align:center;padding:14px;">Vai al Portale Clienti <i class="fas fa-arrow-right"></i></a>';
+      if (perms.gestionale) {
+        links += '<a href="admin/index.html" class="btn btn-primary" style="display:block;margin-bottom:12px;text-align:center;padding:14px;background:var(--dark);">Vai al Gestionale <i class="fas fa-cog"></i></a>';
+      }
+      links += '<a href="#" onclick="localStorage.removeItem(\'auth_token\');localStorage.removeItem(\'easywin_token\');localStorage.removeItem(\'easywin_user\');location.reload();return false" style="display:block;text-align:center;color:var(--text-light);font-size:13px;margin-top:8px;">Esci (Logout)</a>';
+      formWrapper.innerHTML = '<div style="text-align:center;padding:20px 0;"><p style="font-size:16px;margin-bottom:20px;color:var(--text-light);">Benvenuto, <strong style="color:var(--primary)">' + nome + '</strong></p>' + links + '</div>';
+    }
+    // Auto-scroll to area riservata if hash present
+    if (window.location.hash === '#area-riservata') {
+      const perms = payload.permissions || {};
+      window.location.href = perms.gestionale ? 'admin/index.html' : 'clienti/index.html';
+    }
+  } catch(e) { /* invalid token, ignore */ }
+})();
+
 // AREA RISERVATA (LOGIN)
 document.getElementById('area-riservata-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -907,7 +815,10 @@ document.getElementById('area-riservata-form')?.addEventListener('submit', async
             localStorage.setItem('auth_token', data.token);
             localStorage.setItem('easywin_user', JSON.stringify(data.user));
             showMessage('area-riservata-message', 'Login eseguito! Reindirizzamento...', true);
-            setTimeout(() => window.location.href = 'admin/index.html', 800);
+            // Redirect in base al ruolo
+            const perms = data.user?.permissions || {};
+            const dest = perms.gestionale ? 'admin/index.html' : 'clienti/index.html';
+            setTimeout(() => window.location.href = dest, 800);
         } else {
             showMessage('area-riservata-message', data.error || 'Credenziali non valide', false);
         }
@@ -1043,7 +954,124 @@ async function loadPublicStatistics() {
     const statsSection = document.getElementById('public-stats');
     if (statsSection) statsObs.observe(statsSection);
 }
-document.addEventListener('DOMContentLoaded', loadPublicStatistics);
+document.addEventListener('DOMContentLoaded', function() {
+    loadPublicStatistics();
+    loadUltimiBandi();
+    loadUltimiEsiti();
+});
+
+// ===== HELPER FUNCTIONS =====
+function _esc(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function _fmtDate(d) { return d ? new Date(d).toLocaleDateString('it-IT') : '-'; }
+function _fmtImporto(n) { return n ? new Intl.NumberFormat('it-IT', {style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n) : '-'; }
+
+// ===== ULTIMI 10 BANDI =====
+async function loadUltimiBandi() {
+    var container = document.getElementById('home-bandi-list');
+    try {
+        var res = await fetch(API_BASE + '/api/bandi/?limit=10&sort=data_pubblicazione&order=desc');
+        var result = await res.json();
+        var bandi = result.data || [];
+        if (!bandi.length) { container.innerHTML = '<p style="text-align:center;padding:40px;color:#94a3b8;">Nessun bando disponibile</p>'; return; }
+
+        var cL = 'style="padding:6px 12px;font-size:0.7rem;color:#94a3b8;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-right:1px solid #f0f0f0;border-bottom:1px solid #f0f0f0;background:#f8fafc"';
+        var cV = 'style="padding:8px 12px;font-weight:600;border-right:1px solid #f0f0f0;border-bottom:1px solid #f0f0f0;color:#334155"';
+        var cLL = 'style="padding:6px 12px;font-size:0.7rem;color:#94a3b8;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid #f0f0f0;background:#f8fafc"';
+        var cVL = 'style="padding:8px 12px;font-weight:600;border-bottom:1px solid #f0f0f0;color:#334155"';
+
+        container.innerHTML = bandi.map(function(b, i) {
+            var scad = b.data_offerta ? new Date(b.data_offerta) : null;
+            var giorni = scad ? Math.ceil((scad - new Date()) / (1000*60*60*24)) : null;
+            var scaduto = giorni !== null && giorni < 0;
+            var urgente = giorni !== null && giorni <= 7 && giorni >= 0;
+            var importoF = _fmtImporto(b.importo_so);
+            var badge = '';
+            if (scaduto) badge = '<span style="background:rgba(239,68,68,0.15);color:#ef4444;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600">SCADUTO</span>';
+            else if (urgente) badge = '<span style="background:rgba(245,158,11,0.15);color:#f59e0b;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600">URGENTE ' + giorni + 'gg</span>';
+            else badge = '<span style="background:rgba(34,197,94,0.15);color:#22c55e;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600">ATTIVO</span>';
+
+            return '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:20px;overflow:hidden;transition:all 0.2s ease;box-shadow:0 1px 3px rgba(0,0,0,0.04)" onmouseover="this.style.boxShadow=\'0 4px 20px rgba(0,0,0,0.08)\'" onmouseout="this.style.boxShadow=\'0 1px 3px rgba(0,0,0,0.04)\'">'
+              + '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#f8fafc;border-bottom:1px solid #e2e8f0">'
+                + '<div style="display:flex;align-items:center;gap:12px"><span style="font-size:0.95rem;font-weight:700;color:#334155;font-family:Comfortaa,cursive">Bando n° ' + (i+1) + '</span><img src="logo.png" alt="EasyWin" style="height:28px;opacity:0.7"></div>'
+                + '<div style="display:flex;align-items:center;gap:10px">' + badge + '</div>'
+              + '</div>'
+              + '<div class="home-grid4" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">'
+                + '<div ' + cL + '>Tipologia</div><div ' + cL + '>Criterio</div><div ' + cL + '>Scadenza</div><div ' + cLL + '>Pubblicazione</div>'
+                + '<div ' + cV + '><span style="color:#334155;font-size:0.85rem">' + _esc(b.tipologia || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:#64748b;font-size:0.85rem">' + _esc(b.criterio || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:' + (scaduto?'#666':urgente?'#ef4444':'#22c55e') + ';font-size:1rem;font-weight:600">' + _fmtDate(b.data_offerta) + '</span></div>'
+                + '<div ' + cVL + '><span style="color:#334155;font-size:0.9rem">' + _fmtDate(b.data_pubblicazione) + '</span></div>'
+              + '</div>'
+              + '<div class="home-grid4" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">'
+                + '<div ' + cL + '>Provincia</div><div ' + cL + '>Importo</div><div ' + cL + '>CIG</div><div ' + cLL + '>Categoria SOA</div>'
+                + '<div ' + cV + '><span style="color:#334155;font-size:0.9rem">' + _esc(b.provincia_nome || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:#22c55e;font-size:1.05rem;font-weight:700">' + importoF + '</span></div>'
+                + '<div ' + cV + '><span style="color:#64748b;font-family:monospace;font-size:0.88rem">' + _esc(b.codice_cig || '-') + '</span></div>'
+                + '<div ' + cVL + '><span style="color:#7c3aed;font-size:0.95rem;font-weight:700">' + _esc(b.soa_categoria || '-') + '</span></div>'
+              + '</div>'
+              + '<div style="border-bottom:1px solid #f0f0f0"><div style="padding:6px 12px;font-size:0.7rem;color:#94a3b8;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid #f0f0f0;background:#f8fafc">Stazione appaltante</div><div style="padding:8px 12px;font-size:0.95rem;color:#1E2D3D;font-weight:700"><i class="fas fa-building" style="margin-right:6px;opacity:0.5"></i>' + _esc(b.stazione || '-') + '</div></div>'
+              + '<div style="border-bottom:1px solid #f0f0f0"><div style="padding:6px 12px;font-size:0.7rem;color:#94a3b8;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid #f0f0f0;background:#f8fafc">Oggetto</div><div style="padding:10px 12px;font-size:0.88rem;color:#334155;font-weight:500;line-height:1.5;text-align:justify;cursor:pointer" onclick="window.open(\'bando-dettaglio.html?id=' + b.id + '\',\'_blank\')">' + _esc(b.titolo || '-') + '</div></div>'
+              + '<div class="home-footer" style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:#f8fafc;border-top:1px solid #e2e8f0;border-radius:0 0 20px 20px;flex-wrap:wrap">'
+                + '<button onclick="window.open(\'bando-dettaglio.html?id=' + b.id + '\',\'_blank\')" style="background:#1E2D3D;color:#fff;border:none;padding:8px 20px;border-radius:50px;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:Comfortaa,cursive;transition:all 0.2s;display:flex;align-items:center;gap:6px" onmouseover="this.style.opacity=\'0.85\'" onmouseout="this.style.opacity=\'1\'"><i class="fas fa-eye"></i> VISUALIZZA</button>'
+              + '</div>'
+            + '</div>';
+        }).join('');
+    } catch(e) {
+        container.innerHTML = '<p style="text-align:center;padding:40px;color:#ef4444;">Errore nel caricamento dei bandi</p>';
+    }
+}
+
+// ===== ULTIMI 10 ESITI =====
+async function loadUltimiEsiti() {
+    var container = document.getElementById('home-esiti-list');
+    try {
+        var res = await fetch(API_BASE + '/api/esiti/?limit=10&sort=data&order=desc');
+        var result = await res.json();
+        var esiti = result.data || [];
+        if (!esiti.length) { container.innerHTML = '<p style="text-align:center;padding:40px;color:#94a3b8;">Nessun esito disponibile</p>'; return; }
+
+        var cL = 'style="padding:6px 12px;font-size:0.7rem;color:#94a3b8;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-right:1px solid #f0f0f0;border-bottom:1px solid #f0f0f0;background:#f8fafc"';
+        var cV = 'style="padding:8px 12px;font-weight:600;border-right:1px solid #f0f0f0;border-bottom:1px solid #f0f0f0;color:#334155"';
+        var cLL = 'style="padding:6px 12px;font-size:0.7rem;color:#94a3b8;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid #f0f0f0;background:#f8fafc"';
+        var cVL = 'style="padding:8px 12px;font-weight:600;border-bottom:1px solid #f0f0f0;color:#334155"';
+
+        container.innerHTML = esiti.map(function(e, i) {
+            var importoF = _fmtImporto(e.importo);
+            var ribasso = e.ribasso ? parseFloat(e.ribasso).toFixed(2) + '%' : '-';
+            var partec = e.n_partecipanti || '-';
+
+            return '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:20px;overflow:hidden;transition:all 0.2s ease;box-shadow:0 1px 3px rgba(0,0,0,0.04)" onmouseover="this.style.boxShadow=\'0 4px 20px rgba(0,0,0,0.08)\'" onmouseout="this.style.boxShadow=\'0 1px 3px rgba(0,0,0,0.04)\'">'
+              + '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#f8fafc;border-bottom:1px solid #e2e8f0">'
+                + '<div style="display:flex;align-items:center;gap:12px"><span style="font-size:0.95rem;font-weight:700;color:#334155;font-family:Comfortaa,cursive">Esito n° ' + (i+1) + '</span><img src="logo.png" alt="EasyWin" style="height:28px;opacity:0.7"></div>'
+                + '<div style="display:flex;align-items:center;gap:10px"><span style="background:rgba(30,45,61,0.08);color:#1E2D3D;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600"><i class="far fa-calendar" style="margin-right:4px"></i>' + _fmtDate(e.data) + '</span></div>'
+              + '</div>'
+              + '<div class="home-grid4" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">'
+                + '<div ' + cL + '>Provincia</div><div ' + cL + '>Importo</div><div ' + cL + '>Ribasso</div><div ' + cLL + '>Partecipanti</div>'
+                + '<div ' + cV + '><span style="color:#334155;font-size:0.9rem">' + _esc(e.provincia_nome || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:#22c55e;font-size:1.05rem;font-weight:700">' + importoF + '</span></div>'
+                + '<div ' + cV + '><span style="color:#FF8C00;font-size:1rem;font-weight:700">' + ribasso + '</span></div>'
+                + '<div ' + cVL + '><span style="color:#334155;font-size:0.95rem;font-weight:600">' + partec + '</span></div>'
+              + '</div>'
+              + '<div class="home-grid4" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">'
+                + '<div ' + cL + '>CIG</div><div ' + cL + '>Categoria SOA</div><div ' + cL + '>Tipologia</div><div ' + cLL + '>Criterio</div>'
+                + '<div ' + cV + '><span style="color:#64748b;font-family:monospace;font-size:0.88rem">' + _esc(e.codice_cig || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:#7c3aed;font-size:0.95rem;font-weight:700">' + _esc(e.soa_categoria || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:#334155;font-size:0.85rem">' + _esc(e.tipologia || '-') + '</span></div>'
+                + '<div ' + cVL + '><span style="color:#64748b;font-size:0.85rem">' + _esc(e.criterio || '-') + '</span></div>'
+              + '</div>'
+              + '<div style="border-bottom:1px solid #f0f0f0"><div style="padding:6px 12px;font-size:0.7rem;color:#94a3b8;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid #f0f0f0;background:#f8fafc">Stazione appaltante</div><div style="padding:8px 12px;font-size:0.95rem;color:#1E2D3D;font-weight:700"><i class="fas fa-building" style="margin-right:6px;opacity:0.5"></i>' + _esc(e.stazione_nome || '-') + '</div></div>'
+              + '<div style="border-bottom:1px solid #f0f0f0"><div style="padding:6px 12px;font-size:0.7rem;color:#94a3b8;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid #f0f0f0;background:#f8fafc">Oggetto</div><div style="padding:10px 12px;font-size:0.88rem;color:#334155;font-weight:500;line-height:1.5;text-align:justify">' + _esc(e.titolo || '-') + '</div></div>'
+              + (e.vincitore_nome ? '<div style="border-bottom:1px solid #f0f0f0"><div style="padding:6px 12px;font-size:0.7rem;color:#94a3b8;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid #f0f0f0;background:#f8fafc"><i class="fas fa-trophy" style="color:#FF8C00;margin-right:4px"></i>Vincitore</div><div style="padding:8px 12px;font-size:0.95rem;color:#1E2D3D;font-weight:700">' + _esc(e.vincitore_nome) + '</div></div>' : '')
+              + '<div class="home-footer" style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:#f8fafc;border-top:1px solid #e2e8f0;border-radius:0 0 20px 20px;flex-wrap:wrap">'
+                + (e.id_bando ? '<button onclick="window.open(\'bando-dettaglio.html?id=' + e.id_bando + '\',\'_blank\')" style="background:#1E2D3D;color:#fff;border:none;padding:8px 20px;border-radius:50px;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:Comfortaa,cursive;transition:all 0.2s;display:flex;align-items:center;gap:6px" onmouseover="this.style.opacity=\'0.85\'" onmouseout="this.style.opacity=\'1\'"><i class="fas fa-eye"></i> VISUALIZZA BANDO</button>' : '')
+                + '<button onclick="window.open(\'aggiudicazione-dettaglio.html?id=' + e.id + '\',\'_blank\')" style="background:linear-gradient(135deg,#F5C518,#FF8C00);color:#fff;border:none;padding:8px 20px;border-radius:50px;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:Comfortaa,cursive;transition:all 0.2s;display:flex;align-items:center;gap:6px" onmouseover="this.style.opacity=\'0.85\'" onmouseout="this.style.opacity=\'1\'"><i class="fas fa-chart-bar"></i> DETTAGLIO ESITO</button>'
+              + '</div>'
+            + '</div>';
+        }).join('');
+    } catch(err) {
+        container.innerHTML = '<p style="text-align:center;padding:40px;color:#ef4444;">Errore nel caricamento degli esiti</p>';
+    }
+}
 
 // SEARCH FUNCTIONALITY
 function performDualSearch() {

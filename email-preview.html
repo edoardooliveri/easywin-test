@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyWin - Preview Email Templates</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0F1923; color: #fff; font-family: 'Segoe UI', Arial, sans-serif; }
+  .nav { position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: #1E2D3D; padding: 24px 16px; overflow-y: auto; z-index: 100; border-right: 2px solid #F5C518; }
+  .nav h2 { color: #F5C518; font-size: 1.1em; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(245,197,24,0.3); }
+  .nav a { display: block; color: #ccc; text-decoration: none; padding: 10px 12px; margin-bottom: 4px; border-radius: 6px; font-size: 0.85em; transition: all 0.2s; }
+  .nav a:hover { background: rgba(245,197,24,0.15); color: #F5C518; }
+  .nav a.active { background: rgba(245,197,24,0.2); color: #F5C518; font-weight: 600; }
+  .nav .badge { display: inline-block; background: rgba(245,197,24,0.2); color: #F5C518; font-size: 0.7em; padding: 2px 8px; border-radius: 10px; margin-left: 4px; }
+  .nav .section-label { color: #888; font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px; padding: 12px 12px 6px; font-weight: 600; }
+  .main { margin-left: 280px; padding: 32px; }
+  .email-section { margin-bottom: 60px; scroll-margin-top: 20px; }
+  .email-section h2 { color: #F5C518; font-size: 1.4em; margin-bottom: 8px; }
+  .email-section .desc { color: #aaa; font-size: 0.9em; margin-bottom: 20px; }
+  .email-section .status { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.8em; font-weight: 600; margin-bottom: 16px; }
+  .status.done { background: rgba(39,174,96,0.2); color: #27ae60; }
+  .status.new { background: rgba(255,140,0,0.2); color: #FF8C00; }
+  .status.todo { background: rgba(231,76,60,0.2); color: #e74c3c; }
+  .email-frame { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.4); max-width: 680px; }
+  .email-frame.dark { background: #0F1923; }
+  .vs-label { display: flex; gap: 12px; margin-bottom: 16px; }
+  .vs-label span { background: rgba(30,45,61,0.8); padding: 6px 14px; border-radius: 16px; font-size: 0.8em; color: #aaa; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <h2>Email Templates EasyWin</h2>
+  <div class="section-label">Attualmente implementate</div>
+  <a href="#esito-notification">Notifica Esito (singola) <span class="badge">done</span></a>
+  <a href="#esito-partecipanti-cliente">Esito Partecipanti (cliente) <span class="badge">done</span></a>
+  <a href="#esito-partecipanti-noncliente">Esito Partecipanti (non cliente) <span class="badge">done</span></a>
+  <a href="#newsletter-bandi">Newsletter Bandi <span class="badge">done</span></a>
+  <a href="#newsletter-esiti">Newsletter Esiti <span class="badge">done</span></a>
+  <a href="#reset-password">Reset Password <span class="badge">done</span></a>
+  <a href="#contatto">Form Contatto <span class="badge">done</span></a>
+
+  <div class="section-label" style="margin-top:16px;">Da implementare</div>
+  <a href="#nl-bandi-personalizzata">NL Bandi Personalizzata (5:30) <span class="badge" style="background:rgba(255,140,0,0.2);color:#FF8C00;">todo</span></a>
+  <a href="#nl-esiti-personalizzata">NL Esiti Personalizzata (5:30) <span class="badge" style="background:rgba(255,140,0,0.2);color:#FF8C00;">todo</span></a>
+  <a href="#esito-push">Push Esito Real-time <span class="badge" style="background:rgba(255,140,0,0.2);color:#FF8C00;">todo</span></a>
+  <a href="#reminder-scadenza">Reminder Scadenza Cliente <span class="badge" style="background:rgba(255,140,0,0.2);color:#FF8C00;">todo</span></a>
+  <a href="#reminder-admin">Reminder Scadenze Admin <span class="badge" style="background:rgba(255,140,0,0.2);color:#FF8C00;">todo</span></a>
+  <a href="#alert-importazione">Alert Importazione Bandi <span class="badge" style="background:rgba(255,140,0,0.2);color:#FF8C00;">todo</span></a>
+  <a href="#alert-aperture">Alert Aperture Domani <span class="badge" style="background:rgba(255,140,0,0.2);color:#FF8C00;">todo</span></a>
+  <a href="#alert-sopralluoghi">Alert Sopralluoghi Domani <span class="badge" style="background:rgba(255,140,0,0.2);color:#FF8C00;">todo</span></a>
+  <a href="#posticipo-seduta">Posticipo Seduta Gara <span class="badge" style="background:rgba(255,140,0,0.2);color:#FF8C00;">todo</span></a>
+  <a href="#assegnazione-apertura">Assegnazione/Cambio Apertura <span class="badge" style="background:rgba(255,140,0,0.2);color:#FF8C00;">todo</span></a>
+</div>
+
+<div class="main">
+  <h1 style="color:#F5C518;font-size:2em;margin-bottom:8px;">Preview Email Templates</h1>
+  <p style="color:#aaa;margin-bottom:40px;">Tutte le email del sistema EasyWin, renderizzate con dati di esempio.</p>
+
+  <!-- ===== 1. ESITO NOTIFICATION (email-service.js) ===== -->
+  <div class="email-section" id="esito-notification">
+    <span class="status done">IMPLEMENTATA</span>
+    <h2>1. Notifica Esito (singola azienda)</h2>
+    <p class="desc">Inviata dalla funzione sendEsitoNotifications() in email-service.js. Stile chiaro con accenti gold.</p>
+    <div class="vs-label"><span>Da: noreply@easywin.it</span><span>Trigger: Manuale dal gestionale</span></div>
+    <div class="email-frame">
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #333; padding: 20px; text-align: center;">
+          <h1 style="color: #F5C518; font-family: 'Brush Script MT', cursive; margin: 0;">EasyWin</h1>
+        </div>
+        <div style="padding: 24px; background: #fff;">
+          <p style="color:#333;">Gentile <strong>CONSORZIO CIRO MENOTTI SCPA</strong>,</p>
+          <p style="color:#333;">La informiamo che è stato pubblicato l'esito della seguente gara:</p>
+          <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+            <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold; color:#333;">Oggetto</td><td style="padding: 8px; border-bottom: 1px solid #eee; color:#333;">Lavori di manutenzione straordinaria Piazza del Municipio</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold; color:#333;">Stazione Appaltante</td><td style="padding: 8px; border-bottom: 1px solid #eee; color:#333;">Comune di Genova</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold; color:#333;">CIG</td><td style="padding: 8px; border-bottom: 1px solid #eee; color:#333;">9876543ABC</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold; color:#333;">Importo</td><td style="padding: 8px; border-bottom: 1px solid #eee; color:#333;">1.250.000,00 &euro;</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold; color:#333;">Partecipanti</td><td style="padding: 8px; border-bottom: 1px solid #eee; color:#333;">23</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold; color:#333;">La Sua offerta</td><td style="padding: 8px; border-bottom: 1px solid #eee; color:#333;">Ribasso: 18.543% - Posizione: 3</td></tr>
+          </table>
+          <div style="background: #fff8e1; padding: 16px; border-radius: 4px; border-left: 4px solid #f39c12; margin: 16px 0;">
+            La Sua offerta è risultata ANOMALA (sopra la soglia di anomalia: 17.234%).
+          </div>
+          <p style="margin-top: 20px; color: #666; font-size: 12px;">Questa comunicazione è stata inviata automaticamente dal sistema EasyWin.</p>
+        </div>
+        <div style="background: #f5f5f5; padding: 12px; text-align: center; font-size: 11px; color: #999;">
+          Edra Servizi s.r.l. - Genova | EasyWin Platform
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 2. ESITO PARTECIPANTI CLIENTE (esiti.js) ===== -->
+  <div class="email-section" id="esito-partecipanti-cliente">
+    <span class="status done">IMPLEMENTATA</span>
+    <h2>2. Esito Partecipanti - CLIENTE (graduatoria completa)</h2>
+    <p class="desc">Dark theme con graduatoria completa. Da generateParticipantEmail() in esiti.js</p>
+    <div class="vs-label"><span>Da: noreply@easywin.it</span><span>Trigger: Pulsante "Invia a tutti"</span></div>
+    <div class="email-frame dark">
+      <div style="font-family:'Segoe UI',Arial,sans-serif;background:#0F1923;color:#fff;max-width:900px;margin:0 auto;padding:0;">
+        <div style="background:linear-gradient(135deg,#1E2D3D 0%,#2A4158 100%);padding:32px 24px;border-bottom:3px solid #F5C518;">
+          <h1 style="color:#F5C518;font-size:2em;margin:0 0 8px 0;font-weight:700;">EASYWIN</h1>
+          <h2 style="color:#fff;font-size:1.3em;margin:0;font-weight:300;">Esito di Gara #4521</h2>
+        </div>
+        <div style="background:rgba(30,45,61,0.6);padding:24px;color:#fff;">
+          <div style="margin-bottom:16px;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;">STAZIONE APPALTANTE</span><br><span style="font-size:1em;color:#fff;font-weight:500;">Comune di Genova</span></div>
+          <div style="margin-bottom:16px;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;">OGGETTO</span><br><span style="font-size:1em;color:#fff;font-weight:500;">Lavori di manutenzione straordinaria Piazza del Municipio</span></div>
+          <div style="margin-bottom:16px;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;">CODICE CIG</span><br><span style="font-size:1em;color:#fff;font-weight:500;">9876543ABC</span></div>
+          <div style="margin-bottom:0;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;">IMPORTO</span><br><span style="font-size:1em;color:#fff;font-weight:500;">1.250.000,00 &euro;</span></div>
+        </div>
+        <div style="background:rgba(30,45,61,0.3);padding:24px;">
+          <table style="width:100%;border-collapse:collapse;">
+            <tr>
+              <td style="width:25%;padding:12px;background:rgba(30,45,61,0.8);border-radius:8px;border:1px solid rgba(245,197,24,0.2);text-align:center;"><div style="font-size:0.8em;color:#aaa;text-transform:uppercase;margin-bottom:8px;font-weight:600;">Media Aritm.</div><div style="font-size:1.4em;color:#F5C518;font-weight:700;">15.23400%</div></td>
+              <td style="width:4px;"></td>
+              <td style="width:25%;padding:12px;background:rgba(30,45,61,0.8);border-radius:8px;border:1px solid rgba(245,197,24,0.2);text-align:center;"><div style="font-size:0.8em;color:#aaa;text-transform:uppercase;margin-bottom:8px;font-weight:600;">Soglia Anomalia</div><div style="font-size:1.4em;color:#F5C518;font-weight:700;">17.23400%</div></td>
+              <td style="width:4px;"></td>
+              <td style="width:25%;padding:12px;background:rgba(30,45,61,0.8);border-radius:8px;border:1px solid rgba(245,197,24,0.2);text-align:center;"><div style="font-size:0.8em;color:#aaa;text-transform:uppercase;margin-bottom:8px;font-weight:600;">Partecipanti</div><div style="font-size:1.4em;color:#F5C518;font-weight:700;">23</div></td>
+              <td style="width:4px;"></td>
+              <td style="width:25%;padding:12px;background:rgba(30,45,61,0.8);border-radius:8px;border:1px solid rgba(245,197,24,0.2);text-align:center;"><div style="font-size:0.8em;color:#aaa;text-transform:uppercase;margin-bottom:8px;font-weight:600;">Vostra Posizione</div><div style="font-size:1.4em;color:#F5C518;font-weight:700;">5</div></td>
+            </tr>
+          </table>
+        </div>
+        <div style="background:rgba(30,45,61,0.5);padding:20px 24px;">
+          <div style="font-size:0.9em;color:#aaa;text-transform:uppercase;margin-bottom:8px;font-weight:600;">LA VOSTRA OFFERTA</div>
+          <div style="font-size:1.1em;color:#fff;margin-bottom:8px;"><strong>IMPRESA EDILE ROSSI SRL</strong></div>
+          <table style="width:100%;"><tr>
+            <td><span style="color:#aaa;font-size:0.85em;">Ribasso:</span><br><span style="color:#F5C518;font-weight:700;font-size:1.2em;">14.87500%</span></td>
+            <td><span style="color:#aaa;font-size:0.85em;">Risultato:</span><br><span style="color:#F5C518;font-weight:700;font-size:1.2em;">AMMESSA</span></td>
+          </tr></table>
+        </div>
+        <div style="padding:24px;">
+          <h3 style="color:#F5C518;margin-top:0;margin-bottom:16px;border-bottom:2px solid #F5C518;padding-bottom:8px;">GRADUATORIA COMPLETA</h3>
+          <table style="width:100%;border-collapse:collapse;background:rgba(30,45,61,0.4);border-radius:8px;overflow:hidden;">
+            <thead><tr style="background:#1E2D3D;">
+              <th style="padding:12px;text-align:left;font-weight:600;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.85em;">N&deg;</th>
+              <th style="padding:12px;text-align:left;font-weight:600;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.85em;">RAGIONE SOCIALE</th>
+              <th style="padding:12px;text-align:left;font-weight:600;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.85em;">RIBASSO</th>
+              <th style="padding:12px;text-align:left;font-weight:600;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.85em;">RISULTATO</th>
+            </tr></thead>
+            <tbody>
+              <tr style="background:linear-gradient(90deg,rgba(27,94,32,0.3) 0%,rgba(67,160,71,0.15) 100%);border-bottom:1px solid rgba(245,197,24,0.1);"><td style="padding:12px;color:#fff;">1</td><td style="padding:12px;color:#fff;">COSTRUZIONI VERDI SPA</td><td style="padding:12px;color:#fff;">15.12300%</td><td style="padding:12px;color:#2ecc71;font-weight:700;">VINCITRICE</td></tr>
+              <tr style="background:rgba(30,45,61,0.2);border-bottom:1px solid rgba(245,197,24,0.1);"><td style="padding:12px;color:#fff;">2</td><td style="padding:12px;color:#fff;">EDILSTRADE SRL</td><td style="padding:12px;color:#fff;">15.08700%</td><td style="padding:12px;color:#fff;">AMMESSA</td></tr>
+              <tr style="background:rgba(30,45,61,0.2);border-bottom:1px solid rgba(245,197,24,0.1);"><td style="padding:12px;color:#fff;">3</td><td style="padding:12px;color:#fff;">COOP COSTRUTTORI LIGURIA</td><td style="padding:12px;color:#fff;">15.02100%</td><td style="padding:12px;color:#fff;">AMMESSA</td></tr>
+              <tr style="background:rgba(30,45,61,0.2);border-bottom:1px solid rgba(245,197,24,0.1);"><td style="padding:12px;color:#fff;">4</td><td style="padding:12px;color:#fff;">BETA COSTRUZIONI SRL</td><td style="padding:12px;color:#fff;">14.95600%</td><td style="padding:12px;color:#fff;">AMMESSA</td></tr>
+              <tr style="background:rgba(245,197,24,0.15);border-left:4px solid #F5C518;border-bottom:1px solid rgba(245,197,24,0.1);"><td style="padding:12px;color:#F5C518;font-weight:700;">5</td><td style="padding:12px;color:#F5C518;font-weight:700;">IMPRESA EDILE ROSSI SRL</td><td style="padding:12px;color:#F5C518;font-weight:700;">14.87500%</td><td style="padding:12px;color:#F5C518;font-weight:700;">AMMESSA</td></tr>
+              <tr style="background:rgba(30,45,61,0.2);border-bottom:1px solid rgba(245,197,24,0.1);"><td style="padding:12px;color:#fff;">6</td><td style="padding:12px;color:#fff;">LAVORI PUBBLICI GENOVA SPA</td><td style="padding:12px;color:#fff;">14.65200%</td><td style="padding:12px;color:#fff;">AMMESSA</td></tr>
+              <tr style="background:linear-gradient(90deg,rgba(183,28,28,0.35) 0%,rgba(244,67,54,0.2) 100%);border-bottom:1px solid rgba(245,197,24,0.1);"><td style="padding:12px;color:#fff;">7</td><td style="padding:12px;color:#fff;">SUPER COSTRUZIONI SRL</td><td style="padding:12px;color:#fff;">18.76500%</td><td style="padding:12px;color:#e74c3c;font-weight:600;">ANOMALA</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="background:#1a2a38;padding:20px;text-align:center;font-size:0.85em;color:#aaa;border-top:1px solid rgba(245,197,24,0.2);">
+          Generato da EasyWin<br><span style="font-size:0.8em;color:#777;margin-top:8px;display:block;">05/04/2026 14:30:22</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 3. ESITO PARTECIPANTI NON CLIENTE ===== -->
+  <div class="email-section" id="esito-partecipanti-noncliente">
+    <span class="status done">IMPLEMENTATA</span>
+    <h2>3. Esito Partecipanti - NON CLIENTE (graduatoria parziale)</h2>
+    <p class="desc">Stessa struttura dark ma solo &plusmn;2 posizioni + CTA abbonamento</p>
+    <div class="vs-label"><span>Da: noreply@easywin.it</span><span>Trigger: Pulsante "Invia a tutti"</span></div>
+    <div class="email-frame dark">
+      <div style="font-family:'Segoe UI',Arial,sans-serif;background:#0F1923;color:#fff;max-width:900px;margin:0 auto;padding:0;">
+        <div style="background:linear-gradient(135deg,#1E2D3D 0%,#2A4158 100%);padding:32px 24px;border-bottom:3px solid #F5C518;">
+          <h1 style="color:#F5C518;font-size:2em;margin:0 0 8px 0;font-weight:700;">EASYWIN</h1>
+          <h2 style="color:#fff;font-size:1.3em;margin:0;font-weight:300;">Esito di Gara #4521</h2>
+        </div>
+        <div style="background:rgba(30,45,61,0.6);padding:24px;color:#fff;">
+          <div style="margin-bottom:16px;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;">STAZIONE APPALTANTE</span><br><span style="font-size:1em;color:#fff;font-weight:500;">Comune di Genova</span></div>
+          <div style="margin-bottom:0;"><span style="font-size:0.85em;color:#aaa;text-transform:uppercase;font-weight:600;">OGGETTO</span><br><span style="font-size:1em;color:#fff;font-weight:500;">Lavori manutenzione straordinaria Piazza del Municipio</span></div>
+        </div>
+        <div style="background:rgba(30,45,61,0.5);padding:20px 24px;">
+          <div style="font-size:0.9em;color:#aaa;text-transform:uppercase;margin-bottom:8px;font-weight:600;">LA VOSTRA OFFERTA</div>
+          <div style="font-size:1.1em;color:#fff;margin-bottom:8px;"><strong>COSTRUZIONI BIANCHI SAS</strong></div>
+          <table style="width:100%;"><tr>
+            <td><span style="color:#aaa;font-size:0.85em;">Ribasso:</span><br><span style="color:#F5C518;font-weight:700;font-size:1.2em;">13.45200%</span></td>
+            <td><span style="color:#aaa;font-size:0.85em;">Risultato:</span><br><span style="color:#F5C518;font-weight:700;font-size:1.2em;">AMMESSA</span></td>
+          </tr></table>
+        </div>
+        <div style="padding:24px;">
+          <h3 style="color:#F5C518;margin-top:0;margin-bottom:16px;border-bottom:2px solid #F5C518;padding-bottom:8px;">VOSTRA POSIZIONE IN GRADUATORIA</h3>
+          <table style="width:100%;border-collapse:collapse;background:rgba(30,45,61,0.4);border-radius:8px;overflow:hidden;">
+            <thead><tr style="background:#1E2D3D;">
+              <th style="padding:12px;text-align:left;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.85em;">N&deg;</th>
+              <th style="padding:12px;text-align:left;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.85em;">RAGIONE SOCIALE</th>
+              <th style="padding:12px;text-align:left;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.85em;">RIBASSO</th>
+              <th style="padding:12px;text-align:left;border-bottom:2px solid #F5C518;color:#F5C518;font-size:0.85em;">RISULTATO</th>
+            </tr></thead>
+            <tbody>
+              <tr style="background:rgba(30,45,61,0.2);border-bottom:1px solid rgba(245,197,24,0.1);"><td style="padding:12px;color:#fff;">10</td><td style="padding:12px;color:#fff;">GAMMA COSTRUZIONI SPA</td><td style="padding:12px;color:#fff;">13.65100%</td><td style="padding:12px;color:#fff;">AMMESSA</td></tr>
+              <tr style="background:rgba(30,45,61,0.2);border-bottom:1px solid rgba(245,197,24,0.1);"><td style="padding:12px;color:#fff;">11</td><td style="padding:12px;color:#fff;">DELTA EDILIZIA SRL</td><td style="padding:12px;color:#fff;">13.52300%</td><td style="padding:12px;color:#fff;">AMMESSA</td></tr>
+              <tr style="background:rgba(245,197,24,0.15);border-left:4px solid #F5C518;border-bottom:1px solid rgba(245,197,24,0.1);"><td style="padding:12px;color:#F5C518;font-weight:700;">12</td><td style="padding:12px;color:#F5C518;font-weight:700;">COSTRUZIONI BIANCHI SAS</td><td style="padding:12px;color:#F5C518;font-weight:700;">13.45200%</td><td style="padding:12px;color:#F5C518;font-weight:700;">AMMESSA</td></tr>
+              <tr style="background:rgba(30,45,61,0.2);border-bottom:1px solid rgba(245,197,24,0.1);"><td style="padding:12px;color:#fff;">13</td><td style="padding:12px;color:#fff;">OMEGA LAVORI SNC</td><td style="padding:12px;color:#fff;">13.21000%</td><td style="padding:12px;color:#fff;">AMMESSA</td></tr>
+              <tr style="background:rgba(30,45,61,0.2);border-bottom:1px solid rgba(245,197,24,0.1);"><td style="padding:12px;color:#fff;">14</td><td style="padding:12px;color:#fff;">SIGMA EDIL SPA</td><td style="padding:12px;color:#fff;">12.98700%</td><td style="padding:12px;color:#fff;">AMMESSA</td></tr>
+            </tbody>
+          </table>
+          <div style="background:rgba(245,197,24,0.1);padding:16px;border-radius:8px;margin-top:16px;border-left:4px solid #F5C518;">
+            <p style="margin:0;color:#F5C518;font-weight:600;margin-bottom:8px;">Per visualizzare la graduatoria completa, attiva il tuo abbonamento EasyWin</p>
+            <p style="margin:0;color:#fff;font-size:0.9em;">Accedi all'area riservata per scoprire le nostre soluzioni premium e ottenere accesso a tutte le informazioni complete delle gare.</p>
+          </div>
+        </div>
+        <div style="background:#1a2a38;padding:20px;text-align:center;font-size:0.85em;color:#aaa;border-top:1px solid rgba(245,197,24,0.2);">
+          Generato da EasyWin<br><span style="font-size:0.8em;color:#777;">05/04/2026 14:30:22</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 4. NEWSLETTER BANDI ===== -->
+  <div class="email-section" id="newsletter-bandi">
+    <span class="status done">IMPLEMENTATA</span>
+    <h2>4. Newsletter Bandi (attuale)</h2>
+    <p class="desc">Template chiaro (blue/bianco) da newsletter.js. Raggruppa per regione. Non personalizzata per utente.</p>
+    <div class="vs-label"><span>Da: newsletter@easywin.it</span><span>Trigger: Manuale dal gestionale</span></div>
+    <div class="email-frame">
+      <div style="font-family: Arial, Helvetica, sans-serif; color: #333; line-height: 1.6; background-color: #f9f9f9;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border: 1px solid #ddd;">
+          <div style="background-color: #004b87; color: white; padding: 20px; text-align: center;">
+            <h1 style="margin: 0; font-size: 24px; color: white;">Newsletter Bandi</h1>
+            <p style="margin: 8px 0 0 0; font-size: 12px; color:rgba(255,255,255,0.8);">EasyWin - Piattaforma e-procurement</p>
+          </div>
+          <div style="padding: 20px;">
+            <div style="background-color: #f0f0f0; padding: 10px; margin-bottom: 20px; font-size: 12px; border-left: 3px solid #004b87; color: #333;">
+              <strong>Periodo:</strong> 01/04/2026 - 05/04/2026
+            </div>
+            <h2 style="font-size: 14px; color: #004b87; margin: 20px 0 10px 0;">Dettagli Bandi:</h2>
+            <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+              <tr><td style="padding: 12px 0; background-color: #004b87; color: white;"><strong style="font-size: 14px; padding-left:12px;">&nbsp;&nbsp;LIGURIA</strong></td></tr>
+              <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 12px;">
+                  <strong style="color: #004b87; font-size: 13px;">Lavori di manutenzione straordinaria edificio scolastico</strong><br/>
+                  <span style="font-size: 11px; color: #666;">
+                    Stazione: Comune di Genova<br/>
+                    Provincia: Genova<br/>
+                    Data Pubblicazione: 03/04/2026 | Importo: &euro;450.000,00<br/>
+                    CIG: AB12345678 | SOA: OG1
+                  </span>
+                </td>
+              </tr>
+              <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 12px;">
+                  <strong style="color: #004b87; font-size: 13px;">Rifacimento impianto fognario zona centro</strong><br/>
+                  <span style="font-size: 11px; color: #666;">
+                    Stazione: Provincia di La Spezia<br/>
+                    Provincia: La Spezia<br/>
+                    Data Pubblicazione: 04/04/2026 | Importo: &euro;780.000,00<br/>
+                    CIG: CD98765432 | SOA: OG6
+                  </span>
+                </td>
+              </tr>
+              <tr><td style="padding: 20px 0 12px 0; background-color: #004b87; color: white;"><strong style="font-size: 14px; padding-left:12px;">&nbsp;&nbsp;LOMBARDIA</strong></td></tr>
+              <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 12px;">
+                  <strong style="color: #004b87; font-size: 13px;">Costruzione nuova scuola primaria quartiere Nord</strong><br/>
+                  <span style="font-size: 11px; color: #666;">
+                    Stazione: Comune di Milano<br/>
+                    Provincia: Milano<br/>
+                    Data Pubblicazione: 02/04/2026 | Importo: &euro;2.150.000,00<br/>
+                    CIG: EF11223344 | SOA: OG1
+                  </span>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 11px; color: #666; border-top: 1px solid #ddd;">
+            <p style="margin: 0 0 10px 0;">EasyWin Newsletter | &copy; 2026 EasyWin Srl</p>
+            <p style="margin: 0;">Per informazioni, visita <a href="#" style="color: #004b87; text-decoration: none;">www.easywin.it</a></p>
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;">
+              <a href="#" style="color: #004b87; text-decoration: none;">Disiscriviti dalla newsletter</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 5. NEWSLETTER ESITI ===== -->
+  <div class="email-section" id="newsletter-esiti">
+    <span class="status done">IMPLEMENTATA</span>
+    <h2>5. Newsletter Esiti (attuale)</h2>
+    <p class="desc">Come la newsletter bandi ma con vincitore e ribasso. Non personalizzata.</p>
+    <div class="vs-label"><span>Stessa struttura della newsletter bandi, con campi vincitore/ribasso in pi&ugrave;</span></div>
+    <div class="email-frame" style="opacity:0.7;">
+      <div style="font-family: Arial; background: #f9f9f9; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #ddd;">
+          <div style="background: #004b87; color: white; padding: 20px; text-align: center;">
+            <h1 style="margin: 0; font-size: 24px; color: white;">Newsletter Esiti</h1>
+          </div>
+          <div style="padding: 20px;">
+            <div style="background: #f0f0f0; padding: 10px; font-size: 12px; border-left: 3px solid #004b87; color:#333;"><strong>Periodo:</strong> 01/04/2026 - 05/04/2026</div>
+            <p style="text-align:center;color:#999;padding:20px;font-style:italic;">Identica alla Newsletter Bandi ma con campi aggiuntivi:<br>Vincitore: NOME DITTA | Ribasso: 15.234%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 6. RESET PASSWORD ===== -->
+  <div class="email-section" id="reset-password">
+    <span class="status done">IMPLEMENTATA</span>
+    <h2>6. Reset Password</h2>
+    <p class="desc">Email con link per recupero password. Da pubblico.js</p>
+    <div class="vs-label"><span>Da: noreply@easywin.it</span><span>Trigger: Form "Password dimenticata"</span></div>
+    <div class="email-frame">
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #333; padding: 20px; text-align: center;">
+          <h1 style="color: #F5C518; font-family: 'Brush Script MT', cursive; margin: 0;">EasyWin</h1>
+        </div>
+        <div style="padding: 24px; background: #fff;">
+          <p style="color:#333;">Caro <strong>Marco</strong>,</p>
+          <p style="color:#333;">Hai richiesto il reset della password. Clicca il link sottostante per procedere:</p>
+          <p style="text-align:center;padding:12px 0;"><a href="#" style="background: #F5C518; color: #333; padding: 12px 24px; border-radius: 4px; text-decoration: none; display: inline-block; font-weight: bold;">Reset Password</a></p>
+          <p style="color: #666; font-size: 12px;">Questo link &egrave; valido per 24 ore. Se non hai richiesto il reset, ignora questo messaggio.</p>
+        </div>
+        <div style="background: #f5f5f5; padding: 12px; text-align: center; font-size: 11px; color: #999;">
+          Edra Servizi s.r.l. - Genova | EasyWin Platform
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 7. CONTATTO ===== -->
+  <div class="email-section" id="contatto">
+    <span class="status done">IMPLEMENTATA</span>
+    <h2>7. Form Contatto (notifica admin)</h2>
+    <p class="desc">Email inviata all'admin quando un utente compila il form contatti.</p>
+    <div class="vs-label"><span>Da: noreply@easywin.it</span><span>A: info@easywin.it</span></div>
+    <div class="email-frame">
+      <div style="font-family: Arial; max-width: 600px; margin: 0 auto; background: #fff; padding: 24px;">
+        <h2 style="color: #004b87; border-bottom: 2px solid #F5C518; padding-bottom: 12px;">Nuovo Messaggio dal Sito</h2>
+        <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+          <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;color:#333;width:30%;">Nome</td><td style="padding:8px;border-bottom:1px solid #eee;color:#333;">Mario Bianchi</td></tr>
+          <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;color:#333;">Email</td><td style="padding:8px;border-bottom:1px solid #eee;color:#333;">m.bianchi@impresa.it</td></tr>
+          <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;color:#333;">Telefono</td><td style="padding:8px;border-bottom:1px solid #eee;color:#333;">010 1234567</td></tr>
+          <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;color:#333;">Oggetto</td><td style="padding:8px;border-bottom:1px solid #eee;color:#333;">Richiesta info abbonamento</td></tr>
+        </table>
+        <div style="background:#f0f8ff;padding:16px;border-radius:6px;border-left:4px solid #004b87;margin:16px 0;color:#333;">
+          Buongiorno, vorremmo informazioni sui piani di abbonamento per il servizio esiti. Siamo un'impresa di costruzioni della provincia di Genova.
+        </div>
+        <p style="color:#999;font-size:11px;margin-top:16px;">Newsletter: Sì</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DIVIDER ===== -->
+  <div style="border-top:3px solid #F5C518;margin:60px 0 40px;padding-top:32px;">
+    <h1 style="color:#FF8C00;font-size:1.8em;margin-bottom:8px;">Da Implementare</h1>
+    <p style="color:#aaa;margin-bottom:40px;">Queste email devono essere costruite nel nuovo sistema. Ecco il design previsto:</p>
+  </div>
+
+  <!-- ===== 8. NL BANDI PERSONALIZZATA ===== -->
+  <div class="email-section" id="nl-bandi-personalizzata">
+    <span class="status new">DA FARE</span>
+    <h2>8. Newsletter Bandi Personalizzata (ore 5:30)</h2>
+    <p class="desc">Automatica ogni mattina. Filtra bandi per regioni + categorie SOA dell'utente. Schedulata con cron.</p>
+    <div class="vs-label"><span>Ore 5:30</span><span>Cron automatico</span><span>Personalizzata per utente</span></div>
+  </div>
+
+  <!-- ===== 9. NL ESITI PERSONALIZZATA ===== -->
+  <div class="email-section" id="nl-esiti-personalizzata">
+    <span class="status new">DA FARE</span>
+    <h2>9. Newsletter Esiti Personalizzata (ore 5:30)</h2>
+    <p class="desc">Automatica ogni mattina. Filtra esiti per regioni + categorie SOA dell'utente.</p>
+    <div class="vs-label"><span>Ore 5:30</span><span>Cron automatico</span><span>Personalizzata per utente</span></div>
+  </div>
+
+  <!-- ===== 10. PUSH ESITO REAL-TIME ===== -->
+  <div class="email-section" id="esito-push">
+    <span class="status new">DA FARE</span>
+    <h2>10. Push Esito Real-time</h2>
+    <p class="desc">Pulsante "Invia" nell'esito. Per clienti: link al portale con graduatoria integrale. Per non-clienti: mail civetta con solo il suo ribasso + ditte vicine.</p>
+    <div class="vs-label"><span>Manuale</span><span>Differenziata cliente/non-cliente</span></div>
+  </div>
+
+  <!-- ===== 11. REMINDER SCADENZA CLIENTE ===== -->
+  <div class="email-section" id="reminder-scadenza">
+    <span class="status new">DA FARE</span>
+    <h2>11. Reminder Scadenza Abbonamento (al cliente)</h2>
+    <p class="desc">Alle 4 di notte. Avvisa il cliente che il suo abbonamento sta per scadere.</p>
+    <div class="vs-label"><span>Ore 4:00</span><span>Cron automatico</span><span>A: cliente</span></div>
+  </div>
+
+  <!-- ===== 12. REMINDER SCADENZE ADMIN ===== -->
+  <div class="email-section" id="reminder-admin">
+    <span class="status new">DA FARE</span>
+    <h2>12. Reminder Scadenze per Admin (-40gg, -10gg, scadenza)</h2>
+    <p class="desc">Alle 4 di notte. Notifica a voi le scadenze abbonamenti a -40, -10 e giorno stesso.</p>
+    <div class="vs-label"><span>Ore 4:00</span><span>Cron automatico</span><span>A: info@easywin.it</span></div>
+  </div>
+
+  <!-- ===== 13. ALERT IMPORTAZIONE ===== -->
+  <div class="email-section" id="alert-importazione">
+    <span class="status new">DA FARE</span>
+    <h2>13. Alert Importazione Bandi</h2>
+    <p class="desc">Notifica a voi che l'importazione bandi è avvenuta. Alle 11, 12, 13, 14, 15, 16 e poi ogni mezz'ora.</p>
+    <div class="vs-label"><span>Multi-orario</span><span>Cron automatico</span><span>A: info@easywin.it</span></div>
+  </div>
+
+  <!-- ===== 14. ALERT APERTURE ===== -->
+  <div class="email-section" id="alert-aperture">
+    <span class="status new">DA FARE</span>
+    <h2>14. Alert Aperture del Giorno Dopo (ore 15:00)</h2>
+    <p class="desc">Inviata alle 15. Lista aperture domani, sia quelle assegnate che quelle non assegnate.</p>
+    <div class="vs-label"><span>Ore 15:00</span><span>Cron automatico</span><span>A: incaricati + admin</span></div>
+  </div>
+
+  <!-- ===== 15. ALERT SOPRALLUOGHI ===== -->
+  <div class="email-section" id="alert-sopralluoghi">
+    <span class="status new">DA FARE</span>
+    <h2>15. Alert Sopralluoghi del Giorno Dopo</h2>
+    <p class="desc">Lista sopralluoghi di domani per gestori, intermediari, esecutori + admin.</p>
+    <div class="vs-label"><span>Cron automatico</span><span>A: incaricati + admin</span></div>
+  </div>
+
+  <!-- ===== 16. POSTICIPO SEDUTA ===== -->
+  <div class="email-section" id="posticipo-seduta">
+    <span class="status new">DA FARE</span>
+    <h2>16. Posticipo Seduta di Gara</h2>
+    <p class="desc">Notifica quando una seduta viene posticipata/rinviata.</p>
+    <div class="vs-label"><span>Trigger: evento</span><span>A: interessati</span></div>
+  </div>
+
+  <!-- ===== 17. ASSEGNAZIONE APERTURA ===== -->
+  <div class="email-section" id="assegnazione-apertura">
+    <span class="status new">DA FARE</span>
+    <h2>17. Assegnazione/Cambio Incaricato Apertura</h2>
+    <p class="desc">Notifica quando un'apertura viene assegnata a un incaricato o quando cambia incaricato.</p>
+    <div class="vs-label"><span>Trigger: evento</span><span>A: incaricato</span></div>
+  </div>
+
+</div>
+
+<script>
+// Highlight active nav link on scroll
+const sections = document.querySelectorAll('.email-section');
+const navLinks = document.querySelectorAll('.nav a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(section => {
+    const sectionTop = section.offsetTop - 100;
+    if (pageYOffset >= sectionTop) {
+      current = section.getAttribute('id');
+    }
+  });
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === '#' + current) {
+      link.classList.add('active');
+    }
+  });
+});
+</script>
+</body>
+</html>

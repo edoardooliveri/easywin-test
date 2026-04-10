@@ -42,8 +42,8 @@ export default async function simulazioniRoutes(fastify) {
         soa."descrizione" AS soa_desc
       FROM gare g
       LEFT JOIN stazioni s ON g."id_stazione" = s."id"
-      LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
-      LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
+      LEFT JOIN province p ON s."id_provincia" = p."id"
+      LEFT JOIN regioni r ON p."id_regione" = r."id"
       LEFT JOIN soa ON g."id_soa" = soa."id"
       LEFT JOIN bandi b ON g."id_bando" = b."id"
       WHERE ${conditions.join(' AND ')}
@@ -146,10 +146,10 @@ export default async function simulazioniRoutes(fastify) {
     const [countRes, dataRes] = await Promise.all([
       query(`SELECT COUNT(*) as total FROM simulazioni s ${where}`, params),
       query(`
-        SELECT s.*, soa."descrizione" AS soa_desc, r."regione" AS regione_nome
+        SELECT s.*, soa."descrizione" AS soa_desc, r."nome" AS regione_nome
         FROM simulazioni s
         LEFT JOIN soa ON s."id_soa" = soa."id"
-        LEFT JOIN regioni r ON s."id_regione" = r."id_regione"
+        LEFT JOIN regioni r ON s."id_regione" = r."id"
         ${where}
         ORDER BY s."id" DESC
         LIMIT $${idx} OFFSET $${idx + 1}
@@ -175,12 +175,12 @@ export default async function simulazioniRoutes(fastify) {
 
     const simRes = await query(`
       SELECT s.*, soa."descrizione" AS soa_desc,
-        r."regione" AS regione_nome, p."provincia" AS provincia_nome,
+        r."nome" AS regione_nome, p."provincia" AS provincia_nome,
         tg."nome"
       FROM simulazioni s
       LEFT JOIN soa ON s."id_soa" = soa."id"
-      LEFT JOIN regioni r ON s."id_regione" = r."id_regione"
-      LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
+      LEFT JOIN regioni r ON s."id_regione" = r."id"
+      LEFT JOIN province p ON s."id_provincia" = p."id"
       LEFT JOIN tipologia_gare tg ON s."id_tipologia" = tg."id"
       WHERE s."id" = $1
     `, [id]);

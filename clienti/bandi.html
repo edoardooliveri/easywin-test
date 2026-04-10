@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bandi di Gara - EasyWin Area Clienti</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap');
+
+/* ===== DESIGN SYSTEM VARIABLES ===== */
+:root{
+  --dark:#1E2D3D;
+  --dark-lighter:#e8ecf2;
+  --dark-card:#ffffff;
+  --dark-surface:#eef1f6;
+  --dark-bg:#f0f2f7;
+  --yellow:#F5C518;
+  --orange:#FF8C00;
+  --gradient:linear-gradient(135deg,#F5C518 0%,#FF8C00 100%);
+  --gradient-r:linear-gradient(135deg,#FF8C00 0%,#F5C518 100%);
+  --text-white:#1e293b;
+  --text-muted:#586879;
+  --text-dim:#8895a5;
+  --border-dark:#d4dbe5;
+  --border-orange:rgba(255,140,0,0.3);
+  --radius:8px;
+  --radius-lg:16px;
+  --shadow-dark:0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06);
+  --transition:all 0.35s cubic-bezier(.4,0,.2,1);
+}
+
+/* ===== RESET & BASE ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Comfortaa','Open Sans','Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--dark-bg);color:var(--text-white);min-height:100vh;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+
+/* ===== HERO WRAPPER ===== */
+.hero-wrapper{
+  position:relative;
+  background: #0f172a url('hero-bg.png') center 25% / cover no-repeat;
+}
+.hero-wrapper::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg, rgba(15,23,42,0.7) 0%, rgba(15,23,42,0.35) 30%, rgba(15,23,42,0.25) 55%, rgba(15,23,42,0.6) 100%);
+  z-index:0;
+}
+.hero-wrapper > *{position:relative;z-index:1;}
+
+/* ===== HEADER ===== */
+.header{
+  background:transparent;
+  padding:16px 40px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+  position:sticky;top:0;z-index:100;
+  backdrop-filter:blur(12px);
+}
+.header .logo-img{height:44px;transition:var(--transition)}
+.header .logo{
+  font-family:'Comfortaa',cursive;
+  font-size:32px;color:var(--yellow);font-weight:700;
+  letter-spacing:0.5px;display:flex;align-items:center;gap:12px;
+}
+.header .logo span{font-size:38px}
+.header .logo i{font-style:normal;font-weight:300;color:#1e293b}
+.header-right{display:flex;align-items:center;gap:16px}
+.header-user{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 16px;border-radius:50px;
+  background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);
+  font-size:13px;color:rgba(255,255,255,0.8);cursor:pointer;transition:var(--transition);
+}
+.header-user:hover{background:rgba(255,140,0,0.15);border-color:var(--orange);color:#fff}
+.header-user i{color:var(--orange)}
+
+/* ===== NAVBAR ===== */
+.navbar{
+  background:rgba(15,23,42,0.4);
+  backdrop-filter:blur(8px);
+  padding:0 20px;
+  display:flex;align-items:center;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  position:sticky;top:76px;z-index:99;
+  overflow:visible;
+}
+.navbar a{
+  color:rgba(255,255,255,0.7);padding:14px 16px;
+  font-family:'Comfortaa',cursive;
+  font-size:12px;display:block;white-space:nowrap;
+  transition:var(--transition);
+  position:relative;font-weight:500;letter-spacing:0.3px;
+}
+.navbar a:hover{color:#fff;background:rgba(255,255,255,0.08)}
+.navbar a.active{color:var(--orange);font-weight:700}
+.navbar a.active::after{
+  content:'';position:absolute;
+  bottom:0;left:0;right:0;height:3px;
+  background:var(--gradient);border-radius:3px 3px 0 0;
+}
+
+/* ===== CONTENT AREA ===== */
+.content{padding:30px 25px;max-width:1420px;margin:0 auto}
+
+/* ===== PAGE TITLE ===== */
+.page-title{font-family:'Comfortaa',cursive;font-size:28px;font-weight:600;margin-bottom:30px;color:var(--text-white);display:flex;align-items:center;gap:12px}
+.page-title i{color:var(--orange);font-size:32px}
+
+/* ===== SECTION TITLE ===== */
+.section-title{font-family:'Comfortaa',cursive;font-size:22px;font-weight:500;margin-bottom:20px;color:var(--text-white)}
+
+/* ===== STATS BAR ===== */
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:30px}
+.stat-card{
+  background:var(--dark-card);border:1px solid var(--border-dark);border-radius:var(--radius-lg);
+  padding:24px;position:relative;overflow:hidden;
+  transition:var(--transition);cursor:pointer;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:3px;
+  background:var(--gradient);
+}
+.stat-card:hover{
+  transform:translateY(-2px);border-color:var(--border-orange);
+  box-shadow:0 8px 24px rgba(255,140,0,0.15);
+}
+.stat-card-label{
+  font-family:'Comfortaa',cursive;font-size:13px;font-weight:600;
+  text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.5px;
+}
+.stat-card-value{
+  font-family:'Comfortaa',cursive;font-size:32px;font-weight:700;
+  color:var(--yellow);display:flex;align-items:baseline;gap:6px;
+}
+.stat-card-icon{
+  font-size:24px;color:var(--orange);opacity:0.8;
+}
+
+/* ===== FILTER SECTION ===== */
+.filter-section{
+  background:var(--dark-card);border:1px solid var(--border-dark);
+  border-radius:var(--radius-lg);padding:24px;margin-bottom:30px;
+  transition:var(--transition);
+}
+.filter-section.collapsed .filter-content{display:none}
+.filter-header{
+  display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:20px;
+}
+.filter-header h3{
+  font-family:'Comfortaa',cursive;font-size:16px;font-weight:600;
+  color:var(--text-white);display:flex;align-items:center;gap:10px;margin:0;
+}
+.filter-toggle-btn{
+  background:none;border:none;cursor:pointer;color:var(--orange);
+  font-size:18px;transition:var(--transition);padding:4px;
+}
+.filter-toggle-btn.collapsed{transform:rotate(-180deg)}
+
+.filter-content{transition:var(--transition)}
+.filter-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.filter-row.three{grid-template-columns:1fr 1fr 1fr}
+.filter-row.four{grid-template-columns:1fr 1fr 1fr 1fr}
+.filter-row.full{grid-template-columns:1fr}
+.filter-group{display:flex;flex-direction:column;gap:8px}
+.filter-label{
+  font-family:'Comfortaa',cursive;font-size:0.8rem;font-weight:600;
+  text-transform:uppercase;color:var(--text-muted);letter-spacing:0.5px;
+}
+.filter-input,.filter-select{
+  width:100%;padding:12px 16px;background:var(--dark-surface);color:var(--text-white);
+  border:1px solid var(--border-dark);border-radius:25px;
+  font-size:0.92rem;transition:var(--transition);
+  font-family:'Open Sans',sans-serif;
+  box-sizing:border-box;
+}
+.filter-input::placeholder{color:#cbd5e1;font-size:0.88rem}
+.filter-input:focus,.filter-select:focus{
+  outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,140,0,0.15);
+}
+.filter-select{cursor:pointer;appearance:auto}
+
+.filter-actions{
+  display:flex;gap:12px;justify-content:flex-end;padding-top:16px;margin-top:8px;
+  border-top:1px solid var(--border-dark);
+}
+.btn-primary{
+  background:var(--gradient);color:#fff;padding:10px 24px;
+  border:none;border-radius:50px;font-size:0.9rem;font-weight:600;
+  cursor:pointer;font-family:'Comfortaa',cursive;text-transform:uppercase;
+  transition:var(--transition);letter-spacing:0.3px;
+}
+.btn-primary:hover{
+  transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,140,0,0.3);
+}
+.btn-secondary{
+  background:transparent;color:var(--orange);padding:10px 24px;
+  border:1.5px solid var(--border-orange);border-radius:50px;
+  font-size:0.9rem;font-weight:600;cursor:pointer;font-family:'Comfortaa',cursive;
+  text-transform:uppercase;transition:var(--transition);letter-spacing:0.3px;
+}
+.btn-secondary:hover{
+  background:rgba(255,140,0,0.1);border-color:var(--orange);
+}
+
+/* ===== RESULTS HEADER ===== */
+.results-header{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  margin-bottom:20px;flex-wrap:wrap;
+}
+.results-count{
+  font-family:'Comfortaa',cursive;font-size:0.95rem;font-weight:500;
+  color:var(--text-muted);
+}
+.results-count .total{color:var(--orange);font-weight:700}
+.sort-controls{display:flex;align-items:center;gap:12px}
+.sort-label{font-size:0.85rem;color:var(--text-muted);font-weight:600}
+.sort-select{
+  padding:8px 12px;background:var(--dark-card);color:var(--text-white);
+  border:1px solid var(--border-dark);border-radius:var(--radius);
+  font-size:0.85rem;cursor:pointer;transition:var(--transition);
+}
+.sort-select:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,140,0,0.15)}
+
+/* ===== BANDI CARDS ===== */
+.bandi-list{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:30px}
+.bandi-card{
+  background:var(--dark-card);border:1px solid var(--border-dark);
+  border-radius:var(--radius-lg);padding:20px;
+  transition:var(--transition);display:grid;
+  grid-template-columns:auto 1fr;gap:16px;align-items:start;
+}
+.bandi-card:hover{
+  border-color:var(--border-orange);box-shadow:0 8px 24px rgba(255,140,0,0.15);
+  transform:translateY(-2px);
+}
+.bandi-card-number{
+  width:50px;height:50px;border-radius:12px;
+  background:var(--gradient);display:flex;
+  align-items:center;justify-content:center;
+  font-family:'Comfortaa',cursive;font-weight:700;font-size:20px;
+  color:#fff;flex-shrink:0;
+}
+.bandi-card-content{display:flex;flex-direction:column;gap:12px}
+.bandi-card-title{
+  font-family:'Comfortaa',cursive;font-size:16px;font-weight:600;
+  color:var(--text-white);line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;text-overflow:ellipsis;
+  min-height:50px;max-height:50px;
+}
+.bandi-card-cig{
+  display:inline-block;background:rgba(255,140,0,0.1);
+  color:var(--orange);padding:4px 10px;border-radius:4px;
+  font-size:0.75rem;font-weight:600;font-family:'Comfortaa',cursive;
+  width:fit-content;
+}
+.bandi-card-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;
+  font-size:0.85rem;
+}
+.bandi-card-info{
+  display:flex;flex-direction:column;gap:4px;
+}
+.bandi-card-info-label{
+  color:var(--text-dim);font-weight:500;font-size:0.75rem;
+  text-transform:uppercase;letter-spacing:0.3px;
+}
+.bandi-card-info-value{
+  color:var(--text-white);font-weight:500;
+}
+.bandi-card-info-value.highlight{
+  color:var(--orange);font-weight:700;
+}
+.bandi-card-actions{
+  display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;
+}
+.btn-details{
+  background:var(--gradient);color:#fff;padding:8px 16px;
+  border:none;border-radius:25px;font-size:0.8rem;font-weight:600;
+  cursor:pointer;font-family:'Comfortaa',cursive;text-transform:uppercase;
+  transition:var(--transition);letter-spacing:0.2px;
+}
+.btn-details:hover{
+  transform:translateY(-2px);box-shadow:0 4px 12px rgba(255,140,0,0.3);
+}
+.btn-link{
+  background:#e4e9ef;color:var(--text-white);padding:8px 16px;
+  border:1px solid var(--border-dark);border-radius:25px;font-size:0.8rem;
+  font-weight:600;cursor:pointer;font-family:'Comfortaa',cursive;
+  text-transform:uppercase;transition:var(--transition);letter-spacing:0.2px;
+}
+.btn-link:hover{
+  background:rgba(255,140,0,0.1);border-color:var(--orange);color:var(--orange);
+}
+
+/* ===== LOADING SKELETON ===== */
+.skeleton{
+  background:linear-gradient(90deg,#d4dbe5 25%,#e4e9ef 50%,#d4dbe5 75%);
+  background-size:200% 100%;
+  animation:skeletonLoad 1.5s infinite;
+  border-radius:var(--radius);
+}
+@keyframes skeletonLoad{
+  0%{background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+.skeleton-card{
+  background:var(--dark-card);border:1px solid var(--border-dark);
+  border-radius:var(--radius-lg);padding:20px;display:grid;
+  grid-template-columns:auto 1fr;gap:16px;margin-bottom:16px;
+}
+.skeleton-number{width:50px;height:50px;border-radius:12px;flex-shrink:0}
+.skeleton-title{height:20px;width:60%;margin-bottom:12px}
+.skeleton-info{height:14px;width:40%;margin-bottom:8px}
+
+/* ===== EMPTY STATE ===== */
+.empty-state{
+  text-align:center;padding:60px 20px;
+  background:var(--dark-card);border:2px dashed var(--border-dark);
+  border-radius:var(--radius-lg);
+}
+.empty-state i{
+  font-size:48px;color:var(--orange);opacity:0.6;margin-bottom:16px;
+}
+.empty-state h3{
+  font-family:'Comfortaa',cursive;font-size:18px;font-weight:600;
+  color:var(--text-white);margin-bottom:8px;
+}
+.empty-state p{
+  color:var(--text-muted);font-size:0.9rem;margin-bottom:20px;
+}
+.empty-state .btn-primary{margin-top:16px}
+
+/* ===== PAGINATION ===== */
+.pagination{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:30px;flex-wrap:wrap;
+}
+.pagination button,.pagination a{
+  padding:8px 12px;border:1px solid var(--border-dark);
+  border-radius:var(--radius);background:#e8ecf2;
+  color:var(--text-white);font-size:0.85rem;cursor:pointer;
+  transition:var(--transition);font-family:'Comfortaa',cursive;font-weight:600;
+}
+.pagination button:hover,.pagination a:hover{
+  border-color:var(--orange);background:rgba(255,140,0,0.1);color:var(--orange);
+}
+.pagination .active{
+  background:var(--gradient);border-color:transparent;color:#fff;
+}
+.pagination .disabled{
+  opacity:0.5;cursor:not-allowed;
+}
+
+/* ===== SCROLL TO TOP ===== */
+.scroll-to-top{
+  position:fixed;bottom:30px;right:30px;width:44px;height:44px;
+  background:var(--gradient);border:none;border-radius:50%;
+  color:#fff;font-size:18px;cursor:pointer;display:none;
+  align-items:center;justify-content:center;z-index:90;
+  transition:var(--transition);box-shadow:0 4px 12px rgba(255,140,0,0.3);
+}
+.scroll-to-top:hover{
+  transform:translateY(-4px);box-shadow:0 8px 20px rgba(255,140,0,0.4);
+}
+.scroll-to-top.show{display:flex}
+
+/* ===== FOOTER ===== */
+.footer{
+  background:var(--dark);border-top:1px solid var(--border-dark);
+  padding:30px 25px;text-align:center;color:var(--text-muted);
+  font-size:12px;margin-top:50px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  .header{padding:12px 20px}
+  .content{padding:20px 16px}
+  .stats-bar{grid-template-columns:1fr}
+  .bandi-card{grid-template-columns:1fr}
+  .bandi-card-number{align-self:center}
+  .bandi-card-grid{grid-template-columns:1fr}
+  .filter-row,.filter-row.three,.filter-row.four{grid-template-columns:1fr}
+  .filter-row.full{grid-template-columns:1fr}
+  .filter-actions{flex-direction:column}
+  .results-header{flex-direction:column;align-items:flex-start}
+  .navbar{padding:0 12px}
+  .navbar a{padding:12px 10px;font-size:11px}
+}
+
+@media(max-width:480px){
+  .header{padding:10px 16px}
+  .header .logo{font-size:24px}
+  .stat-card-value{font-size:24px}
+  .bandi-card-title{font-size:14px}
+}
+
+/* ===== CARD STYLING ===== */
+.ew-card{position:relative;overflow:hidden}
+.ew-card{
+  background:#ffffff;border:1px solid #d4dbe5;border-radius:16px;
+  overflow:hidden;transition:all 0.25s ease;display:flex;flex-direction:column;
+  box-shadow:0 1px 3px rgba(0,0,0,0.04);
+}
+.ew-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 12px 28px rgba(0,0,0,0.08);
+  border-color:var(--orange);
+}
+.ew-card-header{
+  padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  border-bottom:1px solid #e4e9ef;
+}
+.ew-card-header.bandi{background:linear-gradient(135deg,rgba(255,140,0,0.06),rgba(245,197,24,0.02))}
+.ew-card-oggetto{padding:12px 18px;border-bottom:1px solid #e4e9ef}
+.ew-card-oggetto .label{font-size:0.7rem;color:#8895a5;text-transform:uppercase;font-weight:600;margin-bottom:4px;letter-spacing:0.3px}
+.ew-card-oggetto .value{font-size:0.9rem;color:#1e293b;font-weight:600;line-height:1.4}
+.ew-card-stazione{padding:10px 18px;border-bottom:1px solid #e4e9ef}
+.ew-card-stazione .label{font-size:0.7rem;color:#8895a5;text-transform:uppercase;font-weight:600;margin-bottom:2px;letter-spacing:0.3px}
+.ew-card-stazione .value{font-size:0.85rem;font-weight:500}
+.ew-card-stazione .value.bandi{color:var(--orange)}
+.ew-card-grid{display:grid;border-bottom:1px solid #e4e9ef}
+.ew-card-grid.g4{grid-template-columns:1fr 1fr 1fr 1fr}
+.ew-card-grid .cell{padding:10px 14px;border-right:1px solid #e4e9ef}
+.ew-card-grid .cell:last-child{border-right:none}
+.ew-card-grid .cell .label{font-size:0.65rem;color:#8895a5;text-transform:uppercase;font-weight:600;margin-bottom:3px;letter-spacing:0.3px}
+.ew-card-grid .cell .value{font-size:0.8rem;color:#1e293b;font-weight:500}
+.ew-card-footer{
+  padding:12px 18px;display:flex;align-items:center;justify-content:space-between;
+  background:#e8ecf2;margin-top:auto;
+}
+.ew-card-badge{padding:3px 12px;border-radius:8px;font-size:0.75rem;font-weight:700;white-space:nowrap;color:#fff}
+.ew-card-badge.bandi{background:var(--orange)}
+.ew-card-btn{
+  font-size:0.75rem;padding:6px 16px;border-radius:50px;font-weight:600;border:none;cursor:pointer;
+  font-family:'Comfortaa',cursive;transition:all 0.2s;
+}
+.ew-card-btn.bandi{background:var(--orange);color:#fff}
+.ew-card-btn.bandi:hover{background:#e67e00;box-shadow:0 4px 12px rgba(255,140,0,0.3)}
+
+/* ===== CARD ACTION BUTTON GRADIENT SLIDE ===== */
+.btn-action-orange{
+  background-image:linear-gradient(to right, #F5C518 0%, #FF8C00 51%, #F5C518 100%) !important;
+  background-size:200% auto !important;
+  background-position:right center !important;
+  color:#fff;border:none;padding:8px 20px;border-radius:50px;cursor:pointer;
+  font-weight:700;font-size:0.78rem;font-family:Comfortaa,cursive;
+  transition:0.3s ease-in-out !important;display:inline-flex;align-items:center;gap:6px;
+  text-shadow:0 1px 2px rgba(0,0,0,0.15);
+}
+.btn-action-orange:hover{
+  background-position:left center !important;
+  transform:translateY(-1px);
+  box-shadow:0 6px 20px rgba(255,140,0,0.4);
+}
+
+/* ===== NAVBAR DROPDOWNS ===== */
+.nav-item{position:relative;display:inline-block}
+.nav-dropdown{
+  display:none;position:absolute;top:100%;left:0;
+  background:#1a2332;border:1px solid rgba(255,255,255,0.1);
+  border-radius:0 0 8px 8px;min-width:200px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:200;
+  padding:4px 0;
+}
+.nav-item:hover .nav-dropdown{display:block}
+.nav-dropdown a{
+  display:block !important;padding:10px 16px !important;
+  color:rgba(255,255,255,0.75) !important;font-size:12px !important;
+  font-family:'Comfortaa',cursive;white-space:nowrap;
+  transition:all 0.2s;border:none !important;
+}
+.nav-dropdown a:hover{
+  background:rgba(255,255,255,0.1) !important;color:#ffffff !important;
+}
+.nav-dropdown a::after{display:none !important}
+
+</style>
+</head>
+<body>
+
+<!-- ===== HERO WRAPPER ===== -->
+<div class="hero-wrapper">
+
+<!-- HEADER -->
+<div class="header">
+  <a href="index.html" class="logo">
+    <img src="../logo.png" class="logo-img" alt="EasyWin">
+  </a>
+  <div class="header-tagline" style="position:absolute;left:50%;transform:translateX(-50%);font-family:'Comfortaa',cursive;font-size:15px;font-weight:600;color:#fff;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;opacity:0.92;text-shadow:0 1px 8px rgba(0,0,0,0.3);">Il futuro delle gare di appalto è qui</div>
+  <div class="header-right">
+    <div class="header-user" id="headerUser">
+      <i class="fas fa-user-circle"></i>
+      <span id="headerUserName">Area Clienti</span>
+      <i class="fas fa-sign-out-alt"></i>
+    </div>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-item">
+    <a href="index.html">Home</a>
+    <div class="nav-dropdown">
+      <a href="index.html">Torna a Home</a>
+      <a href="index.html#profilo">Profilo</a>
+      <a href="index.html#modifica-password">Modifica Password</a>
+    </div>
+  </div>
+  <div class="nav-item">
+    <a href="bandi.html" class="active">Bandi di Gara</a>
+    <div class="nav-dropdown">
+      <a href="bandi.html">Bandi di Gara</a>
+      <a href="index.html#registro-bandi">Registro Bandi</a>
+    </div>
+  </div>
+  <div class="nav-item">
+    <a href="esiti.html">Esiti di Gara</a>
+    <div class="nav-dropdown">
+      <a href="esiti.html">Esiti di Gara</a>
+      <a href="index.html#registro-esiti">Registro Esiti</a>
+    </div>
+  </div>
+  <div class="nav-item">
+    <a href="index.html#simulazioni">Simulazioni</a>
+    <div class="nav-dropdown">
+      <a href="index.html#simulazioni">Simulazioni</a>
+      <a href="index.html#crea-esito">Crea Simulazione</a>
+    </div>
+  </div>
+  <div class="nav-item">
+    <a href="index.html#sopralluoghi">Sopralluoghi</a>
+    <div class="nav-dropdown">
+      <a href="index.html#sopralluoghi">Sopralluoghi</a>
+      <a href="index.html#crea-sopralluogo">Crea Sopralluogo</a>
+    </div>
+  </div>
+  <div class="nav-item">
+    <a href="index.html#albi-fornitori">Albi Fornitori</a>
+    <div class="nav-dropdown">
+      <a href="index.html#albi-fornitori">Albi Fornitori</a>
+      <a href="index.html#ricerca-fornitori">Ricerca Fornitori</a>
+    </div>
+  </div>
+  <a href="index.html#calcola-ribasso">Calcola Ribasso</a>
+  <a href="index.html#tabella-soa">Tabella SOA</a>
+  <a href="index.html#contatti">Contatti</a>
+  <a href="../admin/index.html">Area Amministrazione</a>
+</nav>
+
+</div><!-- /hero-wrapper -->
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- PAGE TITLE -->
+  <div class="page-title">
+    <i class="fas fa-file-contract"></i> Bandi di Gara
+  </div>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-card-label"><i class="fas fa-list"></i> Totale Bandi</div>
+      <div class="stat-card-value"><span class="stat-card-icon"></span><span id="statTotal">-</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label"><i class="fas fa-star"></i> Bandi Oggi</div>
+      <div class="stat-card-value"><span class="stat-card-icon"></span><span id="statToday">-</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label"><i class="fas fa-hourglass-end"></i> In Scadenza</div>
+      <div class="stat-card-value"><span class="stat-card-icon"></span><span id="statExpiring">-</span></div>
+    </div>
+  </div>
+
+  <!-- FILTER SECTION -->
+  <div class="filter-section">
+    <div class="filter-header" onclick="toggleFilter(this)">
+      <h3><i class="fas fa-filter"></i> Filtri di Ricerca</h3>
+      <button class="filter-toggle-btn" onclick="event.stopPropagation()"><i class="fas fa-chevron-down"></i></button>
+    </div>
+    <div class="filter-content">
+      <!-- Row 1: Territori, Regioni, Province -->
+      <div class="filter-row three">
+        <div class="filter-group">
+          <label class="filter-label">Territori</label>
+          <select id="territorioSelect" class="filter-select">
+            <option value="">Tutti i territori</option>
+            <option value="nord">Nord Italia</option>
+            <option value="centro">Centro Italia</option>
+            <option value="sud">Sud Italia</option>
+            <option value="isole">Isole</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Regioni</label>
+          <select id="regioneSelect" class="filter-select">
+            <option value="">Tutte le regioni</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Province</label>
+          <select id="provinciaSelect" class="filter-select">
+            <option value="">Tutte le province</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Avviso SOA -->
+      <p style="color:var(--orange);font-size:0.78rem;font-weight:600;margin:0 0 8px;"><i class="fas fa-exclamation-triangle" style="margin-right:4px;"></i> ATTENZIONE: filtrare per "Categorie SOA di Lavori" oppure per "SOA scorporabili", ma NON contemporaneamente!</p>
+
+      <!-- Row 2: SOA Lavori, SOA Scorporabili -->
+      <div class="filter-row">
+        <div class="filter-group">
+          <label class="filter-label">Categorie SOA di Lavori</label>
+          <select id="soaSelect" class="filter-select">
+            <option value="">Tutte le categorie</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Categorie SOA scorporabili di Lavori</label>
+          <select id="soaScorporabiliSelect" class="filter-select">
+            <option value="">Tutte le scorporabili</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Row 3: Servizi e Forniture, Scorporabili Servizi -->
+      <div class="filter-row">
+        <div class="filter-group">
+          <label class="filter-label">Categorie di servizi e forniture</label>
+          <select id="serviziSelect" class="filter-select">
+            <option value="">Tutte le categorie</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Categorie scorporabili di servizi e forniture</label>
+          <select id="serviziScorporabiliSelect" class="filter-select">
+            <option value="">Tutte le scorporabili</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Row 4: Tipologia, Criterio -->
+      <div class="filter-row">
+        <div class="filter-group">
+          <label class="filter-label">Tipologie di gara</label>
+          <select id="tipologiaSelect" class="filter-select">
+            <option value="">Tutte le tipologie</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Criteri di aggiudicazione</label>
+          <select id="criterioSelect" class="filter-select">
+            <option value="">Tutti i criteri</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Row 5: Telematica + Piattaforme -->
+      <div class="filter-row">
+        <div class="filter-group" style="flex-direction:row;align-items:center;gap:12px;">
+          <label style="font-family:'Comfortaa',cursive;font-size:0.8rem;font-weight:600;color:var(--text-muted);white-space:nowrap;">
+            <input type="checkbox" id="telematicaCheck" style="margin-right:6px;accent-color:var(--orange);"> Telematica
+          </label>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Piattaforme digitali</label>
+          <select id="piattaformaSelect" class="filter-select">
+            <option value="">Tutte le piattaforme</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Row 6: Date scadenza, checkbox includi senza data, Importi -->
+      <div class="filter-row four">
+        <div class="filter-group">
+          <label class="filter-label">Data inizio scadenza</label>
+          <input type="date" id="dataFromInput" class="filter-input">
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Data fine scadenza</label>
+          <input type="date" id="dataToInput" class="filter-input">
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Importo Minimo €</label>
+          <input type="number" id="importoMinInput" class="filter-input" placeholder="0" value="0">
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Importo Massimo €</label>
+          <input type="number" id="importoMaxInput" class="filter-input" placeholder="1.000.000.000" value="1000000000">
+        </div>
+      </div>
+
+      <!-- Checkbox includi senza data -->
+      <div style="margin-bottom:16px;">
+        <label style="font-size:0.82rem;color:var(--text-muted);cursor:pointer;">
+          <input type="checkbox" id="includiSenzaDataCheck" style="accent-color:var(--orange);margin-right:6px;"> Includi tra i risultati i bandi senza scadenza
+        </label>
+      </div>
+
+      <!-- Row 7: Stazione Appaltante, Codice CIG -->
+      <div class="filter-row">
+        <div class="filter-group">
+          <label class="filter-label">Stazione Appaltante</label>
+          <input type="text" id="searchInput" class="filter-input" placeholder="Nome stazione appaltante...">
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Codice CIG</label>
+          <input type="text" id="cigInput" class="filter-input" placeholder="Inserisci CIG..." maxlength="10">
+        </div>
+      </div>
+
+      <!-- Row 8: Oggetto + opzioni ricerca -->
+      <div class="filter-row">
+        <div class="filter-group">
+          <label class="filter-label">Oggetto</label>
+          <input type="text" id="oggettoInput" class="filter-input" placeholder="Ricerca nell'oggetto del bando...">
+          <div style="display:flex;gap:16px;margin-top:6px;flex-wrap:wrap;">
+            <label style="font-size:0.78rem;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;gap:4px;">
+              <input type="radio" name="ricercaTipo" value="parziale" checked style="accent-color:var(--orange);"> Ricerca parziale
+            </label>
+            <label style="font-size:0.78rem;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;gap:4px;">
+              <input type="radio" name="ricercaTipo" value="esatta" style="accent-color:var(--orange);"> Ricerca esatta
+            </label>
+            <label style="font-size:0.78rem;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;gap:4px;">
+              <input type="radio" name="ricercaTipo" value="inizia" style="accent-color:var(--orange);"> Inizia con
+            </label>
+            <span style="color:#cbd5e1;font-size:0.78rem;">|</span>
+            <label style="font-size:0.78rem;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;gap:4px;">
+              <input type="radio" name="ricercaLogica" value="and" checked style="accent-color:var(--orange);"> And
+            </label>
+            <label style="font-size:0.78rem;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;gap:4px;">
+              <input type="radio" name="ricercaLogica" value="or" style="accent-color:var(--orange);"> Or
+            </label>
+          </div>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Data Inserimento Dal</label>
+          <input type="date" id="insertDateFromInput" class="filter-input">
+          <label class="filter-label" style="margin-top:10px;">Data Inserimento Al</label>
+          <input type="date" id="insertDateToInput" class="filter-input">
+          <label style="font-size:0.78rem;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;gap:4px;margin-top:6px;">
+            <input type="checkbox" id="filtraDataModificaCheck" style="accent-color:var(--orange);"> Filtra anche per data modifica
+          </label>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="filter-actions">
+        <button class="btn-secondary" onclick="resetFilters()">
+          <i class="fas fa-redo"></i> Reset
+        </button>
+        <button class="btn-primary" onclick="applyFilters()">
+          <i class="fas fa-search"></i> Cerca Bandi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS HEADER -->
+  <div class="results-header">
+    <div class="results-count">
+      Mostrando <span class="total" id="resultCount">0</span> bandi
+    </div>
+    <div class="sort-controls">
+      <label class="sort-label">Ordina per:</label>
+      <select id="sortSelect" class="sort-select" onchange="applyFilters()">
+        <option value="data_pubblicazione_desc">Data Pubblicazione (Recente)</option>
+        <option value="data_pubblicazione_asc">Data Pubblicazione (Vecchio)</option>
+        <option value="data_offerta_desc">Data Scadenza (Prossimi)</option>
+        <option value="importo_desc">Importo (Maggiore)</option>
+        <option value="importo_asc">Importo (Minore)</option>
+        <option value="titolo_asc">Titolo (A-Z)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- BANDI LIST -->
+  <div class="bandi-list" id="bandiList"></div>
+
+  <!-- PAGINATION -->
+  <div class="pagination" id="pagination"></div>
+
+</div>
+
+<!-- SCROLL TO TOP BUTTON -->
+<button class="scroll-to-top" id="scrollToTopBtn" onclick="scrollToTop()">
+  <i class="fas fa-arrow-up"></i>
+</button>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>&copy; 2026 EasyWin. Area Clienti Riservata. Tutti i diritti riservati.</p>
+</div>
+
+<script>
+// ===== CONFIGURATION =====
+const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '';
+let currentPage = 1;
+const pageLimit = 20;
+let lookups = {};
+let debounceTimer;
+
+// ===== INITIALIZATION =====
+document.addEventListener('DOMContentLoaded', () => {
+  initializeFilters();
+  loadLookups();
+  loadBandi();
+
+  // Debounced search
+  document.getElementById('searchInput').addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      currentPage = 1;
+      loadBandi();
+    }, 300);
+  });
+
+  // Scroll to top button
+  window.addEventListener('scroll', toggleScrollToTopBtn);
+});
+
+// ===== SCROLL TO TOP =====
+function toggleScrollToTopBtn() {
+  const btn = document.getElementById('scrollToTopBtn');
+  if (window.pageYOffset > 300) {
+    btn.classList.add('show');
+  } else {
+    btn.classList.remove('show');
+  }
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== LOAD LOOKUPS =====
+async function loadLookups() {
+  try {
+    const [regioni, soa, tipologie, criteri, piattaforme] = await Promise.all([
+      fetch(`${API_BASE}/api/lookups/regioni`).then(r => r.json()),
+      fetch(`${API_BASE}/api/lookups/soa`).then(r => r.json()),
+      fetch(`${API_BASE}/api/lookups/tipologie-gare`).then(r => r.json()),
+      fetch(`${API_BASE}/api/lookups/criteri`).then(r => r.json()),
+      fetch(`${API_BASE}/api/lookups/piattaforme`).then(r => r.json())
+    ]);
+
+    lookups = { regioni: regioni.data || [], soa: soa.data || [], tipologie: tipologie.data || [], criteri: criteri.data || [], piattaforme: piattaforme.data || [] };
+
+    populateSelect('regioneSelect', lookups.regioni, 'id', 'nome');
+    populateSelect('soaSelect', lookups.soa, 'id', 'categoria');
+    populateSelect('tipologiaSelect', lookups.tipologie, 'id', 'nome');
+    populateSelect('criterioSelect', lookups.criteri, 'id', 'nome');
+    populateSelect('piattaformaSelect', lookups.piattaforme, 'id', 'nome');
+
+    document.getElementById('regioneSelect').addEventListener('change', loadProvince);
+  } catch (error) {
+    console.error('Error loading lookups:', error);
+  }
+}
+
+// ===== LOAD PROVINCE =====
+async function loadProvince() {
+  const regioneId = document.getElementById('regioneSelect').value;
+  const provinciaSelect = document.getElementById('provinciaSelect');
+  provinciaSelect.innerHTML = '<option value="">Seleziona Provincia...</option>';
+
+  if (!regioneId) return;
+
+  try {
+    const response = await fetch(`${API_BASE}/api/lookups/province?regione=${regioneId}`);
+    const data = await response.json();
+    populateSelect('provinciaSelect', data.data || [], 'id', 'nome');
+  } catch (error) {
+    console.error('Error loading province:', error);
+  }
+}
+
+// ===== POPULATE SELECT =====
+function populateSelect(selectId, data, valueKey, labelKey) {
+  const select = document.getElementById(selectId);
+  const currentValue = select.value;
+
+  data.forEach(item => {
+    const option = document.createElement('option');
+    option.value = item[valueKey];
+    option.textContent = item[labelKey];
+    select.appendChild(option);
+  });
+
+  select.value = currentValue;
+}
+
+// ===== LOAD BANDI =====
+async function loadBandi() {
+  try {
+    // Show skeleton loaders
+    showSkeletons();
+
+    // Build query params
+    const search = document.getElementById('searchInput').value;
+    const cig = document.getElementById('cigInput').value;
+    const regione = document.getElementById('regioneSelect').value;
+    const provincia = document.getElementById('provinciaSelect').value;
+    const soa = document.getElementById('soaSelect').value;
+    const tipologia = document.getElementById('tipologiaSelect').value;
+    const criterio = document.getElementById('criterioSelect').value;
+    const dataFrom = document.getElementById('dataFromInput').value;
+    const dataTo = document.getElementById('dataToInput').value;
+    const importoMin = document.getElementById('importoMinInput').value;
+    const importoMax = document.getElementById('importoMaxInput').value;
+    const piattaforma = document.getElementById('piattaformaSelect').value;
+    const insertDateFrom = document.getElementById('insertDateFromInput')?.value || '';
+    const insertDateTo = document.getElementById('insertDateToInput')?.value || '';
+    const filtraDataModifica = document.getElementById('filtraDataModificaCheck')?.checked || false;
+
+    // Parse sort
+    const sortSelect = document.getElementById('sortSelect').value;
+    let sort = 'data_pubblicazione';
+    let order = 'DESC';
+    if (sortSelect.includes('asc')) order = 'ASC';
+    if (sortSelect.includes('data_offerta')) sort = 'data_offerta';
+    if (sortSelect.includes('importo')) sort = 'importo_so';
+    if (sortSelect.includes('titolo')) sort = 'titolo';
+
+    const params = new URLSearchParams({
+      page: currentPage,
+      limit: pageLimit,
+      search: search || '',
+      cig: cig || '',
+      id_regione: regione || '',
+      id_provincia: provincia || '',
+      id_soa: soa || '',
+      id_tipologia: tipologia || '',
+      id_criterio: criterio || '',
+      id_piattaforma: piattaforma || '',
+      data_dal: dataFrom || '',
+      data_al: dataTo || '',
+      importo_min: importoMin || '',
+      importo_max: importoMax || '',
+      data_inserimento_dal: insertDateFrom || '',
+      data_inserimento_al: insertDateTo || '',
+      filtra_data_modifica: filtraDataModifica ? '1' : '',
+      sort: sort,
+      order: order
+    });
+
+    const response = await fetch(`${API_BASE}/api/bandi?${params}`);
+    const result = await response.json();
+
+    renderBandi(result.data || []);
+    updateStats(result);
+    updatePagination(result.pagination || {});
+
+    document.getElementById('resultCount').textContent = result.pagination?.total || 0;
+  } catch (error) {
+    console.error('Error loading bandi:', error);
+    document.getElementById('bandiList').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>Errore di Caricamento</h3><p>Si è verificato un errore nel caricamento dei dati.</p></div>';
+  }
+}
+
+// ===== HELPER FUNCTIONS FOR BANDI CARDS =====
+function showToast(msg, type) {
+  var t = document.createElement('div');
+  var bg = type === 'success' ? '#22c55e' : type === 'warning' ? '#f59e0b' : type === 'error' ? '#ef4444' : '#1E2D3D';
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:' + bg + ';color:#fff;padding:12px 24px;border-radius:12px;font-size:0.85rem;font-weight:600;z-index:10000;box-shadow:0 8px 24px rgba(0,0,0,0.2);font-family:Comfortaa,cursive;transition:opacity 0.3s';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function() { t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 300); }, 3000);
+}
+
+function richiediServizi(bandoId) {
+  showToast('Funzione Richiedi Servizi in arrivo', 'info');
+}
+
+function aggiungiRegistro(bandoId) {
+  showToast('Bando aggiunto al Registro Gare', 'success');
+}
+
+function calcolaTempoResiduo(dataOfferta) {
+  if (!dataOfferta) return { text: '-', color: '#8895a5' };
+  var now = new Date();
+  var scadenza = new Date(dataOfferta);
+  var diff = Math.ceil((scadenza - now) / (1000 * 60 * 60 * 24));
+  if (diff < 0) return { text: 'SCADUTO', color: '#ef4444' };
+  if (diff === 0) return { text: 'SCADE OGGI', color: '#ef4444' };
+  if (diff <= 7) return { text: diff + ' giorni', color: '#ef4444' };
+  return { text: diff + ' giorni', color: '#22c55e' };
+}
+
+// ===== RENDER BANDI =====
+function renderBandi(bandi) {
+  const container = document.getElementById('bandiList');
+
+  if (bandi.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-search"></i>
+        <h3>Nessun Bando Trovato</h3>
+        <p>Prova a modificare i filtri di ricerca per trovare i bandi che stai cercando.</p>
+        <button class="btn-primary" onclick="resetFilters()">Resetta Filtri</button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = bandi.map((bando, index) => {
+    // ── Calcoli stato temporale (identici al gestionale) ──
+    const scad = bando.data_offerta ? new Date(bando.data_offerta) : null;
+    const giorni = scad ? Math.ceil((scad - new Date()) / (1000*60*60*24)) : null;
+    const urgente = giorni !== null && giorni <= 7 && giorni >= 0;
+    const scaduto = giorni !== null && giorni < 0;
+    const importoFormatted = bando.importo_so ? new Intl.NumberFormat('it-IT', {style:'currency',currency:'EUR'}).format(bando.importo_so) : '-';
+    const disabledStazione = !bando.stazione_sito_web;
+
+    // Status badge (stile gestionale)
+    let badge = '';
+    if (scaduto) badge = '<span style="background:rgba(239,68,68,0.15);color:#ef4444;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600">SCADUTO</span>';
+    else if (urgente) badge = '<span style="background:rgba(245,158,11,0.15);color:#f59e0b;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600">URGENTE ' + giorni + 'gg</span>';
+    else badge = '<span style="background:rgba(34,197,94,0.15);color:#22c55e;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600">ATTIVO</span>';
+
+    const apertura = bando.data_apertura ? formatDate(bando.data_apertura) : 'Non indicata';
+
+    // ── Cell styles (identici al gestionale) ──
+    const cellLabel = 'style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-right:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1);background:#1E2D3D"';
+    const cellValue = 'style="padding:8px 12px;font-weight:600;border-right:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1);color:#ffffff;background:#243749"';
+    const cellLabelLast = 'style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.1);background:#1E2D3D"';
+    const cellValueLast = 'style="padding:8px 12px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.1);color:#ffffff;background:#243749"';
+
+    return `
+    <div style="background:#1E2D3D;border:1px solid rgba(255,255,255,0.08);border-radius:20px;overflow:hidden;transition:all 0.2s ease;box-shadow:0 2px 8px rgba(30,45,61,0.3)" onmouseover="this.style.boxShadow='0 6px 24px rgba(30,45,61,0.4)'" onmouseout="this.style.boxShadow='0 2px 8px rgba(30,45,61,0.3)'">
+
+      <!-- HEADER: Bando n° + Logo + Badge stato -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#162230;border-bottom:1px solid rgba(255,255,255,0.1)">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:0.95rem;font-weight:700;color:#ffffff;font-family:Comfortaa,cursive">Bando n° ${index + 1}</span>
+          <img src="../logo.png" alt="EasyWin" style="height:28px;opacity:0.7;filter:brightness(10)">
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">${badge}</div>
+      </div>
+
+      <!-- RIGA 1: Tipologia | Criterio Aggiudicazione | Scadenza | Apertura -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">
+        <div ${cellLabel}>Tipologia</div>
+        <div ${cellLabel}>Criterio aggiudicazione</div>
+        <div ${cellLabel}>Scadenza</div>
+        <div ${cellLabelLast}>Apertura</div>
+        <div ${cellValue}><span style="color:rgba(255,255,255,0.9);font-size:0.85rem">${escapeHtml(bando.tipologia||'-')}</span></div>
+        <div ${cellValue}><span style="color:rgba(255,255,255,0.8);font-size:0.85rem">${escapeHtml(bando.criterio||'-')}</span></div>
+        <div ${cellValue}><span style="color:${scaduto?'rgba(255,255,255,0.5)':urgente?'#ef4444':'#4ade80'};font-size:1rem;font-weight:600">${formatDate(bando.data_offerta)||'-'}</span></div>
+        <div ${cellValueLast}><span style="color:rgba(255,255,255,0.9);font-size:0.9rem">${apertura}</span></div>
+      </div>
+
+      <!-- RIGA 2: Provincia | Importo Complessivo | CIG | Pubblicazione -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">
+        <div ${cellLabel}>Provincia</div>
+        <div ${cellLabel}>Importo Complessivo</div>
+        <div ${cellLabel}>CIG</div>
+        <div ${cellLabelLast}>Pubblicazione</div>
+        <div ${cellValue}><span style="color:rgba(255,255,255,0.9);font-size:0.9rem">${escapeHtml(bando.provincia_nome||'-')}</span></div>
+        <div ${cellValue}><span style="color:#4ade80;font-size:1.05rem;font-weight:700">${importoFormatted}</span></div>
+        <div ${cellValue}><span style="color:rgba(255,255,255,0.6);font-family:monospace;font-size:0.88rem">${escapeHtml(bando.codice_cig||'-')}</span></div>
+        <div ${cellValueLast}><span style="color:rgba(255,255,255,0.8);font-size:0.88rem">${formatDate(bando.data_pubblicazione)||'-'}</span></div>
+      </div>
+
+      <!-- RIGA 3: Categoria Prevalente | Categorie Scorporabili | Piattaforma Digitale | Stato Temporale -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">
+        <div ${cellLabel}>Categoria prevalente</div>
+        <div ${cellLabel}>Categorie scorporabili</div>
+        <div ${cellLabel}>Piattaforma digitale</div>
+        <div ${cellLabelLast}>Stato temporale</div>
+        <div ${cellValue}><span style="color:#a78bfa;font-size:0.95rem;font-weight:700">${escapeHtml(bando.soa_categoria||'-')}</span></div>
+        <div ${cellValue}><span style="color:#a78bfa;font-size:0.85rem">${escapeHtml(bando.soa_sostitutiva||'-')}</span></div>
+        <div ${cellValue}>${bando.piattaforma_nome ? '<span style="color:rgba(255,255,255,0.8);font-size:0.85rem"><i class="fas fa-desktop" style="margin-right:4px;opacity:0.6"></i>' + escapeHtml(bando.piattaforma_nome) + '</span>' : '<span style="color:rgba(255,255,255,0.4)">-</span>'}</div>
+        <div ${cellValueLast}>${giorni !== null ? '<span style="color:' + (scaduto?'rgba(255,255,255,0.5)':urgente?'#ef4444':'#4ade80') + ';font-size:0.9rem;font-weight:600"><i class="fas fa-clock" style="margin-right:4px"></i>' + (scaduto?'Scaduto da ' + Math.abs(giorni) + 'gg' : giorni + ' giorni alla scadenza') + '</span>' : '<span style="color:rgba(255,255,255,0.4)">-</span>'}</div>
+      </div>
+
+      <!-- STAZIONE APPALTANTE (full width) -->
+      <div style="border-bottom:1px solid rgba(255,255,255,0.08)">
+        <div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Stazione appaltante</div>
+        <div style="padding:8px 12px;font-size:0.95rem;color:#ffffff;font-weight:700;background:#243749"><i class="fas fa-building" style="margin-right:6px;opacity:0.5"></i>${escapeHtml(bando.stazione||'-')}</div>
+      </div>
+
+      <!-- OGGETTO (full width) -->
+      <div style="border-bottom:1px solid rgba(255,255,255,0.08)">
+        <div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Oggetto</div>
+        <div style="padding:10px 12px;font-size:0.88rem;color:rgba(255,255,255,0.85);font-weight:500;line-height:1.5;text-align:justify;cursor:pointer;background:#243749" onclick="goToDetails('${bando.id}')">${escapeHtml(bando.titolo||'-')}</div>
+      </div>
+
+      ${bando.note ? `
+      <!-- NOTE (conditional) -->
+      <div style="border-bottom:1px solid rgba(255,255,255,0.08)">
+        <div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Note</div>
+        <div style="padding:8px 12px;font-size:0.82rem;color:rgba(255,255,255,0.6);line-height:1.4;font-style:italic;background:#243749">${escapeHtml(bando.note)}</div>
+      </div>
+      ` : ''}
+
+      <!-- FOOTER: 4 PULSANTI AREA CLIENTI -->
+      <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:#162230;border-top:1px solid rgba(255,255,255,0.1);border-radius:0 0 20px 20px;flex-wrap:wrap">
+        <button onclick="goToDetails('${bando.id}')" class="btn-action-orange"><i class="fas fa-eye"></i> VISUALIZZA</button>
+        <button onclick="openStazione('${(bando.stazione_sito_web || '').replace(/'/g, "\\'")}')" style="background:${disabledStazione ? 'rgba(255,255,255,0.05)' : 'transparent'};color:${disabledStazione ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.8)'};border:1px solid ${disabledStazione ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.25)'};padding:8px 16px;border-radius:50px;cursor:${disabledStazione ? 'not-allowed' : 'pointer'};font-weight:600;font-size:0.78rem;font-family:Comfortaa,cursive;transition:all 0.2s;display:flex;align-items:center;gap:6px" ${disabledStazione ? '' : 'onmouseover="this.style.background=\'rgba(255,255,255,0.1)\';this.style.color=\'#fff\'" onmouseout="this.style.background=\'transparent\';this.style.color=\'rgba(255,255,255,0.8)\'"'}><i class="fas fa-external-link-alt"></i> LINK STAZIONE</button>
+        <button onclick="richiediServizi(${bando.id})" class="btn-action-orange"><i class="fas fa-concierge-bell"></i> RICHIEDI SERVIZI</button>
+        <button onclick="aggiungiRegistro(${bando.id})" style="background:transparent;color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.25);padding:8px 16px;border-radius:50px;cursor:pointer;font-weight:600;font-size:0.78rem;font-family:Comfortaa,cursive;transition:all 0.2s;display:flex;align-items:center;gap:6px" onmouseover="this.style.background='rgba(255,255,255,0.1)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='rgba(255,255,255,0.8)'"><i class="fas fa-plus-circle"></i> AGGIUNGI REGISTRO</button>
+      </div>
+
+    </div>
+    `;
+  }).join('');
+}
+
+// ===== SHOW SKELETONS =====
+function showSkeletons() {
+  const container = document.getElementById('bandiList');
+  container.innerHTML = Array(5).fill(0).map(() => `
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-number"></div>
+      <div style="width:100%">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-info" style="width:30%;margin-bottom:4px"></div>
+        <div class="skeleton skeleton-info" style="width:50%;margin-bottom:4px"></div>
+        <div class="skeleton skeleton-info" style="width:40%;"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== UPDATE STATS =====
+function updateStats(result) {
+  const total = result.pagination?.total || 0;
+  const today = new Date().toISOString().split('T')[0];
+
+  document.getElementById('statTotal').textContent = total.toLocaleString('it-IT');
+  document.getElementById('statToday').textContent = (result.data || []).filter(b => formatDate(b.data_pubblicazione) === formatDate(today)).length;
+
+  const expiring = (result.data || []).filter(b => {
+    const d = new Date(b.data_offerta);
+    const daysLeft = Math.floor((d - new Date()) / (1000 * 60 * 60 * 24));
+    return daysLeft >= 0 && daysLeft <= 7;
+  }).length;
+  document.getElementById('statExpiring').textContent = expiring;
+}
+
+// ===== UPDATE PAGINATION =====
+function updatePagination(pagination) {
+  const container = document.getElementById('pagination');
+  if (!pagination.totalPages || pagination.totalPages <= 1) {
+    container.innerHTML = '';
+    return;
+  }
+
+  let html = '';
+  if (currentPage > 1) {
+    html += `<button onclick="goToPage(${currentPage - 1})"><i class="fas fa-chevron-left"></i> Precedente</button>`;
+  }
+
+  for (let i = 1; i <= pagination.totalPages; i++) {
+    if (i === 1 || i === pagination.totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+      html += `<a class="${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</a>`;
+    } else if (i === 2 || i === pagination.totalPages - 1) {
+      html += `<span style="color:var(--text-dim)">...</span>`;
+    }
+  }
+
+  if (currentPage < pagination.totalPages) {
+    html += `<button onclick="goToPage(${currentPage + 1})">Successivo <i class="fas fa-chevron-right"></i></button>`;
+  }
+
+  container.innerHTML = html;
+}
+
+// ===== HELPER FUNCTIONS =====
+function toggleFilter(header) {
+  const section = header.closest('.filter-section');
+  section.classList.toggle('collapsed');
+  const btn = header.querySelector('.filter-toggle-btn');
+  btn.classList.toggle('collapsed');
+}
+
+function initializeFilters() {
+  // Can be expanded with saved filter state
+}
+
+function applyFilters() {
+  currentPage = 1;
+  loadBandi();
+}
+
+function resetFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('cigInput').value = '';
+  document.getElementById('regioneSelect').value = '';
+  document.getElementById('provinciaSelect').value = '';
+  document.getElementById('soaSelect').value = '';
+  document.getElementById('tipologiaSelect').value = '';
+  document.getElementById('criterioSelect').value = '';
+  document.getElementById('dataFromInput').value = '';
+  document.getElementById('dataToInput').value = '';
+  document.getElementById('importoMinInput').value = '';
+  document.getElementById('importoMaxInput').value = '';
+  document.getElementById('piattaformaSelect').value = '';
+  document.getElementById('sortSelect').value = 'data_pubblicazione_desc';
+  currentPage = 1;
+  loadBandi();
+}
+
+function goToPage(page) {
+  currentPage = page;
+  loadBandi();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goToDetails(id) {
+  window.location.href = `bando-dettaglio.html?id=${id}`;
+}
+
+function openStazione(url) {
+  if (!url) {
+    showToast('Link stazione non disponibile', 'warning');
+    return;
+  }
+  let finalUrl = url;
+  if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+    finalUrl = 'https://' + finalUrl;
+  }
+  window.open(finalUrl, '_blank');
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return 'N/A';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('it-IT', { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
+
+function formatCurrency(value) {
+  if (!value) return '€ 0,00';
+  return '€ ' + parseFloat(value).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+  return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+</script>
+
+</body>
+</html>

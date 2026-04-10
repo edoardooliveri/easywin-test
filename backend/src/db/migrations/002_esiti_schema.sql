@@ -12,6 +12,7 @@
 CREATE TABLE IF NOT EXISTS tipo_dati_gara (
     id SERIAL PRIMARY KEY,
     tipo VARCHAR(200) NOT NULL,
+    nome VARCHAR(200),                    -- Alias for backward compat with old schema
     priority INTEGER DEFAULT 0,
     attivo BOOLEAN DEFAULT true
 );

@@ -254,11 +254,12 @@ export default async function newsletterRoutes(fastify, opts) {
           soa."codice" AS soa
         FROM bandi b
         LEFT JOIN regioni r ON b."id_regione" = r.id
-        LEFT JOIN province p ON b."id_provincia" = p.id
+        LEFT JOIN stazioni s2 ON b.id_stazione = s2.id
+        LEFT JOIN province p ON s2.id_provincia = p.id
         LEFT JOIN stazioni s ON b."id_stazione" = s.id
         LEFT JOIN soa ON b."id_soa" = soa.id
         WHERE b."data_pubblicazione" >= $1 AND b."data_pubblicazione" <= $2
-        AND (b."abilitato" = true OR b."abilitato" IS NOT NULL)
+        AND b.annullato IS NOT TRUE
         ORDER BY r."regione", p."provincia", b."titolo"`,
         [data_da, data_a]
       );
@@ -285,7 +286,7 @@ export default async function newsletterRoutes(fastify, opts) {
       // Count unique recipients (users with newsletter enabled for bandi)
       const recipients = await query(
         `SELECT COUNT(DISTINCT u.id) AS count FROM users u
-        WHERE u."NewsletterBandi" = true AND u."Approvato" = true`
+        WHERE u."newsletter_bandi" = true AND u."attivo" = true`
       );
 
       return {
@@ -313,10 +314,10 @@ export default async function newsletterRoutes(fastify, opts) {
       const result = await query(
         `SELECT
           g.id,
-          g."titolo" AS titolo,
-          g."codice_cig" AS cig,
-          g."importo" AS importo,
-          g."data" AS data,
+          b."oggetto" AS titolo,
+          b."cig" AS cig,
+          g."importo_aggiudicazione" AS importo,
+          g."data_gara" AS data,
           r."regione" AS regione,
           p."provincia" AS provincia,
           s."nome" AS stazione,
@@ -330,9 +331,9 @@ export default async function newsletterRoutes(fastify, opts) {
         LEFT JOIN soa ON g."id_soa" = soa.id
         LEFT JOIN dettaglio_gara dg ON g.id = dg.id_gara AND dg.vincitrice = true
         LEFT JOIN aziende a ON dg.id_azienda = a.id
-        WHERE g."data" >= $1 AND g."data" <= $2
-        AND (g."abilitato" = true OR g."abilitato" IS NOT NULL)
-        ORDER BY r."regione", p."provincia", g."titolo"`,
+        WHERE g."data_gara" >= $1 AND g."data_gara" <= $2
+        AND g.annullato IS NOT TRUE
+        ORDER BY r."regione", p."provincia", b."oggetto"`,
         [data_da, data_a]
       );
 
@@ -360,7 +361,7 @@ export default async function newsletterRoutes(fastify, opts) {
       // Count unique recipients
       const recipients = await query(
         `SELECT COUNT(DISTINCT u.id) AS count FROM users u
-        WHERE u."NewsletterEsiti" = true AND u."Approvato" = true`
+        WHERE u."newsletter_esiti" = true AND u."attivo" = true`
       );
 
       return {
@@ -391,11 +392,12 @@ export default async function newsletterRoutes(fastify, opts) {
           soa."codice" AS soa
         FROM bandi b
         LEFT JOIN regioni r ON b."id_regione" = r.id
-        LEFT JOIN province p ON b."id_provincia" = p.id
+        LEFT JOIN stazioni s2 ON b.id_stazione = s2.id
+        LEFT JOIN province p ON s2.id_provincia = p.id
         LEFT JOIN stazioni s ON b."id_stazione" = s.id
         LEFT JOIN soa ON b."id_soa" = soa.id
         WHERE b."data_pubblicazione" >= $1 AND b."data_pubblicazione" <= $2
-        AND (b."abilitato" = true OR b."abilitato" IS NOT NULL)
+        AND b.annullato IS NOT TRUE
         ORDER BY r."regione", p."provincia"`,
         [data_da, data_a]
       );
@@ -435,7 +437,7 @@ export default async function newsletterRoutes(fastify, opts) {
 
       const result = await query(
         `SELECT
-          g.id, g."titolo" AS titolo, g."codice_cig" AS cig, g."importo" AS importo, g."data" AS data,
+          g.id, b."oggetto" AS titolo, b."cig" AS cig, g."importo_aggiudicazione" AS importo, g."data_gara" AS data,
           r."regione" AS regione, p."provincia" AS provincia, s."nome" AS stazione,
           soa."codice" AS soa, g."ribasso" AS ribasso
         FROM gare g
@@ -443,8 +445,8 @@ export default async function newsletterRoutes(fastify, opts) {
         LEFT JOIN province p ON g."id_provincia" = p.id
         LEFT JOIN stazioni s ON g."id_stazione" = s.id
         LEFT JOIN soa ON g."id_soa" = soa.id
-        WHERE g."data" >= $1 AND g."data" <= $2
-        AND (g."abilitato" = true OR g."abilitato" IS NOT NULL)
+        WHERE g."data_gara" >= $1 AND g."data_gara" <= $2
+        AND g.annullato IS NOT TRUE
         ORDER BY r."regione", p."provincia"`,
         [data_da, data_a]
       );
@@ -491,17 +493,18 @@ export default async function newsletterRoutes(fastify, opts) {
                 r."regione" AS regione, p."provincia" AS provincia, s."nome" AS stazione, soa."codice" AS soa
          FROM bandi b
          LEFT JOIN regioni r ON b."id_regione" = r.id
-         LEFT JOIN province p ON b."id_provincia" = p.id
+         LEFT JOIN stazioni s2 ON b.id_stazione = s2.id
+        LEFT JOIN province p ON s2.id_provincia = p.id
          LEFT JOIN stazioni s ON b."id_stazione" = s.id
          LEFT JOIN soa ON b."id_soa" = soa.id
-         WHERE b."data_pubblicazione" >= $1 AND b."data_pubblicazione" <= $2 AND (b."abilitato" = true OR b."abilitato" IS NOT NULL)
+         WHERE b."data_pubblicazione" >= $1 AND b."data_pubblicazione" <= $2 AND b.annullato IS NOT TRUE
          ORDER BY r."regione"`,
         [data_da, data_a]
       );
 
       // Fetch all newsletter subscribers
       const users = await query(
-        `SELECT id, email, "Username" FROM users WHERE "NewsletterBandi" = true AND "Approvato" = true`
+        `SELECT id, email, "username" FROM users WHERE "newsletter_bandi" = true AND "attivo" = true`
       );
 
       const items = bandi.rows.map(row => ({
@@ -576,21 +579,21 @@ export default async function newsletterRoutes(fastify, opts) {
 
       // Fetch esiti
       const esiti = await query(
-        `SELECT g.id, g."titolo" AS titolo, g."codice_cig" AS cig, g."importo" AS importo, g."data" AS data,
+        `SELECT g.id, b."oggetto" AS titolo, b."cig" AS cig, g."importo_aggiudicazione" AS importo, g."data_gara" AS data,
                 r."regione" AS regione, p."provincia" AS provincia, s."nome" AS stazione, soa."codice" AS soa, g."ribasso" AS ribasso
          FROM gare g
          LEFT JOIN regioni r ON g."id_regione" = r.id
          LEFT JOIN province p ON g."id_provincia" = p.id
          LEFT JOIN stazioni s ON g."id_stazione" = s.id
          LEFT JOIN soa ON g."id_soa" = soa.id
-         WHERE g."data" >= $1 AND g."data" <= $2 AND (g."abilitato" = true OR g."abilitato" IS NOT NULL)
+         WHERE g."data_gara" >= $1 AND g."data_gara" <= $2 AND g.annullato IS NOT TRUE
          ORDER BY r."regione"`,
         [data_da, data_a]
       );
 
       // Fetch all newsletter subscribers
       const users = await query(
-        `SELECT id, email, "Username" FROM users WHERE "NewsletterEsiti" = true AND "Approvato" = true`
+        `SELECT id, email, "username" FROM users WHERE "newsletter_esiti" = true AND "attivo" = true`
       );
 
       const items = esiti.rows.map(row => ({
@@ -669,7 +672,8 @@ export default async function newsletterRoutes(fastify, opts) {
                 r."regione" AS regione, p."provincia" AS provincia, s."nome" AS stazione, soa."codice" AS soa
          FROM bandi b
          LEFT JOIN regioni r ON b."id_regione" = r.id
-         LEFT JOIN province p ON b."id_provincia" = p.id
+         LEFT JOIN stazioni s2 ON b.id_stazione = s2.id
+        LEFT JOIN province p ON s2.id_provincia = p.id
          LEFT JOIN stazioni s ON b."id_stazione" = s.id
          LEFT JOIN soa ON b."id_soa" = soa.id
          WHERE b."data_pubblicazione" >= $1 AND b."data_pubblicazione" <= $2 LIMIT 50`,
@@ -720,14 +724,14 @@ export default async function newsletterRoutes(fastify, opts) {
       }
 
       const esiti = await query(
-        `SELECT g.id, g."titolo" AS titolo, g."codice_cig" AS cig, g."importo" AS importo, g."data" AS data,
+        `SELECT g.id, b."oggetto" AS titolo, b."cig" AS cig, g."importo_aggiudicazione" AS importo, g."data_gara" AS data,
                 r."regione" AS regione, p."provincia" AS provincia, s."nome" AS stazione, soa."codice" AS soa, g."ribasso" AS ribasso
          FROM gare g
          LEFT JOIN regioni r ON g."id_regione" = r.id
          LEFT JOIN province p ON g."id_provincia" = p.id
          LEFT JOIN stazioni s ON g."id_stazione" = s.id
          LEFT JOIN soa ON g."id_soa" = soa.id
-         WHERE g."data" >= $1 AND g."data" <= $2 LIMIT 50`,
+         WHERE g."data_gara" >= $1 AND g."data_gara" <= $2 LIMIT 50`,
         [data_da, data_a]
       );
 
@@ -833,9 +837,9 @@ export default async function newsletterRoutes(fastify, opts) {
   fastify.get('/newsletter/utenti', async (request, reply) => {
     try {
       const result = await query(
-        `SELECT id, "Username", email, "NewsletterBandi", "NewsletterEsiti", "DataIscrizione"
-         FROM users WHERE "Approvato" = true
-         ORDER BY "Username"`
+        `SELECT id, "username", email, "newsletter_bandi", "newsletter_esiti", "created_at"
+         FROM users WHERE "attivo" = true
+         ORDER BY "username"`
       );
 
       return {
@@ -862,10 +866,10 @@ export default async function newsletterRoutes(fastify, opts) {
 
       const result = await query(
         `UPDATE users
-         SET "NewsletterBandi" = COALESCE($1, "NewsletterBandi"),
-             "NewsletterEsiti" = COALESCE($2, "NewsletterEsiti")
+         SET "newsletter_bandi" = COALESCE($1, "newsletter_bandi"),
+             "newsletter_esiti" = COALESCE($2, "newsletter_esiti")
          WHERE id = $3
-         RETURNING id, "Username", email, "NewsletterBandi", "NewsletterEsiti"`,
+         RETURNING id, "username", email, "newsletter_bandi", "newsletter_esiti"`,
         [newsletter_bandi !== undefined ? newsletter_bandi : null, newsletter_esiti !== undefined ? newsletter_esiti : null, id]
       );
 

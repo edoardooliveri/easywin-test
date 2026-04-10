@@ -1,0 +1,22 @@
+<!DOCTYPE html><html lang="it"><head><meta charset="utf-8"><title>EasyWin Email Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Comfortaa',sans-serif;background:#0a0f14;color:#B8C4CE;display:flex;height:100vh;overflow:hidden}.sb{width:260px;background:#0F1923;border-right:1px solid #253748;overflow-y:auto;flex-shrink:0;padding:16px 0}.sb h2{color:#F5C518;font-size:13px;padding:12px 20px;text-transform:uppercase;letter-spacing:1px}.sb a{display:block;padding:10px 20px;color:#B8C4CE;text-decoration:none;font-size:12px;border-left:3px solid transparent;transition:all .15s}.sb a:hover{background:#1E2D3D;color:#fff}.sb a.ac{background:#1E2D3D;border-left-color:#F5C518;color:#F5C518}.mn{flex:1;display:flex;flex-direction:column;overflow:hidden}.tb{background:#0F1923;border-bottom:1px solid #253748;padding:12px 24px;display:flex;align-items:center;gap:16px}.tb h1{font-size:16px;color:#F5C518}.tb .bg{background:#253748;color:#B8C4CE;font-size:11px;padding:4px 10px;border-radius:12px}.pv{flex:1;background:#1a1a2e;overflow:auto;display:flex;justify-content:center;padding:24px}.pv iframe{border:none;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.4);max-width:700px;width:100%;height:100%;min-height:900px;background:#0F1923}</style></head><body>
+<div class="sb"><h2>Email Templates</h2>
+<a href="#" data-f="01-bandi.html" class="ac">Newsletter Bandi</a>
+<a href="#" data-f="02-esiti.html">Newsletter Esiti</a>
+<a href="#" data-f="03-vincitore.html">Push Esito Vincitore</a>
+<a href="#" data-f="04-non-vinc.html">Push Esito Non Vincitore</a>
+<a href="#" data-f="05-non-cli.html">Push Esito Non Cliente</a>
+<a href="#" data-f="06-esito.html">Esito Notification</a>
+<a href="#" data-f="07-reset.html">Reset Password</a>
+<a href="#" data-f="08-contatto.html">Modulo Contatto</a>
+<a href="#" data-f="09-scadenza.html">Reminder Scadenza</a>
+<a href="#" data-f="10-admin.html">Scadenze Admin</a>
+<a href="#" data-f="11-import.html">Alert Importazione</a>
+<a href="#" data-f="12-aperture.html">Aperture Domani</a>
+<a href="#" data-f="13-sopralluoghi.html">Sopralluoghi Domani</a>
+<a href="#" data-f="14-posticipo.html">Posticipo Seduta</a>
+<a href="#" data-f="15-assegnazione.html">Assegnazione Apertura</a></div>
+<div class="mn"><div class="tb"><h1>EasyWin Email Preview</h1><span class="bg">15 templates</span></div>
+<div class="pv"><iframe id="pf" src="email-previews/01-bandi.html"></iframe></div></div>
+<script>const ls=document.querySelectorAll('.sb a'),f=document.getElementById('pf');ls.forEach(l=>l.addEventListener('click',e=>{e.preventDefault();f.src='email-previews/'+l.dataset.f;ls.forEach(x=>x.classList.remove('ac'));l.classList.add('ac')}));</script></body></html>

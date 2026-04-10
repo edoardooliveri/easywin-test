@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dettaglio Esito | EasyWin</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap');
+
+/* ===== DESIGN SYSTEM VARIABLES ===== */
+:root{
+  --dark:#1E2D3D;
+  --dark-lighter:#1E2D3D;
+  --dark-card:#ffffff;
+  --dark-surface:#eef1f6;
+  --dark-bg:#f0f2f7;
+  --yellow:#F5C518;
+  --orange:#FF8C00;
+  --gradient:linear-gradient(135deg,#F5C518 0%,#FF8C00 100%);
+  --gradient-r:linear-gradient(135deg,#FF8C00 0%,#F5C518 100%);
+  --text-white:#1e293b;
+  --text-muted:#586879;
+  --text-dim:#8895a5;
+  --border-dark:#d4dbe5;
+  --border-orange:rgba(255,140,0,0.3);
+  --radius:8px;
+  --radius-lg:16px;
+  --shadow-dark:0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06);
+  --transition:all 0.35s cubic-bezier(.4,0,.2,1);
+}
+
+/* ===== RESET & BASE ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Open Sans','Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--dark-bg);color:var(--text-white);min-height:100vh;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+
+/* ===== HERO WRAPPER ===== */
+.hero-wrapper{
+  position:relative;
+  background: #0f172a url('hero-bg.png') center 25% / cover no-repeat;
+}
+.hero-wrapper::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg, rgba(15,23,42,0.7) 0%, rgba(15,23,42,0.35) 30%, rgba(15,23,42,0.25) 55%, rgba(15,23,42,0.6) 100%);
+  z-index:0;
+}
+.hero-wrapper > *{position:relative;z-index:1;}
+
+/* ===== HEADER ===== */
+.header{
+  background:transparent;
+  padding:16px 40px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+  position:sticky;top:0;z-index:100;
+  backdrop-filter:blur(12px);
+}
+.header .logo-img{height:44px;transition:var(--transition)}
+.header .logo{
+  font-family:'Comfortaa',cursive;
+  font-size:32px;color:var(--yellow);font-weight:700;
+  letter-spacing:0.5px;display:flex;align-items:center;gap:12px;
+}
+.header .logo span{font-size:38px}
+.header .logo i{font-style:normal;font-weight:300;color:#d4dbe5}
+.header-right{display:flex;align-items:center;gap:16px}
+.header-user{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 16px;border-radius:50px;
+  background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);
+  font-size:13px;color:rgba(255,255,255,0.8);cursor:pointer;transition:var(--transition);
+}
+.header-user:hover{color:#fff}
+.header-user i{color:var(--orange)}
+
+/* ===== NAVBAR ===== */
+.navbar{
+  background:rgba(15,23,42,0.4);
+  backdrop-filter:blur(8px);
+  padding:0 20px;
+  display:flex;align-items:center;
+  border-bottom:rgba(255,255,255,0.08);
+  position:sticky;top:76px;z-index:99;
+  overflow:visible;
+}
+.navbar a{
+  color:rgba(255,255,255,0.7);padding:14px 16px;
+  font-family:'Comfortaa',cursive;
+  font-size:12px;display:block;white-space:nowrap;
+  transition:var(--transition);
+  position:relative;font-weight:500;letter-spacing:0.3px;
+}
+.navbar a:hover{color:#fff;background:rgba(255,255,255,0.08)}
+.navbar a.active{color:var(--orange);font-weight:700}
+.navbar a.active::after{
+  content:'';position:absolute;
+  bottom:0;left:0;right:0;height:3px;
+  background:var(--gradient);border-radius:3px 3px 0 0;
+}
+
+/* NAVBAR DROPDOWNS */
+.nav-item{position:relative;display:inline-block}
+.nav-dropdown{
+  display:none;position:absolute;top:100%;left:0;
+  background:#1a2332;border:1px solid rgba(255,255,255,0.1);
+  border-radius:0 0 8px 8px;min-width:200px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:200;
+  padding:4px 0;
+}
+.nav-item:hover .nav-dropdown{display:block}
+.nav-dropdown a{
+  display:block !important;padding:10px 16px !important;
+  color:rgba(255,255,255,0.75) !important;font-size:12px !important;
+  font-family:'Comfortaa',cursive;white-space:nowrap;
+  transition:all 0.2s;border:none !important;
+}
+.nav-dropdown a:hover{
+  background:rgba(255,255,255,0.1) !important;color:#ffffff !important;
+}
+.nav-dropdown a::after{display:none !important}
+
+/* CARD ACTION BUTTON GRADIENT SLIDE */
+.btn-action-orange{
+  background-image:linear-gradient(to right, #F5C518 0%, #FF8C00 51%, #F5C518 100%) !important;
+  background-size:200% auto !important;
+  background-position:right center !important;
+  color:#fff;border:none;padding:8px 20px;border-radius:50px;cursor:pointer;
+  font-weight:700;font-size:0.78rem;font-family:Comfortaa,cursive;
+  transition:0.3s ease-in-out !important;display:inline-flex;align-items:center;gap:6px;
+  text-shadow:0 1px 2px rgba(0,0,0,0.15);
+}
+.btn-action-orange:hover{
+  background-position:left center !important;
+  transform:translateY(-1px);
+  box-shadow:0 6px 20px rgba(255,140,0,0.4);
+}
+
+/* ===== CONTENT AREA ===== */
+.content{padding:30px 25px;max-width:1420px;margin:0 auto}
+
+/* ===== SECTION TITLE ===== */
+.section-title{font-family:'Comfortaa',cursive;font-size:22px;font-weight:500;margin-bottom:20px;color:var(--text-white)}
+
+/* ===== PAGE TITLE ===== */
+.page-title{font-family:'Comfortaa',cursive;font-size:26px;font-weight:500;margin-bottom:12px;color:var(--text-white)}
+
+/* ===== BREADCRUMB ===== */
+.breadcrumb{
+  display:flex;gap:8px;margin-bottom:20px;
+  font-size:13px;color:var(--text-muted);font-family:'Comfortaa',cursive;
+}
+.breadcrumb a{color:var(--yellow);transition:var(--transition)}
+.breadcrumb a:hover{color:var(--orange)}
+
+/* ===== DETAIL TABLE ===== */
+.detail-table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  margin-bottom:20px;
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+  box-shadow:var(--shadow-dark);
+  border:1px solid #d4dbe5;
+}
+.detail-table tr:last-child td{border-bottom:none}
+.detail-table td{
+  padding:14px 18px;
+  border-bottom:1px solid #e8ecf1;
+  font-size:14px;
+  vertical-align:top;
+  color:var(--text-white);
+}
+.detail-table .td-label{
+  background:#3a4a5c;
+  color:#ffffff;
+  font-family:'Comfortaa',cursive;
+  font-size:12px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.4px;
+  width:240px;
+  min-width:200px;
+  border-right:none;
+  padding:14px 18px;
+}
+.detail-table .td-value{
+  background:#ffffff;
+  color:#1e293b;
+  font-family:'Comfortaa',cursive;
+  font-size:13px;
+  line-height:1.6;
+}
+.detail-table tr:first-child .td-label{border-radius:0}
+.detail-table tr:first-child .td-value{border-radius:0}
+
+/* ===== GRADUATORIA TABLE ===== */
+.graduatoria{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:20px;border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-dark);border:1px solid #d4dbe5}
+.graduatoria thead th{
+  background:var(--dark-lighter);color:var(--orange);padding:12px 10px;
+  text-align:left;font-size:11px;text-transform:uppercase;font-weight:600;
+  border-bottom:2px solid rgba(255,140,0,0.4);
+  border-right:1px solid #d4dbe5;
+}
+.graduatoria thead th:last-child{border-right:none}
+.graduatoria tbody td{padding:11px 10px;border-bottom:1px solid #d4dbe5;border-right:1px solid #d4dbe5;text-align:center;color:#d4dbe5}
+.graduatoria tbody td:last-child{border-right:none}
+.graduatoria tbody td:nth-child(2){text-align:left;font-weight:700}
+
+/* Graduatoria row colors by status */
+.row-vincitrice{background:#4caf50 !important;color:#ffffff}
+.row-vincitrice td{color:#ffffff;font-weight:700;border-right-color:#d4dbe5 !important;text-shadow:0 1px 2px rgba(0,0,0,0.3)}
+.row-classificata{background:#e3f2fd !important}
+.row-classificata td{color:#1565c0;font-weight:600}
+.row-media{background:#fff3e0 !important}
+.row-media td{color:#e65100;font-weight:600}
+.row-taglio{background:#ffe0b2 !important}
+.row-taglio td{color:#d84315;font-weight:600}
+.row-anomala{background:#ffebee !important}
+.row-anomala td{color:#c62828;font-weight:600}
+.row-esclusa{background:#f5f5f5 !important}
+.row-esclusa td{color:rgba(189,189,189,0.6);text-decoration:line-through;font-style:italic}
+
+/* Legenda graduatoria */
+.graduatoria-legenda{display:flex;gap:18px;flex-wrap:wrap;padding:12px 0;margin-top:8px}
+.legenda-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);font-family:'Comfortaa',cursive;font-weight:500}
+.legenda-dot{width:14px;height:14px;border-radius:4px;display:inline-block;border:1px solid #d4dbe5}
+
+/* ===== ACTION BUTTONS ===== */
+.btn-action{
+  padding:11px 28px;border:none;border-radius:50px;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:'Comfortaa',cursive;
+  text-transform:uppercase;letter-spacing:0.5px;
+  transition:var(--transition);display:inline-block;
+}
+.btn-yellow{background:var(--gradient);color:#ffffff}
+.btn-yellow:hover{box-shadow:0 8px 24px rgba(255,140,0,0.35);transform:translateY(-1px)}
+.btn-outline{
+  background:transparent;border:1.5px solid rgba(255,140,0,0.5);
+  color:var(--orange);padding:9px 22px;border-radius:50px;
+  font-size:13px;cursor:pointer;font-family:'Comfortaa',cursive;
+  font-weight:600;transition:var(--transition);
+}
+.btn-outline:hover{background:var(--gradient);color:#ffffff;border-color:transparent;box-shadow:0 6px 20px rgba(255,140,0,0.3)}
+
+.action-buttons{display:flex;gap:10px;justify-content:center;margin:15px 0;flex-wrap:wrap}
+
+/* ===== STATISTICS SECTION ===== */
+.stats-section{
+  background:var(--dark-card);border:1px solid #d4dbe5;
+  border-radius:var(--radius-lg);padding:20px;margin-bottom:20px;
+  box-shadow:var(--shadow-dark);
+}
+.stats-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;
+}
+.stat-item{
+  display:flex;flex-direction:column;gap:6px;
+}
+.stat-label{
+  font-size:12px;font-weight:600;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:0.3px;
+  font-family:'Comfortaa',cursive;
+}
+.stat-value{
+  font-size:18px;font-weight:700;color:var(--orange);
+}
+
+/* ===== LOADING SKELETON ===== */
+.skeleton{
+  background:linear-gradient(90deg,var(--dark-card) 0%,var(--dark-lighter) 50%,var(--dark-card) 100%);
+  background-size:200% 100%;
+  animation:loading 1.5s infinite;
+  border-radius:6px;
+}
+@keyframes loading{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skeleton-title{height:2rem;width:40%;margin-bottom:1rem}
+.skeleton-card{height:300px;border-radius:8px}
+.skeleton-row{height:60px;margin-bottom:1rem}
+
+/* ===== ERROR STATE ===== */
+.error-state{
+  background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);
+  border-radius:8px;padding:2rem;text-align:center;margin:2rem 0;
+}
+.error-state i{font-size:3rem;color:#ef4444;margin-bottom:1rem}
+.error-state h2{color:#ef4444;margin-bottom:0.5rem}
+.error-state p{color:var(--text-muted)}
+
+/* ===== EMPTY STATE ===== */
+.empty-state{text-align:center;padding:3rem;color:var(--text-muted)}
+.empty-state i{font-size:3rem;margin-bottom:1rem;opacity:0.5}
+
+/* ===== FOOTER ===== */
+.footer{
+  background:var(--dark);color:var(--text-dim);
+  padding:20px 30px;font-size:12px;
+  display:flex;align-items:center;gap:15px;
+  margin-top:40px;
+  border-top:1px solid var(--border-dark);
+}
+.footer img{height:28px;opacity:0.7}
+
+/* ===== SCROLL TO TOP ===== */
+.scroll-top{
+  position:fixed;bottom:25px;right:25px;
+  width:44px;height:44px;border-radius:50%;
+  background:var(--gradient);color:#ffffff;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:20px;
+  box-shadow:0 4px 20px rgba(255,140,0,0.25);
+  transition:var(--transition);opacity:0;
+  z-index:999;
+}
+.scroll-top.visible{opacity:1}
+.scroll-top:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(255,140,0,0.3)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  .header{padding:12px 16px}
+  .header .logo-img{height:36px}
+  .navbar{padding:0 12px}
+  .navbar a{padding:12px 10px;font-size:11px}
+  .content{padding:20px 16px}
+  .detail-table .td-label{
+    width:160px;
+    min-width:130px;
+    font-size:11px;
+    padding:10px 12px;
+  }
+  .detail-table .td-value{
+    font-size:13px;
+    padding:10px 12px;
+  }
+  .stats-grid{grid-template-columns:1fr}
+  .page-title{font-size:20px}
+}
+
+/* ===== UTILITY ===== */
+.hidden{display:none !important}
+.text-orange{color:var(--orange);font-weight:600}
+.text-yellow{color:var(--yellow);font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- ===== HERO WRAPPER ===== -->
+<div class="hero-wrapper">
+
+<!-- ===== HEADER ===== -->
+<div class="header">
+  <a href="../index.html"><img src="../logo.png" alt="easyWin" class="logo-img"></a>
+  <div class="header-right">
+    <div class="header-user" id="headerUser">
+      <i class="fas fa-user-circle"></i>
+      <span id="headerUserName">Area Clienti</span>
+    </div>
+    <button class="btn-outline" id="btn-logout" style="padding:8px 18px;font-size:11px;display:none;margin:0">ESCI</button>
+  </div>
+  <div class="header-tagline" style="position:absolute;left:50%;transform:translateX(-50%);font-family:'Comfortaa',cursive;font-size:15px;font-weight:600;color:#fff;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;opacity:0.92;text-shadow:0 1px 8px rgba(0,0,0,0.3);">Il futuro delle gare di appalto è qui</div>
+</div>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar" id="mainNav">
+  <div class="nav-item">
+    <a href="index.html">Home</a>
+    <div class="nav-dropdown">
+      <a href="index.html">Torna a Home</a>
+      <a href="index.html#profilo">Profilo</a>
+      <a href="index.html#modifica-password">Modifica Password</a>
+    </div>
+  </div>
+  <div class="nav-item">
+    <a href="bandi.html">Bandi di Gara</a>
+    <div class="nav-dropdown">
+      <a href="bandi.html">Bandi di Gara</a>
+      <a href="index.html#registro-bandi">Registro Bandi</a>
+    </div>
+  </div>
+  <div class="nav-item">
+    <a href="esiti.html" class="active">Esiti di Gara</a>
+    <div class="nav-dropdown">
+      <a href="esiti.html">Esiti di Gara</a>
+      <a href="index.html#registro-esiti">Registro Esiti</a>
+    </div>
+  </div>
+  <div class="nav-item">
+    <a href="index.html#simulazioni">Simulazioni</a>
+    <div class="nav-dropdown">
+      <a href="index.html#simulazioni">Simulazioni</a>
+      <a href="index.html#crea-esito">Crea Simulazione</a>
+    </div>
+  </div>
+  <a href="index.html#sopralluoghi">Sopralluoghi</a>
+  <a href="index.html#albi-fornitori">Albi Fornitori</a>
+  <a href="index.html#calcola-ribasso">Calcola Ribasso</a>
+  <a href="index.html#tabella-soa">Tabella SOA</a>
+  <a href="index.html#contatti">Contatti</a>
+  <a href="../admin/index.html">Area Amministrazione</a>
+</nav>
+
+</div><!-- /hero-wrapper -->
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="content">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="index.html">Home</a>
+    <span>/</span>
+    <a href="esiti.html">Esiti di Gara</a>
+    <span>/</span>
+    <span>Dettaglio</span>
+  </div>
+
+  <!-- Page Title -->
+  <div id="titleSection" style="margin-bottom:30px;position:relative">
+    <div class="skeleton skeleton-title"></div>
+    <img src="../logo.png" alt="" style="height:28px;opacity:0.12;position:absolute;top:16px;right:20px">
+  </div>
+
+  <!-- Detail Card -->
+  <div id="infoCard" style="margin-bottom:30px">
+    <div class="skeleton skeleton-card"></div>
+  </div>
+
+  <!-- Statistics Section -->
+  <div id="statsSection" class="stats-section hidden">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <span class="stat-label">Media Aritmetica</span>
+        <span class="stat-value" id="stat-media">—</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Soglia Anomalia</span>
+        <span class="stat-value" id="stat-soglia">—</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Ribasso Vincitore</span>
+        <span class="stat-value" id="stat-ribasso">—</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">N. Partecipanti</span>
+        <span class="stat-value" id="stat-partecipanti">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Partecipanti Section -->
+  <div id="participantsSection" style="margin-bottom:30px">
+    <h2 class="section-title">Partecipanti</h2>
+    <div class="skeleton skeleton-card"></div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <button class="btn-action btn-outline" id="backBtn">
+      <i class="fas fa-arrow-left"></i> Torna agli Esiti
+    </button>
+    <button class="btn-action btn-yellow" id="exportBtn">
+      <i class="fas fa-file-pdf"></i> Esporta PDF
+    </button>
+    <button class="btn-action btn-yellow" id="exportXlsBtn">
+      <i class="fas fa-file-excel"></i> Esporta XLS
+    </button>
+    <a href="#" class="btn-action btn-outline" id="viewBandoBtn" style="display:none">
+      <i class="fas fa-file-alt"></i> Visualizza Bando
+    </a>
+    <button class="btn-action btn-yellow" id="simulaBtn" style="display:none">
+      <i class="fas fa-calculator"></i> Simula Esito
+    </button>
+    <button class="btn-action btn-yellow" id="emailBtn">
+      <i class="fas fa-envelope"></i> Invia via Email
+    </button>
+    <button class="btn-action btn-yellow" id="preferitiBtn">
+      <i class="fas fa-star"></i> Aggiungi ai Preferiti
+    </button>
+  </div>
+
+</div>
+
+<!-- ===== MODAL INVIA EMAIL ===== -->
+<div class="modal-overlay" id="email-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#ffffff;border-radius:25px;max-width:480px;width:90%;box-shadow:0 25px 60px rgba(0,0,0,0.3);font-family:'Comfortaa',cursive;overflow:hidden;">
+    <div style="background:#1E2D3D;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;">
+      <h3 style="font-family:'Comfortaa',cursive;font-weight:700;font-size:1.05em;color:#ffffff;margin:0;"><i class="fas fa-envelope" style="margin-right:8px;color:#F5C518;"></i>Invia Esito via Email</h3>
+      <button onclick="closeEmailModal()" style="background:rgba(255,255,255,0.25);border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#ffffff;font-size:20px;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.4)'" onmouseout="this.style.background='rgba(255,255,255,0.25)'">&times;</button>
+    </div>
+    <div style="padding:24px;">
+      <p style="font-size:0.85em;color:#64748b;margin:0 0 16px;line-height:1.6;">Inserisci l'indirizzo email del destinatario. Riceverà un riepilogo completo dell'esito di gara.</p>
+      <label style="font-size:0.78em;display:block;color:#64748b;margin-bottom:6px;font-weight:600;">Email destinatario</label>
+      <input type="email" id="email-destinatario" placeholder="nome@azienda.it" style="width:100%;padding:12px 16px;border:1px solid #d1d5db;background:#f8fafc;color:#1e293b;border-radius:16px;font-size:0.92em;outline:none;font-family:'Comfortaa',cursive;box-sizing:border-box;" onfocus="this.style.borderColor='#F5C518'" onblur="this.style.borderColor='#d1d5db'">
+      <div id="email-error" style="display:none;color:#ef4444;font-size:0.78em;margin-top:6px;"></div>
+      <div id="email-success" style="display:none;color:#22c55e;font-size:0.85em;margin-top:12px;padding:12px;background:rgba(34,197,94,0.1);border-radius:12px;"></div>
+      <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
+        <button id="email-send-btn" onclick="inviaEsitoEmail()" style="padding:12px 28px;background:linear-gradient(135deg,#F5C518,#FF8C00);color:#fff;border:none;border-radius:25px;font-family:'Comfortaa',cursive;font-weight:700;font-size:0.85em;cursor:pointer;box-shadow:0 4px 16px rgba(255,140,0,0.25);transition:all 0.3s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'"><i class="fas fa-paper-plane" style="margin-right:6px;"></i>Invia</button>
+        <button onclick="closeEmailModal()" style="padding:12px 28px;background:#f1f5f9;color:#64748b;border:1px solid #d1d5db;border-radius:25px;font-family:'Comfortaa',cursive;font-weight:700;font-size:0.85em;cursor:pointer;transition:all 0.3s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">Annulla</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<div class="footer">
+  <img src="../logo.png" alt="easyWin">
+  <span>Easywin è un prodotto EDRA Servizi s.r.l. - Via Malta 5/9 - 16121 GENOVA - P.IVA: 01902970993</span>
+</div>
+
+<!-- ===== SCROLL TO TOP ===== -->
+<div class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</div>
+
+<script>
+const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '';
+
+// Get esito ID from URL
+const urlParams = new URLSearchParams(window.location.search);
+const esitoId = urlParams.get('id');
+
+// Format currency
+const formatCurrency = (value) => {
+  if (!value) return '—';
+  return new Intl.NumberFormat('it-IT', {
+    style: 'currency',
+    currency: 'EUR'
+  }).format(value);
+};
+
+// Format percentage
+const formatPercentage = (value) => {
+  if (value === null || value === undefined) return '—';
+  return (parseFloat(value).toFixed(2)) + '%';
+};
+
+// Format date
+const formatDate = (dateString) => {
+  if (!dateString) return '—';
+  return new Date(dateString).toLocaleDateString('it-IT', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+// Get row class based on status
+const getRowClass = (row) => {
+  if (row.vincitrice) return 'row-vincitrice';
+  if (row.classificata) return 'row-classificata';
+  if (row.sotto_media) return 'row-media';
+  if (row.taglio_ali) return 'row-taglio';
+  if (row.anomala) return 'row-anomala';
+  if (row.esclusa) return 'row-esclusa';
+  return '';
+};
+
+// ==========================================
+// EXPORTS — via backend endpoints
+// ==========================================
+const exportPDF = () => {
+  window.open(`${API_BASE}/api/esiti/${esitoId}/export/pdf`, '_blank');
+};
+const exportXLS = () => {
+  window.open(`${API_BASE}/api/esiti/${esitoId}/export/xlsx`, '_blank');
+};
+
+
+
+// Render title section
+const renderTitle = (data) => {
+  const titleSection = document.getElementById('titleSection');
+  titleSection.innerHTML = `<h1 class="page-title">Esito #${data.id}</h1>`;
+};
+
+// Render info card with detail table
+const renderInfoCard = (data) => {
+  const infoCard = document.getElementById('infoCard');
+
+  let html = '<table class="detail-table"><tbody>';
+
+  const fields = [
+    { label: 'Stazione Appaltante', value: data.stazione_nome || '—' },
+    { label: 'Provincia / Regione', value: (data.provincia_nome || '') + (data.provincia_nome && data.regione_nome ? ' / ' : '') + (data.regione_nome || '') || '—' },
+    { label: 'Oggetto', value: data.titolo || '—' },
+    { label: 'Data Apertura', value: formatDate(data.data) },
+    { label: 'Importo Complessivo', value: formatCurrency(data.importo) },
+    { label: 'SOA Categoria', value: (data.soa_categoria || '—') + (data.soa_descrizione ? ' - ' + data.soa_descrizione : '') },
+    { label: 'Tipologia Gara', value: data.tipologia || '—' },
+    { label: 'Criterio Aggiudicazione', value: data.criterio || '—' },
+    { label: 'Partecipanti', value: `${data.n_partecipanti || 0} totali (${data.n_ammessi || 0} ammessi, ${data.n_esclusi || 0} esclusi)` },
+    { label: 'Vincitore', value: data.vincitore_nome || '—' },
+    { label: 'P.IVA Vincitore', value: data.vincitore_piva || '—' },
+    { label: 'Piattaforma', value: data.piattaforma_nome ? `<a href="${data.link_piattaforma || '#'}" target="_blank">${data.piattaforma_nome}</a>` : '—', html: true },
+  ];
+
+  if (data.note) {
+    fields.push({ label: 'Note', value: data.note });
+  }
+
+  // Add Tipo Calcolo if available
+  if (data.tipo_calcolo) {
+    fields.push({ label: 'Tipo Calcolo', value: data.tipo_calcolo });
+  }
+  // Add Tipologia Dato if available
+  if (data.tipologia_dato) {
+    fields.push({ label: 'Tipologia Dato', value: data.tipologia_dato });
+  }
+  // Add N° Decimali if available
+  if (data.n_decimali !== undefined && data.n_decimali !== null) {
+    fields.push({ label: 'Decimali', value: String(data.n_decimali) });
+  }
+  // Ribasso vincitore
+  if (data.ribasso_vincitore || data.ribasso) {
+    fields.push({ label: 'Ribasso Vincitore', value: formatPercentage(data.ribasso_vincitore || data.ribasso) });
+  }
+
+  fields.forEach(field => {
+    const value = field.html ? field.value : (typeof field.value === 'string' ? field.value : String(field.value));
+    html += `<tr><td class="td-label">${field.label}</td><td class="td-value">${value}</td></tr>`;
+  });
+
+  html += '</tbody></table>';
+  infoCard.innerHTML = html;
+};
+
+// Update statistics
+const updateStats = (data) => {
+  const statsSection = document.getElementById('statsSection');
+
+  // Build dynamic stats HTML
+  let statsHtml = '<div class="stats-grid">';
+
+  if (data.media_ar) statsHtml += '<div class="stat-item"><span class="stat-label">Media Aritmetica</span><span class="stat-value">' + formatPercentage(data.media_ar) + '</span></div>';
+  if (data.media_sc) statsHtml += '<div class="stat-item"><span class="stat-label">Media Scarti</span><span class="stat-value">' + formatPercentage(data.media_sc) + '</span></div>';
+  if (data.soglia_an) statsHtml += '<div class="stat-item"><span class="stat-label">Soglia Anomalia</span><span class="stat-value" style="color:#ef4444">' + formatPercentage(data.soglia_an) + '</span></div>';
+  if (data.seconda_soglia) statsHtml += '<div class="stat-item"><span class="stat-label">Seconda Soglia</span><span class="stat-value" style="color:#f59e0b">' + formatPercentage(data.seconda_soglia) + '</span></div>';
+  if (data.soglia_riferimento) statsHtml += '<div class="stat-item"><span class="stat-label">Soglia Riferimento</span><span class="stat-value">' + String(data.soglia_riferimento) + '</span></div>';
+  if (data.somma_ribassi_calcolata) statsHtml += '<div class="stat-item"><span class="stat-label">Somma Ribassi</span><span class="stat-value">' + formatPercentage(data.somma_ribassi_calcolata) + '</span></div>';
+  if (data.ribasso_vincitore || data.ribasso) statsHtml += '<div class="stat-item"><span class="stat-label">Ribasso Vincitore</span><span class="stat-value" style="color:#22c55e">' + formatPercentage(data.ribasso_vincitore || data.ribasso) + '</span></div>';
+  statsHtml += '<div class="stat-item"><span class="stat-label">N. Partecipanti</span><span class="stat-value">' + (data.n_partecipanti || '0') + '</span></div>';
+
+  statsHtml += '</div>';
+  statsSection.innerHTML = statsHtml;
+  statsSection.classList.remove('hidden');
+};
+
+// Render partecipanti table with graduatoria styling
+const renderParticipants = (data) => {
+  const participantsSection = document.getElementById('participantsSection');
+
+  if (!data.graduatoria || data.graduatoria.length === 0) {
+    participantsSection.innerHTML = `
+      <h2 class="section-title">Partecipanti</h2>
+      <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>Nessun partecipante registrato</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = `
+    <h2 class="section-title">Partecipanti</h2>
+    <table class="graduatoria">
+      <thead>
+        <tr>
+          <th>N\u00B0</th>
+          <th>Ragione Sociale</th>
+          <th>Provincia</th>
+          <th>Ribasso</th>
+          <th>Scarto</th>
+          <th>Risultato</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  data.graduatoria.forEach((row, idx) => {
+    const rowClass = getRowClass(row);
+    let result = '\u2014';
+
+    if (row.vincitrice) {
+      result = '<i class="fas fa-crown"></i> Vincitore';
+    } else if (row.esclusa) {
+      result = '<i class="fas fa-times-circle"></i> Escluso';
+    } else if (row.ammessa || row.ammessa_riserva) {
+      result = '<i class="fas fa-check-circle"></i> Ammesso';
+    } else if (row.anomala) {
+      result = '<i class="fas fa-exclamation-triangle"></i> Anomalo';
+    }
+
+    html += `
+      <tr class="${rowClass}">
+        <td>${row.posizione || idx + 1}</td>
+        <td>${row.ragione_sociale || '\u2014'}${row.ati ? ' <span style="background:rgba(168,85,247,0.15);color:#a855f7;padding:1px 6px;border-radius:4px;font-size:0.7rem;font-weight:600">ATI</span>' : ''}</td>
+        <td>${row.provincia || row.azienda_provincia || '\u2014'}</td>
+        <td>${formatPercentage(row.ribasso)}</td>
+        <td>${formatPercentage(row.scarto)}</td>
+        <td>${result}</td>
+        <td style="font-size:0.8rem;color:var(--text-muted)">${row.note || ''}</td>
+      </tr>
+    `;
+  });
+
+  html += `
+      </tbody>
+    </table>
+    <div class="graduatoria-legenda">
+      <div class="legenda-item"><div class="legenda-dot" style="background:linear-gradient(135deg,#1b5e20 0%,#43a047 100%)"></div>Vincitrice</div>
+      <div class="legenda-item"><div class="legenda-dot" style="background:#e3f2fd"></div>Classificata</div>
+      <div class="legenda-item"><div class="legenda-dot" style="background:#fff3e0"></div>Sotto Media</div>
+      <div class="legenda-item"><div class="legenda-dot" style="background:#ffe0b2"></div>Taglio Ali</div>
+      <div class="legenda-item"><div class="legenda-dot" style="background:#ffebee"></div>Anomala</div>
+      <div class="legenda-item"><div class="legenda-dot" style="background:#f5f5f5"></div>Esclusa</div>
+    </div>
+  `;
+
+  participantsSection.innerHTML = html;
+};
+
+// Fetch and render data
+const loadEsito = async () => {
+  if (!esitoId) {
+    showError('ID esito non trovato nell\'URL');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/esiti/${esitoId}`);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        showError('Esito non trovato');
+      } else {
+        showError('Errore nel caricamento dei dati');
+      }
+      return;
+    }
+
+    const data = await response.json();
+
+    renderTitle(data);
+    renderInfoCard(data);
+    updateStats(data);
+    renderParticipants(data);
+
+    // Show Visualizza Bando button if linked
+    if (data.id_bando) {
+      document.getElementById('viewBandoBtn').href = 'bando-dettaglio.html?id=' + data.id_bando;
+      document.getElementById('viewBandoBtn').style.display = 'inline-flex';
+    }
+
+    // Simula button
+    document.getElementById('simulaBtn').addEventListener('click', function() { alert('Funzione Simulazione in arrivo'); });
+
+    // Preferiti button
+    document.getElementById('preferitiBtn').addEventListener('click', function() { alert('Funzione Preferiti in arrivo'); });
+  } catch (error) {
+    console.error('Errore:', error);
+    showError('Errore di connessione al server');
+  }
+};
+
+// Show error state
+const showError = (message) => {
+  const container = document.querySelector('.content');
+  container.innerHTML = `
+    <div class="error-state">
+      <i class="fas fa-exclamation-circle"></i>
+      <h2>Errore</h2>
+      <p>${message}</p>
+      <button class="btn-action btn-outline" onclick="window.location.href='esiti.html'" style="margin-top:1rem">
+        <i class="fas fa-arrow-left"></i> Torna agli Esiti
+      </button>
+    </div>
+  `;
+};
+
+// Back button
+document.getElementById('backBtn').addEventListener('click', () => {
+  window.location.href = 'esiti.html';
+});
+
+// Export PDF button — calls backend endpoint
+document.getElementById('exportBtn').addEventListener('click', () => {
+  if (!esitoId) {
+    alert('ID esito non disponibile.');
+    return;
+  }
+  exportPDF();
+});
+
+// Export XLS button — calls backend endpoint
+document.getElementById('exportXlsBtn').addEventListener('click', () => {
+  if (!esitoId) {
+    alert('ID esito non disponibile.');
+    return;
+  }
+  exportXLS();
+});
+
+// Email button — open modal
+document.getElementById('emailBtn').addEventListener('click', () => {
+  if (!esitoId) { alert('ID esito non disponibile.'); return; }
+  document.getElementById('email-modal').style.display = 'flex';
+  document.getElementById('email-destinatario').value = '';
+  document.getElementById('email-error').style.display = 'none';
+  document.getElementById('email-success').style.display = 'none';
+  document.getElementById('email-send-btn').disabled = false;
+  setTimeout(() => document.getElementById('email-destinatario').focus(), 100);
+});
+
+function closeEmailModal() {
+  document.getElementById('email-modal').style.display = 'none';
+}
+
+async function inviaEsitoEmail() {
+  const emailInput = document.getElementById('email-destinatario');
+  const errorDiv = document.getElementById('email-error');
+  const successDiv = document.getElementById('email-success');
+  const sendBtn = document.getElementById('email-send-btn');
+  const email = emailInput.value.trim();
+
+  errorDiv.style.display = 'none';
+  successDiv.style.display = 'none';
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errorDiv.textContent = 'Inserisci un indirizzo email valido.';
+    errorDiv.style.display = 'block';
+    return;
+  }
+
+  sendBtn.disabled = true;
+  sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:6px"></i>Invio in corso...';
+
+  try {
+    const token = localStorage.getItem('auth_token') || localStorage.getItem('easywin_token');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+
+    const res = await fetch(API_BASE + '/api/clienti/esiti/' + esitoId + '/invia-mail', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ destinatario_email: email })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Errore nell\'invio');
+    }
+
+    successDiv.innerHTML = '<i class="fas fa-check-circle" style="margin-right:6px"></i>Email inviata con successo a <strong>' + email + '</strong>';
+    successDiv.style.display = 'block';
+    sendBtn.innerHTML = '<i class="fas fa-check" style="margin-right:6px"></i>Inviata!';
+    setTimeout(() => closeEmailModal(), 2500);
+  } catch(err) {
+    errorDiv.textContent = err.message || 'Errore nell\'invio dell\'email. Riprova.';
+    errorDiv.style.display = 'block';
+    sendBtn.disabled = false;
+    sendBtn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px"></i>Invia';
+  }
+}
+
+// Close email modal on overlay click
+document.getElementById('email-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeEmailModal();
+});
+
+// Scroll to top button
+const scrollTopBtn = document.getElementById('scrollTop');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 300) {
+    scrollTopBtn.classList.add('visible');
+  } else {
+    scrollTopBtn.classList.remove('visible');
+  }
+});
+
+// Load data on page load
+document.addEventListener('DOMContentLoaded', loadEsito);
+</script>
+
+</body>
+</html>

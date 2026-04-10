@@ -5108,53 +5108,7 @@ span.flatpickr-weekday {
 
       <!-- CONCORRENTI PAGE -->
       <div id="pageConcorrenti" class="page">
-        <div id="concorrenti-container">
-          <div class="az-detail-wrap">
-            <div class="az-detail-title" style="display:flex;align-items:center;justify-content:space-between">
-              <span><i class="fas fa-users" style="color:#FF8C00;margin-right:10px"></i>CONCORRENTI</span>
-              <span id="concorrenti-contatore" style="font-size:0.85rem;color:#94a3b8;font-weight:500"></span>
-            </div>
-            <div class="az-detail-body">
-              <div class="az-consorzio-section" style="margin-top:0">
-                <div class="az-consorzio-title"><i class="fas fa-search"></i> RICERCA CONCORRENTE</div>
-                <div class="az-field-row">
-                  <div class="az-field">
-                    <label>Ragione sociale / P.IVA / Email</label>
-                    <input type="text" id="concorrenti-search" placeholder="Digita per cercare...">
-                  </div>
-                  <div class="az-field">
-                    <label>Provincia</label>
-                    <select id="concorrenti-provincia"><option value="">Tutte le province</option></select>
-                  </div>
-                </div>
-                <div class="az-field-row-3">
-                  <div class="az-field">
-                    <label>Risultati per pagina</label>
-                    <select id="concorrenti-limit">
-                      <option value="10">10</option>
-                      <option value="25" selected>25</option>
-                      <option value="50">50</option>
-                      <option value="100">100</option>
-                    </select>
-                  </div>
-                  <div class="az-field"></div>
-                  <div class="az-field"></div>
-                </div>
-                <div class="az-buttons" style="margin-top:12px;justify-content:flex-start">
-                  <button class="az-btn-save" onclick="loadConcorrenti(1)"><i class="fas fa-search"></i> CERCA</button>
-                  <button class="az-btn-action" onclick="resetConcorrentiFiltri()"><i class="fas fa-eraser"></i> PULISCI</button>
-                  <button class="az-btn-action" onclick="selectSubPage('aziende','create-concorrente')"><i class="fas fa-plus"></i> NUOVO CONCORRENTE</button>
-                </div>
-              </div>
-
-              <div class="az-consorzio-section">
-                <div class="az-consorzio-title"><i class="fas fa-list"></i> ELENCO CONCORRENTI</div>
-                <div id="concorrenti-results"></div>
-                <div id="concorrenti-pagination" style="display:flex;justify-content:center;gap:8px;margin-top:16px"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div id="concorrenti-container"></div>
       </div>
 
       <!-- FONTI WEB PAGE -->
@@ -10907,51 +10861,43 @@ function resetConcorrentiFiltri() {
 function renderConcorrentiListShell() {
   const container = document.getElementById('concorrenti-container');
   if (!container) return;
+  const provOptions = (typeof FALLBACK_PROVINCE !== 'undefined' ? FALLBACK_PROVINCE : [])
+    .map(p => `<option value="${p.sigla}">${esc(p.nome)} (${p.sigla})</option>`).join('');
+  const toolbar = (pos) => `
+    <div class="conc-toolbar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;font-family:Comfortaa,sans-serif">
+      <input type="text" id="concorrenti-search${pos}" placeholder="Cerca ragione sociale, P.IVA, email..." style="flex:1 1 260px;min-width:220px;padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;font-family:inherit;font-size:0.82rem" onkeydown="if(event.key==='Enter')loadConcorrenti(1)">
+      <select id="concorrenti-provincia${pos}" style="padding:7px 8px;border:1px solid #cbd5e1;border-radius:6px;font-family:inherit;font-size:0.82rem;max-width:150px">
+        <option value="">Tutte le province</option>${provOptions}
+      </select>
+      <select id="concorrenti-limit${pos}" style="padding:7px 8px;border:1px solid #cbd5e1;border-radius:6px;font-family:inherit;font-size:0.82rem">
+        <option value="10">10</option><option value="25" selected>25</option><option value="50">50</option><option value="100">100</option>
+      </select>
+      <button class="az-btn-save" style="padding:7px 12px;font-size:0.78rem" onclick="loadConcorrenti(1)"><i class="fas fa-search"></i> CERCA</button>
+      <button class="az-btn-action" style="padding:7px 12px;font-size:0.78rem" onclick="resetConcorrentiFiltri()"><i class="fas fa-eraser"></i> PULISCI</button>
+      <button class="az-btn-action" style="padding:7px 12px;font-size:0.78rem" onclick="selectSubPage('aziende','create-concorrente')"><i class="fas fa-plus"></i> NUOVO</button>
+      ${pos === '' ? '<span id="concorrenti-contatore" style="margin-left:auto;font-size:0.78rem;color:#64748b;font-weight:600"></span>' : '<div id="concorrenti-pagination" style="margin-left:auto;display:flex;gap:4px;align-items:center"></div>'}
+    </div>`;
   container.innerHTML = `
-    <div class="az-detail-wrap">
-      <div class="az-detail-title" style="display:flex;align-items:center;justify-content:space-between">
-        <span><i class="fas fa-users" style="color:#FF8C00;margin-right:10px"></i>CONCORRENTI</span>
-        <span id="concorrenti-contatore" style="font-size:0.85rem;color:#94a3b8;font-weight:500"></span>
+    <div class="az-detail-wrap" style="max-width:100%;margin:0">
+      <div class="az-detail-title" style="padding:10px 16px;font-size:1rem">
+        <i class="fas fa-users" style="color:#FF8C00;margin-right:8px"></i>CONCORRENTI
       </div>
-      <div class="az-detail-body">
-        <div class="az-consorzio-section" style="margin-top:0">
-          <div class="az-consorzio-title"><i class="fas fa-search"></i> RICERCA CONCORRENTE</div>
-          <div class="az-field-row">
-            <div class="az-field">
-              <label>Ragione sociale / P.IVA / Email</label>
-              <input type="text" id="concorrenti-search" placeholder="Digita per cercare...">
-            </div>
-            <div class="az-field">
-              <label>Provincia</label>
-              <select id="concorrenti-provincia"><option value="">Tutte le province</option></select>
-            </div>
-          </div>
-          <div class="az-field-row-3">
-            <div class="az-field">
-              <label>Risultati per pagina</label>
-              <select id="concorrenti-limit">
-                <option value="10">10</option>
-                <option value="25" selected>25</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-              </select>
-            </div>
-            <div class="az-field"></div>
-            <div class="az-field"></div>
-          </div>
-          <div class="az-buttons" style="margin-top:12px;justify-content:flex-start">
-            <button class="az-btn-save" onclick="loadConcorrenti(1)"><i class="fas fa-search"></i> CERCA</button>
-            <button class="az-btn-action" onclick="resetConcorrentiFiltri()"><i class="fas fa-eraser"></i> PULISCI</button>
-            <button class="az-btn-action" onclick="selectSubPage('aziende','create-concorrente')"><i class="fas fa-plus"></i> NUOVO CONCORRENTE</button>
-          </div>
-        </div>
-        <div class="az-consorzio-section">
-          <div class="az-consorzio-title"><i class="fas fa-list"></i> ELENCO CONCORRENTI</div>
-          <div id="concorrenti-results"></div>
-          <div id="concorrenti-pagination" style="display:flex;justify-content:center;gap:8px;margin-top:16px"></div>
-        </div>
+      <div class="az-detail-body" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">
+        ${toolbar('')}
+        <div id="concorrenti-results" style="max-height:calc(100vh - 280px);overflow:auto;border:1px solid #e2e8f0;border-radius:8px"></div>
+        ${toolbar('-bot')}
       </div>
     </div>`;
+  // Sync top/bottom toolbars
+  ['search','provincia','limit'].forEach(f => {
+    const top = document.getElementById('concorrenti-' + f);
+    const bot = document.getElementById('concorrenti-' + f + '-bot');
+    if (top && bot) {
+      top.addEventListener('change', () => { bot.value = top.value; });
+      bot.addEventListener('change', () => { top.value = bot.value; });
+      if (f === 'search') bot.addEventListener('keydown', (e) => { if (e.key === 'Enter') { top.value = bot.value; loadConcorrenti(1); } });
+    }
+  });
 }
 
 async function loadConcorrenti(page = 1) {
@@ -10978,49 +10924,48 @@ async function loadConcorrenti(page = 1) {
     const data = await res.json();
     const rows = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
     const pg = data.pagination || { total: rows.length, page: 1, pages: 1 };
-    if (contEl) contEl.textContent = `${pg.total || rows.length} concorrenti · Pagina ${pg.page || 1} di ${pg.pages || 1}`;
+    if (contEl) contEl.textContent = `${pg.total || rows.length} concorrenti · Pag. ${pg.page || 1}/${pg.pages || 1}`;
     if (!rows.length) {
       resultsEl.innerHTML = '<div class="az-empty-msg" style="padding:32px"><i class="fas fa-users-slash" style="font-size:2rem;display:block;margin-bottom:10px;color:#cbd5e1"></i>Nessun concorrente trovato</div>';
       if (pagEl) pagEl.innerHTML = '';
       return;
     }
-    let html = '<div class="az-table-wrap"><table class="az-consorzio-table"><thead><tr>';
-    html += '<th>Ragione Sociale</th><th>P.IVA</th><th>CAP</th><th>Città</th><th>Provincia</th><th>Email</th><th style="text-align:right">Bandi</th><th style="text-align:right">Esiti</th><th style="text-align:right">Bundle</th><th style="text-align:center">Azioni</th>';
+    let html = '<table class="az-consorzio-table conc-compact" style="margin:0;font-size:0.78rem"><thead><tr>';
+    html += '<th>Ragione Sociale</th><th>P.IVA</th><th>CAP</th><th>Città</th><th>Pr.</th><th>Email</th><th style="text-align:right">Bandi</th><th style="text-align:right">Esiti</th><th style="text-align:right">Bundle</th><th style="text-align:center">Azioni</th>';
     html += '</tr></thead><tbody>';
     rows.forEach(r => {
-      const fmtP = v => (v && parseFloat(v) > 0) ? '€ ' + parseFloat(v).toLocaleString('it-IT', {minimumFractionDigits:2}) : '<span style="color:#cbd5e1">—</span>';
+      const fmtP = v => (v && parseFloat(v) > 0) ? '€ ' + parseFloat(v).toLocaleString('it-IT', {minimumFractionDigits:0}) : '<span style="color:#cbd5e1">—</span>';
       html += `<tr>
-        <td><strong style="color:#1E2D3D">${esc(r.ragione_sociale||'')}</strong></td>
-        <td>${esc(r.partita_iva||'')}</td>
-        <td>${esc(r.cap||'')}</td>
-        <td>${esc(r.citta||'')}</td>
-        <td>${esc(r.provincia_sigla || r.provincia || '')}</td>
-        <td style="font-size:0.85rem">${esc(r.email||'')}</td>
-        <td style="text-align:right;font-weight:600">${fmtP(r.prezzo_bandi)}</td>
-        <td style="text-align:right;font-weight:600">${fmtP(r.prezzo_esiti)}</td>
-        <td style="text-align:right;font-weight:600;color:#FF8C00">${fmtP(r.prezzo_bundle)}</td>
-        <td style="text-align:center;white-space:nowrap">
-          <button class="az-btn-action" style="padding:6px 10px;font-size:0.78rem" onclick="viewConcorrente(${r.id})"><i class="fas fa-eye"></i> VISUALIZZA</button>
-          <button class="az-btn-danger" style="padding:6px 10px;font-size:0.78rem;margin-left:4px" onclick="deleteConcorrente(${r.id})"><i class="fas fa-trash"></i></button>
+        <td style="padding:6px 8px"><strong style="color:#1E2D3D">${esc(r.ragione_sociale||'')}</strong></td>
+        <td style="padding:6px 8px">${esc(r.partita_iva||'')}</td>
+        <td style="padding:6px 8px">${esc(r.cap||'')}</td>
+        <td style="padding:6px 8px">${esc(r.citta||'')}</td>
+        <td style="padding:6px 8px">${esc(r.provincia_sigla || r.provincia || '')}</td>
+        <td style="padding:6px 8px;font-size:0.72rem">${esc(r.email||'')}</td>
+        <td style="padding:6px 8px;text-align:right;font-weight:600">${fmtP(r.prezzo_bandi)}</td>
+        <td style="padding:6px 8px;text-align:right;font-weight:600">${fmtP(r.prezzo_esiti)}</td>
+        <td style="padding:6px 8px;text-align:right;font-weight:600;color:#FF8C00">${fmtP(r.prezzo_bundle)}</td>
+        <td style="padding:4px 6px;text-align:center;white-space:nowrap">
+          <button class="az-btn-action" style="padding:4px 7px;font-size:0.7rem" onclick="viewConcorrente(${r.id})"><i class="fas fa-eye"></i></button>
+          <button class="az-btn-danger" style="padding:4px 7px;font-size:0.7rem;margin-left:2px" onclick="deleteConcorrente(${r.id})"><i class="fas fa-trash"></i></button>
         </td>
       </tr>`;
     });
-    html += '</tbody></table></div>';
+    html += '</tbody></table>';
     resultsEl.innerHTML = html;
 
     // Pagination
-    if (pagEl && pg.pages > 1) {
+    if (pagEl) {
       const curr = pg.page || 1;
       const tot = pg.pages || 1;
+      const btnStyle = 'padding:5px 9px;font-size:0.72rem';
       let pagH = '';
-      pagH += `<button class="az-btn-action" ${curr<=1?'disabled style="opacity:0.4"':''} onclick="loadConcorrenti(1)"><i class="fas fa-angle-double-left"></i></button>`;
-      pagH += `<button class="az-btn-action" ${curr<=1?'disabled style="opacity:0.4"':''} onclick="loadConcorrenti(${curr-1})"><i class="fas fa-angle-left"></i></button>`;
-      pagH += `<span style="padding:8px 14px;font-family:Comfortaa,sans-serif;font-weight:600;color:#1E2D3D">${curr} / ${tot}</span>`;
-      pagH += `<button class="az-btn-action" ${curr>=tot?'disabled style="opacity:0.4"':''} onclick="loadConcorrenti(${curr+1})"><i class="fas fa-angle-right"></i></button>`;
-      pagH += `<button class="az-btn-action" ${curr>=tot?'disabled style="opacity:0.4"':''} onclick="loadConcorrenti(${tot})"><i class="fas fa-angle-double-right"></i></button>`;
+      pagH += `<button class="az-btn-action" style="${btnStyle}" ${curr<=1?'disabled':''} onclick="loadConcorrenti(1)"><i class="fas fa-angle-double-left"></i></button>`;
+      pagH += `<button class="az-btn-action" style="${btnStyle}" ${curr<=1?'disabled':''} onclick="loadConcorrenti(${curr-1})"><i class="fas fa-angle-left"></i></button>`;
+      pagH += `<span style="padding:5px 10px;font-family:Comfortaa,sans-serif;font-weight:600;color:#1E2D3D;font-size:0.78rem">${curr}/${tot}</span>`;
+      pagH += `<button class="az-btn-action" style="${btnStyle}" ${curr>=tot?'disabled':''} onclick="loadConcorrenti(${curr+1})"><i class="fas fa-angle-right"></i></button>`;
+      pagH += `<button class="az-btn-action" style="${btnStyle}" ${curr>=tot?'disabled':''} onclick="loadConcorrenti(${tot})"><i class="fas fa-angle-double-right"></i></button>`;
       pagEl.innerHTML = pagH;
-    } else if (pagEl) {
-      pagEl.innerHTML = '';
     }
   } catch(e) {
     resultsEl.innerHTML = '<div class="az-empty-msg" style="padding:32px;color:#e74c3c">Errore: ' + esc(e.message) + '</div>';

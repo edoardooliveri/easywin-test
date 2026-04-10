@@ -1,5 +1,6 @@
 import { query, transaction } from '../db/pool.js';
 import { v4 as uuidv4 } from 'uuid';
+import ExcelJS from 'exceljs';
 
 /**
  * COMPREHENSIVE SIMULATION ENGINE
@@ -209,8 +210,8 @@ export default async function simulazioniEngineRoutes(fastify) {
         soa."descrizione" AS soa_desc
       FROM gare g
       LEFT JOIN stazioni s ON g."id_stazione" = s."id"
-      LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
-      LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
+      LEFT JOIN province p ON s."id_provincia" = p."id"
+      LEFT JOIN regioni r ON p."id_regione" = r."id"
       LEFT JOIN soa ON g."id_soa" = soa."id"
       LEFT JOIN bandi b ON g."id_bando" = b."id_bando"
       WHERE ${conditions.join(' AND ')}
@@ -1007,6 +1008,233 @@ export default async function simulazioniEngineRoutes(fastify) {
     return csv;
   });
 
+  /**
+   * GET /api/simulazioni-engine/:id/esporta-xlsx
+   * Export simulation as branded Excel (.xlsx)
+   */
+  fastify.get('/:id/esporta-xlsx', async (request, reply) => {
+    await requireAuth(request, reply);
+    const { id } = request.params;
+
+    const [simRes, dettagliRes] = await Promise.all([
+      query('SELECT * FROM simulazioni WHERE id = $1 AND username = $2', [id, request.user.username]),
+      query('SELECT * FROM dettagli_simulazione WHERE id_simulazione = $1 ORDER BY posizione ASC', [id])
+    ]);
+
+    if (simRes.rows.length === 0) {
+      return reply.status(404).send({ error: 'Simulazione non trovata' });
+    }
+
+    const sim = simRes.rows[0];
+    const dettagli = dettagliRes.rows;
+
+    // Color palette - EasyWin dark theme
+    const COLORS = {
+      darkBg: '0F1923',      // main background
+      dark: '1E2D3D',        // header background
+      darkAlt: '2A3A4A',     // alternate row
+      darkRow1: '1A2733',    // even row
+      darkRow2: '0F1923',    // odd row
+      yellow: 'F5C518',      // accent/headers
+      orange: 'FF8C00',      // secondary accent
+      white: 'FFFFFF',       // text
+      green: '1b5e20',       // winner
+      red: 'FF5722',         // anomala
+      textMuted: 'B0BEC5'    // muted text
+    };
+
+    const workbook = new ExcelJS.Workbook();
+
+    // ========== SHEET 1: SIMULAZIONE (Summary) ==========
+    const sheetSim = workbook.addWorksheet('Simulazione');
+
+    // Set column widths
+    sheetSim.columns = [
+      { width: 25 },
+      { width: 30 }
+    ];
+
+    // Row 1-2: Merged header with branding
+    sheetSim.mergeCells('A1:B1');
+    const headerCell = sheetSim.getCell('A1');
+    headerCell.value = 'EASYWIN - Simulazione Gara';
+    headerCell.font = { bold: true, size: 14, color: { argb: COLORS.white } };
+    headerCell.fill = { type: 'solid', fgColor: { argb: COLORS.dark } };
+    headerCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    sheetSim.getRow(1).height = 28;
+
+    // Row 2: Subtitle
+    sheetSim.mergeCells('A2:B2');
+    const subtitleCell = sheetSim.getCell('A2');
+    subtitleCell.value = `${sim.titolo} - ${new Date(sim.data_inserimento).toLocaleDateString('it-IT')}`;
+    subtitleCell.font = { size: 11, color: { argb: COLORS.yellow } };
+    subtitleCell.fill = { type: 'solid', fgColor: { argb: COLORS.dark } };
+    subtitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    sheetSim.getRow(2).height = 20;
+
+    // Row 3: Empty
+    sheetSim.getRow(3).height = 8;
+
+    // Row 4+: Key parameters table
+    const params = [
+      { label: 'Titolo', value: sim.titolo },
+      { label: 'Data Creazione', value: new Date(sim.data_inserimento).toLocaleDateString('it-IT') },
+      { label: 'SOA', value: sim.id_soa || '-' },
+      { label: 'Regione', value: sim.id_regione || '-' },
+      { label: 'Tipologia', value: sim.id_tipologia || '-' },
+      { label: 'N° Decimali', value: sim.n_decimali || 2 },
+      { label: 'N° Partecipanti', value: dettagli.length },
+      { label: 'Media Aritmetica', value: sim.media_ar ? `${(sim.media_ar * 100).toFixed(sim.n_decimali || 2)}%` : '-' },
+      { label: 'Soglia di Anomalia', value: sim.soglia_an ? `${(sim.soglia_an * 100).toFixed(sim.n_decimali || 2)}%` : '-' },
+      { label: 'Media Scarti', value: sim.media_sc ? `${(sim.media_sc * 100).toFixed(sim.n_decimali || 2)}%` : '-' },
+      { label: 'Ribasso Vincitore', value: sim.ribasso ? `${(sim.ribasso * 100).toFixed(sim.n_decimali || 2)}%` : '-' },
+      { label: 'Vincitore', value: sim.id_vincitore || '-' }
+    ];
+
+    let rowNum = 4;
+    params.forEach((param, idx) => {
+      const row = sheetSim.getRow(rowNum);
+
+      // Label cell
+      const labelCell = row.getCell(1);
+      labelCell.value = param.label;
+      labelCell.font = { bold: true, color: { argb: COLORS.yellow } };
+      labelCell.fill = { type: 'solid', fgColor: { argb: COLORS.dark } };
+      labelCell.alignment = { horizontal: 'left', vertical: 'middle' };
+
+      // Value cell
+      const valueCell = row.getCell(2);
+      valueCell.value = param.value;
+      valueCell.font = { color: { argb: COLORS.white } };
+      valueCell.fill = { type: 'solid', fgColor: { argb: COLORS.darkAlt } };
+      valueCell.alignment = { horizontal: 'left', vertical: 'middle' };
+
+      row.height = 20;
+      rowNum++;
+    });
+
+    // ========== SHEET 2: GRADUATORIA (Participants ranking) ==========
+    const sheetGrad = workbook.addWorksheet('Graduatoria');
+
+    // Set column widths
+    sheetGrad.columns = [
+      { width: 8 },    // Pos.
+      { width: 25 },   // Azienda
+      { width: 12 },   // Ribasso %
+      { width: 12 },   // Classificata
+      { width: 12 },   // Anomala
+      { width: 12 },   // Vincitrice
+      { width: 12 },   // Taglio Ali
+      { width: 15 }    // Tipo
+    ];
+
+    // Row 1: Merged header
+    sheetGrad.mergeCells('A1:H1');
+    const gradHeaderCell = sheetGrad.getCell('A1');
+    gradHeaderCell.value = `GRADUATORIA - ${sim.titolo}`;
+    gradHeaderCell.font = { bold: true, size: 14, color: { argb: COLORS.white } };
+    gradHeaderCell.fill = { type: 'solid', fgColor: { argb: COLORS.dark } };
+    gradHeaderCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    sheetGrad.getRow(1).height = 28;
+
+    // Row 2: Empty
+    sheetGrad.getRow(2).height = 8;
+
+    // Row 3: Column headers
+    const headers = ['Pos.', 'Azienda', 'Ribasso %', 'Classificata', 'Anomala', 'Vincitrice', 'Taglio Ali', 'Tipo'];
+    headers.forEach((header, colIdx) => {
+      const cell = sheetGrad.getCell(3, colIdx + 1);
+      cell.value = header;
+      cell.font = { bold: true, color: { argb: COLORS.yellow } };
+      cell.fill = { type: 'solid', fgColor: { argb: COLORS.dark } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+    sheetGrad.getRow(3).height = 20;
+    sheetGrad.views = [{ state: 'frozen', ySplit: 3 }]; // Freeze panes at row 3
+
+    // Row 4+: Participant data
+    dettagli.forEach((det, idx) => {
+      const row = sheetGrad.getRow(4 + idx);
+      const azienda = det.nome_azienda_fake || `Azienda ${det.id_azienda}`;
+
+      // Determine row background color
+      const isWinner = det.vincitrice;
+      const bgColor = idx % 2 === 0 ? COLORS.darkRow1 : COLORS.darkRow2;
+      const winnerBgColor = COLORS.green;
+      const rowBgColor = isWinner ? winnerBgColor : bgColor;
+
+      // Pos.
+      const posCell = row.getCell(1);
+      posCell.value = det.posizione;
+      posCell.font = { color: { argb: isWinner ? COLORS.white : COLORS.white }, bold: isWinner };
+      posCell.fill = { type: 'solid', fgColor: { argb: rowBgColor } };
+      posCell.alignment = { horizontal: 'center' };
+
+      // Azienda
+      const aziendaCell = row.getCell(2);
+      aziendaCell.value = azienda;
+      aziendaCell.font = { color: { argb: isWinner ? COLORS.white : COLORS.white }, bold: isWinner };
+      aziendaCell.fill = { type: 'solid', fgColor: { argb: rowBgColor } };
+
+      // Ribasso %
+      const ribassoCell = row.getCell(3);
+      ribassoCell.value = det.ribasso ? `${(det.ribasso * 100).toFixed(sim.n_decimali || 2)}%` : '-';
+      ribassoCell.font = { color: { argb: isWinner ? COLORS.white : COLORS.white }, bold: isWinner };
+      ribassoCell.fill = { type: 'solid', fgColor: { argb: rowBgColor } };
+      ribassoCell.alignment = { horizontal: 'right' };
+
+      // Classificata
+      const classCell = row.getCell(4);
+      classCell.value = det.classificata ? 'SI' : 'NO';
+      classCell.font = { color: { argb: isWinner ? COLORS.white : COLORS.white }, bold: isWinner };
+      classCell.fill = { type: 'solid', fgColor: { argb: rowBgColor } };
+      classCell.alignment = { horizontal: 'center' };
+
+      // Anomala
+      const anomalaCell = row.getCell(5);
+      anomalaCell.value = det.anomala ? 'SI' : 'NO';
+      anomalaCell.font = {
+        color: { argb: det.anomala ? COLORS.red : (isWinner ? COLORS.white : COLORS.white) },
+        bold: isWinner
+      };
+      anomalaCell.fill = { type: 'solid', fgColor: { argb: rowBgColor } };
+      anomalaCell.alignment = { horizontal: 'center' };
+
+      // Vincitrice
+      const vincCell = row.getCell(6);
+      vincCell.value = det.vincitrice ? 'SI' : 'NO';
+      vincCell.font = { color: { argb: isWinner ? COLORS.white : COLORS.white }, bold: isWinner };
+      vincCell.fill = { type: 'solid', fgColor: { argb: rowBgColor } };
+      vincCell.alignment = { horizontal: 'center' };
+
+      // Taglio Ali
+      const tagliAliCell = row.getCell(7);
+      tagliAliCell.value = det.taglio_ali ? 'SI' : 'NO';
+      tagliAliCell.font = {
+        color: { argb: det.taglio_ali ? COLORS.orange : (isWinner ? COLORS.white : COLORS.white) },
+        bold: isWinner
+      };
+      tagliAliCell.fill = { type: 'solid', fgColor: { argb: rowBgColor } };
+      tagliAliCell.alignment = { horizontal: 'center' };
+
+      // Tipo
+      const tipoCell = row.getCell(8);
+      tipoCell.value = det.tipo || '-';
+      tipoCell.font = { color: { argb: isWinner ? COLORS.white : COLORS.white }, bold: isWinner };
+      tipoCell.fill = { type: 'solid', fgColor: { argb: rowBgColor } };
+      tipoCell.alignment = { horizontal: 'center' };
+
+      row.height = 18;
+    });
+
+    // Generate buffer and send
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    reply.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    reply.header('Content-Disposition', `attachment; filename="simulazione_${id}.xlsx"`);
+    return buffer;
+  });
+
   // ============================================================
   // CREATE/MODIFY OFFICIAL ESITO FROM SIMULATION
   // ============================================================
@@ -1040,10 +1268,10 @@ export default async function simulazioniEngineRoutes(fastify) {
         // Update existing gara
         await client.query(`
           UPDATE gare SET
-            "MediaAr" = $1,
-            "SogliaAn" = $2,
-            "MediaSc" = $3,
-            "Ribasso" = $4,
+            "media_ar" = $1,
+            "soglia_an" = $2,
+            "media_sc" = $3,
+            "ribasso_aggiudicazione" = $4,
             "id_vincitore" = $5
           WHERE "id" = $6
         `, [sim.media_ar, sim.soglia_an, sim.media_sc, sim.ribasso, sim.id_vincitore, id_gara]);
@@ -1054,8 +1282,8 @@ export default async function simulazioniEngineRoutes(fastify) {
         const newGaraId = uuidv4();
         const result = await client.query(`
           INSERT INTO gare (
-            id, "Titolo", "Importo", "Data", "MediaAr", "SogliaAn", "MediaSc",
-            "Ribasso", "id_vincitore", "NPartecipanti", "NDecimali",
+            id, "oggetto", "importo_aggiudicazione", "data_gara", "media_ar", "soglia_an", "media_sc",
+            "ribasso_aggiudicazione", "id_vincitore", "numero_partecipanti", "n_decimali",
             "id_tipologia", "id_soa", "id_stazione", "eliminata"
           ) VALUES (
             $1, $2, $3, NOW(), $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false
@@ -1093,10 +1321,10 @@ export default async function simulazioniEngineRoutes(fastify) {
 
     return await query(`
       UPDATE gare SET
-        "MediaAr" = $1,
-        "SogliaAn" = $2,
-        "MediaSc" = $3,
-        "Ribasso" = $4,
+        "media_ar" = $1,
+        "soglia_an" = $2,
+        "media_sc" = $3,
+        "ribasso_aggiudicazione" = $4,
         "id_vincitore" = $5
       WHERE "id" = $6
       RETURNING *

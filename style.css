@@ -19,18 +19,18 @@
     --orange: #FF8C00;
     --gradient: linear-gradient(135deg, #F5C518 0%, #FF8C00 100%);
     --gradient-r: linear-gradient(135deg, #FF8C00 0%, #F5C518 100%);
-    --text: #333333;
-    --text-light: #666666;
+    --text: #2b2b2b;
+    --text-light: #55606a;
     --bg: #ffffff;
-    --bg-alt: #fafafa;
-    --bg-light: #f5f5f5;
-    --border: #e2e8f0;
+    --bg-alt: #f0f3f7;
+    --bg-light: #e8ecf1;
+    --border: #d4dbe5;
     --radius: 4px;
     --radius-sm: 8px;
     --radius-lg: 14px;
-    --shadow: 0 2px 8px rgba(0,0,0,0.08);
-    --shadow-hover: 0 8px 32px rgba(0,0,0,0.12);
-    --shadow-lg: 0 12px 40px rgba(0,0,0,0.15);
+    --shadow: 0 2px 12px rgba(30,45,61,0.07);
+    --shadow-hover: 0 8px 32px rgba(30,45,61,0.12);
+    --shadow-lg: 0 12px 40px rgba(30,45,61,0.14);
     --max-width: 1200px;
     --transition: all 0.35s cubic-bezier(.4,0,.2,1);
 }
@@ -542,6 +542,8 @@ h1, h2 {
 
 .section-alt {
     background: var(--bg-alt);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
 }
 
 .container {
@@ -595,6 +597,7 @@ h1, h2 {
     transition: var(--transition);
     position: relative;
     overflow: hidden;
+    box-shadow: var(--shadow);
 }
 
 .card::before {
@@ -659,6 +662,7 @@ h1, h2 {
     overflow: hidden;
     transition: var(--transition);
     text-decoration: none;
+    box-shadow: var(--shadow);
 }
 
 .page-card:hover {
@@ -876,7 +880,7 @@ h1, h2 {
 }
 
 .area-riservata-form .form-row input::placeholder {
-    color: #aaa;
+    color: #999;
 }
 
 .area-riservata-form .form-row .btn {
@@ -1175,7 +1179,7 @@ h1, h2 {
 }
 
 .form-input::placeholder {
-    color: #bbb;
+    color: #999;
 }
 
 .btn-login {
@@ -1395,7 +1399,7 @@ h1, h2 {
 .data-table td {
     padding: 14px 18px;
     font-size: 13px;
-    border-bottom: 1px solid #f0f3f6;
+    border-bottom: 1px solid #e4e9ef;
     border-right: none;
     line-height: 1.5;
     color: var(--text);
@@ -1420,7 +1424,7 @@ h1, h2 {
 }
 
 .data-table tbody tr:nth-child(even) {
-    background: #f8fafc;
+    background: #f2f5f9;
 }
 
 .data-table tbody tr:nth-child(even):hover {
@@ -1625,7 +1629,7 @@ h1, h2 {
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 32px;
-    box-shadow: var(--shadow);
+    box-shadow: 0 4px 20px rgba(30,45,61,0.08);
 }
 
 .form-row {
@@ -1758,7 +1762,7 @@ footer {
 }
 
 .footer-brand p {
-    color: rgba(255,255,255,0.7);
+    color: rgba(255,255,255,0.75);
     font-size: 13px;
     line-height: 1.7;
     margin-bottom: 4px;
@@ -1779,11 +1783,11 @@ footer {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.08);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(255,255,255,0.4);
+    color: rgba(255,255,255,0.55);
     font-size: 14px;
     transition: var(--transition);
 }
@@ -1806,13 +1810,13 @@ footer {
 .footer-col p {
     display: block;
     font-size: 13px;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.6);
     margin-bottom: 6px;
     line-height: 1.6;
 }
 
 .footer-col p strong {
-    color: rgba(255,255,255,0.75);
+    color: rgba(255,255,255,0.85);
     font-weight: 700;
 }
 
@@ -1825,7 +1829,7 @@ footer {
 .footer-col a {
     display: block;
     font-size: 13px;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.6);
     margin-bottom: 6px;
 }
 
@@ -1844,7 +1848,7 @@ footer {
 
 .footer-bottom p {
     font-size: 11px;
-    color: rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.45);
 }
 
 /* ===== ANIMATIONS ===== */

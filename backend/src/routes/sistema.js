@@ -158,16 +158,16 @@ export default async function sistemaRoutes(fastify, opts) {
         const result = await query(
           `SELECT
             b."id_bando" AS id,
-            b."Titolo" AS titolo,
-            b."CodiceCIG" AS codice_cig,
-            b."DataPubblicazione" AS data_pubblicazione,
-            b."ImportoSO" AS importo,
-            b."Regione" AS provincia,
-            COALESCE(s."Nome", b."Stazione") AS stazione
+            b."oggetto" AS titolo,
+            b."cig" AS codice_cig,
+            b."data_pubblicazione" AS data_pubblicazione,
+            b."importo_so" AS importo,
+            b."regione" AS provincia,
+            COALESCE(s."denominazione", b."stazione") AS stazione
            FROM bandi b
            LEFT JOIN stazioni s ON b."id_stazione" = s."id"
-           WHERE b."Abilitato" = true AND b."Annullato" = false
-           ORDER BY b."DataPubblicazione" DESC`,
+           WHERE b."attivo" = true AND b."annullato" = false
+           ORDER BY b."data_pubblicazione" DESC`,
           []
         );
         data = result.rows;
@@ -176,16 +176,16 @@ export default async function sistemaRoutes(fastify, opts) {
         const result = await query(
           `SELECT
             g."id" AS id,
-            g."Titolo" AS titolo,
-            g."Data" AS data,
-            g."Importo" AS importo,
-            g."Regione" AS provincia,
-            COALESCE(s."Nome", g."Stazione") AS stazione,
+            g."oggetto" AS titolo,
+            g."data_gara" AS data,
+            g."importo_aggiudicazione" AS importo,
+            g."regione" AS provincia,
+            COALESCE(s."denominazione", g."stazione") AS stazione,
             (SELECT COUNT(*) FROM dettaglio_gara WHERE "id_gara" = g."id") AS n_partecipanti
            FROM gare g
            LEFT JOIN stazioni s ON g."id_stazione" = s."id"
-           WHERE g."Abilitato" = true AND g."Annullato" = false
-           ORDER BY g."Data" DESC`,
+           WHERE g."attivo" = true AND g."annullato" = false
+           ORDER BY g."data_gara" DESC`,
           []
         );
         data = result.rows;
@@ -227,16 +227,16 @@ export default async function sistemaRoutes(fastify, opts) {
       } else if (tipo === 'utenti') {
         const result = await query(
           `SELECT
-            u."UserName" AS username,
-            u."Email" AS email,
-            u."FirstName" AS nome,
-            u."LastName" AS cognome,
-            u."Company" AS azienda,
-            u."PartitaIva" AS partita_iva,
-            u."IsApproved" AS approvato,
-            u."CreatedDate" AS data_creazione
+            u."username" AS username,
+            u."email" AS email,
+            u."nome" AS nome,
+            u."cognome" AS cognome,
+            u."id_azienda" AS azienda,
+            u."codice_fiscale" AS partita_iva,
+            u."attivo" AS approvato,
+            u."created_at" AS data_creazione
            FROM users u
-           ORDER BY u."UserName" ASC`,
+           ORDER BY u."username" ASC`,
           []
         );
         data = result.rows;

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head><title>Upload</title></head>
+<body>
+<h2>Upload Hero Image</h2>
+<form id="uploadForm">
+  <input type="file" id="fileInput" name="file" accept="image/*">
+  <button type="submit">Upload</button>
+</form>
+<div id="result"></div>
+<script>
+document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fileInput = document.getElementById('fileInput');
+  if (!fileInput.files.length) return;
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+  try {
+    const res = await fetch('/api/temp-upload', { method: 'POST', body: formData });
+    const data = await res.json();
+    document.getElementById('result').textContent = JSON.stringify(data);
+  } catch(err) {
+    document.getElementById('result').textContent = 'Error: ' + err.message;
+  }
+});
+</script>
+</body>
+</html>

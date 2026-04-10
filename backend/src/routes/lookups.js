@@ -31,7 +31,7 @@ export default async function lookupRoutes(fastify, opts) {
     const { search, limit = 20 } = request.query;
     if (search && search.length >= 2) {
       const result = await query(
-        `SELECT id, nome, citta
+        `SELECT id, nome AS nome, citta
          FROM stazioni WHERE attivo = true AND nome ILIKE $1
          ORDER BY nome LIMIT $2`,
         [`%${search}%`, parseInt(limit)]
@@ -39,7 +39,7 @@ export default async function lookupRoutes(fastify, opts) {
       return result.rows;
     }
     const result = await query(
-      `SELECT id, nome, citta
+      `SELECT id, nome AS nome, citta
        FROM stazioni WHERE attivo = true ORDER BY nome LIMIT $1`,
       [parseInt(limit)]
     );
@@ -94,9 +94,9 @@ export default async function lookupRoutes(fastify, opts) {
     const result = await query(`
       SELECT
         (SELECT COUNT(*) FROM bandi) AS totale_bandi,
-        (SELECT COUNT(*) FROM gare WHERE "eliminata" = false) AS totale_gare,
-        (SELECT COUNT(*) FROM aziende WHERE "eliminata" = false) AS totale_aziende,
-        (SELECT COUNT(*) FROM stazioni WHERE "eliminata" = false) AS totale_stazioni,
+        (SELECT COUNT(*) FROM gare WHERE annullato = false) AS totale_gare,
+        (SELECT COUNT(*) FROM aziende WHERE attivo = true) AS totale_aziende,
+        (SELECT COUNT(*) FROM stazioni WHERE attivo = true) AS totale_stazioni,
         (SELECT COUNT(*) FROM simulazioni) AS totale_simulazioni,
         (SELECT COUNT(*) FROM users) AS totale_utenti
     `);

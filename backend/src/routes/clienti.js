@@ -1236,6 +1236,118 @@ export default async function clientiRoutes(fastify, opts) {
   // ============================================================
   // ATI / AVVALIMENTI
   // ============================================================
+
+  // GET /api/clienti/ati/cerca?search=
+  // Search companies involved in ATI relationships
+  fastify.get('/ati/cerca', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    try {
+      const { search } = request.query;
+      if (!search || search.length < 3) {
+        return reply.status(400).send({ error: 'Ricerca minimo 3 caratteri' });
+      }
+
+      const result = await query(
+        `SELECT DISTINCT
+          az.id_azienda AS id,
+          az.ragione_sociale AS nome,
+          az.piva AS piva,
+          COUNT(DISTINCT a.id_gara) AS num_ati
+         FROM aziende az
+         JOIN ati_gare a ON az.id_azienda = a.id_mandataria OR az.id_azienda = a.id_mandante
+         WHERE UPPER(az.ragione_sociale) LIKE UPPER($1)
+         GROUP BY az.id_azienda, az.ragione_sociale, az.piva
+         ORDER BY num_ati DESC
+         LIMIT 20`,
+        ['%' + search + '%']
+      );
+
+      return { aziende: result.rows };
+    } catch (err) {
+      fastify.log.error({ err: err.message }, 'GET /ati/cerca error');
+      return reply.status(500).send({ error: 'Errore ricerca ATI' });
+    }
+  });
+
+  // GET /api/clienti/ati/dettaglio/:idAzienda
+  // Full ATI detail for a company: composition, esiti, avvalimenti
+  fastify.get('/ati/dettaglio/:idAzienda', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    try {
+      const { idAzienda } = request.params;
+
+      // Get ATI partners (as mandataria and as mandante)
+      const composizione = await query(
+        `SELECT DISTINCT
+          CASE WHEN a.id_mandataria = $1 THEN 'Mandataria' ELSE 'Mandante' END AS ruolo,
+          CASE WHEN a.id_mandataria = $1 THEN az2.ragione_sociale ELSE az1.ragione_sociale END AS partner_nome,
+          CASE WHEN a.id_mandataria = $1 THEN az2.piva ELSE az1.piva END AS partner_piva,
+          CASE WHEN a.id_mandataria = $1 THEN a.id_mandante ELSE a.id_mandataria END AS partner_id,
+          a.percentuale_mandante AS percentuale,
+          COUNT(DISTINCT a.id_gara) AS num_gare
+         FROM ati_gare a
+         JOIN aziende az1 ON a.id_mandataria = az1.id_azienda
+         JOIN aziende az2 ON a.id_mandante = az2.id_azienda
+         WHERE a.id_mandataria = $1 OR a.id_mandante = $1
+         GROUP BY ruolo, partner_nome, partner_piva, partner_id, a.percentuale_mandante
+         ORDER BY num_gare DESC
+         LIMIT 50`,
+        [idAzienda]
+      );
+
+      // Get esiti for this company in ATI
+      const esiti = await query(
+        `SELECT DISTINCT
+          g.id_gara AS id_gara,
+          g.data AS data,
+          g.stazione AS stazione,
+          g.titolo AS titolo,
+          g.importo_so AS importo,
+          dg.risultato AS risultato,
+          dg.ribasso AS ribasso
+         FROM ati_gare a
+         JOIN gare g ON a.id_gara = g.id_gara
+         LEFT JOIN dettaglio_gara dg ON g.id_gara = dg.id_gara AND (dg.id_azienda = $1)
+         WHERE a.id_mandataria = $1 OR a.id_mandante = $1
+         ORDER BY g.data DESC
+         LIMIT 50`,
+        [idAzienda]
+      );
+
+      // Get avvalimenti for this company
+      const avvalimenti = await query(
+        `SELECT DISTINCT
+          az1.ragione_sociale AS azienda,
+          az2.ragione_sociale AS avvalente,
+          dg.specializzazione AS specializzazione,
+          COUNT(DISTINCT dg.id_gara) AS num_esiti
+         FROM dettaglio_gara dg
+         JOIN aziende az1 ON dg.id_azienda = az1.id_azienda
+         LEFT JOIN aziende az2 ON dg.id_azienda_avvalimento = az2.id_azienda
+         WHERE (dg.id_azienda = $1 OR dg.id_azienda_avvalimento = $1)
+           AND dg.id_azienda_avvalimento IS NOT NULL
+         GROUP BY az1.ragione_sociale, az2.ragione_sociale, dg.specializzazione
+         ORDER BY num_esiti DESC
+         LIMIT 50`,
+        [idAzienda]
+      );
+
+      // Get company info
+      const azienda = await query(
+        `SELECT ragione_sociale, piva FROM aziende WHERE id_azienda = $1`,
+        [idAzienda]
+      );
+
+      return {
+        azienda: azienda.rows[0] || {},
+        composizione: composizione.rows,
+        esiti: esiti.rows,
+        avvalimenti: avvalimenti.rows
+      };
+    } catch (err) {
+      fastify.log.error({ err: err.message }, 'GET /ati/dettaglio/:idAzienda error');
+      return reply.status(500).send({ error: 'Errore caricamento dettaglio ATI' });
+    }
+  });
+
   // GET /api/clienti/ati/:idGara/:idMandataria
   // ATI detail for a specific gara
   fastify.get('/ati/:idGara/:idMandataria', { preHandler: [fastify.authenticate] }, async (request, reply) => {

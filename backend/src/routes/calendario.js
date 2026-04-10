@@ -175,6 +175,131 @@ export default async function calendarioRoutes(fastify, opts) {
   });
 
   // ============================================================
+  // AGENDA MENSILE (combined view like old ASP.NET system)
+  // ============================================================
+
+  /**
+   * GET /api/calendario/agenda-mensile?mese=&anno=
+   * Returns all events for the month combining:
+   * 1. Scritture (bandi with data_offerta in month)
+   * 2. Aperture (bandi with data_apertura in month)
+   * 3. Sopralluoghi, Prese Visione, Elaborati (from calendario_eventi)
+   * Each event has: data, ora, tipo, colore, stazione, titolo, azienda, gestore, esecutore,
+   *   importo, categoria_soa, tipologia_bando, criterio, id_bando, id_esito_associato
+   */
+  fastify.get('/agenda-mensile', async (request, reply) => {
+    try {
+      const { mese, anno } = request.query;
+      if (!mese || !anno) {
+        return reply.status(400).send({ error: 'mese and anno required' });
+      }
+      const firstDay = `${anno}-${String(parseInt(mese)).padStart(2,'0')}-01`;
+      const lastDayDate = new Date(parseInt(anno), parseInt(mese), 0);
+      const lastDay = lastDayDate.toISOString().split('T')[0];
+
+      const eventi = [];
+
+      // 1. SCRITTURE: bandi with data_offerta in this month
+      try {
+        const scritture = await query(`
+          SELECT b.id, b.titolo, b.data_offerta AS data_evento, b.stazione_nome AS stazione,
+            b.codice_cig, b.importo_totale, b.importo_so, b.regione,
+            s.cod AS soa_codice, s."Descrizione" AS soa_descrizione,
+            tg.nome AS tipologia, c."Criterio" AS criterio,
+            b.id_stazione, b.provenienza
+          FROM bandi b
+          LEFT JOIN soa s ON b.id_soa = s.id
+          LEFT JOIN tipologia_gare tg ON b.id_tipologia = tg.id
+          LEFT JOIN criteri c ON b.id_criterio = c."id_criterio"
+          WHERE b.annullato = false
+            AND b.data_offerta >= $1 AND b.data_offerta <= $2
+          ORDER BY b.data_offerta ASC
+        `, [firstDay, lastDay]);
+        scritture.rows.forEach(r => {
+          eventi.push({
+            data: r.data_evento, tipo: 'Scrittura', colore: '#FF6A00',
+            stazione: r.stazione || '', titolo: r.titolo || '',
+            codice_cig: r.codice_cig || '', importo: r.importo_totale || r.importo_so || 0,
+            categoria_soa: r.soa_codice || '', tipologia: r.tipologia || '',
+            criterio: r.criterio || '', regione: r.regione || '',
+            id_bando: r.id, azienda: '', gestore: '', esecutore: ''
+          });
+        });
+      } catch(e) { /* table may not exist yet */ }
+
+      // 2. APERTURE: bandi with data_apertura in this month
+      try {
+        const aperture = await query(`
+          SELECT b.id, b.titolo, b.data_apertura AS data_evento, b.stazione_nome AS stazione,
+            b.codice_cig, b.importo_totale, b.importo_so, b.regione,
+            s.cod AS soa_codice, tg.nome AS tipologia, c."Criterio" AS criterio
+          FROM bandi b
+          LEFT JOIN soa s ON b.id_soa = s.id
+          LEFT JOIN tipologia_gare tg ON b.id_tipologia = tg.id
+          LEFT JOIN criteri c ON b.id_criterio = c."id_criterio"
+          WHERE b.annullato = false
+            AND b.data_apertura >= $1 AND b.data_apertura <= $2
+          ORDER BY b.data_apertura ASC
+        `, [firstDay, lastDay]);
+        aperture.rows.forEach(r => {
+          eventi.push({
+            data: r.data_evento, tipo: 'Apertura', colore: '#B94A48',
+            stazione: r.stazione || '', titolo: r.titolo || '',
+            codice_cig: r.codice_cig || '', importo: r.importo_totale || r.importo_so || 0,
+            categoria_soa: r.soa_codice || '', tipologia: r.tipologia || '',
+            criterio: r.criterio || '', regione: r.regione || '',
+            id_bando: r.id, azienda: '', gestore: '', esecutore: ''
+          });
+        });
+      } catch(e) { /* table may not exist yet */ }
+
+      // 3. CALENDARIO_EVENTI: sopralluoghi, prese visione, elaborati
+      try {
+        const calEventi = await query(`
+          SELECT e.id, e.titolo, e.data_inizio AS data_evento, e.tipo,
+            e.descrizione, e.id_bando, e.id_utente_assegnato,
+            b.stazione_nome AS stazione, b.codice_cig, b.importo_totale, b.importo_so,
+            b.regione, s.cod AS soa_codice, tg.nome AS tipologia, cr."Criterio" AS criterio
+          FROM calendario_eventi e
+          LEFT JOIN bandi b ON e.id_bando = b.id
+          LEFT JOIN soa s ON b.id_soa = s.id
+          LEFT JOIN tipologia_gare tg ON b.id_tipologia = tg.id
+          LEFT JOIN criteri cr ON b.id_criterio = cr."id_criterio"
+          WHERE e.data_inizio >= $1 AND e.data_inizio <= $2
+          ORDER BY e.data_inizio ASC
+        `, [firstDay, lastDay]);
+        const tipoColori = {
+          'sopralluogo': { label: 'Sopralluogo', colore: '#007F0E' },
+          'presa_visione': { label: 'Presa Visione', colore: '#00137F' },
+          'elaborato': { label: 'Elaborato', colore: '#7F006E' },
+          'scadenza': { label: 'Scadenza', colore: '#FF6A00' },
+          'custom': { label: 'Evento', colore: '#477dae' }
+        };
+        calEventi.rows.forEach(r => {
+          const tc = tipoColori[r.tipo] || { label: r.tipo || 'Evento', colore: '#477dae' };
+          eventi.push({
+            data: r.data_evento, tipo: tc.label, colore: tc.colore,
+            stazione: r.stazione || '', titolo: r.titolo || '',
+            codice_cig: r.codice_cig || '', importo: r.importo_totale || r.importo_so || 0,
+            categoria_soa: r.soa_codice || '', tipologia: r.tipologia || '',
+            criterio: r.criterio || '', regione: r.regione || '',
+            id_bando: r.id_bando || null, azienda: '', gestore: '',
+            esecutore: r.id_utente_assegnato || '', descrizione: r.descrizione || ''
+          });
+        });
+      } catch(e) { /* table may not exist yet */ }
+
+      // Sort all events by date
+      eventi.sort((a, b) => new Date(a.data) - new Date(b.data));
+
+      return { data: eventi, totale: eventi.length };
+    } catch (err) {
+      fastify.log.error(err, 'Agenda mensile error');
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  // ============================================================
   // AGENDA VIEW
   // ============================================================
 

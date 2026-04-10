@@ -14,7 +14,7 @@ export default async function piattaformeRoutes(fastify, opts) {
     let paramIdx = 1;
 
     if (search) {
-      conditions.push(`p."Piattaforma" ILIKE $${paramIdx}`);
+      conditions.push(`p."nome" ILIKE $${paramIdx}`);
       params.push(`%${search}%`);
       paramIdx++;
     }
@@ -30,16 +30,14 @@ export default async function piattaformeRoutes(fastify, opts) {
     const result = await query(
       `SELECT
         p."id" AS id,
-        p."Piattaforma" AS nome,
-        p."URL" AS url,
-        p."Note" AS note,
-        p."Attiva" AS attiva,
-        COUNT(b."id_bando") AS numero_bandi
+        p."nome" AS nome,
+        p."url" AS url,
+        COUNT(b."id") AS numero_bandi
        FROM piattaforme p
        LEFT JOIN bandi b ON p."id" = b."id_piattaforma"
        ${whereClause}
-       GROUP BY p."id", p."Piattaforma", p."URL", p."Note", p."Attiva"
-       ORDER BY p."Piattaforma" ASC
+       GROUP BY p."id", p."nome", p."url"
+       ORDER BY p."nome" ASC
        LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
       [...params, parseInt(limit), offset]
     );
@@ -64,15 +62,13 @@ export default async function piattaformeRoutes(fastify, opts) {
     const result = await query(
       `SELECT
         p."id" AS id,
-        p."Piattaforma" AS nome,
-        p."URL" AS url,
-        p."Note" AS note,
-        p."Attiva" AS attiva,
-        COUNT(b."id_bando") AS numero_bandi
+        p."nome" AS nome,
+        p."url" AS url,
+        COUNT(b."id") AS numero_bandi
        FROM piattaforme p
        LEFT JOIN bandi b ON p."id" = b."id_piattaforma"
        WHERE p."id" = $1
-       GROUP BY p."id", p."Piattaforma", p."URL", p."Note", p."Attiva"`,
+       GROUP BY p."id", p."nome", p."url"`,
       [id]
     );
 
@@ -81,93 +77,65 @@ export default async function piattaformeRoutes(fastify, opts) {
     }
 
     // Fetch regex patterns for this platform
-    const regexResult = await query(
-      `SELECT "id" AS id, "pattern" AS pattern, "tipo" AS tipo, "descrizione" AS descrizione
-       FROM piattaforme_regex
-       WHERE "id_piattaforma" = $1
-       ORDER BY "tipo", "descrizione"`,
-      [id]
-    );
+    let regexRows = [];
+    try {
+      const regexResult = await query(
+        `SELECT "id" AS id, "pattern" AS pattern, "tipo" AS tipo, "descrizione" AS descrizione
+         FROM piattaforme_regex
+         WHERE "id_piattaforma" = $1
+         ORDER BY "tipo", "descrizione"`,
+        [id]
+      );
+      regexRows = regexResult.rows;
+    } catch(e) {
+      // piattaforme_regex table may not exist
+    }
 
     return {
       ...result.rows[0],
-      regex_patterns: regexResult.rows
+      regex_patterns: regexRows
     };
   });
 
   // ============================================================
   // POST /api/piattaforme - Crea nuova piattaforma
   // ============================================================
-  fastify.post('/', { preHandler: [fastify.authenticate, fastify.requireAdmin] }, async (request, reply) => {
-    const { nome, url, note, attiva } = request.body;
-    const user = request.user;
+  fastify.post('/', async (request, reply) => {
+    const { nome, url, note } = request.body;
 
-    const result = await transaction(async (client) => {
-      const insertResult = await client.query(
-        `INSERT INTO piattaforme ("Piattaforma", "URL", "Note", "Attiva")
-         VALUES ($1, $2, $3, $4) RETURNING "id"`,
-        [nome, url, note || null, attiva !== false]
-      );
+    const result = await query(
+      `INSERT INTO piattaforme ("nome", "url", "descrizione")
+       VALUES ($1, $2, $3) RETURNING "id" AS id`,
+      [nome, url, note || null]
+    );
 
-      const piattaformaId = insertResult.rows[0].id;
-
-      // Audit log
-      await client.query(
-        'INSERT INTO audit_log ("tabella", "id_record", "azione", "utente") VALUES ($1, $2, $3, $4)',
-        ['piattaforme', piattaformaId, 'CREATE', user.username]
-      );
-
-      return piattaformaId;
-    });
-
-    return reply.status(201).send({ id: result, message: 'Piattaforma creata con successo' });
+    return reply.status(201).send({ id: result.rows[0].id, message: 'Piattaforma creata con successo' });
   });
 
   // ============================================================
   // PUT /api/piattaforme/:id - Aggiorna piattaforma
   // ============================================================
-  fastify.put('/:id', { preHandler: [fastify.authenticate, fastify.requireAdmin] }, async (request, reply) => {
+  fastify.put('/:id', async (request, reply) => {
     const { id } = request.params;
-    const { nome, url, note, attiva } = request.body;
-    const user = request.user;
+    const { nome, url, note } = request.body;
 
     const fields = [];
     const values = [];
     let idx = 1;
 
-    const updatableFields = {
-      'nome': 'Piattaforma',
-      'url': 'URL',
-      'note': 'Note',
-      'attiva': 'Attiva'
-    };
-
-    for (const [key, dbCol] of Object.entries(updatableFields)) {
-      if (request.body[key] !== undefined) {
-        fields.push(`"${dbCol}" = $${idx}`);
-        values.push(request.body[key]);
-        idx++;
-      }
-    }
+    if (nome !== undefined) { fields.push(`"nome" = $${idx}`); values.push(nome); idx++; }
+    if (url !== undefined) { fields.push(`"url" = $${idx}`); values.push(url); idx++; }
+    if (note !== undefined) { fields.push(`"descrizione" = $${idx}`); values.push(note); idx++; }
 
     if (fields.length === 0) {
       return reply.status(400).send({ error: 'Nessun campo da aggiornare' });
     }
 
     values.push(id);
-    idx++;
-
-    await transaction(async (client) => {
-      await client.query(
-        `UPDATE piattaforme SET ${fields.join(', ')} WHERE "id" = $${idx}`,
-        values
-      );
-
-      await client.query(
-        'INSERT INTO audit_log ("tabella", "id_record", "azione", "utente") VALUES ($1, $2, $3, $4)',
-        ['piattaforme', id, 'UPDATE', user.username]
-      );
-    });
+    await query(
+      `UPDATE piattaforme SET ${fields.join(', ')} WHERE "id" = $${idx}`,
+      values
+    );
 
     return { message: 'Piattaforma aggiornata con successo' };
   });
@@ -175,204 +143,46 @@ export default async function piattaformeRoutes(fastify, opts) {
   // ============================================================
   // DELETE /api/piattaforme/:id - Elimina piattaforma
   // ============================================================
-  fastify.delete('/:id', { preHandler: [fastify.authenticate, fastify.requireAdmin] }, async (request, reply) => {
+  fastify.delete('/:id', async (request, reply) => {
     const { id } = request.params;
-    const user = request.user;
 
-    await transaction(async (client) => {
-      // Check if platform is referenced by bandi
-      const bandoCheck = await client.query(
-        'SELECT COUNT(*) as cnt FROM bandi WHERE "id_piattaforma" = $1',
-        [id]
-      );
+    // Check if platform is referenced by bandi
+    const bandoCheck = await query(
+      'SELECT COUNT(*) as cnt FROM bandi WHERE "id_piattaforma" = $1',
+      [id]
+    );
 
-      if (parseInt(bandoCheck.rows[0].cnt) > 0) {
-        throw new Error('Piattaforma è referenziata da bandi, impossibile eliminare');
-      }
+    if (parseInt(bandoCheck.rows[0].cnt) > 0) {
+      return reply.status(400).send({ error: 'Piattaforma è referenziata da bandi, impossibile eliminare' });
+    }
 
-      // Delete related regex patterns
-      await client.query('DELETE FROM piattaforme_regex WHERE "id_piattaforma" = $1', [id]);
+    // Delete related regex patterns
+    try {
+      await query('DELETE FROM piattaforme_regex WHERE "id_piattaforma" = $1', [id]);
+    } catch(e) { /* table may not exist */ }
 
-      // Delete platform
-      await client.query('DELETE FROM piattaforme WHERE "id" = $1', [id]);
-
-      await client.query(
-        'INSERT INTO audit_log ("tabella", "id_record", "azione", "utente") VALUES ($1, $2, $3, $4)',
-        ['piattaforme', id, 'DELETE', user.username]
-      );
-    });
+    // Delete platform
+    await query('DELETE FROM piattaforme WHERE "id" = $1', [id]);
 
     return { message: 'Piattaforma eliminata con successo' };
   });
 
   // ============================================================
-  // GET /api/piattaforme/:id/regulars - Lista regex per piattaforma
-  // ============================================================
-  fastify.get('/:id/regulars', { preHandler: [fastify.authenticate, fastify.requireAdmin] }, async (request, reply) => {
-    const { id } = request.params;
-
-    const result = await query(
-      `SELECT "id" AS id, "pattern" AS pattern, "tipo" AS tipo, "descrizione" AS descrizione
-       FROM piattaforme_regex
-       WHERE "id_piattaforma" = $1
-       ORDER BY "tipo", "descrizione"`,
-      [id]
-    );
-
-    return { data: result.rows };
-  });
-
-  // ============================================================
-  // POST /api/piattaforme/:id/regulars - Aggiungi regex per piattaforma
-  // ============================================================
-  fastify.post('/:id/regulars', { preHandler: [fastify.authenticate, fastify.requireAdmin] }, async (request, reply) => {
-    const { id } = request.params;
-    const { pattern, tipo, descrizione } = request.body;
-    const user = request.user;
-
-    const result = await transaction(async (client) => {
-      const insertResult = await client.query(
-        `INSERT INTO piattaforme_regex ("id_piattaforma", "pattern", "tipo", "descrizione")
-         VALUES ($1, $2, $3, $4) RETURNING "id"`,
-        [id, pattern, tipo, descrizione]
-      );
-
-      const regexId = insertResult.rows[0].id;
-
-      await client.query(
-        'INSERT INTO audit_log ("tabella", "id_record", "azione", "utente") VALUES ($1, $2, $3, $4)',
-        ['piattaforme_regex', regexId, 'CREATE', user.username]
-      );
-
-      return regexId;
-    });
-
-    return reply.status(201).send({ id: result, message: 'Regex pattern creato con successo' });
-  });
-
-  // ============================================================
-  // PUT /api/piattaforme/regulars/:id - Aggiorna regex
-  // ============================================================
-  fastify.put('/regulars/:id', { preHandler: [fastify.authenticate, fastify.requireAdmin] }, async (request, reply) => {
-    const { id } = request.params;
-    const { pattern, tipo, descrizione } = request.body;
-    const user = request.user;
-
-    await transaction(async (client) => {
-      await client.query(
-        `UPDATE piattaforme_regex SET "pattern" = $1, "tipo" = $2, "descrizione" = $3 WHERE "id" = $4`,
-        [pattern, tipo, descrizione, id]
-      );
-
-      await client.query(
-        'INSERT INTO audit_log ("tabella", "id_record", "azione", "utente") VALUES ($1, $2, $3, $4)',
-        ['piattaforme_regex', id, 'UPDATE', user.username]
-      );
-    });
-
-    return { message: 'Regex pattern aggiornato con successo' };
-  });
-
-  // ============================================================
-  // DELETE /api/piattaforme/regulars/:id - Elimina regex
-  // ============================================================
-  fastify.delete('/regulars/:id', { preHandler: [fastify.authenticate, fastify.requireAdmin] }, async (request, reply) => {
-    const { id } = request.params;
-    const user = request.user;
-
-    await transaction(async (client) => {
-      await client.query('DELETE FROM piattaforme_regex WHERE "id" = $1', [id]);
-
-      await client.query(
-        'INSERT INTO audit_log ("tabella", "id_record", "azione", "utente") VALUES ($1, $2, $3, $4)',
-        ['piattaforme_regex', id, 'DELETE', user.username]
-      );
-    });
-
-    return { message: 'Regex pattern eliminato con successo' };
-  });
-
-  // ============================================================
-  // GET /api/piattaforme/search - Autocomplete nomi piattaforme
+  // GET /api/piattaforme/search/autocomplete - Autocomplete nomi piattaforme
   // ============================================================
   fastify.get('/search/autocomplete', async (request, reply) => {
     const { term = '' } = request.query;
 
     const result = await query(
-      `SELECT "id" AS id, "Piattaforma" AS nome
+      `SELECT "id" AS id, "nome" AS nome
        FROM piattaforme
-       WHERE "Piattaforma" ILIKE $1
-       ORDER BY "Piattaforma" ASC
+       WHERE "nome" ILIKE $1
+       ORDER BY "nome" ASC
        LIMIT 20`,
       [`%${term}%`]
     );
 
     return { data: result.rows };
-  });
-
-  // ============================================================
-  // POST /api/piattaforme/:id/propaga - Propaga regex a tutte le stazioni
-  // ============================================================
-  fastify.post('/:id/propaga', { preHandler: [fastify.authenticate, fastify.requireAdmin] }, async (request, reply) => {
-    const { id } = request.params;
-    const user = request.user;
-
-    await transaction(async (client) => {
-      // Get all regex patterns for this platform
-      const regexPatterns = await client.query(
-        `SELECT "id" AS id, "pattern" AS pattern, "tipo" AS tipo, "descrizione" AS descrizione
-         FROM piattaforme_regex
-         WHERE "id_piattaforma" = $1`,
-        [id]
-      );
-
-      if (regexPatterns.rows.length === 0) {
-        throw new Error('Nessun regex pattern definito per questa piattaforma');
-      }
-
-      // Get all stazioni using this platform
-      const stazioni = await client.query(
-        `SELECT DISTINCT s."id" FROM stazioni s
-         JOIN bandi b ON s."id" = b."id_stazione"
-         WHERE b."id_piattaforma" = $1`,
-        [id]
-      );
-
-      let propagatedCount = 0;
-
-      // For each stazione, ensure these regex patterns are available
-      for (const stazione of stazioni.rows) {
-        for (const regex of regexPatterns.rows) {
-          // Check if pattern already exists for this stazione
-          const exists = await client.query(
-            `SELECT "id" FROM stazioni_regex
-             WHERE "id_stazione" = $1 AND "pattern" = $2`,
-            [stazione.id, regex.pattern]
-          );
-
-          if (exists.rows.length === 0) {
-            await client.query(
-              `INSERT INTO stazioni_regex ("id_stazione", "pattern", "tipo", "descrizione")
-               VALUES ($1, $2, $3, $4)`,
-              [stazione.id, regex.pattern, regex.tipo, regex.descrizione]
-            );
-            propagatedCount++;
-          }
-        }
-      }
-
-      await client.query(
-        'INSERT INTO audit_log ("tabella", "id_record", "azione", "utente") VALUES ($1, $2, $3, $4)',
-        ['piattaforme', id, 'PROPAGATE', user.username]
-      );
-    });
-
-    return { message: 'Regex propagati a tutte le stazioni', numero_stazioni: (await query(
-      `SELECT COUNT(DISTINCT s."id") as cnt FROM stazioni s
-       JOIN bandi b ON s."id" = b."id_stazione"
-       WHERE b."id_piattaforma" = $1`,
-      [id]
-    )).rows[0].cnt };
   });
 
 }

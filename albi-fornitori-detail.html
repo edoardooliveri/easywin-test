@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dettaglio Albo Fornitori - easyWin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .page-hero { position: relative; padding: 140px 48px 60px; background: var(--dark); color: #fff; text-align: center; overflow: hidden; }
+        .page-hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(30,45,61,0.95), rgba(30,45,61,0.8)); }
+        .page-hero h1 { position: relative; z-index: 1; font-size: clamp(28px, 3.5vw, 42px); font-weight: 700; margin-bottom: 12px; font-family: 'Comfortaa', cursive; }
+        .page-hero p { position: relative; z-index: 1; font-size: 17px; opacity: 0.85; max-width: 700px; margin: 0 auto; }
+
+        .detail-container { max-width: 960px; margin: -40px auto 60px; padding: 0 24px; position: relative; z-index: 2; }
+        .detail-card { background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; }
+        .detail-header { background: linear-gradient(135deg, #1a5276, #2e86c1); color: #fff; padding: 32px; }
+        .detail-header h2 { margin: 0 0 8px; font-size: 24px; font-family: 'Comfortaa', cursive; }
+        .detail-header .subtitle { opacity: 0.85; font-size: 15px; }
+        .detail-body { padding: 32px; }
+
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 32px; }
+        .info-section h3 { font-size: 14px; text-transform: uppercase; color: #1a5276; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #eee; }
+        .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f5f5f5; }
+        .info-row .label { color: #666; font-size: 14px; }
+        .info-row .value { font-weight: 600; color: #333; font-size: 14px; }
+
+        .bandi-section { margin-top: 32px; }
+        .bandi-section h3 { font-size: 18px; color: #1a5276; margin-bottom: 16px; }
+        .bandi-table { width: 100%; border-collapse: collapse; }
+        .bandi-table th { background: #f8f9fa; padding: 12px; text-align: left; font-size: 13px; color: #666; text-transform: uppercase; }
+        .bandi-table td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .bandi-table tr:hover { background: #f8f9fa; }
+
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .badge-green { background: #d4edda; color: #155724; }
+        .badge-orange { background: #fff3cd; color: #856404; }
+        .badge-blue { background: #d1ecf1; color: #0c5460; }
+
+        .btn-action { display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #e67e22, #f39c12); color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.3s; }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(230,126,34,0.4); }
+        .btn-back { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; color: #1a5276; text-decoration: none; font-weight: 600; transition: color 0.3s; }
+        .btn-back:hover { color: #e67e22; }
+
+        .loading { text-align: center; padding: 60px; color: #666; }
+        .loading i { font-size: 32px; color: #1a5276; margin-bottom: 16px; }
+
+        @media (max-width: 768px) {
+            .info-grid { grid-template-columns: 1fr; }
+            .detail-body { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar scrolled">
+    <a href="index.html"><img src="logo.png" alt="easyWin" class="logo-img"></a>
+    <div class="nav-links">
+        <a href="index.html#azienda">Azienda</a>
+        <a href="albi-fornitori.html">Albi Fornitori</a>
+        <a href="index.html#contatti">Contatti</a>
+    </div>
+</nav>
+
+<section class="page-hero">
+    <div class="page-hero-overlay"></div>
+    <h1 id="heroTitle">Dettaglio Stazione Appaltante</h1>
+    <p id="heroSubtitle">Informazioni sull'albo fornitori e bandi recenti</p>
+</section>
+
+<div class="detail-container">
+    <div style="margin-bottom: 16px;">
+        <a href="albi-fornitori.html" class="btn-back"><i class="fas fa-arrow-left"></i> Torna alla ricerca</a>
+    </div>
+
+    <div id="loadingState" class="loading">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Caricamento in corso...</p>
+    </div>
+
+    <div id="detailContent" style="display:none;">
+        <div class="detail-card">
+            <div class="detail-header">
+                <h2 id="stazioneName"></h2>
+                <div class="subtitle" id="stazioneLocation"></div>
+            </div>
+            <div class="detail-body">
+                <div class="info-grid">
+                    <div class="info-section">
+                        <h3><i class="fas fa-building"></i> Stazione Appaltante</h3>
+                        <div id="stazioneInfo"></div>
+                    </div>
+                    <div class="info-section">
+                        <h3><i class="fas fa-clipboard-list"></i> Albo Fornitori</h3>
+                        <div id="alboInfo"></div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin: 24px 0;">
+                    <button class="btn-action" onclick="richiediServizio()">
+                        <i class="fas fa-paper-plane"></i> Richiedi Iscrizione / Rinnovo
+                    </button>
+                </div>
+
+                <div class="bandi-section" id="bandiSection"></div>
+                <div class="bandi-section" id="esitiSection"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="errorState" style="display:none; text-align:center; padding:60px; color:#e74c3c;">
+        <i class="fas fa-exclamation-triangle" style="font-size:48px; margin-bottom:16px;"></i>
+        <p style="font-size:18px;">Stazione non trovata</p>
+        <a href="albi-fornitori.html" class="btn-back" style="margin-top:16px;"><i class="fas fa-arrow-left"></i> Torna alla ricerca</a>
+    </div>
+</div>
+
+<script>
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3001/api'
+    : '/api';
+
+const params = new URLSearchParams(window.location.search);
+const stazioneId = params.get('id');
+
+function esc(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function fmtDate(d) {
+    if (!d) return 'N/D';
+    return new Date(d).toLocaleDateString('it-IT');
+}
+
+function fmtImporto(n) {
+    if (!n && n !== 0) return 'N/D';
+    return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(n);
+}
+
+async function loadDetail() {
+    if (!stazioneId) {
+        showError();
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API}/albi-fornitori/${stazioneId}`);
+        if (!res.ok) throw new Error('Stazione non trovata');
+        const data = await res.json();
+
+        const st = data.stazione;
+        const albo = data.albo;
+        const bandi = data.bandi_recenti || [];
+        const esiti = data.esiti_recenti || [];
+
+        // Header
+        document.getElementById('heroTitle').textContent = st.nome_stazione || st.ragione_sociale || 'Stazione';
+        document.getElementById('stazioneName').textContent = st.nome_stazione || st.ragione_sociale || '';
+        document.getElementById('stazioneLocation').textContent = [st.citta, st.provincia, st.regione].filter(Boolean).join(', ');
+
+        // Stazione info
+        let staHtml = '';
+        if (st.indirizzo) staHtml += `<div class="info-row"><span class="label">Indirizzo</span><span class="value">${esc(st.indirizzo)}</span></div>`;
+        if (st.citta) staHtml += `<div class="info-row"><span class="label">Citta</span><span class="value">${esc(st.citta)}${st.sigla_provincia ? ' (' + esc(st.sigla_provincia) + ')' : ''}</span></div>`;
+        if (st.regione) staHtml += `<div class="info-row"><span class="label">Regione</span><span class="value">${esc(st.regione)}</span></div>`;
+        if (st.email) staHtml += `<div class="info-row"><span class="label">Email</span><span class="value"><a href="mailto:${esc(st.email)}">${esc(st.email)}</a></span></div>`;
+        if (st.telefono) staHtml += `<div class="info-row"><span class="label">Telefono</span><span class="value">${esc(st.telefono)}</span></div>`;
+        if (st.partita_iva) staHtml += `<div class="info-row"><span class="label">P.IVA / C.F.</span><span class="value">${esc(st.partita_iva)}</span></div>`;
+        document.getElementById('stazioneInfo').innerHTML = staHtml || '<p style="color:#999;">Nessuna informazione disponibile</p>';
+
+        // Albo info
+        let alboHtml = '';
+        if (albo) {
+            alboHtml += `<div class="info-row"><span class="label">Nome Albo</span><span class="value">${esc(albo.nome_albo)}</span></div>`;
+            if (albo.piattaforma) alboHtml += `<div class="info-row"><span class="label">Piattaforma</span><span class="value">${esc(albo.piattaforma)}</span></div>`;
+            if (albo.scadenza_iscrizione) alboHtml += `<div class="info-row"><span class="label">Scadenza</span><span class="value">${fmtDate(albo.scadenza_iscrizione)}</span></div>`;
+            if (albo.url_albo) alboHtml += `<div class="info-row"><span class="label">URL Albo</span><span class="value"><a href="${esc(albo.url_albo)}" target="_blank" rel="noopener">${esc(albo.url_albo)}</a></span></div>`;
+            if (albo.procedura_iscrizione) alboHtml += `<div class="info-row"><span class="label">Procedura</span><span class="value">${esc(albo.procedura_iscrizione)}</span></div>`;
+            if (albo.rinnovo_automatico) alboHtml += `<div class="info-row"><span class="label">Rinnovo</span><span class="value"><span class="badge badge-green">Automatico</span></span></div>`;
+            if (albo.note) alboHtml += `<div class="info-row"><span class="label">Note</span><span class="value">${esc(albo.note)}</span></div>`;
+        } else {
+            alboHtml = '<p style="color:#999;">Albo non ancora configurato</p>';
+        }
+        document.getElementById('alboInfo').innerHTML = alboHtml;
+
+        // Bandi recenti
+        if (bandi.length > 0) {
+            let bHtml = '<h3><i class="fas fa-gavel"></i> Bandi Recenti (' + bandi.length + ')</h3>';
+            bHtml += '<table class="bandi-table"><thead><tr><th>Titolo</th><th>CIG</th><th>Pubblicazione</th><th>Scadenza</th><th>Importo</th></tr></thead><tbody>';
+            bandi.forEach(b => {
+                bHtml += `<tr>
+                    <td>${esc(b.titolo || '')}</td>
+                    <td><code>${esc(b.cig || '')}</code></td>
+                    <td>${fmtDate(b.data_pubblicazione)}</td>
+                    <td>${fmtDate(b.data_offerta)}</td>
+                    <td>${fmtImporto(b.importo_totale)}</td>
+                </tr>`;
+            });
+            bHtml += '</tbody></table>';
+            document.getElementById('bandiSection').innerHTML = bHtml;
+        }
+
+        // Esiti recenti
+        if (esiti.length > 0) {
+            let eHtml = '<h3><i class="fas fa-trophy"></i> Esiti Recenti (' + esiti.length + ')</h3>';
+            eHtml += '<table class="bandi-table"><thead><tr><th>Titolo</th><th>Data</th><th>Importo</th><th>Partecipanti</th></tr></thead><tbody>';
+            esiti.forEach(e => {
+                eHtml += `<tr>
+                    <td>${esc(e.titolo || '')}</td>
+                    <td>${fmtDate(e.data_esito)}</td>
+                    <td>${fmtImporto(e.importo)}</td>
+                    <td>${e.n_partecipanti || '-'}</td>
+                </tr>`;
+            });
+            eHtml += '</tbody></table>';
+            document.getElementById('esitiSection').innerHTML = eHtml;
+        }
+
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('detailContent').style.display = 'block';
+
+    } catch (err) {
+        console.error('Error loading detail:', err);
+        showError();
+    }
+}
+
+function showError() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+}
+
+function richiediServizio() {
+    // Check if user is logged in
+    const token = localStorage.getItem('easywin_token');
+    if (!token) {
+        alert('Per richiedere l\'iscrizione devi prima effettuare il login.');
+        window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+        return;
+    }
+    // Show confirmation
+    if (confirm('Vuoi richiedere il servizio di iscrizione/rinnovo albo per questa stazione appaltante?\n\nIl team EasyWin ti contatterà per gestire la pratica.')) {
+        fetch(`${API}/albi-fornitori/${stazioneId}/richiedi-servizio`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ tipo_richiesta: 'iscrizione' })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert('Richiesta inviata con successo! Ti contatteremo al piu presto.');
+            } else {
+                alert(data.error || 'Errore nell\'invio della richiesta.');
+            }
+        })
+        .catch(err => {
+            alert('Errore di connessione. Riprova.');
+            console.error(err);
+        });
+    }
+}
+
+loadDetail();
+</script>
+
+</body>
+</html>

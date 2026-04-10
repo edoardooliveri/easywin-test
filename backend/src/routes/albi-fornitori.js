@@ -12,17 +12,17 @@ export default async function albiFornitoRoutes(fastify) {
   fastify.get('/', async (request) => {
     const { page = 1, limit = 20, search, regione, has_albo } = request.query;
     const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
-    const conditions = ['s."eliminata" = false'];
+    const conditions = ['s."attivo" = true'];
     const params = [];
     let idx = 1;
 
     if (search) {
-      conditions.push(`(s."nome" ILIKE $${idx} OR s."citta" ILIKE $${idx} OR COALESCE(s."ragione_sociale",'') ILIKE $${idx})`);
+      conditions.push(`(s.nome ILIKE $${idx} OR s."citta" ILIKE $${idx} OR p."nome" ILIKE $${idx} OR r."nome" ILIKE $${idx} OR COALESCE(af.nome_albo,'') ILIKE $${idx})`);
       params.push(`%${search}%`);
       idx++;
     }
     if (regione) {
-      conditions.push(`r."regione" = $${idx}`);
+      conditions.push(`r."nome" = $${idx}`);
       params.push(regione);
       idx++;
     }
@@ -34,17 +34,18 @@ export default async function albiFornitoRoutes(fastify) {
 
     const countRes = await query(
       `SELECT COUNT(*) as total FROM stazioni s
-       LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
-       LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
+       LEFT JOIN province p ON s."id_provincia" = p."id"
+       LEFT JOIN regioni r ON p."id_regione" = r."id"
+       LEFT JOIN albi_fornitori af ON af.id_stazione = s."id" AND af.attivo = true
        WHERE ${where}`, params
     );
 
     const dataParams = [...params, parseInt(limit), offset];
     const result = await query(`
       SELECT
-        s."id", s."nome" AS nome_stazione, s."citta" AS citta,
-        p."provincia" AS provincia, p."siglaprovincia" AS sigla_provincia,
-        r."regione" AS regione,
+        s."id", s.nome AS nome_stazione, s."citta" AS citta,
+        p."nome" AS provincia, p."sigla" AS sigla_provincia,
+        r."nome" AS regione,
         s."email" AS email, s."telefono" AS telefono, s."indirizzo" AS indirizzo,
         (SELECT COUNT(*) FROM bandi b WHERE b."id_stazione" = s."id" AND b."annullato" = false) AS n_bandi,
         af.id AS albo_id,
@@ -52,23 +53,38 @@ export default async function albiFornitoRoutes(fastify) {
         af.url_albo,
         af.piattaforma,
         af.scadenza_iscrizione,
+        af.categorie_soa,
         CASE WHEN af.id IS NOT NULL THEN true ELSE false END AS has_albo
       FROM stazioni s
-      LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
-      LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
+      LEFT JOIN province p ON s."id_provincia" = p."id"
+      LEFT JOIN regioni r ON p."id_regione" = r."id"
       LEFT JOIN albi_fornitori af ON af.id_stazione = s."id" AND af.attivo = true
       WHERE ${where}
-      ORDER BY af.id IS NOT NULL DESC, s."nome" ASC
+      ORDER BY af.id IS NOT NULL DESC, s.nome ASC
       LIMIT $${idx} OFFSET $${idx + 1}
     `, dataParams);
 
+    const total = parseInt(countRes.rows[0].total);
+    const pages = Math.ceil(total / parseInt(limit));
+
+    // Map fields to frontend-expected camelCase names
+    const albi = result.rows.map(r => ({
+      ...r,
+      stazioneNome: r.nome_stazione,
+      scadenza: r.scadenza_iscrizione,
+      soaCategorie: r.categorie_soa ? (Array.isArray(r.categorie_soa) ? r.categorie_soa : [r.categorie_soa]) : [],
+      tipo: r.piattaforma || 'Generico'
+    }));
+
     return {
       data: result.rows,
+      albi,
+      totalPages: pages,
       pagination: {
-        total: parseInt(countRes.rows[0].total),
+        total,
         page: parseInt(page),
         limit: parseInt(limit),
-        pages: Math.ceil(parseInt(countRes.rows[0].total) / parseInt(limit))
+        pages
       }
     };
   });
@@ -89,23 +105,30 @@ export default async function albiFornitoRoutes(fastify) {
       FROM stazioni s
       LEFT JOIN albi_fornitori af ON af.id_stazione = s."id"
       LEFT JOIN richieste_servizio_albi r ON r.id_albo = af.id
-      WHERE s."eliminata" = false
+      WHERE s."attivo" = true
     `);
 
     const regioniRes = await query(`
-      SELECT r."regione" AS regione,
+      SELECT r."nome" AS regione,
         COUNT(DISTINCT s."id") AS n_stazioni,
         COUNT(DISTINCT af.id) AS n_albi
       FROM stazioni s
-      LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
-      LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
+      LEFT JOIN province p ON s."id_provincia" = p."id"
+      LEFT JOIN regioni r ON p."id_regione" = r."id"
       LEFT JOIN albi_fornitori af ON af.id_stazione = s."id" AND af.attivo = true
-      WHERE s."eliminata" = false AND r."regione" IS NOT NULL
-      GROUP BY r."regione"
+      WHERE s."attivo" = true AND r."nome" IS NOT NULL
+      GROUP BY r."nome"
       ORDER BY n_albi DESC, n_stazioni DESC
     `);
 
-    return { stats: stats.rows[0], copertura_regioni: regioniRes.rows };
+    const s = stats.rows[0];
+    return {
+      stats: s,
+      albiTotali: parseInt(s.totale_albi) || 0,
+      stazioniCoinvolte: parseInt(s.totale_stazioni) || 0,
+      soaCoperte: parseInt(s.albi_attivi) || 0,
+      copertura_regioni: regioniRes.rows
+    };
   });
 
   // ============================================================
@@ -115,16 +138,15 @@ export default async function albiFornitoRoutes(fastify) {
     const { id } = request.params;
 
     const staRes = await query(`
-      SELECT s."id", s."nome" AS nome_stazione, s."ragione_sociale" AS ragione_sociale,
-        s."indirizzo", s."cap" AS cap, s."citta" AS citta, s."telefono" AS telefono,
-        s."email" AS email, s."pec" AS pec, s."partita_iva" AS partita_iva,
-        s."sito_web" AS sito_web,
-        p."provincia" AS provincia, p."siglaprovincia" AS sigla_provincia,
-        r."regione" AS regione
+      SELECT s.id, s.nome AS nome_stazione, s.nome AS ragione_sociale,
+        s.indirizzo, s.cap, s.citta, s.telefono,
+        s.email, s.codice_fiscale AS partita_iva,
+        p.nome AS provincia, p.sigla AS sigla_provincia,
+        r.nome AS regione
       FROM stazioni s
-      LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
-      LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
-      WHERE s."id" = $1 AND s."eliminata" = false
+      LEFT JOIN province p ON s.id_provincia = p.id
+      LEFT JOIN regioni r ON p.id_regione = r.id
+      WHERE s.id = $1 AND s.attivo = true
     `, [id]);
 
     if (staRes.rows.length === 0) return reply.status(404).send({ error: 'Stazione non trovata' });
@@ -136,20 +158,20 @@ export default async function albiFornitoRoutes(fastify) {
 
     // Recent bandi
     const bandiRes = await query(`
-      SELECT "id" AS id, "titolo" AS titolo, "data_pubblicazione" AS data_pubblicazione,
-        "data_offerta" AS data_offerta, "codice_cig" AS cig,
-        COALESCE("importo_so",0) + COALESCE("importo_co",0) AS importo_totale
-      FROM bandi WHERE "id_stazione" = $1 AND "annullato" = false
-      ORDER BY "data_pubblicazione" DESC NULLS LAST LIMIT 20
+      SELECT id, titolo, data_pubblicazione,
+        data_offerta, codice_cig AS cig,
+        COALESCE(importo_so,0) + COALESCE(importo_co,0) AS importo_totale
+      FROM bandi WHERE id_stazione = $1 AND annullato = false
+      ORDER BY data_pubblicazione DESC NULLS LAST LIMIT 20
     `, [id]);
 
     // Recent esiti (gare aggiudicate)
     const esitiRes = await query(`
-      SELECT g."id", g."titolo" AS titolo, g."data" AS data_esito,
-        g."importo" AS importo, g."n_partecipanti" AS n_partecipanti
+      SELECT g.id, g.titolo, g.data AS data_esito,
+        g.importo, g.n_partecipanti
       FROM gare g
-      WHERE g."id_stazione" = $1
-      ORDER BY g."data" DESC NULLS LAST LIMIT 10
+      WHERE g.id_stazione = $1
+      ORDER BY g.data DESC NULLS LAST LIMIT 10
     `, [id]);
 
     return {
@@ -176,12 +198,12 @@ export default async function albiFornitoRoutes(fastify) {
 
     // If no albo exists for this stazione, create a placeholder
     if (alboRes.rows.length === 0) {
-      const staRes = await query('SELECT "Nome" FROM stazioni WHERE "id" = $1', [id]);
+      const staRes = await query('SELECT nome FROM stazioni WHERE id = $1', [id]);
       if (staRes.rows.length === 0) return reply.status(404).send({ error: 'Stazione non trovata' });
 
       alboRes = await query(
         `INSERT INTO albi_fornitori (id_stazione, nome_albo, attivo) VALUES ($1, $2, true) RETURNING id`,
-        [id, `Albo Fornitori - ${staRes.rows[0].Nome}`]
+        [id, `Albo Fornitori - ${staRes.rows[0].nome}`]
       );
     }
 
@@ -247,7 +269,7 @@ export default async function albiFornitoRoutes(fastify) {
     if (conditions.length === 0) return { data: [] };
 
     const result = await query(`
-      SELECT r.*, af.nome_albo, s."nome" AS stazione_nome, s."citta" AS stazione_citta
+      SELECT r.*, af.nome_albo, s.nome AS stazione_nome, s."citta" AS stazione_citta
       FROM richieste_servizio_albi r
       JOIN albi_fornitori af ON r.id_albo = af.id
       JOIN stazioni s ON af.id_stazione = s."id"
@@ -299,7 +321,7 @@ export default async function albiFornitoRoutes(fastify) {
 
     // Recent requests
     const recentReqs = await query(`
-      SELECT r.*, af.nome_albo, s."nome" AS stazione_nome,
+      SELECT r.*, af.nome_albo, s.nome AS stazione_nome,
         a."ragione_sociale" AS azienda_nome
       FROM richieste_servizio_albi r
       JOIN albi_fornitori af ON r.id_albo = af.id
@@ -352,7 +374,7 @@ export default async function albiFornitoRoutes(fastify) {
       ]);
     } else {
       // Create
-      const staRes = await query('SELECT "Nome" FROM stazioni WHERE "id" = $1', [id_stazione]);
+      const staRes = await query('SELECT nome FROM stazioni WHERE id = $1', [id_stazione]);
       result = await query(`
         INSERT INTO albi_fornitori (
           id_stazione, nome_albo, url_albo, piattaforma,
@@ -410,8 +432,8 @@ export default async function albiFornitoRoutes(fastify) {
     params.push(parseInt(limit), offset);
 
     const result = await query(`
-      SELECT r.*, af.nome_albo, s."nome" AS stazione_nome, s."citta" AS stazione_citta,
-        a."ragione_sociale" AS azienda_nome, a."partita_iva" AS azienda_piva,
+      SELECT r.*, af.nome_albo, s.nome AS stazione_nome, s."citta" AS stazione_citta,
+        a."ragione_sociale" AS azienda_nome, a."codice_fiscale" AS azienda_piva,
         a."telefono" AS azienda_tel, a."email" AS azienda_email
       FROM richieste_servizio_albi r
       JOIN albi_fornitori af ON r.id_albo = af.id
@@ -504,32 +526,214 @@ export default async function albiFornitoRoutes(fastify) {
   });
 
   // ============================================================
+  // GET /api/albi-fornitori/admin/iscrizioni - Lista completa iscrizioni con filtri
+  // ============================================================
+  fastify.get('/admin/iscrizioni', { preHandler: [fastify.authenticate] }, async (request) => {
+    const { stato, albo_id, search, page = 1, limit = 50 } = request.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+
+    let conditions = ['1=1'];
+    const params = [];
+    let paramIdx = 0;
+
+    if (stato) {
+      paramIdx++;
+      conditions.push(`i.stato = $${paramIdx}`);
+      params.push(stato);
+    }
+    if (albo_id) {
+      paramIdx++;
+      conditions.push(`i.id_albo = $${paramIdx}`);
+      params.push(parseInt(albo_id));
+    }
+    if (search) {
+      paramIdx++;
+      conditions.push(`(a."ragione_sociale" ILIKE $${paramIdx} OR i.numero_iscrizione ILIKE $${paramIdx})`);
+      params.push('%' + search + '%');
+    }
+
+    const where = conditions.join(' AND ');
+
+    // Count
+    const countRes = await query(`
+      SELECT COUNT(*) AS total
+      FROM iscrizioni_albo i
+      LEFT JOIN aziende a ON i.id_azienda = a."id"
+      WHERE ${where}
+    `, params);
+    const total = parseInt(countRes.rows[0].total);
+
+    // Data
+    paramIdx++;
+    params.push(parseInt(limit));
+    paramIdx++;
+    params.push(offset);
+
+    const result = await query(`
+      SELECT i.*,
+             a."ragione_sociale" AS azienda_nome, a."email" AS azienda_email,
+             a."partita_iva" AS azienda_piva, a."telefono" AS azienda_telefono,
+             af.nome_albo, af.piattaforma,
+             s.nome AS stazione_nome
+      FROM iscrizioni_albo i
+      LEFT JOIN aziende a ON i.id_azienda = a."id"
+      LEFT JOIN albi_fornitori af ON i.id_albo = af.id
+      LEFT JOIN stazioni s ON af.id_stazione = s."id"
+      WHERE ${where}
+      ORDER BY i.updated_at DESC NULLS LAST, i.created_at DESC
+      LIMIT $${paramIdx - 1} OFFSET $${paramIdx}
+    `, params);
+
+    return {
+      data: result.rows,
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      pages: Math.ceil(total / parseInt(limit))
+    };
+  });
+
+  // ============================================================
+  // GET /api/albi-fornitori/admin/scadenze - Iscrizioni in scadenza
+  // ============================================================
+  fastify.get('/admin/scadenze', { preHandler: [fastify.authenticate] }, async (request) => {
+    const { giorni = 60 } = request.query;
+    const scadenza = new Date(Date.now() + parseInt(giorni) * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const result = await query(`
+      SELECT i.id, i.id_albo, i.id_azienda, i.data_scadenza, i.stato, i.numero_iscrizione,
+             a."ragione_sociale" AS azienda_nome, a."email" AS azienda_email, a."telefono" AS azienda_telefono,
+             af.nome_albo, af.piattaforma,
+             s.nome AS stazione_nome,
+             EXTRACT(DAY FROM i.data_scadenza::timestamp - NOW()) AS giorni_rimasti
+      FROM iscrizioni_albo i
+      JOIN albi_fornitori af ON i.id_albo = af.id
+      JOIN stazioni s ON af.id_stazione = s."id"
+      LEFT JOIN aziende a ON i.id_azienda = a."id"
+      WHERE i.data_scadenza <= $1
+        AND i.data_scadenza >= CURRENT_DATE
+        AND i.stato IN ('iscritto', 'da_verificare')
+      ORDER BY i.data_scadenza ASC
+    `, [scadenza]);
+
+    // Count already notified (if log table exists)
+    let notificati = 0;
+    try {
+      const logRes = await query(`
+        SELECT COUNT(DISTINCT id_iscrizione) AS n
+        FROM albi_notifiche_log
+        WHERE created_at >= NOW() - INTERVAL '30 days'
+      `);
+      notificati = parseInt(logRes.rows[0]?.n || 0);
+    } catch { /* table may not exist */ }
+
+    return {
+      data: result.rows,
+      total: result.rows.length,
+      giorni_filtro: parseInt(giorni),
+      notificati_recenti: notificati
+    };
+  });
+
+  // ============================================================
+  // PUT /api/albi-fornitori/admin/iscrizioni/:id - Aggiorna iscrizione
+  // ============================================================
+  fastify.put('/admin/iscrizioni/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { id } = request.params;
+    const { stato, data_scadenza, numero_iscrizione, note, iscritto } = request.body;
+
+    const updates = [];
+    const params = [];
+    let paramIdx = 0;
+
+    if (stato !== undefined) { paramIdx++; updates.push(`stato = $${paramIdx}`); params.push(stato); }
+    if (data_scadenza !== undefined) { paramIdx++; updates.push(`data_scadenza = $${paramIdx}`); params.push(data_scadenza); }
+    if (numero_iscrizione !== undefined) { paramIdx++; updates.push(`numero_iscrizione = $${paramIdx}`); params.push(numero_iscrizione); }
+    if (note !== undefined) { paramIdx++; updates.push(`note = $${paramIdx}`); params.push(note); }
+    if (iscritto !== undefined) { paramIdx++; updates.push(`iscritto = $${paramIdx}`); params.push(iscritto); }
+    updates.push('updated_at = NOW()');
+
+    if (updates.length <= 1) return reply.status(400).send({ error: 'Nessun campo da aggiornare' });
+
+    paramIdx++;
+    params.push(parseInt(id));
+    const result = await query(`UPDATE iscrizioni_albo SET ${updates.join(', ')} WHERE id = $${paramIdx} RETURNING *`, params);
+
+    if (result.rows.length === 0) return reply.status(404).send({ error: 'Iscrizione non trovata' });
+    return { success: true, iscrizione: result.rows[0] };
+  });
+
+  // ============================================================
   // GET /api/albi-fornitori/raccomandazioni - Albi consigliati per il cliente
   // ============================================================
-  fastify.get('/raccomandazioni', { preHandler: [fastify.authenticate] }, async (request) => {
+  fastify.get('/raccomandazioni', async (request) => {
     const username = request.user?.username || request.user?.email;
     const idAzienda = request.user?.id_azienda;
-    const { limit: maxResults = 20 } = request.query;
+    const { limit: maxResults = 20, azienda: aziendaSearch, regione: regioneFilter, soa: soaFilter } = request.query;
 
-    // 1. Get client's SOA categories (both bandi and esiti)
-    const soaRes = await query(`
-      SELECT DISTINCT id_soa FROM (
-        SELECT id_soa FROM users_soa WHERE username = $1
-        UNION
-        SELECT id_soa FROM users_soa_bandi WHERE username = $1
-      ) combined
-    `, [username]);
-    const clientSoaIds = soaRes.rows.map(r => r.id_soa);
+    let clientSoaIds = [];
+    let clientRegioniIds = [];
 
-    // 2. Get client's regions
-    const regioniRes = await query(`
-      SELECT DISTINCT id_regione FROM (
-        SELECT id_regione FROM users_regioni WHERE username = $1
-        UNION
-        SELECT id_regione FROM users_regioni_bandi WHERE username = $1
-      ) combined
-    `, [username]);
-    const clientRegioniIds = regioniRes.rows.map(r => r.id_regione);
+    // Admin mode: search by azienda name/piva, or apply filters directly
+    if (aziendaSearch) {
+      // Find azienda by name or P.IVA
+      const azRes = await query(`
+        SELECT id, "ragione_sociale" AS ragione_sociale FROM aziende
+        WHERE ("ragione_sociale" ILIKE $1 OR "codice_fiscale" ILIKE $1) AND "attivo" = true
+        LIMIT 1
+      `, ['%' + aziendaSearch + '%']);
+
+      if (azRes.rows.length > 0) {
+        const azId = azRes.rows[0].id;
+        // Get azienda SOA from attestazioni
+        const azSoaRes = await query(`
+          SELECT DISTINCT aa."id_soa" AS id_soa FROM attestazioni_aziende aa WHERE aa."id_azienda" = $1
+        `, [azId]);
+        clientSoaIds = azSoaRes.rows.map(r => r.id_soa);
+
+        // Get azienda region from province
+        const azRegRes = await query(`
+          SELECT p."id_regione" FROM aziende a
+          JOIN province p ON a."id_provincia" = p."id"
+          WHERE a.id = $1 AND p."id_regione" IS NOT NULL
+        `, [azId]);
+        clientRegioniIds = azRegRes.rows.map(r => r.id_regione);
+      }
+    }
+
+    // Override with explicit filters if provided
+    if (regioneFilter) {
+      clientRegioniIds = [parseInt(regioneFilter)];
+    }
+    if (soaFilter) {
+      clientSoaIds = [parseInt(soaFilter)];
+    }
+
+    // Fallback: try user's SOA and regions from contract
+    if (clientSoaIds.length === 0 && !aziendaSearch && !soaFilter && username) {
+      try {
+        const soaRes = await query(`
+          SELECT DISTINCT id_soa FROM (
+            SELECT id_soa FROM users_soa WHERE username = $1
+            UNION
+            SELECT id_soa FROM users_soa_bandi WHERE username = $1
+          ) combined
+        `, [username]);
+        clientSoaIds = soaRes.rows.map(r => r.id_soa);
+      } catch(e) { /* tables may not exist */ }
+    }
+    if (clientRegioniIds.length === 0 && !aziendaSearch && !regioneFilter && username) {
+      try {
+        const regioniRes = await query(`
+          SELECT DISTINCT id_regione FROM (
+            SELECT id_regione FROM users_regioni WHERE username = $1
+            UNION
+            SELECT id_regione FROM users_regioni_bandi WHERE username = $1
+          ) combined
+        `, [username]);
+        clientRegioniIds = regioniRes.rows.map(r => r.id_regione);
+      } catch(e) { /* tables may not exist */ }
+    }
 
     if (clientSoaIds.length === 0 && clientRegioniIds.length === 0) {
       return {
@@ -572,7 +776,7 @@ export default async function albiFornitoRoutes(fastify) {
     // - In the client's regions
     // - Have published bandi (especially procedure negoziate) in client's SOA
     // - Client is NOT already registered to
-    const conditions = ['s."eliminata" = false', 'af.attivo = true'];
+    const conditions = ['s."attivo" = true', 'af.attivo = true'];
     const params = [];
     let idx = 1;
 
@@ -602,7 +806,7 @@ export default async function albiFornitoRoutes(fastify) {
 
     // Find tipologia_bando ID for "Procedura Negoziata"
     const tipoRes = await query(`
-      SELECT "id" FROM tipologia_bandi WHERE "nome" ILIKE '%negoziata%' LIMIT 1
+      SELECT "id" AS id FROM tipologia_bandi WHERE "nome" ILIKE '%negoziata%' LIMIT 1
     `);
     const negoziataId = tipoRes.rows[0]?.id;
 
@@ -621,10 +825,10 @@ export default async function albiFornitoRoutes(fastify) {
     const result = await query(`
       SELECT
         s."id",
-        s."nome" AS nome_stazione,
+        s.nome AS nome_stazione,
         s."citta" AS citta,
-        r."regione" AS regione,
-        p."provincia" AS provincia,
+        r."nome" AS regione,
+        p."nome" AS provincia,
         af.id AS albo_id,
         af.nome_albo,
         af.piattaforma,
@@ -666,8 +870,8 @@ export default async function albiFornitoRoutes(fastify) {
 
       FROM stazioni s
       JOIN albi_fornitori af ON af.id_stazione = s."id" AND af.attivo = true
-      LEFT JOIN province p ON s."id_provincia" = p."id_provincia"
-      LEFT JOIN regioni r ON p."id_regione" = r."id_regione"
+      LEFT JOIN province p ON s."id_provincia" = p."id"
+      LEFT JOIN regioni r ON p."id_regione" = r."id"
       WHERE ${conditions.join(' AND ')}
 
       -- Ordine: più procedure negoziate → più bandi SOA → più bandi recenti
@@ -691,7 +895,7 @@ export default async function albiFornitoRoutes(fastify) {
     let soaNames = [];
     if (clientSoaIds.length > 0) {
       const soaNamesRes = await query(
-        `SELECT "codice", "descrizione" FROM soa WHERE "id" = ANY($1) ORDER BY "codice"`,
+        `SELECT "codice" AS codice, "descrizione" AS descrizione FROM soa WHERE "id" = ANY($1) ORDER BY "codice"`,
         [clientSoaIds]
       );
       soaNames = soaNamesRes.rows;
@@ -700,7 +904,7 @@ export default async function albiFornitoRoutes(fastify) {
     let regioniNames = [];
     if (clientRegioniIds.length > 0) {
       const regNamesRes = await query(
-        `SELECT "regione" FROM regioni WHERE id = ANY($1) ORDER BY "regione"`,
+        `SELECT "nome" AS regione FROM regioni WHERE "id" = ANY($1) ORDER BY "nome"`,
         [clientRegioniIds]
       );
       regioniNames = regNamesRes.rows.map(r => r.regione);
@@ -718,17 +922,122 @@ export default async function albiFornitoRoutes(fastify) {
   });
 
   // ============================================================
+  // POST /api/albi-fornitori/admin/notifica-scadenza - Invia notifica scadenza singola
+  // ============================================================
+  fastify.post('/admin/notifica-scadenza', { preHandler: [fastify.authenticate] }, async (request) => {
+    const { id_iscrizione, id_azienda, email, nome_azienda, stazione, data_scadenza, tipo_scadenza } = request.body;
+    if (!email) return { success: false, error: 'Email destinatario mancante' };
+
+    let sendEmail;
+    try {
+      const mod = await import('../services/email-service.js');
+      sendEmail = mod.sendEmail;
+    } catch {
+      return { success: false, error: 'Servizio email non disponibile' };
+    }
+
+    const subject = `[EasyWin] Promemoria scadenza ${tipo_scadenza || 'iscrizione albo'} - ${stazione || ''}`;
+    const htmlBody = `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+        <div style="background:#1a5276;color:#fff;padding:20px;border-radius:8px 8px 0 0">
+          <h2 style="margin:0">Promemoria Scadenza Albo Fornitori</h2>
+        </div>
+        <div style="padding:20px;background:#f8f9fa;border:1px solid #ddd">
+          <p>Gentile <strong>${nome_azienda || 'Utente'}</strong>,</p>
+          <p>Le ricordiamo che la sua <strong>${tipo_scadenza || 'iscrizione'}</strong> presso la stazione appaltante
+             <strong>${stazione || ''}</strong> risulta in scadenza il <strong>${data_scadenza || 'N/D'}</strong>.</p>
+          <p>La invitiamo a provvedere al rinnovo per non perdere la possibilità di partecipare alle gare.</p>
+          <hr style="border-color:#ddd">
+          <p style="font-size:12px;color:#666">Questa email è stata inviata automaticamente da EasyWin. Per informazioni: info@easywin.it</p>
+        </div>
+      </div>
+    `;
+
+    const result = await sendEmail(email, subject, htmlBody);
+
+    // Log the notification
+    try {
+      await query(`INSERT INTO albi_notifiche_log (id_iscrizione, id_azienda, email, tipo, esito, inviata_da, created_at)
+                   VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+        [id_iscrizione || null, id_azienda || null, email, tipo_scadenza || 'scadenza', result.status, request.user?.username]);
+    } catch { /* tabella potrebbe non esistere ancora */ }
+
+    return { success: result.status === 'sent', result };
+  });
+
+  // ============================================================
+  // POST /api/albi-fornitori/admin/notifiche-scadenze-bulk - Invia notifiche in blocco
+  // ============================================================
+  fastify.post('/admin/notifiche-scadenze-bulk', { preHandler: [fastify.authenticate] }, async (request) => {
+    const { giorni = 30 } = request.body || {};
+    const scadenza = new Date(Date.now() + giorni * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    // Trova tutte le iscrizioni in scadenza con email
+    const res = await query(`
+      SELECT i.id, i.id_azienda, i.data_scadenza, i.stato,
+             a."ragione_sociale" AS nome_azienda, a."email" AS email,
+             af.nome_albo, s.nome AS stazione_nome
+      FROM iscrizioni_albo i
+      JOIN albi_fornitori af ON i.id_albo = af.id
+      JOIN stazioni s ON af.id_stazione = s."id"
+      LEFT JOIN aziende a ON i.id_azienda = a."id"
+      WHERE i.data_scadenza <= $1
+        AND i.data_scadenza >= CURRENT_DATE
+        AND i.stato IN ('iscritto', 'da_verificare')
+        AND a."email" IS NOT NULL AND a."email" != ''
+      ORDER BY i.data_scadenza ASC
+    `, [scadenza]);
+
+    if (res.rows.length === 0) return { success: true, inviate: 0, messaggio: 'Nessuna scadenza con email valida nel periodo' };
+
+    let sendEmail;
+    try {
+      const mod = await import('../services/email-service.js');
+      sendEmail = mod.sendEmail;
+    } catch {
+      return { success: false, error: 'Servizio email non disponibile' };
+    }
+
+    let sent = 0, failed = 0, skipped = 0;
+    const details = [];
+
+    for (const row of res.rows) {
+      const subject = `[EasyWin] Scadenza iscrizione albo - ${row.stazione_nome || ''}`;
+      const gg = Math.ceil((new Date(row.data_scadenza) - new Date()) / (1000*60*60*24));
+      const html = `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+          <div style="background:#e65100;color:#fff;padding:20px;border-radius:8px 8px 0 0">
+            <h2 style="margin:0">Scadenza Iscrizione Albo tra ${gg} giorni</h2>
+          </div>
+          <div style="padding:20px;background:#f8f9fa;border:1px solid #ddd">
+            <p>Gentile <strong>${row.nome_azienda || 'Utente'}</strong>,</p>
+            <p>La sua iscrizione all'albo <strong>${row.nome_albo || ''}</strong> della stazione <strong>${row.stazione_nome || ''}</strong>
+               scade il <strong>${new Date(row.data_scadenza).toLocaleDateString('it-IT')}</strong> (tra ${gg} giorni).</p>
+            <p>Rinnovi per tempo per continuare a ricevere inviti alle procedure negoziate.</p>
+          </div>
+        </div>`;
+      const result = await sendEmail(row.email, subject, html);
+      if (result.status === 'sent') sent++;
+      else if (result.status === 'skipped') skipped++;
+      else failed++;
+      details.push({ azienda: row.nome_azienda, email: row.email, esito: result.status });
+    }
+
+    return { success: true, inviate: sent, fallite: failed, saltate: skipped, totale: res.rows.length, dettagli: details };
+  });
+
+  // ============================================================
   // GET /api/albi-fornitori/regioni/lista - Lista regioni per filtro
   // ============================================================
   fastify.get('/regioni/lista', async () => {
     const result = await query(`
-      SELECT DISTINCT r."regione" AS regione
+      SELECT DISTINCT r."nome" AS regione
       FROM stazioni s
-      JOIN province p ON s."id_provincia" = p."id_provincia"
-      JOIN regioni r ON p."id_regione" = r."id_regione"
-      WHERE s."eliminata" = false AND r."regione" IS NOT NULL
-      ORDER BY r."regione"
+      JOIN province p ON s."id_provincia" = p."id"
+      JOIN regioni r ON p."id_regione" = r."id"
+      WHERE s."attivo" = true AND r."nome" IS NOT NULL
+      ORDER BY r."nome"
     `);
-    return result.rows.map(r => r.regione);
+    return { regioni: result.rows.map(r => r.regione) };
   });
 }

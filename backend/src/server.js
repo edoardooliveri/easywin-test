@@ -14,7 +14,10 @@ import bandiRoutes from './routes/bandi.js';
 import presidiaRoutes from './routes/presidia.js';
 import bandiAiRoutes from './routes/bandi-ai.js';
 import esitiRoutes from './routes/esiti.js';
+import esitiExportRoutes from './routes/esiti-export.js';
 import esitiAiRoutes from './routes/esiti-ai.js';
+import esitiToggleRoutes from './routes/esiti-toggle.js';
+import esitiActionsRoutes from './routes/esiti-actions.js';
 import simulazioniRoutes from './routes/simulazioni.js';
 import rangeStatisticoRoutes from './routes/range-statistico.js';
 import sopralluoghiMapRoutes from './routes/sopralluoghi-map.js';
@@ -40,6 +43,7 @@ import apiPubblicaRoutes from './routes/api-pubblica.js';
 import sistemaRoutes from './routes/sistema.js';
 import newsletterRoutes from './routes/newsletter.js';
 import bandiImportRoutes from './routes/bandi-import.js';
+import bandiAllegatiRoutes from './routes/bandi-allegati.js';
 import tasksManagerRoutes from './routes/tasks-manager.js';
 import calendarioRoutes from './routes/calendario.js';
 import provinceGestioneRoutes from './routes/province-gestione.js';
@@ -94,6 +98,41 @@ fastify.decorate('requireAdmin', async function (request, reply) {
   }
 });
 
+// Gestionale access decorator (admin, agente, incaricato, operatore)
+fastify.decorate('requireGestionale', async function (request, reply) {
+  const perms = request.user?.permissions;
+  if (!perms?.gestionale) {
+    reply.status(403).send({ error: 'Accesso riservato al personale gestionale' });
+  }
+});
+
+// Permission check decorator factory — checks specific feature flags
+fastify.decorate('requirePermission', function (permissionKey) {
+  return async function (request, reply) {
+    const perms = request.user?.permissions;
+    const ruolo = request.user?.ruolo;
+    // Admin/superadmin bypass all permission checks
+    if (ruolo === 'admin' || ruolo === 'superadmin') return;
+    // Check expired subscription
+    if (request.user?.isExpired) {
+      reply.status(403).send({ error: 'Abbonamento scaduto. Rinnovare per accedere a questa funzionalità.' });
+      return;
+    }
+    if (!perms || !perms[permissionKey]) {
+      reply.status(403).send({ error: `Non hai i permessi per accedere a questa funzionalità (${permissionKey})` });
+    }
+  };
+});
+
+// Subscription active check decorator
+fastify.decorate('requireActiveSubscription', async function (request, reply) {
+  const ruolo = request.user?.ruolo;
+  if (ruolo === 'admin' || ruolo === 'superadmin' || ruolo === 'agente' || ruolo === 'incaricato' || ruolo === 'operatore') return;
+  if (request.user?.isExpired) {
+    reply.status(403).send({ error: 'Abbonamento scaduto. Contattare l\'assistenza per il rinnovo.' });
+  }
+});
+
 // Health check
 fastify.get('/api/health', async () => ({
   status: 'ok',
@@ -108,6 +147,9 @@ await fastify.register(bandiRoutes, { prefix: '/api/bandi' });
 await fastify.register(presidiaRoutes, { prefix: '/api/presidia' });
 await fastify.register(bandiAiRoutes, { prefix: '/api/bandi-ai' });
 await fastify.register(esitiRoutes, { prefix: '/api/esiti' });
+await fastify.register(esitiExportRoutes, { prefix: '/api/esiti' });
+await fastify.register(esitiToggleRoutes, { prefix: '/api/esiti' });
+await fastify.register(esitiActionsRoutes, { prefix: '/api/esiti-actions' });
 await fastify.register(esitiAiRoutes, { prefix: '/api/esiti-ai' });
 await fastify.register(simulazioniRoutes, { prefix: '/api/simulazioni' });
 await fastify.register(rangeStatisticoRoutes, { prefix: '/api/range-statistico' });
@@ -120,6 +162,9 @@ await fastify.register(clientiRoutes, { prefix: '/api/clienti' });
 
 // Bandi Services (aperture, scritture, sopralluoghi, elaborati)
 await fastify.register(bandiServiziRoutes, { prefix: '/api/bandi' });
+
+// Bandi Allegati (upload, download, delete, list)
+await fastify.register(bandiAllegatiRoutes, { prefix: '/api/bandi' });
 
 // Entity management
 await fastify.register(concorrentiRoutes, { prefix: '/api/concorrenti' });
@@ -140,16 +185,27 @@ await fastify.register(pubblicoRoutes, { prefix: '/api/pubblico' });
 // Public API v1 (API key auth)
 await fastify.register(apiPubblicaRoutes, { prefix: '/api/v1' });
 
-// Admin routes
-await fastify.register(adminDashboardRoutes, { prefix: '/api/admin' });
-await fastify.register(adminGestionaleRoutes, { prefix: '/api/admin/gestionale' });
-await fastify.register(adminAziendeRoutes, { prefix: '/api/admin/aziende' });
-await fastify.register(adminStazioniRoutes, { prefix: '/api/admin/stazioni' });
-await fastify.register(adminUtentiRoutes, { prefix: '/api/admin' });
-await fastify.register(sistemaRoutes, { prefix: '/api/admin' });
-await fastify.register(newsletterRoutes, { prefix: '/api/admin/newsletter' });
-await fastify.register(bandiImportRoutes, { prefix: '/api/admin/bandi-import' });
-await fastify.register(tasksManagerRoutes, { prefix: '/api/admin/tasks' });
+// Admin routes — wrapped in a scoped plugin so jwtVerify runs for every /api/admin/* request
+await fastify.register(async function adminScope(instance) {
+  // Automatically verify JWT for ALL admin routes
+  instance.addHook('onRequest', async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch (err) {
+      return reply.status(401).send({ error: 'Non autorizzato' });
+    }
+  });
+
+  await instance.register(adminDashboardRoutes);
+  await instance.register(adminGestionaleRoutes, { prefix: '/gestionale' });
+  await instance.register(adminAziendeRoutes, { prefix: '/aziende' });
+  await instance.register(adminStazioniRoutes, { prefix: '/stazioni' });
+  await instance.register(adminUtentiRoutes);
+  await instance.register(sistemaRoutes);
+  await instance.register(newsletterRoutes, { prefix: '/newsletter' });
+  await instance.register(bandiImportRoutes, { prefix: '/bandi-import' });
+  await instance.register(tasksManagerRoutes, { prefix: '/tasks' });
+}, { prefix: '/api/admin' });
 
 // Calendar/Agenda
 await fastify.register(calendarioRoutes, { prefix: '/api/calendario' });
@@ -178,6 +234,7 @@ fastify.addHook('onRequest', (request, reply, done) => {
   }
   done();
 });
+
 
 // Serve frontend static files from the parent directory
 await fastify.register(fastifyStatic, {
