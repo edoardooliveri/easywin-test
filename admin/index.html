@@ -3099,49 +3099,6 @@ span.flatpickr-weekday {
         </div>
       </div>
 
-      <!-- IMPRESE PAGE -->
-      <div id="pageImprese" class="page">
-        <div class="page-header"><h1 class="page-title">IMPRESE</h1></div>
-        <div class="search-section compact">
-          <div class="form-row">
-            <div class="form-col"><label>Ragione Sociale</label><input type="text" id="imprese-search" placeholder="Cerca impresa..."></div>
-            <div class="form-col"><label>P.IVA</label><input type="text" id="imprese-piva"></div>
-          </div>
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="searchImprese()"><i class="fas fa-search"></i> CERCA</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('imprese-search').value='';"><i class="fas fa-redo"></i> ANNULLA</button>
-          </div>
-        </div>
-        <div class="table-container"><div id="impreseResults"></div></div>
-      </div>
-
-      <!-- CASELLARIO PAGE -->
-      <div id="pageCasellario" class="page">
-        <div class="page-header"><h1 class="page-title">CASELLARIO</h1></div>
-        <div class="search-section compact">
-          <div class="form-row">
-            <div class="form-col"><label>Ragione Sociale / P.IVA</label><input type="text" id="casellario-search" placeholder="Cerca..."></div>
-          </div>
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="searchCasellario()"><i class="fas fa-search"></i> CERCA</button>
-          </div>
-        </div>
-        <div class="table-container"><div id="casellarioResults"></div></div>
-      </div>
-
-      <!-- CCIAA PAGE -->
-      <div id="pageCCIAA" class="page">
-        <div class="page-header"><h1 class="page-title">CCIAA</h1></div>
-        <div class="search-section compact">
-          <div class="form-row">
-            <div class="form-col"><label>Ragione Sociale / P.IVA</label><input type="text" id="cciaa-search" placeholder="Cerca..."></div>
-          </div>
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="searchCCIAA()"><i class="fas fa-search"></i> CERCA</button>
-          </div>
-        </div>
-        <div class="table-container"><div id="cciaaResults"></div></div>
-      </div>
 
       <div id="pageStazioni" class="page">
         <div class="page-header">
@@ -7044,10 +7001,7 @@ function getSubNavItems(section) {
       { label: 'Intermediari', action: () => selectSubPage('aziende', 'intermediari') },
       { label: 'Crea Intermediario', action: () => selectSubPage('aziende', 'create-intermediario') },
       { label: 'Esecutori Esterni', action: () => selectSubPage('aziende', 'esecutori') },
-      { label: 'Crea Esecutore', action: () => selectSubPage('aziende', 'create-esecutore') },
-      { label: 'Imprese', action: () => selectSubPage('aziende', 'imprese') },
-      { label: 'Casellario', action: () => selectSubPage('aziende', 'casellario') },
-      { label: 'CCIAA', action: () => selectSubPage('aziende', 'cciaa') }
+      { label: 'Crea Esecutore', action: () => selectSubPage('aziende', 'create-esecutore') }
     ];
     case 'stazioni': return [
       { label: 'Stazioni', action: () => selectSubPage('stazioni', 'stazioni') },
@@ -7137,10 +7091,7 @@ function loadSecondaryNav(section) {
         { label: 'INTERMEDIARI', action: () => selectSubPage('aziende', 'intermediari') },
         { label: 'CREA INTERMEDIARIO', action: () => selectSubPage('aziende', 'create-intermediario') },
         { label: 'ESECUTORI ESTERNI', action: () => selectSubPage('aziende', 'esecutori') },
-        { label: 'CREA ESECUTORE ESTERNO', action: () => selectSubPage('aziende', 'create-esecutore') },
-        { label: 'IMPRESE', action: () => selectSubPage('aziende', 'imprese') },
-        { label: 'CASELLARIO', action: () => selectSubPage('aziende', 'casellario') },
-        { label: 'CCIAA', action: () => selectSubPage('aziende', 'cciaa') }
+        { label: 'CREA ESECUTORE ESTERNO', action: () => selectSubPage('aziende', 'create-esecutore') }
       ];
       title.textContent = 'AZIENDE';
       break;
@@ -7273,9 +7224,6 @@ function selectSubPage(section, subpage) {
     'aziende-create-intermediario': 'pageCreateIntermediario',
     'aziende-esecutori': 'pageEsecutoriAziende',
     'aziende-create-esecutore': 'pageCreateEsecutore',
-    'aziende-imprese': 'pageImprese',
-    'aziende-casellario': 'pageCasellario',
-    'aziende-cciaa': 'pageCCIAA',
     'stazioni-stazioni': 'pageStazioni',
     'stazioni-create-stazione': 'pageCreateStazione',
     'stazioni-fonti-web': 'pageFontiWeb',
@@ -13160,21 +13108,6 @@ async function searchEsecutoriAz() {
   const container = document.getElementById('esecutoriAzResults');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Ricerca...</p></div>';
   try { const res = await fetch(`${API_BASE}/admin/esecutori-esterni?search=${encodeURIComponent(document.getElementById('esecutori-az-search')?.value||'')}`, { headers: authHeaders() }); if (!res.ok) throw new Error(); const data = await res.json(); const rows = data.data || data; if (!rows.length) { container.innerHTML = '<div class="empty-state"><i class="fas fa-hammer"></i><p>Nessun esecutore trovato</p></div>'; return; } let html = '<table class="admin-table"><thead><tr><th>P.IVA</th><th>Ragione Sociale</th><th>Email</th><th>Telefono</th></tr></thead><tbody>'; rows.forEach(r => { html += `<tr><td>${esc(r.partita_iva||'-')}</td><td><strong>${esc(r.ragione_sociale||'-')}</strong></td><td>${esc(r.email||'-')}</td><td>${esc(r.telefono||'-')}</td></tr>`; }); html += '</tbody></table>'; container.innerHTML = html; } catch(err) { container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>API non ancora disponibile</p></div>'; }
-}
-async function searchImprese() {
-  const container = document.getElementById('impreseResults');
-  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Ricerca...</p></div>';
-  try { const res = await fetch(`${API_BASE}/admin/imprese?search=${encodeURIComponent(document.getElementById('imprese-search')?.value||'')}`, { headers: authHeaders() }); if (!res.ok) throw new Error(); const data = await res.json(); const rows = data.data || data; if (!rows.length) { container.innerHTML = '<div class="empty-state"><i class="fas fa-industry"></i><p>Nessuna impresa trovata</p></div>'; return; } let html = '<table class="admin-table"><thead><tr><th>P.IVA</th><th>Ragione Sociale</th><th>Città</th><th>Provincia</th></tr></thead><tbody>'; rows.forEach(r => { html += `<tr><td>${esc(r.partita_iva||'-')}</td><td><strong>${esc(r.ragione_sociale||'-')}</strong></td><td>${esc(r.citta||'-')}</td><td>${esc(r.provincia||'-')}</td></tr>`; }); html += '</tbody></table>'; container.innerHTML = html; } catch(err) { container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>API non ancora disponibile</p></div>'; }
-}
-async function searchCasellario() {
-  const container = document.getElementById('casellarioResults');
-  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Ricerca...</p></div>';
-  try { const res = await fetch(`${API_BASE}/admin/casellario?search=${encodeURIComponent(document.getElementById('casellario-search')?.value||'')}`, { headers: authHeaders() }); if (!res.ok) throw new Error(); container.innerHTML = '<div class="empty-state"><i class="fas fa-archive"></i><p>Casellario in fase di sviluppo</p></div>'; } catch(err) { container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>API non ancora disponibile</p></div>'; }
-}
-async function searchCCIAA() {
-  const container = document.getElementById('cciaaResults');
-  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Ricerca...</p></div>';
-  try { const res = await fetch(`${API_BASE}/admin/cciaa?search=${encodeURIComponent(document.getElementById('cciaa-search')?.value||'')}`, { headers: authHeaders() }); if (!res.ok) throw new Error(); container.innerHTML = '<div class="empty-state"><i class="fas fa-landmark"></i><p>CCIAA in fase di sviluppo</p></div>'; } catch(err) { container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>API non ancora disponibile</p></div>'; }
 }
 
 // ════════════════ BANDI/ESITI EXTRA FUNCTIONS ════════════════
