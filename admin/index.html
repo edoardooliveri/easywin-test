@@ -925,7 +925,7 @@ tbody tr:hover td {
 .pagination-bar { display: flex; align-items: center; gap: 12px; justify-content: center; padding: 16px; }
 .pagination-bar span { font-size: 0.85rem; color: var(--text-light); }
 /* Azioni tabella aziende */
-.azioni-cell { display: flex; flex-direction: column; gap: 6px; align-items: center; padding: 8px 4px !important; }
+.azioni-cell { text-align: center; padding: 8px 4px !important; white-space: nowrap; }
 .btn-azione {
   font-family: 'Comfortaa', cursive;
   font-size: 0.7rem;
@@ -2494,7 +2494,7 @@ span.flatpickr-weekday {
         </div>
 
         <div class="table-container">
-          <div id="aziendeCount" style="padding:12px 0;font-weight:600;color:var(--orange);"></div>
+          <div id="aziendeCount" style="padding:12px 0;font-weight:600;color:var(--orange);text-align:center;font-family:'Comfortaa',cursive;font-size:0.95rem;"></div>
           <div id="aziendeResults"></div>
         </div>
       </div>
@@ -8354,7 +8354,7 @@ async function searchAziende(page = 1) {
         <td style="text-align:center;">${r.da_ricontattare ? '<i class="fas fa-phone" style="color:var(--orange);"></i>' : ''}</td>
         <td style="text-align:center;">${r.cessata ? '<i class="fas fa-times-circle" style="color:var(--danger);"></i>' : ''}</td>
         <td class="azioni-cell">
-          <button class="btn-azione btn-visualizza" onclick="event.stopPropagation();viewAziendaDetailEnhanced(${r.id},${currentAziendePage})"><i class="fas fa-eye"></i> Visualizza</button>
+          <button class="btn-azione btn-visualizza" onclick="event.stopPropagation();viewAziendaDetailEnhanced(${r.id},${currentAziendePage})"><i class="fas fa-eye"></i> Visualizza</button><br>
           <button class="btn-azione btn-elimina" onclick="event.stopPropagation();eliminaAzienda(${r.id})"><i class="fas fa-trash-alt"></i> Elimina</button>
         </td>
       </tr>`;
