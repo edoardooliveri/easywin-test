@@ -2129,7 +2129,7 @@ span.flatpickr-weekday {
                 <tr><td>Esiti da cancellare</td><td id="summary-esiti-cancellare">0</td><td><a href="#" onclick="selectSubPage('esiti','cestino'); return false;" class="link-action">vai alla pagina</a></td></tr>
                 <tr><td>Aziende da cancellare</td><td id="summary-aziende-cancellare">0</td><td><a href="#" onclick="selectSubPage('aziende','cestino'); return false;" class="link-action">vai alla pagina</a></td></tr>
                 <tr><td>Stazioni da cancellare</td><td id="summary-stazioni-cancellare">0</td><td><a href="#" onclick="selectSubPage('stazioni','cestino'); return false;" class="link-action">vai alla pagina</a></td></tr>
-                <tr><td>Fonti da controllare</td><td id="summary-fonti-controllare">0</td><td><a href="#" onclick="selectSubPage('stazioni','fonti-web'); return false;" class="link-action">vai alla pagina</a></td></tr>
+                <tr><td>Fonti da controllare</td><td id="summary-fonti-controllare">0</td><td>-</td></tr>
               </tbody>
             </table>
           </div>
@@ -3291,40 +3291,6 @@ span.flatpickr-weekday {
             </div>
           </form>
         </div>
-      </div>
-
-      <!-- PAROLE E FRASI CHIAVE PAGE -->
-      <div id="pageParoleChiave" class="page">
-        <div class="page-header"><h1 class="page-title">PAROLE E FRASI CHIAVE</h1></div>
-        <div class="search-section compact">
-          <div class="form-row">
-            <div class="form-col"><label>Parola / Frase</label><input type="text" id="parole-search" placeholder="Cerca parola chiave..."></div>
-            <div class="form-col"><label>Tipo</label>
-              <select id="parole-tipo"><option value="">Tutti</option><option value="inclusione">Inclusione</option><option value="esclusione">Esclusione</option></select>
-            </div>
-          </div>
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="searchParoleChiave()"><i class="fas fa-search"></i> CERCA</button>
-            <button class="btn btn-primary" onclick="showAddParolaForm()" style="background:var(--success);"><i class="fas fa-plus"></i> AGGIUNGI</button>
-          </div>
-        </div>
-        <div class="table-container"><div id="paroleChiaveResults"></div></div>
-      </div>
-
-      <!-- CORREZIONI PAGE -->
-      <div id="pageCorrezioni" class="page">
-        <div class="page-header"><h1 class="page-title">CORREZIONI</h1></div>
-        <div class="search-section compact">
-          <div class="form-row">
-            <div class="form-col"><label>Testo originale</label><input type="text" id="correzioni-originale" placeholder="Testo da correggere..."></div>
-            <div class="form-col"><label>Testo corretto</label><input type="text" id="correzioni-corretto" placeholder="Correzione..."></div>
-          </div>
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="searchCorrezioni()"><i class="fas fa-search"></i> CERCA</button>
-            <button class="btn btn-primary" onclick="showAddCorrezioneForm()" style="background:var(--success);"><i class="fas fa-plus"></i> AGGIUNGI</button>
-          </div>
-        </div>
-        <div class="table-container"><div id="correzioniResults"></div></div>
       </div>
 
       <!-- BANDI PAGE -->
@@ -5157,43 +5123,6 @@ span.flatpickr-weekday {
         <div id="concorrenti-container"></div>
       </div>
 
-      <!-- FONTI WEB PAGE -->
-      <div id="pageFontiWeb" class="page">
-        <div class="page-header">
-          <h1 class="page-title">FONTI WEB</h1>
-        </div>
-
-        <div class="search-section compact">
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="loadFontiWeb()">
-              <i class="fas fa-sync"></i> AGGIORNA
-            </button>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <div id="fonti-web-results"></div>
-        </div>
-      </div>
-
-      <!-- SINCRONIZZAZIONE SITI PAGE -->
-      <div id="pageSincronizzazioneSiti" class="page">
-        <div class="page-header">
-          <h1 class="page-title">SINCRONIZZAZIONE SITI</h1>
-        </div>
-
-        <div class="search-section compact">
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="loadPresidiaStatus()">
-              <i class="fas fa-sync"></i> AGGIORNA STATO
-            </button>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <div id="sincronizzazione-siti-results"></div>
-        </div>
-      </div>
 
       <!-- SOPRALLUOGHI ADMIN PAGE (Full Management) -->
       <div id="pageSopralluoghiAdmin" class="page">
@@ -7006,12 +6935,8 @@ function getSubNavItems(section) {
     case 'stazioni': return [
       { label: 'Stazioni', action: () => selectSubPage('stazioni', 'stazioni') },
       { label: 'Crea Stazione', action: () => selectSubPage('stazioni', 'create-stazione') },
-      { label: 'Fonti Web', action: () => selectSubPage('stazioni', 'fonti-web') },
-      { label: 'Parole Chiave', action: () => selectSubPage('stazioni', 'parole-chiave') },
       { label: 'Cestino', action: () => selectSubPage('stazioni', 'cestino') },
-      { label: 'Correzioni', action: () => selectSubPage('stazioni', 'correzioni') },
       { label: 'Piattaforme', action: () => selectSubPage('stazioni', 'piattaforme') },
-      { label: 'Sync Manuale', action: () => selectSubPage('stazioni', 'sincronizzazione') },
       { label: 'Presidia', action: () => selectSubPage('stazioni', 'presidia') },
       { label: 'Albi Fornitori', action: () => selectSubPage('stazioni', 'albi-fornitori') }
     ];
@@ -7099,12 +7024,8 @@ function loadSecondaryNav(section) {
       items = [
         { label: 'STAZIONI', action: () => selectSubPage('stazioni', 'stazioni') },
         { label: 'CREA STAZIONE', action: () => selectSubPage('stazioni', 'create-stazione') },
-        { label: 'FONTI WEB', action: () => selectSubPage('stazioni', 'fonti-web') },
-        { label: 'PAROLE E FRASI CHIAVE', action: () => selectSubPage('stazioni', 'parole-chiave') },
         { label: 'CESTINO STAZIONI', action: () => selectSubPage('stazioni', 'cestino') },
-        { label: 'CORREZIONI', action: () => selectSubPage('stazioni', 'correzioni') },
         { label: 'PIATTAFORME', action: () => selectSubPage('stazioni', 'piattaforme') },
-        { label: 'SINCRONIZZAZIONE SITI MANUALE', action: () => selectSubPage('stazioni', 'sincronizzazione') },
         { label: 'PRESIDIA', action: () => selectSubPage('stazioni', 'presidia') },
         { label: 'ALBI FORNITORI', action: () => selectSubPage('stazioni', 'albi-fornitori') }
       ];
@@ -7226,14 +7147,10 @@ function selectSubPage(section, subpage) {
     'aziende-create-esecutore': 'pageCreateEsecutore',
     'stazioni-stazioni': 'pageStazioni',
     'stazioni-create-stazione': 'pageCreateStazione',
-    'stazioni-fonti-web': 'pageFontiWeb',
     'stazioni-cestino': 'pageCestinoStazioni',
-    'stazioni-sincronizzazione': 'pageSincronizzazioneSiti',
     'stazioni-presidia': 'pagePresidiaSync',
     'stazioni-piattaforme': 'pagePiattaforme',
     'stazioni-albi-fornitori': 'pageAlbiFornitori',
-    'stazioni-parole-chiave': 'pageParoleChiave',
-    'stazioni-correzioni': 'pageCorrezioni',
     'bandi-bandi': 'pageBandi',
     'bandi-create-bando': 'pageCreateBando',
     'bandi-bandi-ai': 'pageBandiAI',
@@ -7306,7 +7223,7 @@ function selectSubPage(section, subpage) {
   if (subpage === 'elaborati') loadElaborati();
   if (subpage === 'bandi-ai') loadBandiAI();
   if (subpage === 'esiti-ai') loadEsitiAI();
-  if (subpage === 'presidia' || subpage === 'sincronizzazione') loadPresidiaStatus();
+  if (subpage === 'presidia') loadPresidiaStatus();
   if (subpage === 'bandi-incompleti') searchBandiIncompleti();
   if (subpage === 'bandi-rettificati') searchBandiRettificati();
   if (subpage === 'esiti-incompleti') searchEsitiIncompleti();
@@ -7315,7 +7232,6 @@ function selectSubPage(section, subpage) {
   if (subpage === 'cestino' && section === 'stazioni') loadCestinoStazioni();
   if (subpage === 'cestino' && section === 'esiti') loadCestinoEsiti();
   if (subpage === 'albi-fornitori') loadAlbiFornitori();
-  if (subpage === 'fonti-web') loadFontiWeb();
   if (subpage === 'concorrenti') loadConcorrenti();
   if (subpage === 'intermediari' && section === 'aziende') loadIntermediari();
   if (subpage === 'esecutori' && section === 'aziende') loadEsecutori();
@@ -8331,7 +8247,7 @@ async function searchStazioni(page = 1) {
     }
     params.set('page', page);
     params.set('limit', PAGE_SIZE);
-    const res = await fetch(`${API_BASE}/admin/stazioni/stazioni?${params}`);
+    const res = await fetch(`${API_BASE}/admin/stazioni/stazioni?${params}`, { headers: authHeaders() });
     const data = await res.json();
     const rows = data.dati || [];
     const total = data.totale || rows.length;
@@ -8367,7 +8283,7 @@ async function viewStazioneDetail(id) {
   const container = document.getElementById('stazioniResults');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Caricamento dettaglio...</p></div>';
   try {
-    const res = await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}`);
+    const res = await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}`, { headers: authHeaders() });
     const data = await res.json();
     const s = data.stazione;
     let html = `<div style="margin-bottom:16px"><button class="btn btn-sm btn-secondary" onclick="searchStazioni(${currentStazioniPage})"><i class="fas fa-arrow-left"></i> Torna ai risultati</button></div>`;
@@ -8422,21 +8338,6 @@ function resetStazioniSearch() {
   document.getElementById('stazioni-ragione').value = '';
   document.getElementById('stazioniResults').innerHTML = '';
 }
-
-// ════════════════ STAZIONI EXTRA FUNCTIONS ════════════════
-async function searchParoleChiave() {
-  const container = document.getElementById('paroleChiaveResults');
-  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Ricerca...</p></div>';
-  try { const res = await fetch(`${API_BASE}/admin/parole-chiave?search=${encodeURIComponent(document.getElementById('parole-search')?.value||'')}`, { headers: authHeaders() }); if (!res.ok) throw new Error(); const data = await res.json(); const rows = data.data || data; if (!rows.length) { container.innerHTML = '<div class="empty-state"><i class="fas fa-key"></i><p>Nessuna parola chiave trovata</p></div>'; return; } let html = '<table class="admin-table"><thead><tr><th>Parola/Frase</th><th>Tipo</th><th>Azioni</th></tr></thead><tbody>'; rows.forEach(r => { html += `<tr><td>${esc(r.testo||'-')}</td><td><span class="status-badge ${r.tipo==='inclusione'?'active':'expired'}">${esc(r.tipo||'-')}</span></td><td><button class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></button></td></tr>`; }); html += '</tbody></table>'; container.innerHTML = html; } catch(err) { container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>API non ancora disponibile</p></div>'; }
-}
-function showAddParolaForm() { alert('Funzione di aggiunta parola chiave in sviluppo'); }
-
-async function searchCorrezioni() {
-  const container = document.getElementById('correzioniResults');
-  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Ricerca...</p></div>';
-  try { const res = await fetch(`${API_BASE}/admin/correzioni?search=${encodeURIComponent(document.getElementById('correzioni-originale')?.value||'')}`, { headers: authHeaders() }); if (!res.ok) throw new Error(); const data = await res.json(); const rows = data.data || data; if (!rows.length) { container.innerHTML = '<div class="empty-state"><i class="fas fa-spell-check"></i><p>Nessuna correzione trovata</p></div>'; return; } let html = '<table class="admin-table"><thead><tr><th>Originale</th><th>Corretto</th><th>Azioni</th></tr></thead><tbody>'; rows.forEach(r => { html += `<tr><td>${esc(r.originale||'-')}</td><td><strong>${esc(r.corretto||'-')}</strong></td><td><button class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></button></td></tr>`; }); html += '</tbody></table>'; container.innerHTML = html; } catch(err) { container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>API non ancora disponibile</p></div>'; }
-}
-function showAddCorrezioneForm() { alert('Funzione di aggiunta correzione in sviluppo'); }
 
 // AZIENDE — uses /api/admin/aziende
 let currentAziendePage = 1;
@@ -9355,7 +9256,7 @@ async function handleCreateStazione(event) {
       limita_range: document.getElementById('cs-limita-range').checked,
       note: document.getElementById('cs-note').value
     };
-    const res = await fetch(`${API_BASE}/admin/stazioni`, {
+    const res = await fetch(`${API_BASE}/admin/stazioni/stazioni`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(body)
@@ -10727,38 +10628,6 @@ async function loadCestinoEsiti() {
 }
 
 // ════════════════ OTHER LOOKUP FUNCTIONS ════════════════
-
-async function loadFontiWeb() {
-  try {
-    const res = await fetch(`${API_BASE}/admin/fonti-web`, {
-      headers: authHeaders()
-    });
-    const data = await res.json();
-    const raw_ = data.data || data || []; const rows = Array.isArray(raw_) ? raw_ : [];
-    let html = '';
-    if (rows.length) {
-      html = '<table><thead><tr><th>ID</th><th>Nome</th><th>URL</th><th>Categoria</th><th>Stato</th><th>Ultimo Controllo</th><th>Azione</th></tr></thead><tbody>';
-      rows.forEach(r => {
-        const stato = r.attiva ? '<span style="color:#4caf50">Attiva</span>' : '<span style="color:#f44336">Disattiva</span>';
-        html += `<tr><td>${r.id}</td><td>${esc(r.nome||r.titolo||'-')}</td><td><a href="${esc(r.url)}" target="_blank">${esc((r.url||'').substring(0,50))}</a></td><td>${esc(r.categoria||'-')}</td><td>${stato}</td><td>${fmtDate(r.ultimo_controllo||r.updated_at)}</td><td><button class="btn btn-sm btn-info" onclick="controllaFonte(${r.id})"><i class="fas fa-sync"></i></button></td></tr>`;
-      });
-      html += '</tbody></table>';
-    } else {
-      html = '<p style="padding: 16px;">Nessuna fonte web trovata</p>';
-    }
-    document.getElementById('fonti-web-results').innerHTML = html;
-  } catch(e) {
-    document.getElementById('fonti-web-results').innerHTML = '<p style="padding: 16px; color: red;">Errore: ' + esc(e.message) + '</p>';
-  }
-}
-
-async function controllaFonte(id) {
-  try {
-    await fetch(`${API_BASE}/admin/fonti-web/${id}/controlla`, { method: 'POST', headers: authHeaders() });
-    alert('Controllo fonte avviato');
-    loadFontiWeb();
-  } catch(e) { alert('Errore: ' + e.message); }
-}
 
 let currentConcorrentiPage = 1;
 
@@ -12142,7 +12011,7 @@ async function searchPiattaforme(page = 1) {
     if (search) params.set('search', search);
     params.set('page', page);
     params.set('limit', 50);
-    const res = await fetch(`${API_BASE}/admin/piattaforme?${params}`, {
+    const res = await fetch(`${API_BASE}/piattaforme?${params}`, {
       headers: authHeaders()
     });
     const data = await res.json();
@@ -12184,7 +12053,7 @@ async function savePiattaforma(event) {
       note: document.getElementById('piat-note').value
     };
     const editId = window._editPiattaformaId;
-    const url = editId ? `${API_BASE}/admin/piattaforme/${editId}` : `${API_BASE}/admin/piattaforme`;
+    const url = editId ? `${API_BASE}/piattaforme/${editId}` : `${API_BASE}/piattaforme`;
     const res = await fetch(url, {
       method: editId ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
@@ -12202,7 +12071,7 @@ async function savePiattaforma(event) {
 async function deletePiattaforma(id) {
   if (!confirm('Sei sicuro di voler eliminare questa piattaforma?')) return;
   try {
-    await fetch(`${API_BASE}/admin/piattaforme/${id}`, {
+    await fetch(`${API_BASE}/piattaforme/${id}`, {
       method: 'DELETE',
       headers: authHeaders()
     });
@@ -12215,7 +12084,7 @@ async function deletePiattaforma(id) {
 
 async function editPiattaforma(id) {
   try {
-    const res = await fetch(`${API_BASE}/admin/piattaforme/${id}`, { headers: authHeaders() });
+    const res = await fetch(`${API_BASE}/piattaforme/${id}`, { headers: authHeaders() });
     const data = await res.json();
     const r = data.data || data;
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -14183,7 +14052,7 @@ async function viewStazioneDetailEnhanced(id, currentPage = 1) {
   const container = document.getElementById('stazioniResults');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Caricamento dettaglio...</p></div>';
   try {
-    const res = await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}`);
+    const res = await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}`, { headers: authHeaders() });
     const data = await res.json();
     const s = data.stazione;
     let html = `<div style="margin-bottom:16px"><button class="btn btn-sm btn-secondary" onclick="searchStazioni(${currentPage})"><i class="fas fa-arrow-left"></i> Torna ai risultati</button></div>`;
