@@ -8,39 +8,39 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 <style>
 :root {
-  --primary: #FF8C00;
-  --primary-light: #FFB347;
-  --primary-gradient: linear-gradient(135deg, #F5C518 0%, #FF8C00 100%);
-  --sidebar-dark: #1E2D3D;
-  --sidebar-light: #1a2a3a;
-  --sidebar-hover: #2A3F55;
-  --accent-yellow: #F5C518;
-  --accent-orange: #FF8C00;
-  --bg: #0f1923;
-  --bg-alt: #1a2a3a;
-  --card: #243447;
-  --text: #ffffff;
-  --text-light: rgba(255,255,255,0.65);
-  --border: rgba(255,255,255,0.1);
+  --primary: #7B0000;
+  --primary-light: #9B2020;
+  --primary-gradient: linear-gradient(135deg, #7B0000 0%, #9B2020 100%);
+  --sidebar-dark: #3a3a3a;
+  --sidebar-light: #4a4a4a;
+  --sidebar-hover: #555555;
+  --accent-yellow: #7B0000;
+  --accent-orange: #7B0000;
+  --bg: #e0e0e0;
+  --bg-alt: #f0f0f0;
+  --card: #ffffff;
+  --text: #333333;
+  --text-light: rgba(0,0,0,0.65);
+  --border: rgba(0,0,0,0.15);
   --success: #4caf50;
   --warning: #ffc107;
   --danger: #ef5350;
   --info: #42a5f5;
-  --radius: 16px;
-  --radius-sm: 10px;
-  --shadow: 0 4px 20px rgba(0,0,0,0.3);
-  --shadow-hover: 0 10px 30px rgba(0,0,0,0.5);
+  --radius: 4px;
+  --radius-sm: 3px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.15);
+  --shadow-hover: 0 2px 6px rgba(0,0,0,0.2);
   --transition: 0.35s cubic-bezier(.4,0,.2,1);
   --sidebar-width: 80px;
   --secondary-width: 220px;
-  --dark-bg: #0f1923;
-  --dark-surface: #1a2a3a;
-  --dark-card: #243447;
-  --dark-lighter: #2A3F55;
-  --gradient: linear-gradient(135deg, #F5C518 0%, #FF8C00 100%);
-  --text-muted: rgba(255,255,255,0.65);
-  --text-dim: rgba(255,255,255,0.4);
-  --border-dark: rgba(255,255,255,0.1);
+  --dark-bg: #e0e0e0;
+  --dark-surface: #f0f0f0;
+  --dark-card: #ffffff;
+  --dark-lighter: #f5f5f5;
+  --gradient: linear-gradient(135deg, #7B0000 0%, #9B2020 100%);
+  --text-muted: rgba(0,0,0,0.55);
+  --text-dim: rgba(0,0,0,0.35);
+  --border-dark: rgba(0,0,0,0.15);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -62,7 +62,7 @@ a { text-decoration: none; color: inherit; }
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0f1923 0%, #1a2a3a 100%);
+  background: linear-gradient(135deg, #e0e0e0 0%, #f0f0f0 100%);
 }
 .login-box {
   background: var(--dark-card);
@@ -125,12 +125,12 @@ a { text-decoration: none; color: inherit; }
   font-family: inherit;
   outline: none;
   transition: var(--transition);
-  background: var(--dark-surface);
+  background: #ffffff;
   color: var(--text);
 }
 .form-input:focus {
   border-color: var(--accent-orange);
-  box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.15);
+  box-shadow: 0 0 0 4px rgba(123, 0, 0, 0.15);
 }
 .login-btn {
   width: 100%;
@@ -144,11 +144,11 @@ a { text-decoration: none; color: inherit; }
   cursor: pointer;
   font-family: 'Open Sans', sans-serif;
   transition: var(--transition);
-  box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(123, 0, 0, 0.3);
 }
 .login-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 140, 0, 0.4);
+  box-shadow: 0 6px 20px rgba(123, 0, 0, 0.4);
 }
 .login-btn:disabled {
   opacity: 0.5;
@@ -180,8 +180,8 @@ a { text-decoration: none; color: inherit; }
 /* DARK SIDEBAR (left) */
 .sidebar {
   width: 80px;
-  background: linear-gradient(180deg, #1a2332 0%, #1E2D3D 50%, #243a4f 100%);
-  color: #999;
+  background: linear-gradient(180deg, #3a3a3a 0%, #3a3a3a 50%, #3a3a3a 100%);
+  color: #666;
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -189,14 +189,14 @@ a { text-decoration: none; color: inherit; }
   left: 0;
   bottom: 0;
   z-index: 100;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(0, 0, 0, 0.15);
 }
 .sidebar-header {
   padding: 16px 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 }
 .sidebar-logo {
   text-align: center;
@@ -225,7 +225,7 @@ a { text-decoration: none; color: inherit; }
   justify-content: center;
   gap: 6px;
   padding: 14px 8px;
-  color: #888;
+  color: #999;
   cursor: pointer;
   transition: var(--transition);
   font-size: 0.65rem;
@@ -236,15 +236,15 @@ a { text-decoration: none; color: inherit; }
   letter-spacing: 0.3px;
 }
 .nav-item:hover {
-  color: #ccc;
+  color: #333;
   background: var(--sidebar-hover);
 }
 .nav-item.active {
   color: var(--accent-orange);
-  background: rgba(255, 140, 0, 0.1);
+  background: rgba(123, 0, 0, 0.1);
   border-radius: 12px;
   margin: 0 4px;
-  box-shadow: inset 0 0 0 2px rgba(255, 140, 0, 0.3);
+  box-shadow: inset 0 0 0 2px rgba(123, 0, 0, 0.3);
 }
 .nav-item i {
   width: 24px;
@@ -253,7 +253,7 @@ a { text-decoration: none; color: inherit; }
 }
 .sidebar-footer {
   padding: 16px 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -263,9 +263,9 @@ a { text-decoration: none; color: inherit; }
   width: 100%;
   padding: 8px 4px;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.25);
   border-radius: var(--radius-sm);
-  color: #888;
+  color: #999;
   font-size: 0.7rem;
   cursor: pointer;
   transition: var(--transition);
@@ -274,7 +274,7 @@ a { text-decoration: none; color: inherit; }
 }
 .logout-btn:hover {
   background: var(--accent-yellow);
-  color: #1E2D3D;
+  color: #ffffff;
   border-color: var(--accent-yellow);
 }
 
@@ -282,7 +282,7 @@ a { text-decoration: none; color: inherit; }
 .secondary-sidebar {
   width: 220px;
   background: var(--dark-surface);
-  border-right: 1px solid var(--border-dark);
+  border-right: 1px solid rgba(0, 0, 0, 0.15);
   position: fixed;
   left: 80px;
   top: 0;
@@ -319,12 +319,12 @@ a { text-decoration: none; color: inherit; }
   transition: var(--transition);
 }
 .secondary-nav-item:hover {
-  background: rgba(255,255,255,0.05);
+  background: rgba(0, 0, 0, 0.05);
   border-left-color: var(--accent-orange);
   color: var(--accent-orange);
 }
 .secondary-nav-item.active {
-  background: rgba(255, 140, 0, 0.1);
+  background: rgba(123, 0, 0, 0.1);
   color: var(--accent-orange);
   border-left-color: var(--accent-orange);
   border-left-width: 3px;
@@ -429,7 +429,7 @@ a { text-decoration: none; color: inherit; }
   font-weight: 400;
 }
 .section-description {
-  background: linear-gradient(135deg, rgba(245,197,24,0.08) 0%, rgba(255,140,0,0.05) 100%);
+  background: linear-gradient(135deg, rgba(123, 0, 0, 0.08) 0%, rgba(155, 32, 32, 0.05) 100%);
   border-left: 3px solid var(--accent-orange);
   padding: 16px 20px;
   border-radius: 0 12px 12px 0;
@@ -460,16 +460,16 @@ a { text-decoration: none; color: inherit; }
 .btn-primary {
   background: var(--primary-gradient);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(255, 140, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(123, 0, 0, 0.2);
 }
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(123, 0, 0, 0.3);
 }
 .btn-secondary {
   background: var(--dark-surface);
   color: var(--text-muted);
-  border: 1px solid var(--border-dark);
+  border: 1px solid rgba(0, 0, 0, 0.15);
 }
 .btn-secondary:hover {
   background: var(--dark-lighter);
@@ -489,11 +489,11 @@ a { text-decoration: none; color: inherit; }
 .btn-outline {
   background: transparent;
   color: var(--text-muted);
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 25px;
 }
 .btn-outline:hover {
-  background: rgba(255,255,255,0.05);
+  background: rgba(0, 0, 0, 0.03);
   border-color: var(--accent-orange);
   color: var(--text);
 }
@@ -528,14 +528,14 @@ a { text-decoration: none; color: inherit; }
   box-shadow: 0 4px 12px rgba(66, 165, 245, 0.35);
 }
 .btn-warning {
-  background: linear-gradient(135deg, #F5C518 0%, #FF8C00 100%);
+  background: linear-gradient(135deg, #7B0000 0%, #9B2020 100%);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(255, 140, 0, 0.25);
+  box-shadow: 0 2px 8px rgba(123, 0, 0, 0.25);
   border-radius: 25px;
 }
 .btn-warning:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.35);
+  box-shadow: 0 4px 12px rgba(123, 0, 0, 0.35);
 }
 .btn-sm {
   padding: 6px 12px;
@@ -596,7 +596,7 @@ a { text-decoration: none; color: inherit; }
 .form-col input,
 .form-col select,
 .form-col textarea {
-  border: 1px solid var(--border-dark);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 10px;
   padding: 12px 16px;
   font-family: inherit;
@@ -604,13 +604,13 @@ a { text-decoration: none; color: inherit; }
   outline: none;
   color: var(--text);
   transition: var(--transition);
-  background: var(--dark-surface);
+  background: #ffffff;
 }
 .form-col input:focus,
 .form-col select:focus,
 .form-col textarea:focus {
   border-color: var(--accent-orange);
-  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.15);
+  box-shadow: 0 0 0 3px rgba(123, 0, 0, 0.15);
 }
 .form-col textarea {
   resize: vertical;
@@ -639,7 +639,7 @@ a { text-decoration: none; color: inherit; }
   border-radius: 14px;
   box-shadow: var(--shadow);
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   margin-bottom: 20px;
 }
 .table-header {
@@ -647,7 +647,7 @@ a { text-decoration: none; color: inherit; }
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 }
 .table-header h3 {
   font-size: 1rem;
@@ -661,38 +661,44 @@ table {
   border-collapse: collapse;
 }
 thead {
-  background: var(--dark-surface);
+  background: #7B0000;
+}
+thead tr {
+  background: #7B0000;
+}
+thead th {
+  color: #ffffff;
 }
 th {
   text-align: center;
   padding: 12px 10px;
   font-size: 0.72rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(0, 0, 0, 0.15);
 }
 td {
   padding: 10px 10px;
   font-size: 0.85rem;
   text-align: center;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   color: var(--text);
 }
 tbody tr:hover {
-  background: rgba(255,255,255,0.05);
+  background: rgba(0, 0, 0, 0.02);
   transition: var(--transition);
 }
 tbody tr:hover td {
-  background: rgba(255,255,255,0.05);
+  background: rgba(0, 0, 0, 0.02);
 }
 .table-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
   font-size: 0.8rem;
   color: var(--text-light);
 }
@@ -702,7 +708,7 @@ tbody tr:hover td {
 }
 .pagination button {
   padding: 6px 12px;
-  border: 1px solid var(--border-dark);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   background: var(--dark-surface);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -879,7 +885,7 @@ tbody tr:hover td {
 
 /* Multi-select tags */
 .tags-input {
-  border: 1px solid var(--border);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: var(--radius-sm);
   padding: 8px;
   display: flex;
@@ -888,10 +894,11 @@ tbody tr:hover td {
   font-family: inherit;
   min-height: 40px;
   transition: var(--transition);
+  background: #ffffff;
 }
 .tags-input:focus-within {
   border-color: var(--accent-orange);
-  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1);
+  box-shadow: 0 0 0 3px rgba(123, 0, 0, 0.1);
 }
 .tag {
   background: var(--primary-gradient);
@@ -935,16 +942,16 @@ tbody tr:hover td {
 }
 .date-range input {
   padding: 8px 12px;
-  border: 1px solid var(--border-dark);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: var(--radius-sm);
   font-family: inherit;
   transition: var(--transition);
-  background: var(--dark-surface);
+  background: #ffffff;
   color: var(--text);
 }
 .date-range input:focus {
   border-color: var(--accent-orange);
-  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1);
+  box-shadow: 0 0 0 3px rgba(123, 0, 0, 0.1);
 }
 
 /* Currency input */
@@ -964,16 +971,16 @@ tbody tr:hover td {
 }
 .currency-input input {
   padding: 8px 12px;
-  border: 1px solid var(--border-dark);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: var(--radius-sm);
   font-family: inherit;
   transition: var(--transition);
-  background: var(--dark-surface);
+  background: #ffffff;
   color: var(--text);
 }
 .currency-input input:focus {
   border-color: var(--accent-orange);
-  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1);
+  box-shadow: 0 0 0 3px rgba(123, 0, 0, 0.1);
 }
 
 /* Radio groups */
@@ -992,7 +999,7 @@ tbody tr:hover td {
   cursor: pointer;
   width: 16px;
   height: 16px;
-  accent-color: var(--accent-orange);
+  accent-color: #7B0000;
 }
 .radio-option label {
   margin: 0;
@@ -1026,7 +1033,7 @@ tbody tr:hover td {
   width: 36px;
   height: 36px;
   padding: 0;
-  border: 1px solid var(--border-dark);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   background: var(--dark-surface);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -1037,7 +1044,7 @@ tbody tr:hover td {
 .calendar-nav button:hover {
   border-color: var(--accent-orange);
   color: var(--accent-orange);
-  background: rgba(255, 140, 0, 0.1);
+  background: rgba(123, 0, 0, 0.1);
 }
 .calendar-month-year {
   font-size: 1.1rem;
@@ -1053,7 +1060,7 @@ tbody tr:hover td {
 }
 .calendar-view-buttons button {
   padding: 8px 14px;
-  border: 1px solid var(--border-dark);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   background: var(--dark-surface);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -1089,17 +1096,17 @@ tbody tr:hover td {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border-dark);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 0.85rem;
-  background: var(--dark-card);
+  background: #ffffff;
   transition: var(--transition);
   color: var(--text);
 }
 .calendar-day:hover {
   border-color: var(--accent-orange);
-  background: rgba(255, 140, 0, 0.1);
+  background: rgba(123, 0, 0, 0.1);
   transform: translateY(-2px);
 }
 .calendar-day.other-month {
@@ -1136,7 +1143,7 @@ tbody tr:hover td {
   justify-content: space-between;
   margin-bottom: 20px;
   padding-bottom: 14px;
-  border-bottom: 2px solid var(--border);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.15);
 }
 .dashboard-section .section-header h3 {
   font-family: 'Comfortaa', cursive;
@@ -1158,19 +1165,19 @@ tbody tr:hover td {
 }
 .inline-search {
   padding: 6px 12px;
-  border: 1px solid var(--border-dark);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: var(--radius-sm);
   font-size: 13px;
   font-family: 'Open Sans', sans-serif;
   width: 200px;
   transition: border-color var(--transition);
-  background: var(--dark-surface);
+  background: #ffffff;
   color: var(--text);
 }
 .inline-search:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(255,140,0,0.1);
+  box-shadow: 0 0 0 3px rgba(123, 0, 0, 0.1);
 }
 .btn-sm {
   padding: 6px 12px;
@@ -1189,8 +1196,8 @@ tbody tr:hover td {
   gap: 14px;
   padding: 20px 20px;
   border-radius: 14px;
-  background: var(--dark-card);
-  border: 1px solid var(--border-dark);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
   transition: transform var(--transition), box-shadow var(--transition);
   cursor: pointer;
   box-shadow: var(--shadow);
@@ -1242,10 +1249,10 @@ tbody tr:hover td {
 .link-action { color: var(--primary); text-decoration: none; }
 .link-action:hover { text-decoration: underline; }
 .admin-table thead {
-  background: var(--dark-surface);
+  background: #7B0000;
 }
 .admin-table thead th {
-  color: var(--text-muted);
+  color: #ffffff;
   padding: 14px 14px;
   text-align: left;
   font-weight: 500;
@@ -1254,11 +1261,11 @@ tbody tr:hover td {
   letter-spacing: 0.8px;
 }
 .admin-table tbody tr {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
   transition: background var(--transition);
 }
 .admin-table tbody tr:hover {
-  background: rgba(255,255,255,0.03);
+  background: rgba(0, 0, 0, 0.02);
 }
 .admin-table tbody td {
   padding: 10px 14px;
@@ -1295,12 +1302,12 @@ tbody tr:hover td {
   position: relative;
 }
 .ms-dropdown .ms-trigger {
-  border: 1px solid var(--border-dark);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 10px;
   padding: 8px 12px;
   font-size: 0.85rem;
   color: var(--text);
-  background: var(--dark-surface);
+  background: #ffffff;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1316,16 +1323,16 @@ tbody tr:hover td {
 .ms-dropdown.open .ms-trigger::after { content: '\f077'; }
 .ms-dropdown .ms-panel {
   display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 999;
-  background: var(--dark-card); border: 1px solid var(--border-dark); border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4); margin-top: 4px; max-height: 260px; overflow: hidden;
+  background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.15); border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15); margin-top: 4px; max-height: 260px; overflow: hidden;
 }
 .ms-dropdown.open .ms-panel { display: flex; flex-direction: column; }
 .ms-dropdown .ms-search {
-  padding: 8px; border-bottom: 1px solid var(--border-dark);
+  padding: 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 }
 .ms-dropdown .ms-search input {
-  width: 100%; padding: 6px 10px; border: 1px solid var(--border-dark); border-radius: 6px;
-  background: var(--dark-surface); color: var(--text); font-size: 0.8rem; outline: none;
+  width: 100%; padding: 6px 10px; border: 1px solid rgba(0, 0, 0, 0.15); border-radius: 6px;
+  background: #ffffff; color: var(--text); font-size: 0.8rem; outline: none;
 }
 .ms-dropdown .ms-search input:focus { border-color: var(--accent-orange); }
 .ms-dropdown .ms-options {
@@ -1335,15 +1342,15 @@ tbody tr:hover td {
   display: flex; align-items: center; gap: 8px; padding: 5px 12px; cursor: pointer;
   font-size: 0.8rem; color: var(--text-muted); transition: background 0.15s;
 }
-.ms-dropdown .ms-opt:hover { background: rgba(255,255,255,0.05); }
-.ms-dropdown .ms-opt input[type="checkbox"] { accent-color: var(--accent-orange); flex-shrink: 0; }
+.ms-dropdown .ms-opt:hover { background: rgba(0, 0, 0, 0.03); }
+.ms-dropdown .ms-opt input[type="checkbox"] { accent-color: #7B0000; flex-shrink: 0; }
 .ms-dropdown .ms-opt.checked { color: var(--text); font-weight: 600; }
 .ms-dropdown .ms-tags {
   display: flex; flex-wrap: wrap; gap: 3px; overflow: hidden; max-height: 22px;
 }
 .ms-dropdown .ms-tag {
-  background: linear-gradient(135deg, rgba(245,197,24,0.2), rgba(255,140,0,0.2));
-  color: var(--accent-yellow); padding: 1px 6px; border-radius: 4px; font-size: 0.7rem; white-space: nowrap;
+  background: linear-gradient(135deg, rgba(123, 0, 0, 0.1), rgba(155, 32, 32, 0.1));
+  color: #7B0000; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem; white-space: nowrap;
 }
 .ms-dropdown .ms-count {
   color: var(--text-muted); font-size: 0.8rem;
@@ -1356,7 +1363,7 @@ tbody tr:hover td {
 .search-section.compact .form-col select { padding: 10px 12px; font-size: 0.9rem; }
 .search-section.compact .date-range { gap: 10px; }
 .search-section.compact .date-range input { padding: 10px 12px; font-size: 0.9rem; }
-.collapsible-section { border-top: 1px solid var(--border-dark); margin-top: 8px; padding-top: 8px; }
+.collapsible-section { border-top: 1px solid rgba(0, 0, 0, 0.15); margin-top: 8px; padding-top: 8px; }
 .collapsible-toggle {
   background: none; border: none; color: var(--accent-orange); cursor: pointer;
   font-size: 0.78rem; font-weight: 600; padding: 4px 0; display: flex; align-items: center; gap: 6px;
@@ -1425,7 +1432,7 @@ tbody tr:hover td {
 /* Legenda graduatoria */
 .graduatoria-legenda{display:flex;gap:18px;flex-wrap:wrap;padding:12px 0;margin-top:8px}
 .legenda-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-light);font-weight:500}
-.legenda-dot{width:14px;height:14px;border-radius:4px;display:inline-block;border:1px solid rgba(255,255,255,0.15)}
+.legenda-dot{width:14px;height:14px;border-radius:4px;display:inline-block;border:1px solid rgba(0,0,0,0.15)}
 
 </style>
 </head>
@@ -1883,7 +1890,7 @@ tbody tr:hover td {
         <div id="adminTabNewsletterAdmin" class="admin-tab-content">
           <!-- Newsletter Sending Form -->
           <div class="search-section compact">
-            <h3 style="margin-bottom:16px;color:#e2e8f0">Newsletter Sending</h3>
+            <h3 style="margin-bottom:16px;color:#333">Newsletter Sending</h3>
             <div class="form-row">
               <div class="form-col">
                 <label>Data Newsletter</label>
@@ -1910,7 +1917,7 @@ tbody tr:hover td {
             <div class="form-row">
               <div class="form-col">
                 <label>Filtro utenti</label>
-                <textarea id="admin-nl-filtro-utenti" placeholder="Inserire pochi utenti per volta, indicativamente 10" style="min-height:80px;resize:vertical;padding:8px;background:#1e293b;border:1px solid #475569;border-radius:4px;color:#e2e8f0;font-family:monospace;font-size:0.875rem"></textarea>
+                <textarea id="admin-nl-filtro-utenti" placeholder="Inserire pochi utenti per volta, indicativamente 10" style="min-height:80px;resize:vertical;padding:8px;background:#f5f5f5;border:1px solid rgba(0,0,0,0.15);border-radius:4px;color:#333;font-family:monospace;font-size:0.875rem"></textarea>
               </div>
             </div>
             <div class="button-group">
@@ -1920,7 +1927,7 @@ tbody tr:hover td {
 
           <!-- CIG/CUP Sistemazione Section -->
           <div class="search-section compact" style="margin-top:32px">
-            <h3 style="margin-bottom:16px;color:#e2e8f0">Sistemazione CIG/CUP</h3>
+            <h3 style="margin-bottom:16px;color:#333">Sistemazione CIG/CUP</h3>
             <div class="form-row">
               <div class="form-col">
                 <label style="display:block;margin-bottom:8px">Filtri</label>
@@ -2018,7 +2025,7 @@ tbody tr:hover td {
 
           <!-- Service Execution Log -->
           <div class="table-container" style="margin-top:24px">
-            <div id="statoServiziResults" style="min-height:200px;padding:16px;background:#1e293b;border-radius:6px;border:1px solid #475569;color:#e2e8f0;font-family:monospace;font-size:0.875rem;white-space:pre-wrap;word-break:break-word"></div>
+            <div id="statoServiziResults" style="min-height:200px;padding:16px;background:#f5f5f5;border-radius:6px;border:1px solid rgba(0,0,0,0.15);color:#333;font-family:monospace;font-size:0.875rem;white-space:pre-wrap;word-break:break-word"></div>
           </div>
         </div>
       </div>
@@ -2347,7 +2354,7 @@ tbody tr:hover td {
         </div>
 
         <div class="form-container">
-          <h3 style="font-size:1rem;color:#1E2D3D;margin-bottom:16px"><i class="fas fa-building" style="color:#FF8C00"></i> Dati Azienda</h3>
+          <h3 style="font-size:1rem;color:#333;margin-bottom:16px"><i class="fas fa-building" style="color:#FF8C00"></i> Dati Azienda</h3>
           <div class="form-row">
             <div class="form-col"><label>Ragione Sociale *</label><input type="text" id="cc-ragione" placeholder="es. Appalti.eu S.r.l." required></div>
             <div class="form-col"><label>P.IVA</label><input type="text" id="cc-piva" placeholder="es. 01234567890"></div>
@@ -2367,7 +2374,7 @@ tbody tr:hover td {
         </div>
 
         <div class="form-container" style="margin-top:16px">
-          <h3 style="font-size:1rem;color:#1E2D3D;margin-bottom:16px"><i class="fas fa-address-card" style="color:#FF8C00"></i> Contatti</h3>
+          <h3 style="font-size:1rem;color:#333;margin-bottom:16px"><i class="fas fa-address-card" style="color:#FF8C00"></i> Contatti</h3>
           <div class="form-row">
             <div class="form-col"><label>Email</label><input type="email" id="cc-email" placeholder="info@concorrente.it"></div>
             <div class="form-col"><label>PEC</label><input type="email" id="cc-pec" placeholder="pec@concorrente.it"></div>
@@ -2379,7 +2386,7 @@ tbody tr:hover td {
         </div>
 
         <div class="form-container" style="margin-top:16px">
-          <h3 style="font-size:1rem;color:#1E2D3D;margin-bottom:16px"><i class="fas fa-euro-sign" style="color:#FF8C00"></i> Prezzi Competitor</h3>
+          <h3 style="font-size:1rem;color:#333;margin-bottom:16px"><i class="fas fa-euro-sign" style="color:#FF8C00"></i> Prezzi Competitor</h3>
           <div class="form-row">
             <div class="form-col"><label>Prezzo Bandi (€/anno)</label><input type="number" id="cc-prezzo-bandi" step="0.01" placeholder="0.00"></div>
             <div class="form-col"><label>Prezzo Esiti (€/anno)</label><input type="number" id="cc-prezzo-esiti" step="0.01" placeholder="0.00"></div>
@@ -2391,7 +2398,7 @@ tbody tr:hover td {
         </div>
 
         <div class="form-container" style="margin-top:16px">
-          <h3 style="font-size:1rem;color:#1E2D3D;margin-bottom:16px"><i class="fas fa-sticky-note" style="color:#FF8C00"></i> Note</h3>
+          <h3 style="font-size:1rem;color:#333;margin-bottom:16px"><i class="fas fa-sticky-note" style="color:#FF8C00"></i> Note</h3>
           <div class="form-row full">
             <div class="form-col"><label>Note interne</label><textarea id="cc-note" rows="3" placeholder="Annotazioni su questo concorrente, servizi offerti, punti di forza/debolezza..."></textarea></div>
           </div>
@@ -3828,7 +3835,7 @@ tbody tr:hover td {
             </div>
 
             <!-- ALLEGATI UPLOAD -->
-            <div style="margin-top:16px;padding:16px;background:#1a2a3a;border-radius:8px;border:2px dashed rgba(255,255,255,0.15)">
+            <div style="margin-top:16px;padding:16px;background:#f5f5f5;border-radius:8px;border:2px dashed rgba(0,0,0,0.15)">
               <h4 style="margin:0 0 12px;color:var(--primary)"><i class="fas fa-paperclip"></i> ALLEGATI</h4>
               <p style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:12px">Carica i documenti di gara che saranno visibili alle aziende clienti (bando, disciplinare, capitolato, allegati tecnici, ecc.)</p>
               <input type="file" id="cb-allegati" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.jpg,.png,.dwg,.p7m">
@@ -3959,23 +3966,23 @@ tbody tr:hover td {
 
         <!-- STATS DASHBOARD -->
         <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px;" id="bandi-ai-stats">
-          <div style="text-align:center;padding:16px;background:#243447;border-radius:8px;border:1px solid rgba(255,255,255,0.1)">
+          <div style="text-align:center;padding:16px;background:#ffffff;border-radius:8px;border:1px solid rgba(0,0,0,0.1)">
             <div id="stat-totale-presidia" style="font-size:28px;font-weight:700;color:var(--primary)">-</div>
             <div style="color:var(--text-light);font-size:12px;margin-top:4px">Totale Presidia</div>
           </div>
-          <div style="text-align:center;padding:16px;background:#243447;border-radius:8px;border:1px solid rgba(255,255,255,0.1)">
+          <div style="text-align:center;padding:16px;background:#ffffff;border-radius:8px;border:1px solid rgba(0,0,0,0.1)">
             <div id="stat-compilati-ai" style="font-size:28px;font-weight:700;color:var(--success)">-</div>
             <div style="color:var(--text-light);font-size:12px;margin-top:4px">Compilati dall'AI</div>
           </div>
-          <div style="text-align:center;padding:16px;background:#243447;border-radius:8px;border:1px solid rgba(255,255,255,0.1)">
+          <div style="text-align:center;padding:16px;background:#ffffff;border-radius:8px;border:1px solid rgba(0,0,0,0.1)">
             <div id="stat-da-compilare" style="font-size:28px;font-weight:700;color:var(--warning)">-</div>
             <div style="color:var(--text-light);font-size:12px;margin-top:4px">Da Compilare</div>
           </div>
-          <div style="text-align:center;padding:16px;background:#243447;border-radius:8px;border:1px solid rgba(255,255,255,0.1)">
+          <div style="text-align:center;padding:16px;background:#ffffff;border-radius:8px;border:1px solid rgba(0,0,0,0.1)">
             <div id="stat-bassa-conf" style="font-size:28px;font-weight:700;color:var(--danger)">-</div>
             <div style="color:var(--text-light);font-size:12px;margin-top:4px">Bassa Confidenza</div>
           </div>
-          <div style="text-align:center;padding:16px;background:#243447;border-radius:8px;border:1px solid rgba(255,255,255,0.1)">
+          <div style="text-align:center;padding:16px;background:#ffffff;border-radius:8px;border:1px solid rgba(0,0,0,0.1)">
             <div id="stat-media-conf" style="font-size:28px;font-weight:700;color:var(--info)">-</div>
             <div style="color:var(--text-light);font-size:12px;margin-top:4px">Confidenza Media</div>
           </div>
@@ -4305,12 +4312,12 @@ tbody tr:hover td {
 
         <!-- Edit Form (hidden by default) -->
         <div id="alboEditOverlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.5); z-index:999; align-items:center; justify-content:center;">
-          <div style="background:#243447; border-radius:6px; padding:32px; width:90%; max-width:700px; max-height:85vh; overflow-y:auto;">
+          <div style="background:#ffffff; border-radius:6px; padding:32px; width:90%; max-width:700px; max-height:85vh; overflow-y:auto;">
             <h2 id="alboEditTitle" style="margin-bottom:20px;">Configura Albo Fornitori</h2>
             <div class="form-row">
               <div class="form-col">
                 <label>Stazione Appaltante *</label>
-                <select id="albo-edit-stazione" style="width:100%; padding:8px; border:1px solid rgba(255,255,255,0.1); border-radius:3px;">
+                <select id="albo-edit-stazione" style="width:100%; padding:8px; border:1px solid rgba(0,0,0,0.1); border-radius:3px;">
                   <option value="">Seleziona stazione...</option>
                 </select>
               </div>
@@ -4368,7 +4375,7 @@ tbody tr:hover td {
 
         <!-- Richiesta Detail Overlay -->
         <div id="richiestaDetailOverlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.5); z-index:999; align-items:center; justify-content:center;">
-          <div style="background:#243447; border-radius:6px; padding:32px; width:90%; max-width:600px; max-height:85vh; overflow-y:auto;">
+          <div style="background:#ffffff; border-radius:6px; padding:32px; width:90%; max-width:600px; max-height:85vh; overflow-y:auto;">
             <h2 style="margin-bottom:20px;">Dettaglio Richiesta</h2>
             <div id="richiestaDetailContent"></div>
             <div style="display:flex; gap:12px; margin-top:24px; justify-content:flex-end;">
@@ -4892,7 +4899,7 @@ tbody tr:hover td {
         </div>
 
         <!-- AI Insights -->
-        <div style="background:linear-gradient(135deg,#1E2D3D 0%,#2a3f55 100%);border-radius:12px;padding:20px;color:#fff;margin-bottom:16px">
+        <div style="background:linear-gradient(135deg,#f5f5f5 0%,#e8e8e8 100%);border-radius:12px;padding:20px;color:#fff;margin-bottom:16px">
           <h4 style="color:#F5C518;margin-bottom:12px"><i class="fas fa-robot"></i> AI INSIGHTS - Analisi Geografica</h4>
           <div id="sopr-mappa-ai-insights" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
             <div style="background:rgba(255,255,255,0.1);padding:12px;border-radius:8px">
@@ -5081,7 +5088,7 @@ tbody tr:hover td {
           </div>
         </div>
 
-        <div style="background:linear-gradient(135deg,#1E2D3D 0%,#2a3f55 100%);border-radius:12px;padding:24px;color:#fff;margin-bottom:24px">
+        <div style="background:linear-gradient(135deg,#f5f5f5 0%,#e8e8e8 100%);border-radius:12px;padding:24px;color:#fff;margin-bottom:24px">
           <h4 style="color:#F5C518;margin-bottom:16px"><i class="fas fa-lightbulb"></i> Come funziona</h4>
           <p style="font-size:14px;line-height:1.6;opacity:0.9">Il sistema AI analizza le attestazioni SOA, le categorie merceologiche e la posizione geografica delle aziende clienti per suggerire automaticamente gli albi fornitori più rilevanti a cui iscriversi. Le raccomandazioni vengono aggiornate in tempo reale.</p>
         </div>
@@ -5934,15 +5941,15 @@ async function loadDashboardStats() {
     // Extra stats info
     const extraHtml = `
       <div class="stat-cards-extra" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:20px;">
-        <div class="stat-card-sm" style="background:#243447;padding:16px;border-radius:4px;border-left:4px solid var(--info)">
+        <div class="stat-card-sm" style="background:#ffffff;padding:16px;border-radius:4px;border-left:4px solid var(--info)">
           <div style="font-size:12px;color:rgba(255,255,255,0.5);text-transform:uppercase">Importo Bandi Totale</div>
           <div style="font-size:18px;font-weight:bold;color:var(--primary)">${fmtImporto(stats.bandi?.importo_totale)}</div>
         </div>
-        <div class="stat-card-sm" style="background:#243447;padding:16px;border-radius:4px;border-left:4px solid var(--success)">
+        <div class="stat-card-sm" style="background:#ffffff;padding:16px;border-radius:4px;border-left:4px solid var(--success)">
           <div style="font-size:12px;color:rgba(255,255,255,0.5);text-transform:uppercase">Esiti ultimi 7 giorni</div>
           <div style="font-size:18px;font-weight:bold;color:var(--success)">${fmt(stats.esiti?.ultimi_7gg || 0)}</div>
         </div>
-        <div class="stat-card-sm" style="background:#243447;padding:16px;border-radius:4px;border-left:4px solid var(--warning)">
+        <div class="stat-card-sm" style="background:#ffffff;padding:16px;border-radius:4px;border-left:4px solid var(--warning)">
           <div style="font-size:12px;color:rgba(255,255,255,0.5);text-transform:uppercase">Utenti Approvati</div>
           <div style="font-size:18px;font-weight:bold;color:var(--warning)">${fmt(stats.utenti?.approvati || 0)} / ${fmt(stats.utenti?.totali || 0)}</div>
         </div>
@@ -5982,7 +5989,7 @@ async function loadDashboardCharts() {
     // Esiti per Mese (bar chart as HTML)
     if (charts.esiti_per_mese && charts.esiti_per_mese.length) {
       const maxCount = Math.max(...charts.esiti_per_mese.map(e => parseInt(e.conteggio)));
-      html += `<div style="background:#243447;padding:20px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.1)">
+      html += `<div style="background:#ffffff;padding:20px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.1)">
         <h4 style="margin-bottom:16px;color:var(--primary);font-size:14px;text-transform:uppercase">Esiti per Mese (ultimi 12 mesi)</h4>
         <div style="display:flex;flex-direction:column;gap:6px;">`;
       charts.esiti_per_mese.forEach(e => {
@@ -6001,7 +6008,7 @@ async function loadDashboardCharts() {
     // Bandi per Regione (horizontal bar chart)
     if (charts.bandi_per_regione && charts.bandi_per_regione.length) {
       const maxRegione = Math.max(...charts.bandi_per_regione.map(e => parseInt(e.conteggio)));
-      html += `<div style="background:#243447;padding:20px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.1)">
+      html += `<div style="background:#ffffff;padding:20px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.1)">
         <h4 style="margin-bottom:16px;color:var(--primary);font-size:14px;text-transform:uppercase">Bandi per Regione (Top 10)</h4>
         <div style="display:flex;flex-direction:column;gap:6px;">`;
       charts.bandi_per_regione.forEach(r => {
@@ -6020,7 +6027,7 @@ async function loadDashboardCharts() {
     // Esiti per Tipologia
     if (charts.esiti_per_tipologia && charts.esiti_per_tipologia.length) {
       const maxTip = Math.max(...charts.esiti_per_tipologia.map(e => parseInt(e.conteggio)));
-      html += `<div style="background:#243447;padding:20px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.1)">
+      html += `<div style="background:#ffffff;padding:20px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.1)">
         <h4 style="margin-bottom:16px;color:var(--primary);font-size:14px;text-transform:uppercase">Esiti per Tipologia</h4>
         <div style="display:flex;flex-direction:column;gap:6px;">`;
       charts.esiti_per_tipologia.forEach(t => {
@@ -6597,7 +6604,7 @@ async function viewEsitoDetail(id) {
     //   INVIA: enabled (Admin/Agent) — sends email to all participants
     //   SET TEMP: !temp && !enabled — revert to draft
     //   BLOCCA/SBLOCCA: Admin/Agent — lock/unlock editing
-    html += `<div style="background:#1a2a3a;border:2px solid var(--primary);border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    html += `<div style="background:#f5f5f5;border:2px solid var(--primary);border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <span style="font-weight:bold;color:var(--primary);margin-right:8px"><i class="fas fa-cogs"></i> AZIONI:</span>`;
     // CONFERMA: only when temp (bozza)
     if (isTemp && !isEnabled) {
@@ -6936,7 +6943,7 @@ async function viewBandoDetail(id) {
       <button class="btn btn-sm btn-secondary" onclick="searchBandi(${currentBandiPage})"><i class="fas fa-arrow-left"></i> Torna ai risultati</button>
     </div>`;
     // ══════ BANDO ACTION BUTTONS ══════
-    html += `<div style="background:#1a2a3a;border:2px solid var(--primary);border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    html += `<div style="background:#f5f5f5;border:2px solid var(--primary);border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <span style="font-weight:bold;color:var(--primary);margin-right:8px"><i class="fas fa-cogs"></i> AZIONI:</span>
       <button class="btn btn-sm" style="background:#2196F3;color:#fff;font-weight:bold" onclick="editBando('${id}')"><i class="fas fa-edit"></i> MODIFICA</button>
       <button class="btn btn-sm" style="background:#4CAF50;color:#fff;font-weight:bold" onclick="convertiBandoInEsito('${id}')"><i class="fas fa-exchange-alt"></i> CONVERTI IN ESITO</button>
@@ -7007,7 +7014,7 @@ async function viewBandoDetail(id) {
         const ext = (a.NomeFile||'').split('.').pop().toLowerCase();
         const icon = ext === 'pdf' ? 'fa-file-pdf' : ext === 'doc' || ext === 'docx' ? 'fa-file-word' : ext === 'xls' || ext === 'xlsx' ? 'fa-file-excel' : ext === 'zip' || ext === 'rar' ? 'fa-file-archive' : 'fa-file';
         const iconColor = ext === 'pdf' ? '#c0392b' : ext === 'doc' || ext === 'docx' ? '#2980b9' : ext === 'xls' || ext === 'xlsx' ? '#27ae60' : '#7f8c8d';
-        html += `<div style="background:#243447;padding:10px 14px;margin-bottom:6px;border-radius:6px;border-left:4px solid var(--info);display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
+        html += `<div style="background:#ffffff;padding:10px 14px;margin-bottom:6px;border-radius:6px;border-left:4px solid var(--info);display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
           <i class="fas ${icon}" style="color:${iconColor};font-size:1.2em"></i>
           <span style="font-weight:600;flex:1">${esc(a.NomeFile||'Allegato')}</span>
           <span style="font-size:11px;color:rgba(255,255,255,0.4)">${fmtDate(a.LastUpdate)} - ${esc(a.UserName||'')}</span>
@@ -7020,7 +7027,7 @@ async function viewBandoDetail(id) {
     }
     html += `</div>`;
     // Upload form
-    html += `<div style="margin-top:12px;padding:16px;background:#1a2a3a;border-radius:8px;border:2px dashed rgba(255,255,255,0.15)">
+    html += `<div style="margin-top:12px;padding:16px;background:#f5f5f5;border-radius:8px;border:2px dashed rgba(0,0,0,0.15)">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <input type="file" id="bando-allegato-file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.jpg,.png,.dwg,.p7m" style="flex:1">
         <button class="btn btn-sm" style="background:#4CAF50;color:#fff;font-weight:bold" onclick="uploadAllegatoBando('${id}')">
@@ -7032,15 +7039,15 @@ async function viewBandoDetail(id) {
     // ══════ SOA SECONDARIE / ALTERNATIVE ══════
     if (d.soa_sec && d.soa_sec.length) {
       html += `<h4 style="margin:16px 0 8px;color:var(--primary)">SOA SECONDARIE</h4>`;
-      d.soa_sec.forEach(s => { html += `<div style="padding:4px 12px;background:#1a2a3a;margin-bottom:2px">${esc(s.cod)} - ${esc(s.Descrizione)}</div>`; });
+      d.soa_sec.forEach(s => { html += `<div style="padding:4px 12px;background:#f5f5f5;margin-bottom:2px">${esc(s.cod)} - ${esc(s.Descrizione)}</div>`; });
     }
     if (d.soa_alt && d.soa_alt.length) {
       html += `<h4 style="margin:16px 0 8px;color:var(--primary)">SOA ALTERNATIVE</h4>`;
-      d.soa_alt.forEach(s => { html += `<div style="padding:4px 12px;background:#1a2a3a;margin-bottom:2px">${esc(s.cod)} - ${esc(s.Descrizione)}</div>`; });
+      d.soa_alt.forEach(s => { html += `<div style="padding:4px 12px;background:#f5f5f5;margin-bottom:2px">${esc(s.cod)} - ${esc(s.Descrizione)}</div>`; });
     }
     if (d.soa_app && d.soa_app.length) {
       html += `<h4 style="margin:16px 0 8px;color:var(--primary)">SOA SUBAPPALTABILI</h4>`;
-      d.soa_app.forEach(s => { html += `<div style="padding:4px 12px;background:#1a2a3a;margin-bottom:2px">${esc(s.cod)} - ${esc(s.Descrizione)}</div>`; });
+      d.soa_app.forEach(s => { html += `<div style="padding:4px 12px;background:#f5f5f5;margin-bottom:2px">${esc(s.cod)} - ${esc(s.Descrizione)}</div>`; });
     }
     // ══════ PROVINCE ASSOCIATE ══════
     if (d.province && d.province.length) {
@@ -7717,7 +7724,7 @@ async function viewAziendaDetail(id) {
     if (data.note && data.note.length) {
       html += `<h4 style="margin:20px 0 10px;color:var(--primary)">NOTE (${data.note.length})</h4>`;
       data.note.forEach(n => {
-        html += `<div style="background:#243447;padding:12px;margin-bottom:8px;border-radius:4px;border-left:3px solid var(--primary)">
+        html += `<div style="background:#ffffff;padding:12px;margin-bottom:8px;border-radius:4px;border-left:3px solid var(--primary)">
           <div style="font-size:11px;color:rgba(255,255,255,0.4)">${fmtDate(n.data)} - ${esc(n.username||'')}</div>
           <div style="margin-top:4px">${esc(n.nota||'')}</div>
         </div>`;
@@ -8789,7 +8796,7 @@ async function handleBandiFileSelect(event) {
     html += `<div><strong>Importo:</strong> ${fmtImporto(result.importo || 0)}</div>`;
     html += `<div><strong>Confidenza:</strong> <span style="color:${confColor};font-weight:bold">${conf}%</span></div>`;
     html += '</div>';
-    html += '<div style="background:#243447;padding:12px;border-radius:3px;margin-bottom:12px;max-height:200px;overflow-y:auto">';
+    html += '<div style="background:#ffffff;padding:12px;border-radius:3px;margin-bottom:12px;max-height:200px;overflow-y:auto">';
     html += '<strong>Dati Estratti:</strong><pre style="font-size:0.85rem;white-space:pre-wrap;color:var(--text-light)">' + esc(JSON.stringify(result, null, 2)) + '</pre>';
     html += '</div>';
     html += '<div class="button-group">';
@@ -8871,9 +8878,9 @@ async function enrichBatchBandi() {
     let html = `<div style="padding:16px;background:rgba(76,175,80,0.15);border-radius:3px;border:2px solid var(--success)">`;
     html += `<h4 style="color:var(--success);margin-bottom:12px"><i class="fas fa-check-circle"></i> Compilazione batch completata!</h4>`;
     html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">`;
-    html += `<div style="text-align:center;padding:12px;background:#243447;border-radius:3px"><div style="font-size:28px;font-weight:bold;color:var(--success)">${data.processed || 0}</div><div style="font-size:12px;color:var(--text-light)">Compilati</div></div>`;
-    html += `<div style="text-align:center;padding:12px;background:#243447;border-radius:3px"><div style="font-size:28px;font-weight:bold;color:var(--danger)">${data.errors || 0}</div><div style="font-size:12px;color:var(--text-light)">Errori</div></div>`;
-    html += `<div style="text-align:center;padding:12px;background:#243447;border-radius:3px"><div style="font-size:28px;font-weight:bold;color:var(--info)">${(data.details||[]).length}</div><div style="font-size:12px;color:var(--text-light)">Totale</div></div>`;
+    html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:3px"><div style="font-size:28px;font-weight:bold;color:var(--success)">${data.processed || 0}</div><div style="font-size:12px;color:var(--text-light)">Compilati</div></div>`;
+    html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:3px"><div style="font-size:28px;font-weight:bold;color:var(--danger)">${data.errors || 0}</div><div style="font-size:12px;color:var(--text-light)">Errori</div></div>`;
+    html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:3px"><div style="font-size:28px;font-weight:bold;color:var(--info)">${(data.details||[]).length}</div><div style="font-size:12px;color:var(--text-light)">Totale</div></div>`;
     html += `</div>`;
     if (data.details && data.details.length) {
       html += '<table><thead><tr><th>Bando</th><th>Stato</th></tr></thead><tbody>';
@@ -8903,7 +8910,7 @@ async function viewBandoAiDetail(id) {
     const corrections = aiData.ai_corrections || [];
 
     let html = `<div style="margin-bottom:12px"><button class="btn btn-sm btn-secondary" onclick="document.getElementById('bandi-ai-corrected').innerHTML='';"><i class="fas fa-arrow-left"></i> Chiudi dettaglio</button></div>`;
-    html += `<div style="padding:16px;background:#243447;border-radius:3px;border:1px solid rgba(255,255,255,0.1);">`;
+    html += `<div style="padding:16px;background:#ffffff;border-radius:3px;border:1px solid rgba(0,0,0,0.1);">`;
     html += `<h3 style="color:var(--primary);margin-bottom:16px">${esc(bando.titolo||'Bando')}</h3>`;
 
     // Show fields side by side: Presidia original vs AI corrected
@@ -8969,17 +8976,17 @@ async function loadEsitiAI() {
     if (items.length) {
       // Summary stats
       html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">';
-      html += `<div style="text-align:center;padding:12px;background:#243447;border-radius:8px;border:1px solid rgba(255,255,255,0.1)">`;
+      html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:8px;border:1px solid rgba(0,0,0,0.1)">`;
       html += `<div style="font-size:24px;font-weight:bold;color:var(--warning)">${items.length}</div>`;
       html += `<div style="font-size:12px;color:var(--text-light)">In Attesa di Review</div>`;
       html += `</div>`;
       const totalPartecipanti = items.reduce((sum, i) => sum + (i.NPartecipanti || 0), 0);
-      html += `<div style="text-align:center;padding:12px;background:#243447;border-radius:8px;border:1px solid rgba(255,255,255,0.1)">`;
+      html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:8px;border:1px solid rgba(0,0,0,0.1)">`;
       html += `<div style="font-size:24px;font-weight:bold;color:var(--info)">${totalPartecipanti}</div>`;
       html += `<div style="font-size:12px;color:var(--text-light)">Partecipanti Totali</div>`;
       html += `</div>`;
       const recentDate = items.length > 0 ? fmtDate(items[0].Data || items[0].created_at) : '-';
-      html += `<div style="text-align:center;padding:12px;background:#243447;border-radius:8px;border:1px solid rgba(255,255,255,0.1)">`;
+      html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:8px;border:1px solid rgba(0,0,0,0.1)">`;
       html += `<div style="font-size:14px;font-weight:bold;color:var(--primary)">${recentDate}</div>`;
       html += `<div style="font-size:12px;color:var(--text-light)">Esito più Recente</div>`;
       html += `</div>`;
@@ -9264,16 +9271,16 @@ function renderEsitoAiResult(data) {
   const confColor = data.confidence>=0.8?'var(--success)':data.confidence>=0.6?'var(--warning)':'var(--danger)';
   html += `<h4 style="color:var(--success);margin-bottom:12px"><i class="fas fa-check-circle"></i> Analisi completata!</h4>`;
   html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0 16px 0;">`;
-  html += `<div style="text-align:center;padding:12px;background:#243447;border-radius:3px"><div style="font-size:24px;font-weight:bold;color:${confColor}">${confPct}%</div><div style="font-size:12px;color:var(--text-light)">Confidenza Analisi</div></div>`;
-  html += `<div style="text-align:center;padding:12px;background:#243447;border-radius:3px"><div style="font-size:24px;font-weight:bold;color:var(--primary)">${data.n_results||1}</div><div style="font-size:12px;color:var(--text-light)">Esiti Trovati</div></div>`;
+  html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:3px"><div style="font-size:24px;font-weight:bold;color:${confColor}">${confPct}%</div><div style="font-size:12px;color:var(--text-light)">Confidenza Analisi</div></div>`;
+  html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:3px"><div style="font-size:24px;font-weight:bold;color:var(--primary)">${data.n_results||1}</div><div style="font-size:12px;color:var(--text-light)">Esiti Trovati</div></div>`;
   const unmatched = (data.unmatched_companies || []).length;
-  html += `<div style="text-align:center;padding:12px;background:#243447;border-radius:3px"><div style="font-size:24px;font-weight:bold;color:${unmatched>0?'var(--warning)':'var(--success)'}">${unmatched}</div><div style="font-size:12px;color:var(--text-light)">Aziende da Verificare</div></div>`;
+  html += `<div style="text-align:center;padding:12px;background:#ffffff;border-radius:3px"><div style="font-size:24px;font-weight:bold;color:${unmatched>0?'var(--warning)':'var(--success)'}">${unmatched}</div><div style="font-size:12px;color:var(--text-light)">Aziende da Verificare</div></div>`;
   html += `</div>`;
   html += `<p style="font-size:0.9rem;color:var(--text-light);margin-bottom:0"><i class="fas fa-file"></i> ${esc(data.filename||'documento')}</p>`;
 
   if (data.results) {
     data.results.forEach((r, i) => {
-      html += `<div style="margin-top:16px;padding:12px;background:#243447;border-radius:3px;border:1px solid rgba(255,255,255,0.1);">`;
+      html += `<div style="margin-top:16px;padding:12px;background:#ffffff;border-radius:3px;border:1px solid rgba(0,0,0,0.1);">`;
       html += `<h4>${esc(r.titolo||'Esito '+(i+1))}</h4>`;
       html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0">`;
       html += `<div><small style="color:var(--text-light)">CIG</small><br><strong>${esc(r.codice_cig||'-')}</strong></div>`;
@@ -9372,7 +9379,7 @@ async function loadAziendeDaVerificare() {
     let html = '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">';
     rows.forEach(r => {
       const hasMatch = r.suggerimento && r.suggerimento !== 'Nessuno' && r.suggerimento !== '<em>Nessuno</em>';
-      html += `<div style="padding:16px;background:#243447;border-radius:8px;border:2px solid ${hasMatch?'var(--success)':'var(--warning)'};border-left:4px solid ${hasMatch?'var(--success)':'var(--warning)'}">`;
+      html += `<div style="padding:16px;background:#ffffff;border-radius:8px;border:2px solid ${hasMatch?'var(--success)':'var(--warning)'};border-left:4px solid ${hasMatch?'var(--success)':'var(--warning)'}">`;
       html += `<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px">`;
       html += `<div><strong style="font-size:0.95rem">${esc((r.ragione_sociale||'Sconosciuta').substring(0,35))}</strong>`;
       if (r.partita_iva) html += `<div style="font-size:0.85rem;color:var(--text-light)">P.IVA: ${esc(r.partita_iva)}</div>`;
@@ -9429,7 +9436,7 @@ async function inviaNotificheEsito() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Errore');
-    let html = `<div style="padding:16px;background:#1a2a3a;border-radius:3px;border:1px solid rgba(255,255,255,0.1);">`;
+    let html = `<div style="padding:16px;background:#f5f5f5;border-radius:3px;border:1px solid rgba(0,0,0,0.1);">`;
     html += `<h4 style="color:var(--primary);margin-bottom:12px"><i class="fas fa-check-circle" style="color:var(--success)"></i> Invio completato</h4>`;
     html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">`;
     html += `<div style="text-align:center;padding:12px;background:rgba(76,175,80,0.15);border-radius:3px"><div style="font-size:24px;font-weight:bold;color:var(--success)">${data.sent||0}</div><div style="font-size:12px">Inviate</div></div>`;
@@ -10163,7 +10170,7 @@ async function loadSoprCalendario() {
     });
 
     // Build calendar grid
-    let html = '<div style="font-weight:bold;text-align:center;padding:8px;background:#1a2a3a">Lun</div><div style="font-weight:bold;text-align:center;padding:8px;background:#1a2a3a">Mar</div><div style="font-weight:bold;text-align:center;padding:8px;background:#1a2a3a">Mer</div><div style="font-weight:bold;text-align:center;padding:8px;background:#1a2a3a">Gio</div><div style="font-weight:bold;text-align:center;padding:8px;background:#1a2a3a">Ven</div><div style="font-weight:bold;text-align:center;padding:8px;background:#1a2a3a">Sab</div><div style="font-weight:bold;text-align:center;padding:8px;background:#1a2a3a">Dom</div>';
+    let html = '<div style="font-weight:bold;text-align:center;padding:8px;background:#f5f5f5">Lun</div><div style="font-weight:bold;text-align:center;padding:8px;background:#f5f5f5">Mar</div><div style="font-weight:bold;text-align:center;padding:8px;background:#f5f5f5">Mer</div><div style="font-weight:bold;text-align:center;padding:8px;background:#f5f5f5">Gio</div><div style="font-weight:bold;text-align:center;padding:8px;background:#f5f5f5">Ven</div><div style="font-weight:bold;text-align:center;padding:8px;background:#f5f5f5">Sab</div><div style="font-weight:bold;text-align:center;padding:8px;background:#f5f5f5">Dom</div>';
 
     const startDow = (new Date(anno, mese-1, 1).getDay() + 6) % 7; // Monday = 0
     for (let i = 0; i < startDow; i++) html += '<div style="padding:8px;"></div>';
@@ -11018,23 +11025,23 @@ async function loadAlbiFornitori() {
     const data = await res.json();
     const s = data.stats || {};
     document.getElementById('albi-dashboard-stats').innerHTML = `
-      <div class="stat-card" style="background:#243447; padding:16px; border-radius:6px; border-left:4px solid var(--primary); box-shadow:0 1px 3px rgba(0,0,0,.1);">
+      <div class="stat-card" style="background:#ffffff; padding:16px; border-radius:6px; border-left:4px solid var(--primary); box-shadow:0 1px 3px rgba(0,0,0,.1);">
         <div style="font-size:2rem; font-weight:700; color:var(--primary);">${s.albi_attivi || 0}</div>
         <div style="font-size:.85rem; color:rgba(255,255,255,0.5);">Albi Attivi</div>
       </div>
-      <div class="stat-card" style="background:#243447; padding:16px; border-radius:6px; border-left:4px solid var(--warning); box-shadow:0 1px 3px rgba(0,0,0,.1);">
+      <div class="stat-card" style="background:#ffffff; padding:16px; border-radius:6px; border-left:4px solid var(--warning); box-shadow:0 1px 3px rgba(0,0,0,.1);">
         <div style="font-size:2rem; font-weight:700; color:var(--warning);">${s.richieste_nuove || 0}</div>
         <div style="font-size:.85rem; color:rgba(255,255,255,0.5);">Richieste Nuove</div>
       </div>
-      <div class="stat-card" style="background:#243447; padding:16px; border-radius:6px; border-left:4px solid var(--info); box-shadow:0 1px 3px rgba(0,0,0,.1);">
+      <div class="stat-card" style="background:#ffffff; padding:16px; border-radius:6px; border-left:4px solid var(--info); box-shadow:0 1px 3px rgba(0,0,0,.1);">
         <div style="font-size:2rem; font-weight:700; color:var(--info);">${s.richieste_in_corso || 0}</div>
         <div style="font-size:.85rem; color:rgba(255,255,255,0.5);">In Lavorazione</div>
       </div>
-      <div class="stat-card" style="background:#243447; padding:16px; border-radius:6px; border-left:4px solid var(--success); box-shadow:0 1px 3px rgba(0,0,0,.1);">
+      <div class="stat-card" style="background:#ffffff; padding:16px; border-radius:6px; border-left:4px solid var(--success); box-shadow:0 1px 3px rgba(0,0,0,.1);">
         <div style="font-size:2rem; font-weight:700; color:var(--success);">${s.richieste_completate || 0}</div>
         <div style="font-size:.85rem; color:rgba(255,255,255,0.5);">Completate</div>
       </div>
-      <div class="stat-card" style="background:#243447; padding:16px; border-radius:6px; border-left:4px solid #9C27B0; box-shadow:0 1px 3px rgba(0,0,0,.1);">
+      <div class="stat-card" style="background:#ffffff; padding:16px; border-radius:6px; border-left:4px solid #9C27B0; box-shadow:0 1px 3px rgba(0,0,0,.1);">
         <div style="font-size:2rem; font-weight:700; color:#9C27B0;">${s.iscrizioni_attive || 0}</div>
         <div style="font-size:.85rem; color:rgba(255,255,255,0.5);">Iscrizioni Attive</div>
       </div>
@@ -11320,7 +11327,7 @@ async function loadAlbiIscrizioni() {
     // For now, show available iscrizioni from the stats
     const stats = data.stats || {};
     container.innerHTML = `
-      <div style="padding:20px; background:#1a2a3a; border-radius:6px;">
+      <div style="padding:20px; background:#f5f5f5; border-radius:6px;">
         <h3 style="margin-bottom:12px;">Iscrizioni Registrate</h3>
         <p style="font-size:1.2rem; font-weight:700; color:var(--primary);">${stats.iscrizioni_attive || 0} iscrizioni attive</p>
         <p style="margin-top:12px; color:rgba(255,255,255,0.5); font-size:.9rem;">Per visualizzare tutte le iscrizioni, usa il pulsante "Registra Iscrizione" per aggiungere nuove iscrizioni completate dal team.</p>
@@ -11414,7 +11421,7 @@ async function viewConcorrente(id) {
       <p class="page-subtitle" style="color:#94a3b8;font-size:0.88rem;margin-top:4px;margin-bottom:24px">Visualizza e modifica i dati di questo concorrente.</p>
     </div>
     <div class="form-container">
-      <h3 style="font-size:1rem;color:#1E2D3D;margin-bottom:16px"><i class="fas fa-building" style="color:#FF8C00"></i> ${esc(c.ragione_sociale||'')}</h3>
+      <h3 style="font-size:1rem;color:#333;margin-bottom:16px"><i class="fas fa-building" style="color:#FF8C00"></i> ${esc(c.ragione_sociale||'')}</h3>
       <div class="detail-grid">
         <div class="detail-row"><span class="detail-label">ID</span><span class="detail-value">${c.id}</span></div>
         <div class="detail-row"><span class="detail-label">Ragione Sociale</span><span class="detail-value">${esc(c.ragione_sociale||'-')}</span></div>
@@ -11430,7 +11437,7 @@ async function viewConcorrente(id) {
       </div>
     </div>
     <div class="form-container" style="margin-top:16px">
-      <h3 style="font-size:1rem;color:#1E2D3D;margin-bottom:16px"><i class="fas fa-euro-sign" style="color:#FF8C00"></i> Prezzi Competitor</h3>
+      <h3 style="font-size:1rem;color:#333;margin-bottom:16px"><i class="fas fa-euro-sign" style="color:#FF8C00"></i> Prezzi Competitor</h3>
       <div class="detail-grid">
         <div class="detail-row"><span class="detail-label">Prezzo Bandi</span><span class="detail-value" style="font-weight:700;color:#FF8C00">${c.prezzo_bandi ? '€ '+c.prezzo_bandi : '-'}</span></div>
         <div class="detail-row"><span class="detail-label">Prezzo Esiti</span><span class="detail-value" style="font-weight:700;color:#FF8C00">${c.prezzo_esiti ? '€ '+c.prezzo_esiti : '-'}</span></div>
@@ -11438,8 +11445,8 @@ async function viewConcorrente(id) {
       </div>
     </div>
     ${c.note ? `<div class="form-container" style="margin-top:16px">
-      <h3 style="font-size:1rem;color:#1E2D3D;margin-bottom:16px"><i class="fas fa-sticky-note" style="color:#FF8C00"></i> Note</h3>
-      <p style="color:#475569;line-height:1.6">${esc(c.note)}</p>
+      <h3 style="font-size:1rem;color:#333;margin-bottom:16px"><i class="fas fa-sticky-note" style="color:#FF8C00"></i> Note</h3>
+      <p style="color:#666;line-height:1.6">${esc(c.note)}</p>
     </div>` : ''}
     <div class="button-group" style="margin-top:20px">
       <button class="btn btn-secondary" onclick="selectSubPage('aziende','concorrenti')"><i class="fas fa-arrow-left"></i> TORNA ALLA LISTA</button>
@@ -11942,7 +11949,7 @@ async function viewBandoDetailEnhanced(id, currentPage = 1) {
     if (d.soa_sec && d.soa_sec.length) {
       html += `<h4 style="margin:20px 0 10px;color:var(--primary)">SOA Secondarie</h4>`;
       d.soa_sec.forEach(s => {
-        html += `<div style="padding:8px 12px;background:#1a2a3a;margin-bottom:4px">${esc(s.cod)} - ${esc(s.Descrizione)}</div>`;
+        html += `<div style="padding:8px 12px;background:#f5f5f5;margin-bottom:4px">${esc(s.cod)} - ${esc(s.Descrizione)}</div>`;
       });
     }
     html += `</div>`;
@@ -12465,7 +12472,7 @@ async function loadSoprCalendarioFull() {
     const raw_ = data.data || data || []; const rows = Array.isArray(raw_) ? raw_ : [];
     const daysInMonth = new Date(anno, mese, 0).getDate();
     const firstDayOfWeek = new Date(anno, mese - 1, 1).getDay() || 7;
-    let html = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].map(d => `<div style="text-align:center;font-weight:700;padding:8px;background:#1a2a3a">${d}</div>`).join('');
+    let html = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].map(d => `<div style="text-align:center;font-weight:700;padding:8px;background:#f5f5f5">${d}</div>`).join('');
     for (let i = 1; i < firstDayOfWeek; i++) html += '<div></div>';
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${anno}-${String(mese).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
