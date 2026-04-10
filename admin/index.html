@@ -2942,35 +2942,84 @@ span.flatpickr-weekday {
 
       <!-- INTERMEDIARI AZIENDE PAGE -->
       <div id="pageIntermediariAziende" class="page">
-        <div class="page-header"><h1 class="page-title">INTERMEDIARI</h1></div>
-        <div class="search-section compact">
-          <div class="form-row">
-            <div class="form-col"><label>Ragione Sociale</label><input type="text" id="intermediari-az-search" placeholder="Cerca intermediario..."></div>
-            <div class="form-col"><label>P.IVA</label><input type="text" id="intermediari-az-piva"></div>
-          </div>
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="searchIntermediariAz()"><i class="fas fa-search"></i> CERCA</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('intermediari-az-search').value='';document.getElementById('intermediari-az-piva').value='';"><i class="fas fa-redo"></i> ANNULLA</button>
-          </div>
-        </div>
-        <div class="table-container"><div id="intermediariAzResults"></div></div>
+        <div id="intermediari-container"></div>
       </div>
 
       <!-- CREA INTERMEDIARIO PAGE -->
       <div id="pageCreateIntermediario" class="page">
-        <div class="page-header"><h1 class="page-title">CREA INTERMEDIARIO</h1></div>
-        <div class="search-section compact">
-          <div class="form-row">
-            <div class="form-col"><label>P.IVA *</label><input type="text" id="ci-piva" required></div>
-            <div class="form-col"><label>Ragione Sociale *</label><input type="text" id="ci-ragione" required></div>
+        <div class="az-detail-wrap" style="max-width:100%;margin:0">
+          <div class="az-detail-title" style="padding:10px 16px;font-size:1rem">
+            <i class="fas fa-user-tie" style="color:#FF8C00;margin-right:8px"></i>NUOVO INTERMEDIARIO
           </div>
-          <div class="form-row">
-            <div class="form-col"><label>Email</label><input type="email" id="ci-email"></div>
-            <div class="form-col"><label>Telefono</label><input type="text" id="ci-telefono"></div>
-          </div>
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="createIntermediario()"><i class="fas fa-plus"></i> CREA INTERMEDIARIO</button>
-            <button class="btn btn-secondary" onclick="selectSubPage('aziende','intermediari')"><i class="fas fa-arrow-left"></i> ANNULLA</button>
+          <div class="az-detail-body" style="padding:14px">
+            <div class="az-detail-col" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+              <div class="az-consorzio-section" style="margin:0">
+                <div class="az-consorzio-title"><i class="fas fa-id-card"></i> DATI ANAGRAFICI</div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Ragione Sociale *</label><input type="text" id="ci-ragione" required></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Cognome</label><input type="text" id="ci-cognome"></div>
+                  <div class="az-field"><label>Nome</label><input type="text" id="ci-nome"></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Partita IVA</label><input type="text" id="ci-piva"></div>
+                  <div class="az-field"><label>Codice Fiscale</label><input type="text" id="ci-cf"></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Codice SDI</label><input type="text" id="ci-sdi"></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Indirizzo</label><input type="text" id="ci-indirizzo"></div>
+                </div>
+                <div class="az-field-row-3">
+                  <div class="az-field"><label>CAP</label><input type="text" id="ci-cap"></div>
+                  <div class="az-field"><label>Città</label><input type="text" id="ci-citta"></div>
+                  <div class="az-field"><label>Provincia</label><select id="ci-provincia"><option value="">-</option></select></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Note</label><textarea id="ci-note" rows="3"></textarea></div>
+                </div>
+              </div>
+
+              <div class="az-consorzio-section" style="margin:0">
+                <div class="az-consorzio-title"><i class="fas fa-address-book"></i> CONTATTI & PREZZI</div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Telefono</label><input type="text" id="ci-telefono"></div>
+                  <div class="az-field"><label>Email</label><input type="email" id="ci-email"></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Indirizzo PEC</label><input type="email" id="ci-pec"></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Fax</label><input type="text" id="ci-fax"></div>
+                  <div class="az-field"><label>Sito Web</label><input type="text" id="ci-sito"></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Referente nell'azienda</label><input type="text" id="ci-referente"></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                      <input type="checkbox" id="ci-visibile" style="width:auto;margin:0">
+                      Visibile a tutti
+                    </label>
+                  </div>
+                </div>
+                <div class="az-consorzio-title" style="margin-top:14px"><i class="fas fa-euro-sign"></i> PREZZI MINIMI</div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Propria Zona (€)</label><input type="number" step="0.01" id="ci-prezzo-propria"></div>
+                  <div class="az-field"><label>Altre Zone (€)</label><input type="number" step="0.01" id="ci-prezzo-altre"></div>
+                </div>
+              </div>
+
+            </div>
+            <div class="az-buttons" style="margin-top:14px;justify-content:flex-start">
+              <button class="az-btn-save" onclick="createIntermediario()"><i class="fas fa-check"></i> CONFERMA</button>
+              <button class="az-btn-action" onclick="selectSubPage('aziende','intermediari')"><i class="fas fa-times"></i> ANNULLA</button>
+              <button class="az-btn-action" onclick="resetCreateIntermediarioForm()"><i class="fas fa-eraser"></i> PULISCI</button>
+            </div>
           </div>
         </div>
       </div>
@@ -5769,50 +5818,8 @@ span.flatpickr-weekday {
         </div>
       </div>
 
-      <!-- NEW INTERMEDIARIO FORM PAGE -->
-      <div id="pageCreateIntermediario" class="page">
-        <div class="page-header">
-          <h1 class="page-title"><i class="fas fa-user-tie"></i> NUOVO INTERMEDIARIO</h1>
-        </div>
-        <div class="form-card">
-          <form onsubmit="saveIntermediario(event)">
-            <div class="form-row">
-              <div class="form-col">
-                <label>Nome*</label>
-                <input type="text" id="int-nome" required>
-              </div>
-              <div class="form-col">
-                <label>P.IVA*</label>
-                <input type="text" id="int-piva" required>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>Codice Fiscale</label>
-                <input type="text" id="int-cf">
-              </div>
-              <div class="form-col">
-                <label>Email</label>
-                <input type="email" id="int-email">
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>Telefono</label>
-                <input type="tel" id="int-tel">
-              </div>
-              <div class="form-col">
-                <label>Indirizzo</label>
-                <input type="text" id="int-indirizzo">
-              </div>
-            </div>
-            <div class="button-group">
-              <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> SALVA</button>
-              <button type="button" class="btn btn-secondary" onclick="searchIntermediariList()"><i class="fas fa-times"></i> ANNULLA</button>
-            </div>
-          </form>
-        </div>
-      </div>
+      <!-- NEW INTERMEDIARIO FORM PAGE (legacy - not used) -->
+      <div id="pageCreateIntermediarioLegacy" class="page" style="display:none"></div>
 
       <!-- ESECUTORI ESTERNI PAGE -->
       <div id="pageEsecutoriList" class="page">
@@ -6696,7 +6703,7 @@ function populateStaticSelects() {
   }
 
   // Province per nuovi inserimenti
-  const provSelects = ['new-utente-provincia', 'cc-provincia', 'concorrenti-provincia'];
+  const provSelects = ['new-utente-provincia', 'cc-provincia', 'concorrenti-provincia', 'ci-provincia'];
   provSelects.forEach(id => {
     const sel = document.getElementById(id);
     if (sel && sel.options.length <= 1) {
@@ -7409,6 +7416,7 @@ function selectSubPage(section, subpage) {
   if (subpage === 'albi-fornitori') loadAlbiFornitori();
   if (subpage === 'fonti-web') loadFontiWeb();
   if (subpage === 'concorrenti') loadConcorrenti();
+  if (subpage === 'intermediari' && section === 'aziende') loadIntermediari();
   if (subpage === 'sopralluoghi') loadSopralluoghiAdmin();
   if (subpage === 'tipologia-dati') loadTipologiaDati();
   if (subpage === 'create-azienda') { setTimeout(() => { if (typeof initFlatpickrAll === 'function') initFlatpickrAll(); }, 50); }
@@ -11665,112 +11673,245 @@ async function loadElaborati() {
   }
 }
 
-// ════════════════ INTERMEDIARI ════════════════
-async function searchIntermediariList() {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('pageIntermediariList').classList.add('active');
-  searchIntermediari();
+// ════════════════ INTERMEDIARI (new design) ════════════════
+let currentIntermediariPage = 1;
+
+function resetIntermediariFiltri() {
+  const s = document.getElementById('intermediari-search'); if (s) s.value = '';
+  const p = document.getElementById('intermediari-provincia'); if (p) p.value = '';
+  loadIntermediari(1);
 }
 
-async function searchIntermediari(page = 1) {
-  const container = document.getElementById('intermediari-results');
-  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Ricerca in corso...</p></div>';
+function renderIntermediariListShell() {
+  const container = document.getElementById('intermediari-container');
+  if (!container) return;
+  const provOptions = (typeof FALLBACK_PROVINCE !== 'undefined' ? FALLBACK_PROVINCE : [])
+    .map(p => `<option value="${p.sigla}">${esc(p.nome)} (${p.sigla})</option>`).join('');
+  const toolbar = (pos) => `
+    <div class="int-toolbar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;font-family:Comfortaa,sans-serif">
+      <input type="text" id="intermediari-search${pos}" placeholder="Cerca ragione sociale, cognome, P.IVA, email..." style="flex:1 1 260px;min-width:220px;padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;font-family:inherit;font-size:0.82rem" onkeydown="if(event.key==='Enter')loadIntermediari(1)">
+      <select id="intermediari-provincia${pos}" style="padding:7px 8px;border:1px solid #cbd5e1;border-radius:6px;font-family:inherit;font-size:0.82rem;max-width:150px">
+        <option value="">Tutte le province</option>${provOptions}
+      </select>
+      <select id="intermediari-limit${pos}" style="padding:7px 8px;border:1px solid #cbd5e1;border-radius:6px;font-family:inherit;font-size:0.82rem">
+        <option value="10">10</option><option value="25" selected>25</option><option value="50">50</option><option value="100">100</option>
+      </select>
+      <button class="az-btn-save" style="padding:7px 12px;font-size:0.78rem" onclick="loadIntermediari(1)"><i class="fas fa-search"></i> CERCA</button>
+      <button class="az-btn-action" style="padding:7px 12px;font-size:0.78rem" onclick="resetIntermediariFiltri()"><i class="fas fa-eraser"></i> PULISCI</button>
+      <button class="az-btn-action" style="padding:7px 12px;font-size:0.78rem" onclick="selectSubPage('aziende','create-intermediario')"><i class="fas fa-plus"></i> NUOVO</button>
+      ${pos === '' ? '<span id="intermediari-contatore" style="margin-left:auto;font-size:0.78rem;color:#64748b;font-weight:600"></span>' : '<div id="intermediari-pagination" style="margin-left:auto;display:flex;gap:4px;align-items:center"></div>'}
+    </div>`;
+  container.innerHTML = `
+    <div class="az-detail-wrap" style="max-width:100%;margin:0">
+      <div class="az-detail-title" style="padding:10px 16px;font-size:1rem">
+        <i class="fas fa-user-tie" style="color:#FF8C00;margin-right:8px"></i>INTERMEDIARI
+      </div>
+      <div class="az-detail-body" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">
+        ${toolbar('')}
+        <div id="intermediari-results" style="max-height:calc(100vh - 280px);overflow:auto;border:1px solid #e2e8f0;border-radius:8px"></div>
+        ${toolbar('-bot')}
+      </div>
+    </div>`;
+  ['search','provincia','limit'].forEach(f => {
+    const top = document.getElementById('intermediari-' + f);
+    const bot = document.getElementById('intermediari-' + f + '-bot');
+    if (top && bot) {
+      top.addEventListener('change', () => { bot.value = top.value; });
+      bot.addEventListener('change', () => { top.value = bot.value; });
+      if (f === 'search') bot.addEventListener('keydown', (e) => { if (e.key === 'Enter') { top.value = bot.value; loadIntermediari(1); } });
+    }
+  });
+}
+
+async function loadIntermediari(page = 1) {
+  currentIntermediariPage = page;
+  if (!document.getElementById('intermediari-results')) {
+    renderIntermediariListShell();
+  }
+  const resultsEl = document.getElementById('intermediari-results');
+  const contEl = document.getElementById('intermediari-contatore');
+  const pagEl = document.getElementById('intermediari-pagination');
+  if (!resultsEl) return;
+  resultsEl.innerHTML = '<div class="az-empty-msg" style="padding:32px">Caricamento...</div>';
   try {
     const search = document.getElementById('intermediari-search')?.value || '';
+    const provincia = document.getElementById('intermediari-provincia')?.value || '';
+    const limit = document.getElementById('intermediari-limit')?.value || '25';
     const params = new URLSearchParams();
     if (search) params.set('search', search);
+    if (provincia) params.set('id_provincia', provincia);
+    params.set('limit', limit);
     params.set('page', page);
-    params.set('limit', 50);
-    const res = await fetch(`${API_BASE}/admin/intermediari?${params}`, {
-      headers: authHeaders()
-    });
+    const res = await fetch(`${API_BASE}/intermediari?${params}`, { headers: authHeaders() });
     const data = await res.json();
-    const raw_ = data.data || data || []; const rows = Array.isArray(raw_) ? raw_ : [];
+    const rows = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+    const pg = data.pagination || { total: rows.length, page: 1, pages: 1 };
+    if (contEl) contEl.textContent = `${pg.total || rows.length} intermediari · Pag. ${pg.page || 1}/${pg.pages || 1}`;
     if (!rows.length) {
-      container.innerHTML = '<div class="empty-state"><i class="fas fa-user-tie"></i><p>Nessun intermediario trovato</p></div>';
+      resultsEl.innerHTML = '<div class="az-empty-msg" style="padding:32px"><i class="fas fa-user-slash" style="font-size:2rem;display:block;margin-bottom:10px;color:#cbd5e1"></i>Nessun intermediario trovato</div>';
+      if (pagEl) pagEl.innerHTML = '';
       return;
     }
-    let html = '<table><thead><tr><th>Nome</th><th>P.IVA</th><th>Email</th><th>Telefono</th><th>Azioni</th></tr></thead><tbody>';
+    let html = '<table class="az-consorzio-table conc-compact" style="margin:0;font-size:0.78rem"><thead><tr>';
+    html += '<th>Ragione Sociale</th><th>Cognome Nome</th><th>P.IVA</th><th>CAP</th><th>Città</th><th>Pr.</th><th>Email</th><th style="text-align:right">Propria</th><th style="text-align:right">Altre</th><th style="text-align:center">Azioni</th>';
+    html += '</tr></thead><tbody>';
     rows.forEach(r => {
-      html += `<tr><td>${esc(r.nome||'')}</td><td>${esc(r.piva||'')}</td><td>${esc(r.email||'')}</td><td>${esc(r.telefono||'')}</td><td><button class="btn btn-sm btn-primary" onclick="editIntermediario(${r.id})"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-danger" onclick="deleteIntermediario(${r.id})"><i class="fas fa-trash"></i></button></td></tr>`;
+      const fmtP = v => (v && parseFloat(v) > 0) ? '€ ' + parseFloat(v).toLocaleString('it-IT', {minimumFractionDigits:0}) : '<span style="color:#cbd5e1">—</span>';
+      const cognomenome = [r.cognome, r.nome].filter(Boolean).join(' ');
+      html += `<tr>
+        <td style="padding:6px 8px"><strong style="color:#1E2D3D">${esc(r.ragione_sociale||'')}</strong></td>
+        <td style="padding:6px 8px">${esc(cognomenome)}</td>
+        <td style="padding:6px 8px">${esc(r.partita_iva||'')}</td>
+        <td style="padding:6px 8px">${esc(r.cap||'')}</td>
+        <td style="padding:6px 8px">${esc(r.citta||'')}</td>
+        <td style="padding:6px 8px">${esc(r.provincia_sigla || '')}</td>
+        <td style="padding:6px 8px;font-size:0.72rem">${esc(r.email||'')}</td>
+        <td style="padding:6px 8px;text-align:right;font-weight:600">${fmtP(r.prezzo_propria_zona)}</td>
+        <td style="padding:6px 8px;text-align:right;font-weight:600;color:#FF8C00">${fmtP(r.prezzo_altre_zone)}</td>
+        <td style="padding:4px 6px;text-align:center;white-space:nowrap">
+          <button class="az-btn-action" style="padding:4px 7px;font-size:0.7rem" onclick="viewIntermediario(${r.id})"><i class="fas fa-eye"></i></button>
+          <button class="az-btn-danger" style="padding:4px 7px;font-size:0.7rem;margin-left:2px" onclick="deleteIntermediario(${r.id})"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>`;
     });
     html += '</tbody></table>';
-    container.innerHTML = html;
+    resultsEl.innerHTML = html;
+
+    if (pagEl) {
+      const curr = pg.page || 1;
+      const tot = pg.pages || 1;
+      const btnStyle = 'padding:5px 9px;font-size:0.72rem';
+      let pagH = '';
+      pagH += `<button class="az-btn-action" style="${btnStyle}" ${curr<=1?'disabled':''} onclick="loadIntermediari(1)"><i class="fas fa-angle-double-left"></i></button>`;
+      pagH += `<button class="az-btn-action" style="${btnStyle}" ${curr<=1?'disabled':''} onclick="loadIntermediari(${curr-1})"><i class="fas fa-angle-left"></i></button>`;
+      pagH += `<span style="padding:5px 10px;font-family:Comfortaa,sans-serif;font-weight:600;color:#1E2D3D;font-size:0.78rem">${curr}/${tot}</span>`;
+      pagH += `<button class="az-btn-action" style="${btnStyle}" ${curr>=tot?'disabled':''} onclick="loadIntermediari(${curr+1})"><i class="fas fa-angle-right"></i></button>`;
+      pagH += `<button class="az-btn-action" style="${btnStyle}" ${curr>=tot?'disabled':''} onclick="loadIntermediari(${tot})"><i class="fas fa-angle-double-right"></i></button>`;
+      pagEl.innerHTML = pagH;
+    }
   } catch(e) {
-    container.innerHTML = '<p style="padding:16px;color:red">Errore: ' + esc(e.message) + '</p>';
+    resultsEl.innerHTML = '<div class="az-empty-msg" style="padding:32px;color:#e74c3c">Errore: ' + esc(e.message) + '</div>';
   }
 }
 
-function showNewIntermediariForm() {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('pageCreateIntermediario').classList.add('active');
-  document.getElementById('int-nome').value = '';
-  document.getElementById('int-piva').value = '';
-  document.getElementById('int-cf').value = '';
-  document.getElementById('int-email').value = '';
-  document.getElementById('int-tel').value = '';
-  document.getElementById('int-indirizzo').value = '';
-  window._editIntermediarioId = null;
+function resetCreateIntermediarioForm() {
+  ['ci-ragione','ci-cognome','ci-nome','ci-piva','ci-cf','ci-sdi','ci-indirizzo','ci-cap','ci-citta','ci-telefono','ci-email','ci-pec','ci-fax','ci-sito','ci-referente','ci-prezzo-propria','ci-prezzo-altre','ci-note'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const p=document.getElementById('ci-provincia');if(p)p.value='';
+  const v=document.getElementById('ci-visibile');if(v)v.checked=false;
 }
 
-async function saveIntermediario(event) {
-  event.preventDefault();
+async function viewIntermediario(id) {
   try {
-    const data = {
-      nome: document.getElementById('int-nome').value,
-      piva: document.getElementById('int-piva').value,
-      cf: document.getElementById('int-cf').value,
-      email: document.getElementById('int-email').value,
-      telefono: document.getElementById('int-tel').value,
-      indirizzo: document.getElementById('int-indirizzo').value
-    };
-    const editId = window._editIntermediarioId;
-    const url = editId ? `${API_BASE}/admin/intermediari/${editId}` : `${API_BASE}/admin/intermediari`;
-    const res = await fetch(url, {
-      method: editId ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify(data)
-    });
-    if (!res.ok) throw new Error('Errore nel salvataggio');
-    window._editIntermediarioId = null;
-    alert('Intermediario salvato con successo');
-    searchIntermediariList();
+    const res = await fetch(`${API_BASE}/intermediari/${id}`, { headers: authHeaders() });
+    const r = await res.json();
+    if (r.error) { if (typeof showToast==='function') showToast(r.error,'error'); else alert(r.error); return; }
+    const container = document.getElementById('intermediari-container');
+    const provOptions = (typeof FALLBACK_PROVINCE !== 'undefined' ? FALLBACK_PROVINCE : [])
+      .map(p => `<option value="${p.sigla}" ${p.sigla===r.provincia_sigla?'selected':''}>${esc(p.nome)} (${p.sigla})</option>`).join('');
+    container.innerHTML = `
+      <div class="az-detail-wrap" style="max-width:100%;margin:0">
+        <div class="az-detail-title" style="padding:10px 16px;font-size:1rem;display:flex;align-items:center;justify-content:space-between">
+          <span><i class="fas fa-user-tie" style="color:#FF8C00;margin-right:8px"></i>${esc(r.ragione_sociale||'Intermediario')}</span>
+          <button class="az-btn-action" style="padding:6px 12px;font-size:0.78rem" onclick="loadIntermediari(currentIntermediariPage||1)"><i class="fas fa-arrow-left"></i> INDIETRO</button>
+        </div>
+        <div class="az-detail-body" style="padding:14px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div class="az-consorzio-section" style="margin:0">
+              <div class="az-consorzio-title"><i class="fas fa-id-card"></i> DATI ANAGRAFICI</div>
+              <div class="az-field-row"><div class="az-field"><label>Ragione Sociale *</label><input type="text" id="vi-ragione" value="${esc(r.ragione_sociale||'')}"></div></div>
+              <div class="az-field-row">
+                <div class="az-field"><label>Cognome</label><input type="text" id="vi-cognome" value="${esc(r.cognome||'')}"></div>
+                <div class="az-field"><label>Nome</label><input type="text" id="vi-nome" value="${esc(r.nome||'')}"></div>
+              </div>
+              <div class="az-field-row">
+                <div class="az-field"><label>Partita IVA</label><input type="text" id="vi-piva" value="${esc(r.partita_iva||'')}"></div>
+                <div class="az-field"><label>Codice Fiscale</label><input type="text" id="vi-cf" value="${esc(r.codice_fiscale||'')}"></div>
+              </div>
+              <div class="az-field-row"><div class="az-field"><label>Codice SDI</label><input type="text" id="vi-sdi" value="${esc(r.codice_sdi||'')}"></div></div>
+              <div class="az-field-row"><div class="az-field"><label>Indirizzo</label><input type="text" id="vi-indirizzo" value="${esc(r.indirizzo||'')}"></div></div>
+              <div class="az-field-row-3">
+                <div class="az-field"><label>CAP</label><input type="text" id="vi-cap" value="${esc(r.cap||'')}"></div>
+                <div class="az-field"><label>Città</label><input type="text" id="vi-citta" value="${esc(r.citta||'')}"></div>
+                <div class="az-field"><label>Provincia</label><select id="vi-provincia"><option value="">-</option>${provOptions}</select></div>
+              </div>
+              <div class="az-field-row"><div class="az-field"><label>Note</label><textarea id="vi-note" rows="3">${esc(r.note||'')}</textarea></div></div>
+            </div>
+            <div class="az-consorzio-section" style="margin:0">
+              <div class="az-consorzio-title"><i class="fas fa-address-book"></i> CONTATTI & PREZZI</div>
+              <div class="az-field-row">
+                <div class="az-field"><label>Telefono</label><input type="text" id="vi-telefono" value="${esc(r.telefono||'')}"></div>
+                <div class="az-field"><label>Email</label><input type="email" id="vi-email" value="${esc(r.email||'')}"></div>
+              </div>
+              <div class="az-field-row"><div class="az-field"><label>Indirizzo PEC</label><input type="email" id="vi-pec" value="${esc(r.pec||'')}"></div></div>
+              <div class="az-field-row">
+                <div class="az-field"><label>Fax</label><input type="text" id="vi-fax" value="${esc(r.fax||'')}"></div>
+                <div class="az-field"><label>Sito Web</label><input type="text" id="vi-sito" value="${esc(r.sito_web||'')}"></div>
+              </div>
+              <div class="az-field-row"><div class="az-field"><label>Referente</label><input type="text" id="vi-referente" value="${esc(r.referente||'')}"></div></div>
+              <div class="az-field-row"><div class="az-field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="vi-visibile" ${r.visibile_a_tutti?'checked':''} style="width:auto;margin:0">Visibile a tutti</label></div></div>
+              <div class="az-consorzio-title" style="margin-top:14px"><i class="fas fa-euro-sign"></i> PREZZI MINIMI</div>
+              <div class="az-field-row">
+                <div class="az-field"><label>Propria Zona (€)</label><input type="number" step="0.01" id="vi-prezzo-propria" value="${r.prezzo_propria_zona||''}"></div>
+                <div class="az-field"><label>Altre Zone (€)</label><input type="number" step="0.01" id="vi-prezzo-altre" value="${r.prezzo_altre_zone||''}"></div>
+              </div>
+            </div>
+          </div>
+          <div class="az-buttons" style="margin-top:14px;justify-content:flex-start">
+            <button class="az-btn-save" onclick="saveIntermediario(${r.id})"><i class="fas fa-save"></i> SALVA MODIFICHE</button>
+            <button class="az-btn-action" onclick="loadIntermediari(currentIntermediariPage||1)"><i class="fas fa-times"></i> ANNULLA</button>
+            <button class="az-btn-danger" onclick="deleteIntermediario(${r.id})"><i class="fas fa-trash"></i> ELIMINA</button>
+          </div>
+        </div>
+      </div>`;
   } catch(e) {
-    alert('Errore: ' + e.message);
+    if (typeof showToast==='function') showToast('Errore: '+e.message,'error'); else alert('Errore: '+e.message);
+  }
+}
+
+async function saveIntermediario(id) {
+  const body = {
+    ragione_sociale: document.getElementById('vi-ragione')?.value,
+    cognome: document.getElementById('vi-cognome')?.value,
+    nome: document.getElementById('vi-nome')?.value,
+    partita_iva: document.getElementById('vi-piva')?.value,
+    codice_fiscale: document.getElementById('vi-cf')?.value,
+    codice_sdi: document.getElementById('vi-sdi')?.value,
+    indirizzo: document.getElementById('vi-indirizzo')?.value,
+    cap: document.getElementById('vi-cap')?.value,
+    citta: document.getElementById('vi-citta')?.value,
+    id_provincia: document.getElementById('vi-provincia')?.value,
+    telefono: document.getElementById('vi-telefono')?.value,
+    email: document.getElementById('vi-email')?.value,
+    pec: document.getElementById('vi-pec')?.value,
+    fax: document.getElementById('vi-fax')?.value,
+    sito_web: document.getElementById('vi-sito')?.value,
+    referente: document.getElementById('vi-referente')?.value,
+    visibile_a_tutti: document.getElementById('vi-visibile')?.checked,
+    prezzo_propria_zona: document.getElementById('vi-prezzo-propria')?.value,
+    prezzo_altre_zone: document.getElementById('vi-prezzo-altre')?.value,
+    note: document.getElementById('vi-note')?.value
+  };
+  try {
+    const res = await fetch(`${API_BASE}/intermediari/${id}`, { method:'PUT', headers:{'Content-Type':'application/json',...authHeaders()}, body: JSON.stringify(body)});
+    const j = await res.json();
+    if (j.error) { if (typeof showToast==='function') showToast(j.error,'error'); else alert(j.error); return; }
+    if (typeof showToast==='function') showToast('Intermediario aggiornato','success'); else alert('Intermediario aggiornato');
+    loadIntermediari(currentIntermediariPage||1);
+  } catch(e) {
+    if (typeof showToast==='function') showToast('Errore: '+e.message,'error'); else alert('Errore: '+e.message);
   }
 }
 
 async function deleteIntermediario(id) {
   if (!confirm('Sei sicuro di voler eliminare questo intermediario?')) return;
   try {
-    await fetch(`${API_BASE}/admin/intermediari/${id}`, {
-      method: 'DELETE',
-      headers: authHeaders()
-    });
-    alert('Intermediario eliminato');
-    searchIntermediari();
+    const res = await fetch(`${API_BASE}/intermediari/${id}`, { method:'DELETE', headers: authHeaders() });
+    const j = await res.json();
+    if (j.error) { if (typeof showToast==='function') showToast(j.error,'error'); else alert(j.error); return; }
+    if (typeof showToast==='function') showToast('Intermediario eliminato','success'); else alert('Intermediario eliminato');
+    loadIntermediari(currentIntermediariPage||1);
   } catch(e) {
-    alert('Errore: ' + e.message);
-  }
-}
-
-async function editIntermediario(id) {
-  try {
-    const res = await fetch(`${API_BASE}/admin/intermediari/${id}`, { headers: authHeaders() });
-    const data = await res.json();
-    const r = data.data || data;
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('pageCreateIntermediario').classList.add('active');
-    document.getElementById('int-nome').value = r.nome || '';
-    document.getElementById('int-piva').value = r.piva || '';
-    document.getElementById('int-cf').value = r.cf || '';
-    document.getElementById('int-email').value = r.email || '';
-    document.getElementById('int-tel').value = r.telefono || '';
-    document.getElementById('int-indirizzo').value = r.indirizzo || '';
-    // Store ID for update
-    window._editIntermediarioId = id;
-  } catch(e) {
-    alert('Errore nel caricamento: ' + e.message);
+    if (typeof showToast==='function') showToast('Errore: '+e.message,'error'); else alert('Errore: '+e.message);
   }
 }
 
@@ -12765,13 +12906,47 @@ async function deleteConcorrente(id) {
 }
 
 async function createIntermediario() {
-  const piva = document.getElementById('ci-piva')?.value;
   const ragione = document.getElementById('ci-ragione')?.value;
-  if (!piva || !ragione) { alert('P.IVA e Ragione Sociale sono obbligatori'); return; }
+  if (!ragione) {
+    if (typeof showToast === 'function') showToast('Ragione Sociale obbligatoria','error');
+    else alert('Ragione Sociale obbligatoria');
+    return;
+  }
+  const body = {
+    ragione_sociale: ragione,
+    cognome: document.getElementById('ci-cognome')?.value,
+    nome: document.getElementById('ci-nome')?.value,
+    partita_iva: document.getElementById('ci-piva')?.value,
+    codice_fiscale: document.getElementById('ci-cf')?.value,
+    codice_sdi: document.getElementById('ci-sdi')?.value,
+    indirizzo: document.getElementById('ci-indirizzo')?.value,
+    cap: document.getElementById('ci-cap')?.value,
+    citta: document.getElementById('ci-citta')?.value,
+    id_provincia: document.getElementById('ci-provincia')?.value,
+    telefono: document.getElementById('ci-telefono')?.value,
+    email: document.getElementById('ci-email')?.value,
+    pec: document.getElementById('ci-pec')?.value,
+    fax: document.getElementById('ci-fax')?.value,
+    sito_web: document.getElementById('ci-sito')?.value,
+    referente: document.getElementById('ci-referente')?.value,
+    visibile_a_tutti: document.getElementById('ci-visibile')?.checked,
+    prezzo_propria_zona: document.getElementById('ci-prezzo-propria')?.value,
+    prezzo_altre_zone: document.getElementById('ci-prezzo-altre')?.value,
+    note: document.getElementById('ci-note')?.value
+  };
   try {
-    const res = await fetch(`${API_BASE}/admin/intermediari`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ partita_iva: piva, ragione_sociale: ragione, email: document.getElementById('ci-email')?.value, telefono: document.getElementById('ci-telefono')?.value }) });
-    if (res.ok) { alert('Intermediario creato!'); selectSubPage('aziende', 'intermediari'); } else { const d = await res.json(); alert('Errore: ' + (d.error || 'Sconosciuto')); }
-  } catch (err) { alert('Errore: ' + err.message); }
+    const res = await fetch(`${API_BASE}/intermediari`, { method:'POST', headers:{'Content-Type':'application/json',...authHeaders()}, body: JSON.stringify(body)});
+    const j = await res.json();
+    if (j.error) {
+      if (typeof showToast === 'function') showToast(j.error,'error'); else alert(j.error);
+      return;
+    }
+    if (typeof showToast === 'function') showToast('Intermediario creato!','success'); else alert('Intermediario creato!');
+    resetCreateIntermediarioForm();
+    selectSubPage('aziende','intermediari');
+  } catch (err) {
+    if (typeof showToast === 'function') showToast('Errore: '+err.message,'error'); else alert('Errore: '+err.message);
+  }
 }
 async function createEsecutore() {
   const piva = document.getElementById('ce-piva')?.value;
