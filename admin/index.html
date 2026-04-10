@@ -1413,6 +1413,98 @@ tbody tr:hover td {
 .search-section.compact .form-col select { padding: 10px 12px; font-size: 0.9rem; }
 .search-section.compact .date-range { gap: 10px; }
 .search-section.compact .date-range input { padding: 10px 12px; font-size: 0.9rem; }
+
+/* ═══ Modern Date Input Styling ═══ */
+input[type="date"] {
+  font-family: 'Comfortaa', cursive;
+  font-size: 0.85rem;
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+  transition: var(--transition);
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+input[type="date"]:focus {
+  border-color: var(--accent-orange);
+  box-shadow: 0 0 0 3px rgba(255,140,0,0.15);
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  filter: invert(0.3);
+}
+input[type="date"]:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+input[type="date"]::-webkit-datetime-edit {
+  font-family: 'Comfortaa', cursive;
+  color: var(--text);
+}
+input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+  font-family: 'Comfortaa', cursive;
+}
+
+/* ═══ Search Actions Bar ═══ */
+.search-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  align-items: center;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0,0,0,0.08);
+}
+.search-actions .btn-search {
+  font-family: 'Comfortaa', cursive;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 12px 32px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: var(--transition);
+  letter-spacing: 0.5px;
+}
+.search-actions .btn-search-primary {
+  background: var(--gradient);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(255,140,0,0.25);
+}
+.search-actions .btn-search-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(255,140,0,0.35);
+}
+.search-actions .btn-search-secondary {
+  background: #fff;
+  color: var(--text-muted);
+  border: 1px solid rgba(0,0,0,0.15);
+}
+.search-actions .btn-search-secondary:hover {
+  border-color: var(--accent-orange);
+  color: var(--text);
+  background: #fafafa;
+}
+.search-actions .btn-search-icon {
+  background: var(--gradient);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 50px;
+  box-shadow: 0 2px 8px rgba(255,140,0,0.25);
+}
+.search-actions .btn-search-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(255,140,0,0.35);
+}
+
 .collapsible-section { border-top: 1px solid rgba(0, 0, 0, 0.15); margin-top: 8px; padding-top: 8px; }
 .collapsible-toggle {
   background: none; border: none; color: var(--accent-orange); cursor: pointer;
@@ -2266,10 +2358,10 @@ tbody tr:hover td {
           </div>
 
           <!-- Bottoni -->
-          <div style="display:flex;gap:10px;margin-top:20px;">
-            <button class="btn btn-primary" onclick="searchAziende()" style="padding:14px 40px;font-size:1rem;"><i class="fas fa-search"></i> CERCA AZIENDE</button>
-            <button class="btn btn-secondary" onclick="resetAziendeSearch()" style="padding:14px 20px;">ANNULLA</button>
-            <button class="btn btn-primary" onclick="inviaMailAziende()" style="background:var(--gradient);padding:14px 20px;"><i class="fas fa-envelope"></i></button>
+          <div class="search-actions">
+            <button class="btn-search btn-search-primary" onclick="searchAziende()"><i class="fas fa-search"></i> CERCA AZIENDE</button>
+            <button class="btn-search btn-search-secondary" onclick="resetAziendeSearch()"><i class="fas fa-times"></i> ANNULLA</button>
+            <button class="btn-search btn-search-icon" onclick="inviaMailAziende()"><i class="fas fa-envelope"></i></button>
           </div>
         </div>
 
@@ -7902,26 +7994,85 @@ let currentAziendePage = 1;
 async function searchAziende(page = 1) {
   currentAziendePage = page;
   const container = document.getElementById('aziendeResults');
+  const countEl = document.getElementById('aziendeCount');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Ricerca in corso...</p></div>';
+  if (countEl) countEl.innerHTML = '';
   try {
     const params = new URLSearchParams();
-    const ragione = document.getElementById('aziende-ragione')?.value;
-    const piva = document.getElementById('aziende-piva')?.value;
+    // Text fields
+    const val = id => (document.getElementById(id)?.value || '').trim();
+    const ragione = val('aziende-ragione');
+    const piva = val('aziende-piva');
+    const cf = val('aziende-cf');
     if (ragione) params.set('search', ragione);
-    if (piva) params.set('search', piva);
+    else if (piva) params.set('search', piva);
+    else if (cf) params.set('search', cf);
+    if (val('aziende-cap')) params.set('cap', val('aziende-cap'));
+    if (val('aziende-indirizzo')) params.set('indirizzo', val('aziende-indirizzo'));
+    if (val('aziende-citta')) params.set('citta', val('aziende-citta'));
+    // Province (ms-dropdown multi-select)
     const provSel = document.getElementById('aziende-provincia');
-    if (provSel && provSel.value) {
-      const provName = provSel.options[provSel.selectedIndex]?.text?.split(' (')[0];
-      if (provName) params.set('provincia', provName);
+    if (provSel) {
+      const selected = Array.from(provSel.selectedOptions).map(o => o.text.split(' (')[0]).filter(Boolean);
+      if (selected.length === 1) params.set('provincia', selected[0]);
+      else if (selected.length > 1) params.set('provincia', selected.join(','));
     }
+    // Select dropdowns
+    const selVal = id => { const el = document.getElementById(id); return el && el.selectedIndex > 0 ? el.value : ''; };
+    if (selVal('aziende-soa')) params.set('soa', selVal('aziende-soa'));
+    if (selVal('aziende-soa-legame')) params.set('soa_legame', selVal('aziende-soa-legame'));
+    if (selVal('aziende-soa-classifica')) params.set('soa_classifica', selVal('aziende-soa-classifica'));
+    if (selVal('aziende-email-filtro')) params.set('mail_test', selVal('aziende-email-filtro'));
+    if (selVal('aziende-inserita-da')) params.set('inserita_da', selVal('aziende-inserita-da'));
+    if (selVal('aziende-fornitrice')) params.set('fornitrice', selVal('aziende-fornitrice'));
+    if (selVal('aziende-agente')) params.set('agente', selVal('aziende-agente'));
+    if (selVal('aziende-responsabile')) params.set('responsabile', selVal('aziende-responsabile'));
+    // Radio buttons
+    const radioVal = name => { const r = document.querySelector(`input[name="${name}"]:checked`); return r ? r.value : ''; };
+    const statoAz = radioVal('aziende-stato');
+    if (statoAz === 'con_utente') params.set('con_utente', 'true');
+    else if (statoAz === 'temporanei') params.set('temporanei', 'true');
+    else if (statoAz === 'effettivi') params.set('active', 'true');
+    else if (statoAz === 'senza_utente') params.set('senza_utente', 'true');
+    const logica = radioVal('aziende-logica');
+    if (logica === 'or') params.set('logica', 'or');
+    const statoContatto = radioVal('aziende-stato-contatto');
+    if (statoContatto) params.set('stato_contatto', statoContatto);
+    // Checkboxes
+    if (document.getElementById('aziende-senza-attestazioni')?.checked) params.set('senza_attestazioni', 'true');
+    // Date ranges
+    const dateFields = [
+      ['aziende-agg-da','agg_da'], ['aziende-agg-a','agg_a'],
+      ['aziende-att-orig-da','att_orig_da'], ['aziende-att-orig-a','att_orig_a'],
+      ['aziende-att-corso-da','att_corso_da'], ['aziende-att-corso-a','att_corso_a'],
+      ['aziende-val-tri-da','val_tri_da'], ['aziende-val-tri-a','val_tri_a'],
+      ['aziende-ver-tri-da','ver_tri_da'], ['aziende-ver-tri-a','ver_tri_a'],
+      ['aziende-val-quin-da','val_quin_da'], ['aziende-val-quin-a','val_quin_a'],
+      ['aziende-scad-iso-da','scad_iso_da'], ['aziende-scad-iso-a','scad_iso_a']
+    ];
+    dateFields.forEach(([elId, paramName]) => { if (val(elId)) params.set(paramName, val(elId)); });
+    // Inserite / Modificate checkboxes
+    if (document.getElementById('aziende-inserite')?.checked) params.set('sort', 'data_creazione');
+    if (document.getElementById('aziende-modificate')?.checked) params.set('sort', 'data_creazione');
+
     params.set('page', page);
     params.set('limit', PAGE_SIZE);
-    const res = await fetch(`${API_BASE}/admin/aziende?${params}`);
+
+    const res = await fetch(`${API_BASE}/admin/aziende?${params}`, { headers: authHeaders() });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `Errore HTTP ${res.status}`);
+    }
     const data = await res.json();
     const rows = data.dati || [];
     const total = data.totale || rows.length;
-    if (!rows.length) { container.innerHTML = '<div class="empty-state"><i class="fas fa-building"></i><p>Nessuna azienda trovata</p></div>'; return; }
-    let html = `<div class="results-header" style="color:var(--orange);font-weight:700;font-size:1.05rem;margin-bottom:12px;">AZIENDE TROVATE: ${fmt(total)}</div>`;
+    if (!rows.length) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-building"></i><p>Nessuna azienda trovata</p></div>';
+      if (countEl) countEl.innerHTML = '';
+      return;
+    }
+    if (countEl) countEl.innerHTML = `AZIENDE TROVATE: ${fmt(total)}`;
+    let html = '';
     html += '<div class="table-container"><table><thead><tr><th>ID</th><th>Ragione Sociale</th><th>P.IVA</th><th>CAP</th><th>Città</th><th>Provincia</th><th>Attestazioni</th><th>Cliente</th><th>Email</th><th>Inserita da</th><th>Elim.</th></tr></thead><tbody>';
     rows.forEach(r => {
       const tipoLabel = r.tipo_azienda ? `<span style="color:var(--orange);font-size:11px;">${esc(r.tipo_azienda)}</span>` : '';
@@ -7932,11 +8083,11 @@ async function searchAziende(page = 1) {
         <td>${esc(r.cap||'')}</td>
         <td>${esc(r.citta||'')}</td>
         <td>${esc(r.provincia_nome||'')}</td>
-        <td style="font-size:11px;max-width:180px;white-space:normal;">${esc(r.tipo_attestazione||'')}</td>
-        <td>${r.cliente ? '<i class="fas fa-check" style="color:var(--success)"></i>' : ''}</td>
-        <td style="font-size:11px;">${esc(r.email||'')}<br>${r.telefono ? 'Tel.: '+esc(r.telefono) : ''}</td>
-        <td>${esc(r.inserita_da||r.created_by||'')}</td>
-        <td><button class="btn btn-sm" onclick="event.stopPropagation();" style="background:transparent;color:var(--text-muted);padding:4px;"><i class="fas fa-circle" style="font-size:10px;color:#ccc;"></i></button></td>
+        <td style="font-size:11px;max-width:180px;white-space:normal;">${esc((r.num_attestazioni||0) > 0 ? r.num_attestazioni + ' att.' : '')}</td>
+        <td>${r.username_azienda ? '<i class="fas fa-check" style="color:var(--success)"></i>' : ''}</td>
+        <td style="font-size:11px;">${esc(r.email||r.pec||'')}</td>
+        <td>${esc(r.username_responsabile||r.inserita_da||r.created_by||'')}</td>
+        <td>${r.cessata ? '<i class="fas fa-trash" style="color:var(--danger);font-size:11px;"></i>' : '<i class="fas fa-circle" style="font-size:10px;color:#ccc;"></i>'}</td>
       </tr>`;
     });
     html += '</tbody></table></div>';
@@ -7949,14 +8100,17 @@ async function searchAziende(page = 1) {
       html += '</div>';
     }
     container.innerHTML = html;
-  } catch(e) { container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Errore: ${e.message}</p></div>`; }
+  } catch(e) {
+    console.error('searchAziende error:', e);
+    container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Errore: ${e.message}</p></div>`;
+  }
 }
 
 async function viewAziendaDetail(id) {
   const container = document.getElementById('aziendeResults');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Caricamento dettaglio...</p></div>';
   try {
-    const res = await fetch(`${API_BASE}/admin/aziende/${id}`);
+    const res = await fetch(`${API_BASE}/admin/aziende/${id}`, { headers: authHeaders() });
     const data = await res.json();
     const a = data.azienda;
     let html = `<div style="margin-bottom:16px"><button class="btn btn-sm btn-secondary" onclick="searchAziende(${currentAziendePage})"><i class="fas fa-arrow-left"></i> Torna ai risultati</button></div>`;
@@ -11910,7 +12064,7 @@ async function viewAziendaDetailEnhanced(id, currentPage = 1) {
   const container = document.getElementById('aziendeResults');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Caricamento dettaglio...</p></div>';
   try {
-    const res = await fetch(`${API_BASE}/admin/aziende/${id}`);
+    const res = await fetch(`${API_BASE}/admin/aziende/${id}`, { headers: authHeaders() });
     const data = await res.json();
     const a = data.azienda;
     let html = `<div style="margin-bottom:16px"><button class="btn btn-sm btn-secondary" onclick="searchAziende(${currentPage})"><i class="fas fa-arrow-left"></i> Torna ai risultati</button></div>`;
