@@ -2870,65 +2870,73 @@ span.flatpickr-weekday {
 
       <!-- CREA CONCORRENTE PAGE -->
       <div id="pageCreateConcorrente" class="page">
-        <div class="page-header">
-          <h1 class="page-title">CREA CONCORRENTE</h1>
-          <p class="page-subtitle" style="color:#94a3b8;font-size:0.88rem;margin-top:4px;margin-bottom:24px">Aggiungi una nuova azienda concorrente al database. I concorrenti sono le altre società che operano nel settore delle gare d'appalto (es. servizi di monitoraggio bandi, aggiudicazioni, consulenza appalti).</p>
-        </div>
+        <div class="az-detail-wrap">
+          <div class="az-detail-title"><i class="fas fa-user-plus" style="color:#FF8C00;margin-right:10px"></i>NUOVO CONCORRENTE</div>
+          <div class="az-detail-body">
+            <div class="az-detail-col">
+              <div class="az-consorzio-section" style="margin-top:0">
+                <div class="az-consorzio-title"><i class="fas fa-building"></i> DATI ANAGRAFICI</div>
+                <div class="az-field">
+                  <label>Ragione Sociale *</label>
+                  <input type="text" id="cc-ragione" placeholder="es. Appalti.eu S.r.l.">
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Partita IVA</label><input type="text" id="cc-piva" placeholder="es. 01234567890"></div>
+                  <div class="az-field"><label>Codice Fiscale</label><input type="text" id="cc-cf"></div>
+                </div>
+                <div class="az-field">
+                  <label>Indirizzo</label>
+                  <input type="text" id="cc-indirizzo" placeholder="Via, numero civico">
+                </div>
+                <div class="az-field-row-3">
+                  <div class="az-field"><label>CAP</label><input type="text" id="cc-cap" maxlength="5"></div>
+                  <div class="az-field"><label>Città</label><input type="text" id="cc-citta"></div>
+                  <div class="az-field"><label>Provincia</label><select id="cc-provincia"><option value="">Seleziona...</option></select></div>
+                </div>
+              </div>
 
-        <div class="form-container">
-          <h3 style="font-size:1rem;color:#333;margin-bottom:16px"><i class="fas fa-building" style="color:#FF8C00"></i> Dati Azienda</h3>
-          <div class="form-row">
-            <div class="form-col"><label>Ragione Sociale *</label><input type="text" id="cc-ragione" placeholder="es. Appalti.eu S.r.l." required></div>
-            <div class="form-col"><label>P.IVA</label><input type="text" id="cc-piva" placeholder="es. 01234567890"></div>
-          </div>
-          <div class="form-row">
-            <div class="form-col"><label>Codice Fiscale</label><input type="text" id="cc-cf"></div>
-            <div class="form-col"><label>Indirizzo</label><input type="text" id="cc-indirizzo" placeholder="Via, numero civico"></div>
-          </div>
-          <div class="form-row">
-            <div class="form-col"><label>CAP</label><input type="text" id="cc-cap" placeholder="es. 00100" maxlength="5"></div>
-            <div class="form-col"><label>Città</label><input type="text" id="cc-citta"></div>
-          </div>
-          <div class="form-row">
-            <div class="form-col"><label>Provincia</label><select id="cc-provincia"><option value="">Seleziona...</option></select></div>
-            <div class="form-col"><label>&nbsp;</label><div></div></div>
-          </div>
-        </div>
+              <div class="az-consorzio-section">
+                <div class="az-consorzio-title"><i class="fas fa-sticky-note"></i> NOTE INTERNE</div>
+                <div class="az-field">
+                  <textarea id="cc-note" rows="5" placeholder="Annotazioni su questo concorrente, servizi offerti, punti di forza/debolezza..."></textarea>
+                </div>
+              </div>
+            </div>
 
-        <div class="form-container" style="margin-top:16px">
-          <h3 style="font-size:1rem;color:#333;margin-bottom:16px"><i class="fas fa-address-card" style="color:#FF8C00"></i> Contatti</h3>
-          <div class="form-row">
-            <div class="form-col"><label>Email</label><input type="email" id="cc-email" placeholder="info@concorrente.it"></div>
-            <div class="form-col"><label>PEC</label><input type="email" id="cc-pec" placeholder="pec@concorrente.it"></div>
-          </div>
-          <div class="form-row">
-            <div class="form-col"><label>Telefono</label><input type="text" id="cc-telefono"></div>
-            <div class="form-col"><label>Fax</label><input type="text" id="cc-fax"></div>
-          </div>
-        </div>
+            <div class="az-detail-col">
+              <div class="az-consorzio-section" style="margin-top:0">
+                <div class="az-consorzio-title"><i class="fas fa-address-card"></i> CONTATTI</div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Email</label><input type="email" id="cc-email" placeholder="info@concorrente.it"></div>
+                  <div class="az-field"><label>PEC</label><input type="email" id="cc-pec" placeholder="pec@concorrente.it"></div>
+                </div>
+                <div class="az-field-row">
+                  <div class="az-field"><label>Telefono</label><input type="text" id="cc-telefono"></div>
+                  <div class="az-field"><label>Fax</label><input type="text" id="cc-fax"></div>
+                </div>
+              </div>
 
-        <div class="form-container" style="margin-top:16px">
-          <h3 style="font-size:1rem;color:#333;margin-bottom:16px"><i class="fas fa-euro-sign" style="color:#FF8C00"></i> Prezzi Competitor</h3>
-          <div class="form-row">
-            <div class="form-col"><label>Prezzo Bandi (€/anno)</label><input type="number" id="cc-prezzo-bandi" step="0.01" placeholder="0.00"></div>
-            <div class="form-col"><label>Prezzo Esiti (€/anno)</label><input type="number" id="cc-prezzo-esiti" step="0.01" placeholder="0.00"></div>
-          </div>
-          <div class="form-row">
-            <div class="form-col"><label>Prezzo Bundle (€/anno)</label><input type="number" id="cc-prezzo-bundle" step="0.01" placeholder="0.00"></div>
-            <div class="form-col"><label>&nbsp;</label><div></div></div>
-          </div>
-        </div>
+              <div class="az-consorzio-section">
+                <div class="az-consorzio-title"><i class="fas fa-euro-sign"></i> PREZZI COMPETITOR</div>
+                <div class="az-field"><label>Prezzo Bandi (€/anno)</label><input type="number" id="cc-prezzo-bandi" step="0.01" placeholder="0.00"></div>
+                <div class="az-field"><label>Prezzo Esiti (€/anno)</label><input type="number" id="cc-prezzo-esiti" step="0.01" placeholder="0.00"></div>
+                <div class="az-field"><label>Prezzo Bundle (€/anno)</label><input type="number" id="cc-prezzo-bundle" step="0.01" placeholder="0.00"></div>
+              </div>
 
-        <div class="form-container" style="margin-top:16px">
-          <h3 style="font-size:1rem;color:#333;margin-bottom:16px"><i class="fas fa-sticky-note" style="color:#FF8C00"></i> Note</h3>
-          <div class="form-row full">
-            <div class="form-col"><label>Note interne</label><textarea id="cc-note" rows="3" placeholder="Annotazioni su questo concorrente, servizi offerti, punti di forza/debolezza..."></textarea></div>
+              <div class="az-consorzio-section">
+                <div class="az-consorzio-title"><i class="fas fa-link"></i> RIFERIMENTO</div>
+                <div class="az-field">
+                  <label>ID Azienda di riferimento (opzionale)</label>
+                  <input type="number" id="cc-id-azienda" placeholder="ID dell'azienda cliente collegata">
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div class="button-group" style="margin-top:20px">
-          <button class="btn btn-primary" onclick="createConcorrente()"><i class="fas fa-plus"></i> CREA CONCORRENTE</button>
-          <button class="btn btn-secondary" onclick="selectSubPage('aziende','concorrenti')"><i class="fas fa-arrow-left"></i> ANNULLA</button>
+          <div class="az-buttons">
+            <button class="az-btn-save" onclick="createConcorrente()"><i class="fas fa-check"></i> CONFERMA</button>
+            <button class="az-btn-action" onclick="selectSubPage('aziende','concorrenti')"><i class="fas fa-arrow-left"></i> ANNULLA</button>
+            <button class="az-btn-action" onclick="resetCreateConcorrenteForm()"><i class="fas fa-eraser"></i> PULISCI FORM</button>
+          </div>
         </div>
       </div>
 
@@ -5100,34 +5108,52 @@ span.flatpickr-weekday {
 
       <!-- CONCORRENTI PAGE -->
       <div id="pageConcorrenti" class="page">
-        <div class="page-header">
-          <h1 class="page-title">CONCORRENTI</h1>
-          <p class="page-subtitle" style="color:#94a3b8;font-size:0.88rem;margin-top:4px;margin-bottom:24px">Elenco delle aziende concorrenti specializzate in gare d'appalto. Monitora i competitor, i loro prezzi e le zone di attività per restare competitivi sul mercato.</p>
-        </div>
-
-        <div class="form-container">
-          <div class="form-row">
-            <div class="form-col">
-              <label>Cerca concorrente</label>
-              <input type="text" id="concorrenti-search" placeholder="Ragione sociale, indirizzo, email...">
+        <div id="concorrenti-container">
+          <div class="az-detail-wrap">
+            <div class="az-detail-title" style="display:flex;align-items:center;justify-content:space-between">
+              <span><i class="fas fa-users" style="color:#FF8C00;margin-right:10px"></i>CONCORRENTI</span>
+              <span id="concorrenti-contatore" style="font-size:0.85rem;color:#94a3b8;font-weight:500"></span>
             </div>
-            <div class="form-col">
-              <label>Provincia</label>
-              <select id="concorrenti-provincia"><option value="">Tutte le province</option></select>
+            <div class="az-detail-body">
+              <div class="az-consorzio-section" style="margin-top:0">
+                <div class="az-consorzio-title"><i class="fas fa-search"></i> RICERCA CONCORRENTE</div>
+                <div class="az-field-row">
+                  <div class="az-field">
+                    <label>Ragione sociale / P.IVA / Email</label>
+                    <input type="text" id="concorrenti-search" placeholder="Digita per cercare...">
+                  </div>
+                  <div class="az-field">
+                    <label>Provincia</label>
+                    <select id="concorrenti-provincia"><option value="">Tutte le province</option></select>
+                  </div>
+                </div>
+                <div class="az-field-row-3">
+                  <div class="az-field">
+                    <label>Risultati per pagina</label>
+                    <select id="concorrenti-limit">
+                      <option value="10">10</option>
+                      <option value="25" selected>25</option>
+                      <option value="50">50</option>
+                      <option value="100">100</option>
+                    </select>
+                  </div>
+                  <div class="az-field"></div>
+                  <div class="az-field"></div>
+                </div>
+                <div class="az-buttons" style="margin-top:12px;justify-content:flex-start">
+                  <button class="az-btn-save" onclick="loadConcorrenti(1)"><i class="fas fa-search"></i> CERCA</button>
+                  <button class="az-btn-action" onclick="resetConcorrentiFiltri()"><i class="fas fa-eraser"></i> PULISCI</button>
+                  <button class="az-btn-action" onclick="selectSubPage('aziende','create-concorrente')"><i class="fas fa-plus"></i> NUOVO CONCORRENTE</button>
+                </div>
+              </div>
+
+              <div class="az-consorzio-section">
+                <div class="az-consorzio-title"><i class="fas fa-list"></i> ELENCO CONCORRENTI</div>
+                <div id="concorrenti-results"></div>
+                <div id="concorrenti-pagination" style="display:flex;justify-content:center;gap:8px;margin-top:16px"></div>
+              </div>
             </div>
           </div>
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="loadConcorrenti()">
-              <i class="fas fa-search"></i> CERCA
-            </button>
-            <button class="btn btn-secondary" onclick="selectSubPage('aziende','create-concorrente')">
-              <i class="fas fa-plus"></i> NUOVO CONCORRENTE
-            </button>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <div id="concorrenti-results"></div>
         </div>
       </div>
 
@@ -10870,47 +10896,140 @@ async function controllaFonte(id) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 
-async function loadConcorrenti() {
+let currentConcorrentiPage = 1;
+
+function resetConcorrentiFiltri() {
+  const s = document.getElementById('concorrenti-search'); if (s) s.value = '';
+  const p = document.getElementById('concorrenti-provincia'); if (p) p.value = '';
+  loadConcorrenti(1);
+}
+
+function renderConcorrentiListShell() {
+  const container = document.getElementById('concorrenti-container');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="az-detail-wrap">
+      <div class="az-detail-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span><i class="fas fa-users" style="color:#FF8C00;margin-right:10px"></i>CONCORRENTI</span>
+        <span id="concorrenti-contatore" style="font-size:0.85rem;color:#94a3b8;font-weight:500"></span>
+      </div>
+      <div class="az-detail-body">
+        <div class="az-consorzio-section" style="margin-top:0">
+          <div class="az-consorzio-title"><i class="fas fa-search"></i> RICERCA CONCORRENTE</div>
+          <div class="az-field-row">
+            <div class="az-field">
+              <label>Ragione sociale / P.IVA / Email</label>
+              <input type="text" id="concorrenti-search" placeholder="Digita per cercare...">
+            </div>
+            <div class="az-field">
+              <label>Provincia</label>
+              <select id="concorrenti-provincia"><option value="">Tutte le province</option></select>
+            </div>
+          </div>
+          <div class="az-field-row-3">
+            <div class="az-field">
+              <label>Risultati per pagina</label>
+              <select id="concorrenti-limit">
+                <option value="10">10</option>
+                <option value="25" selected>25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+            <div class="az-field"></div>
+            <div class="az-field"></div>
+          </div>
+          <div class="az-buttons" style="margin-top:12px;justify-content:flex-start">
+            <button class="az-btn-save" onclick="loadConcorrenti(1)"><i class="fas fa-search"></i> CERCA</button>
+            <button class="az-btn-action" onclick="resetConcorrentiFiltri()"><i class="fas fa-eraser"></i> PULISCI</button>
+            <button class="az-btn-action" onclick="selectSubPage('aziende','create-concorrente')"><i class="fas fa-plus"></i> NUOVO CONCORRENTE</button>
+          </div>
+        </div>
+        <div class="az-consorzio-section">
+          <div class="az-consorzio-title"><i class="fas fa-list"></i> ELENCO CONCORRENTI</div>
+          <div id="concorrenti-results"></div>
+          <div id="concorrenti-pagination" style="display:flex;justify-content:center;gap:8px;margin-top:16px"></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function loadConcorrenti(page = 1) {
+  currentConcorrentiPage = page;
+  // If the list shell is not present (e.g. after viewing detail), rebuild it
+  if (!document.getElementById('concorrenti-results')) {
+    renderConcorrentiListShell();
+  }
+  const resultsEl = document.getElementById('concorrenti-results');
+  const contEl = document.getElementById('concorrenti-contatore');
+  const pagEl = document.getElementById('concorrenti-pagination');
+  if (!resultsEl) return;
+  resultsEl.innerHTML = '<div class="az-empty-msg" style="padding:32px">Caricamento...</div>';
   try {
-    const search = document.getElementById('concorrenti-search').value;
-    const provincia = document.getElementById('concorrenti-provincia')?.value;
+    const search = document.getElementById('concorrenti-search')?.value || '';
+    const provincia = document.getElementById('concorrenti-provincia')?.value || '';
+    const limit = document.getElementById('concorrenti-limit')?.value || '25';
     const params = new URLSearchParams();
     if (search) params.set('search', search);
     if (provincia) params.set('id_provincia', provincia);
-    params.set('limit', 100);
-    const res = await fetch(`${API_BASE}/concorrenti?${params}`, {
-      headers: authHeaders()
-    });
+    params.set('limit', limit);
+    params.set('page', page);
+    const res = await fetch(`${API_BASE}/concorrenti?${params}`, { headers: authHeaders() });
     const data = await res.json();
-    const raw_ = data.data || data || []; const rows = Array.isArray(raw_) ? raw_ : [];
-    let html = '';
-    if (rows.length) {
-      html = `<div style="padding:12px 16px;color:rgba(255,255,255,0.5);font-size:0.85rem">${rows.length} concorrenti trovati</div>`;
-      html += '<table><thead><tr><th>Ragione Sociale</th><th>P.IVA</th><th>CAP</th><th>Città</th><th>Provincia</th><th>Email</th><th>Prezzo</th><th>Azioni</th></tr></thead><tbody>';
-      rows.forEach(r => {
-        const prezzo = r.prezzo_bundle || r.prezzo_bandi || '';
-        html += `<tr>
-          <td><strong>${esc(r.ragione_sociale||'')}</strong></td>
-          <td>${esc(r.partita_iva||'')}</td>
-          <td>${esc(r.cap||'')}</td>
-          <td>${esc(r.citta||'')}</td>
-          <td>${esc(r.provincia||'')}</td>
-          <td>${esc(r.email||'')}</td>
-          <td>${prezzo ? '€ '+prezzo : ''}</td>
-          <td>
-            <button class="btn btn-sm btn-secondary" onclick="viewConcorrente(${r.id})"><i class="fas fa-eye"></i> Visualizza</button>
-            <button class="btn btn-sm" style="background:#e74c3c;color:#fff;margin-left:4px" onclick="deleteConcorrente(${r.id})"><i class="fas fa-trash"></i></button>
-          </td>
-        </tr>`;
-      });
-      html += '</tbody></table>';
-    } else {
-      html = '<div style="padding:32px;text-align:center;color:#94a3b8"><i class="fas fa-users-slash" style="font-size:2rem;margin-bottom:12px;display:block;opacity:0.4"></i>Nessun concorrente trovato</div>';
+    const rows = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+    const pg = data.pagination || { total: rows.length, page: 1, pages: 1 };
+    if (contEl) contEl.textContent = `${pg.total || rows.length} concorrenti · Pagina ${pg.page || 1} di ${pg.pages || 1}`;
+    if (!rows.length) {
+      resultsEl.innerHTML = '<div class="az-empty-msg" style="padding:32px"><i class="fas fa-users-slash" style="font-size:2rem;display:block;margin-bottom:10px;color:#cbd5e1"></i>Nessun concorrente trovato</div>';
+      if (pagEl) pagEl.innerHTML = '';
+      return;
     }
-    document.getElementById('concorrenti-results').innerHTML = html;
+    let html = '<div class="az-table-wrap"><table class="az-consorzio-table"><thead><tr>';
+    html += '<th>Ragione Sociale</th><th>P.IVA</th><th>CAP</th><th>Città</th><th>Provincia</th><th>Email</th><th style="text-align:right">Bandi</th><th style="text-align:right">Esiti</th><th style="text-align:right">Bundle</th><th style="text-align:center">Azioni</th>';
+    html += '</tr></thead><tbody>';
+    rows.forEach(r => {
+      const fmtP = v => (v && parseFloat(v) > 0) ? '€ ' + parseFloat(v).toLocaleString('it-IT', {minimumFractionDigits:2}) : '<span style="color:#cbd5e1">—</span>';
+      html += `<tr>
+        <td><strong style="color:#1E2D3D">${esc(r.ragione_sociale||'')}</strong></td>
+        <td>${esc(r.partita_iva||'')}</td>
+        <td>${esc(r.cap||'')}</td>
+        <td>${esc(r.citta||'')}</td>
+        <td>${esc(r.provincia_sigla || r.provincia || '')}</td>
+        <td style="font-size:0.85rem">${esc(r.email||'')}</td>
+        <td style="text-align:right;font-weight:600">${fmtP(r.prezzo_bandi)}</td>
+        <td style="text-align:right;font-weight:600">${fmtP(r.prezzo_esiti)}</td>
+        <td style="text-align:right;font-weight:600;color:#FF8C00">${fmtP(r.prezzo_bundle)}</td>
+        <td style="text-align:center;white-space:nowrap">
+          <button class="az-btn-action" style="padding:6px 10px;font-size:0.78rem" onclick="viewConcorrente(${r.id})"><i class="fas fa-eye"></i> VISUALIZZA</button>
+          <button class="az-btn-danger" style="padding:6px 10px;font-size:0.78rem;margin-left:4px" onclick="deleteConcorrente(${r.id})"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>`;
+    });
+    html += '</tbody></table></div>';
+    resultsEl.innerHTML = html;
+
+    // Pagination
+    if (pagEl && pg.pages > 1) {
+      const curr = pg.page || 1;
+      const tot = pg.pages || 1;
+      let pagH = '';
+      pagH += `<button class="az-btn-action" ${curr<=1?'disabled style="opacity:0.4"':''} onclick="loadConcorrenti(1)"><i class="fas fa-angle-double-left"></i></button>`;
+      pagH += `<button class="az-btn-action" ${curr<=1?'disabled style="opacity:0.4"':''} onclick="loadConcorrenti(${curr-1})"><i class="fas fa-angle-left"></i></button>`;
+      pagH += `<span style="padding:8px 14px;font-family:Comfortaa,sans-serif;font-weight:600;color:#1E2D3D">${curr} / ${tot}</span>`;
+      pagH += `<button class="az-btn-action" ${curr>=tot?'disabled style="opacity:0.4"':''} onclick="loadConcorrenti(${curr+1})"><i class="fas fa-angle-right"></i></button>`;
+      pagH += `<button class="az-btn-action" ${curr>=tot?'disabled style="opacity:0.4"':''} onclick="loadConcorrenti(${tot})"><i class="fas fa-angle-double-right"></i></button>`;
+      pagEl.innerHTML = pagH;
+    } else if (pagEl) {
+      pagEl.innerHTML = '';
+    }
   } catch(e) {
-    document.getElementById('concorrenti-results').innerHTML = '<p style="padding: 16px; color: red;">Errore: ' + esc(e.message) + '</p>';
+    resultsEl.innerHTML = '<div class="az-empty-msg" style="padding:32px;color:#e74c3c">Errore: ' + esc(e.message) + '</div>';
   }
+}
+
+function resetCreateConcorrenteForm() {
+  ['cc-ragione','cc-piva','cc-cf','cc-indirizzo','cc-cap','cc-citta','cc-email','cc-pec','cc-telefono','cc-fax','cc-prezzo-bandi','cc-prezzo-esiti','cc-prezzo-bundle','cc-note','cc-id-azienda'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const p=document.getElementById('cc-provincia');if(p)p.value='';
 }
 
 // ════════════════ SOPRALLUOGHI MANAGEMENT (Full) ════════════════
@@ -12490,93 +12609,214 @@ function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.
 
 // ════════════════ AZIENDE EXTRA FUNCTIONS ════════════════
 async function createConcorrente() {
-  const ragione = document.getElementById('cc-ragione')?.value;
-  if (!ragione) { alert('La Ragione Sociale è obbligatoria'); return; }
+  const ragione = document.getElementById('cc-ragione')?.value?.trim();
+  if (!ragione) {
+    if (typeof showToast === 'function') showToast('La Ragione Sociale è obbligatoria', 'error');
+    else alert('La Ragione Sociale è obbligatoria');
+    return;
+  }
   try {
+    const val = id => { const e = document.getElementById(id); return (e && e.value) ? e.value.trim() : null; };
+    const num = id => { const e = document.getElementById(id); return (e && e.value) ? parseFloat(e.value) : 0; };
     const body = {
       ragione_sociale: ragione,
-      partita_iva: document.getElementById('cc-piva')?.value || null,
-      codice_fiscale: document.getElementById('cc-cf')?.value || null,
-      indirizzo: document.getElementById('cc-indirizzo')?.value || null,
-      cap: document.getElementById('cc-cap')?.value || null,
-      citta: document.getElementById('cc-citta')?.value || null,
-      id_provincia: document.getElementById('cc-provincia')?.value || null,
-      email: document.getElementById('cc-email')?.value || null,
-      pec: document.getElementById('cc-pec')?.value || null,
-      telefono: document.getElementById('cc-telefono')?.value || null,
-      fax: document.getElementById('cc-fax')?.value || null,
-      prezzo_bandi: parseFloat(document.getElementById('cc-prezzo-bandi')?.value) || 0,
-      prezzo_esiti: parseFloat(document.getElementById('cc-prezzo-esiti')?.value) || 0,
-      prezzo_bundle: parseFloat(document.getElementById('cc-prezzo-bundle')?.value) || 0,
-      note: document.getElementById('cc-note')?.value || null
+      partita_iva: val('cc-piva'),
+      codice_fiscale: val('cc-cf'),
+      indirizzo: val('cc-indirizzo'),
+      cap: val('cc-cap'),
+      citta: val('cc-citta'),
+      id_provincia: val('cc-provincia'),
+      email: val('cc-email'),
+      pec: val('cc-pec'),
+      telefono: val('cc-telefono'),
+      fax: val('cc-fax'),
+      prezzo_bandi: num('cc-prezzo-bandi'),
+      prezzo_esiti: num('cc-prezzo-esiti'),
+      prezzo_bundle: num('cc-prezzo-bundle'),
+      note: val('cc-note'),
+      id_azienda: val('cc-id-azienda')
     };
     const res = await fetch(`${API_BASE}/concorrenti`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(body)
     });
-    if (res.ok) { alert('Concorrente creato con successo!'); selectSubPage('aziende', 'concorrenti'); }
-    else { const d = await res.json(); alert('Errore: ' + (d.error || 'Sconosciuto')); }
-  } catch (err) { alert('Errore: ' + err.message); }
+    const d = await res.json();
+    if (res.ok && !d.error) {
+      if (typeof showToast === 'function') showToast('Concorrente creato con successo', 'success');
+      resetCreateConcorrenteForm();
+      selectSubPage('aziende', 'concorrenti');
+    } else {
+      if (typeof showToast === 'function') showToast('Errore: ' + (d.error || 'Sconosciuto'), 'error');
+      else alert('Errore: ' + (d.error || 'Sconosciuto'));
+    }
+  } catch (err) {
+    if (typeof showToast === 'function') showToast('Errore: ' + err.message, 'error');
+    else alert('Errore: ' + err.message);
+  }
 }
 
 async function viewConcorrente(id) {
+  const container = document.getElementById('concorrenti-container');
+  if (!container) return;
+  container.innerHTML = '<div class="az-detail-wrap"><div class="az-detail-body"><div class="az-empty-msg" style="padding:40px">Caricamento concorrente...</div></div></div>';
   try {
     const res = await fetch(`${API_BASE}/concorrenti/${id}`, { headers: authHeaders() });
     const c = await res.json();
-    if (c.error) { alert(c.error); return; }
-    let html = `<div class="page-header">
-      <h1 class="page-title">DETTAGLIO CONCORRENTE</h1>
-      <p class="page-subtitle" style="color:#94a3b8;font-size:0.88rem;margin-top:4px;margin-bottom:24px">Visualizza e modifica i dati di questo concorrente.</p>
-    </div>
-    <div class="form-container">
-      <h3 style="font-size:1rem;color:#333;margin-bottom:16px"><i class="fas fa-building" style="color:#FF8C00"></i> ${esc(c.ragione_sociale||'')}</h3>
-      <div class="detail-grid">
-        <div class="detail-row"><span class="detail-label">ID</span><span class="detail-value">${c.id}</span></div>
-        <div class="detail-row"><span class="detail-label">Ragione Sociale</span><span class="detail-value">${esc(c.ragione_sociale||'-')}</span></div>
-        <div class="detail-row"><span class="detail-label">P.IVA</span><span class="detail-value">${esc(c.partita_iva||'-')}</span></div>
-        <div class="detail-row"><span class="detail-label">Codice Fiscale</span><span class="detail-value">${esc(c.codice_fiscale||'-')}</span></div>
-        <div class="detail-row"><span class="detail-label">Indirizzo</span><span class="detail-value">${esc(c.indirizzo||'-')}</span></div>
-        <div class="detail-row"><span class="detail-label">CAP</span><span class="detail-value">${esc(c.cap||'-')}</span></div>
-        <div class="detail-row"><span class="detail-label">Città</span><span class="detail-value">${esc(c.citta||'-')}</span></div>
-        <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${esc(c.email||'-')}</span></div>
-        <div class="detail-row"><span class="detail-label">PEC</span><span class="detail-value">${esc(c.pec||'-')}</span></div>
-        <div class="detail-row"><span class="detail-label">Telefono</span><span class="detail-value">${esc(c.telefono||'-')}</span></div>
-        <div class="detail-row"><span class="detail-label">Fax</span><span class="detail-value">${esc(c.fax||'-')}</span></div>
-      </div>
-    </div>
-    <div class="form-container" style="margin-top:16px">
-      <h3 style="font-size:1rem;color:#333;margin-bottom:16px"><i class="fas fa-euro-sign" style="color:#FF8C00"></i> Prezzi Competitor</h3>
-      <div class="detail-grid">
-        <div class="detail-row"><span class="detail-label">Prezzo Bandi</span><span class="detail-value" style="font-weight:700;color:#FF8C00">${c.prezzo_bandi ? '€ '+c.prezzo_bandi : '-'}</span></div>
-        <div class="detail-row"><span class="detail-label">Prezzo Esiti</span><span class="detail-value" style="font-weight:700;color:#FF8C00">${c.prezzo_esiti ? '€ '+c.prezzo_esiti : '-'}</span></div>
-        <div class="detail-row"><span class="detail-label">Prezzo Bundle</span><span class="detail-value" style="font-weight:700;color:#FF8C00">${c.prezzo_bundle ? '€ '+c.prezzo_bundle : '-'}</span></div>
-      </div>
-    </div>
-    ${c.note ? `<div class="form-container" style="margin-top:16px">
-      <h3 style="font-size:1rem;color:#333;margin-bottom:16px"><i class="fas fa-sticky-note" style="color:#FF8C00"></i> Note</h3>
-      <p style="color:#666;line-height:1.6">${esc(c.note)}</p>
-    </div>` : ''}
-    <div class="button-group" style="margin-top:20px">
-      <button class="btn btn-secondary" onclick="selectSubPage('aziende','concorrenti')"><i class="fas fa-arrow-left"></i> TORNA ALLA LISTA</button>
-    </div>`;
-    // Reuse the concorrenti page area to show detail
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const pg = document.getElementById('pageConcorrenti');
-    pg.innerHTML = html;
-    pg.classList.add('active');
-    // Store original content to restore later
-    if (!window._concorrentiOriginal) window._concorrentiOriginal = null;
-  } catch(e) { alert('Errore: ' + e.message); }
+    if (c.error) {
+      container.innerHTML = '<div class="az-empty-msg" style="padding:40px;color:#e74c3c">' + esc(c.error) + '</div>';
+      return;
+    }
+    // Load province for the select
+    let provinceOpts = '<option value="">Seleziona...</option>';
+    try {
+      const pRes = await fetch(`${API_BASE}/lookups/province`, { headers: authHeaders() });
+      const pList = await pRes.json();
+      const arr = Array.isArray(pList) ? pList : (pList.data || []);
+      provinceOpts += arr.map(p => `<option value="${p.id}" ${c.id_provincia==p.id?'selected':''}>${esc(p.nome||p.sigla||'')}</option>`).join('');
+    } catch(e) {}
+
+    const fmtP = v => (v && parseFloat(v) > 0) ? parseFloat(v).toLocaleString('it-IT', {minimumFractionDigits:2}) : '';
+
+    const html = `
+      <div class="az-detail-wrap">
+        <div class="az-detail-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span><i class="fas fa-user-tie" style="color:#FF8C00;margin-right:10px"></i>CONCORRENTE: ${esc(c.ragione_sociale||'').toUpperCase()}</span>
+          <span style="font-size:0.8rem;color:#94a3b8;font-weight:500">ID #${c.id}</span>
+        </div>
+        <div class="az-detail-body">
+          <div class="az-detail-col">
+            <div class="az-consorzio-section" style="margin-top:0">
+              <div class="az-consorzio-title"><i class="fas fa-building"></i> DATI ANAGRAFICI</div>
+              <div class="az-field">
+                <label>Ragione Sociale</label>
+                <input type="text" id="vc-ragione" value="${esc(c.ragione_sociale||'')}">
+              </div>
+              <div class="az-field-row">
+                <div class="az-field"><label>Partita IVA</label><input type="text" id="vc-piva" value="${esc(c.partita_iva||'')}"></div>
+                <div class="az-field"><label>Codice Fiscale</label><input type="text" id="vc-cf" value="${esc(c.codice_fiscale||'')}"></div>
+              </div>
+              <div class="az-field">
+                <label>Indirizzo</label>
+                <input type="text" id="vc-indirizzo" value="${esc(c.indirizzo||'')}">
+              </div>
+              <div class="az-field-row-3">
+                <div class="az-field"><label>CAP</label><input type="text" id="vc-cap" value="${esc(c.cap||'')}" maxlength="5"></div>
+                <div class="az-field"><label>Città</label><input type="text" id="vc-citta" value="${esc(c.citta||'')}"></div>
+                <div class="az-field"><label>Provincia</label><select id="vc-provincia">${provinceOpts}</select></div>
+              </div>
+            </div>
+
+            <div class="az-consorzio-section">
+              <div class="az-consorzio-title"><i class="fas fa-sticky-note"></i> NOTE</div>
+              <div class="az-field">
+                <textarea id="vc-note" rows="5" placeholder="Note interne su questo concorrente...">${esc(c.note||'')}</textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="az-detail-col">
+            <div class="az-consorzio-section" style="margin-top:0">
+              <div class="az-consorzio-title"><i class="fas fa-address-card"></i> CONTATTI</div>
+              <div class="az-field-row">
+                <div class="az-field"><label>Email</label><input type="email" id="vc-email" value="${esc(c.email||'')}"></div>
+                <div class="az-field"><label>PEC</label><input type="email" id="vc-pec" value="${esc(c.pec||'')}"></div>
+              </div>
+              <div class="az-field-row">
+                <div class="az-field"><label>Telefono</label><input type="text" id="vc-telefono" value="${esc(c.telefono||'')}"></div>
+                <div class="az-field"><label>Fax</label><input type="text" id="vc-fax" value="${esc(c.fax||'')}"></div>
+              </div>
+            </div>
+
+            <div class="az-consorzio-section">
+              <div class="az-consorzio-title"><i class="fas fa-euro-sign"></i> PREZZI COMPETITOR (€/anno)</div>
+              <div class="az-field"><label>Prezzo Bandi</label><input type="number" step="0.01" id="vc-prezzo-bandi" value="${fmtP(c.prezzo_bandi)}" placeholder="0.00"></div>
+              <div class="az-field"><label>Prezzo Esiti</label><input type="number" step="0.01" id="vc-prezzo-esiti" value="${fmtP(c.prezzo_esiti)}" placeholder="0.00"></div>
+              <div class="az-field"><label>Prezzo Bundle</label><input type="number" step="0.01" id="vc-prezzo-bundle" value="${fmtP(c.prezzo_bundle)}" placeholder="0.00"></div>
+            </div>
+
+            <div class="az-consorzio-section">
+              <div class="az-consorzio-title"><i class="fas fa-link"></i> RIFERIMENTO</div>
+              <div class="az-field">
+                <label>ID Azienda collegata</label>
+                <input type="number" id="vc-id-azienda" value="${c.id_azienda||''}" placeholder="ID dell'azienda cliente collegata">
+              </div>
+              <div class="az-field-row">
+                <div class="az-field"><label>Data creazione</label><input type="text" value="${c.data_creazione ? new Date(c.data_creazione).toLocaleDateString('it-IT') : '—'}" disabled></div>
+                <div class="az-field"><label>Ultima modifica</label><input type="text" value="${c.data_modifica ? new Date(c.data_modifica).toLocaleDateString('it-IT') : '—'}" disabled></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="az-buttons">
+          <button class="az-btn-save" onclick="saveConcorrente(${c.id})"><i class="fas fa-save"></i> SALVA MODIFICHE</button>
+          <button class="az-btn-action" onclick="selectSubPage('aziende','concorrenti')"><i class="fas fa-arrow-left"></i> TORNA ALLA LISTA</button>
+          <button class="az-btn-danger" onclick="deleteConcorrente(${c.id})"><i class="fas fa-trash"></i> ELIMINA</button>
+        </div>
+      </div>`;
+    container.innerHTML = html;
+  } catch(e) {
+    container.innerHTML = '<div class="az-empty-msg" style="padding:40px;color:#e74c3c">Errore: ' + esc(e.message) + '</div>';
+  }
+}
+
+async function saveConcorrente(id) {
+  try {
+    const val = id2 => { const e = document.getElementById(id2); return (e && e.value !== undefined) ? (e.value.trim ? e.value.trim() : e.value) : null; };
+    const num = id2 => { const e = document.getElementById(id2); return (e && e.value) ? parseFloat(e.value) : 0; };
+    const body = {
+      ragione_sociale: val('vc-ragione'),
+      partita_iva: val('vc-piva'),
+      codice_fiscale: val('vc-cf'),
+      indirizzo: val('vc-indirizzo'),
+      cap: val('vc-cap'),
+      citta: val('vc-citta'),
+      id_provincia: val('vc-provincia') || null,
+      email: val('vc-email'),
+      pec: val('vc-pec'),
+      telefono: val('vc-telefono'),
+      fax: val('vc-fax'),
+      prezzo_bandi: num('vc-prezzo-bandi'),
+      prezzo_esiti: num('vc-prezzo-esiti'),
+      prezzo_bundle: num('vc-prezzo-bundle'),
+      note: val('vc-note'),
+      id_azienda: val('vc-id-azienda') || null
+    };
+    const res = await fetch(`${API_BASE}/concorrenti/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body)
+    });
+    const d = await res.json();
+    if (res.ok && !d.error) {
+      if (typeof showToast === 'function') showToast('Concorrente aggiornato con successo', 'success');
+      else alert('Concorrente aggiornato');
+    } else {
+      if (typeof showToast === 'function') showToast('Errore: ' + (d.error || 'Sconosciuto'), 'error');
+      else alert('Errore: ' + (d.error || 'Sconosciuto'));
+    }
+  } catch(e) {
+    if (typeof showToast === 'function') showToast('Errore: ' + e.message, 'error');
+    else alert('Errore: ' + e.message);
+  }
 }
 
 async function deleteConcorrente(id) {
-  if (!confirm('Vuoi davvero eliminare questo concorrente?')) return;
+  if (!confirm('Vuoi davvero eliminare questo concorrente? L\'operazione non è reversibile.')) return;
   try {
     const res = await fetch(`${API_BASE}/concorrenti/${id}`, { method: 'DELETE', headers: authHeaders() });
-    if (res.ok) { alert('Concorrente eliminato'); loadConcorrenti(); }
-    else { const d = await res.json(); alert('Errore: ' + (d.error || 'Sconosciuto')); }
-  } catch(e) { alert('Errore: ' + e.message); }
+    const d = await res.json().catch(()=>({}));
+    if (res.ok && !d.error) {
+      if (typeof showToast === 'function') showToast('Concorrente eliminato', 'success');
+      selectSubPage('aziende','concorrenti');
+    } else {
+      if (typeof showToast === 'function') showToast('Errore: ' + (d.error || 'Sconosciuto'), 'error');
+      else alert('Errore: ' + (d.error || 'Sconosciuto'));
+    }
+  } catch(e) {
+    if (typeof showToast === 'function') showToast('Errore: ' + e.message, 'error');
+    else alert('Errore: ' + e.message);
+  }
 }
 
 async function createIntermediario() {
