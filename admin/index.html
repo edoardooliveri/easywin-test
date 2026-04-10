@@ -6,6 +6,10 @@
 <title>EasyWin Gestionale</title>
 <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/themes/airbnb.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/it.js"></script>
 <style>
 :root {
   --primary: #1E2D3D;
@@ -1414,42 +1418,115 @@ tbody tr:hover td {
 .search-section.compact .date-range { gap: 10px; }
 .search-section.compact .date-range input { padding: 10px 12px; font-size: 0.9rem; }
 
-/* ═══ Modern Date Input Styling ═══ */
-input[type="date"] {
-  font-family: 'Comfortaa', cursive;
+/* ═══ Flatpickr Date Input — Custom EasyWin Theme ═══ */
+input.flatpickr-input, input.ew-date {
+  font-family: 'Comfortaa', cursive !important;
   font-size: 0.85rem;
-  padding: 10px 12px;
+  padding: 10px 14px;
   border: 1px solid rgba(0,0,0,0.15);
   border-radius: 8px;
-  background: #fff;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23586879' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z'/%3E%3C/svg%3E") no-repeat right 12px center;
+  background-size: 14px;
   color: var(--text);
   outline: none;
   transition: var(--transition);
   width: 100%;
-  -webkit-appearance: none;
-  appearance: none;
   cursor: pointer;
 }
-input[type="date"]:focus {
+input.flatpickr-input:focus, input.ew-date:focus {
   border-color: var(--accent-orange);
   box-shadow: 0 0 0 3px rgba(255,140,0,0.15);
 }
-input[type="date"]::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.2s;
-  filter: invert(0.3);
-}
-input[type="date"]:hover::-webkit-calendar-picker-indicator {
-  opacity: 1;
-}
-input[type="date"]::-webkit-datetime-edit {
-  font-family: 'Comfortaa', cursive;
-  color: var(--text);
-}
-input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+input.flatpickr-input::placeholder, input.ew-date::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
   font-family: 'Comfortaa', cursive;
 }
+/* Flatpickr Calendar Popup override */
+.flatpickr-calendar {
+  font-family: 'Comfortaa', cursive !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(30,45,61,0.18) !important;
+  border: 1px solid rgba(0,0,0,0.08) !important;
+  overflow: hidden;
+}
+.flatpickr-calendar.arrowTop::before,
+.flatpickr-calendar.arrowTop::after { display: none; }
+.flatpickr-months {
+  background: var(--primary) !important;
+  border-radius: 12px 12px 0 0;
+  padding: 4px 0;
+}
+.flatpickr-months .flatpickr-month {
+  color: #fff !important;
+  fill: #fff !important;
+  height: 38px;
+}
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month {
+  fill: #fff !important;
+  color: #fff !important;
+  padding: 8px 12px;
+}
+.flatpickr-months .flatpickr-prev-month:hover svg,
+.flatpickr-months .flatpickr-next-month:hover svg {
+  fill: var(--accent-orange) !important;
+}
+.flatpickr-current-month {
+  font-family: 'Comfortaa', cursive !important;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  color: #fff !important;
+}
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+  font-family: 'Comfortaa', cursive !important;
+  background: transparent !important;
+  color: #fff !important;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.flatpickr-current-month input.cur-year {
+  font-family: 'Comfortaa', cursive !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+.flatpickr-weekdays {
+  background: var(--primary-light) !important;
+}
+span.flatpickr-weekday {
+  font-family: 'Comfortaa', cursive !important;
+  color: rgba(255,255,255,0.8) !important;
+  font-size: 0.72rem !important;
+  font-weight: 500 !important;
+}
+.flatpickr-day {
+  font-family: 'Comfortaa', cursive !important;
+  border-radius: 8px !important;
+  font-size: 0.82rem !important;
+  color: var(--text) !important;
+  transition: all 0.15s ease !important;
+}
+.flatpickr-day:hover {
+  background: rgba(255,140,0,0.12) !important;
+  border-color: transparent !important;
+}
+.flatpickr-day.today {
+  border-color: var(--accent-orange) !important;
+  color: var(--accent-orange) !important;
+  font-weight: 700 !important;
+}
+.flatpickr-day.selected, .flatpickr-day.selected:hover {
+  background: var(--gradient) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+}
+.flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay {
+  color: var(--text-muted) !important;
+  opacity: 0.4 !important;
+}
+.flatpickr-innerContainer { padding: 4px; }
+.dayContainer { padding: 2px; }
 
 /* ═══ Search Actions Bar ═══ */
 .search-actions {
@@ -2316,40 +2393,40 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
           <div class="form-row" style="grid-template-columns: repeat(4, 1fr);">
             <div class="form-col">
               <label>Aggiornamento</label>
-              <input type="date" id="aziende-agg-da" style="margin-bottom:4px;">
-              <input type="date" id="aziende-agg-a">
+              <input type="text" class="ew-date" id="aziende-agg-da" placeholder="Da..." style="margin-bottom:4px;">
+              <input type="text" class="ew-date" id="aziende-agg-a" placeholder="A...">
             </div>
             <div class="form-col">
               <label>Att. originale</label>
-              <input type="date" id="aziende-att-orig-da" style="margin-bottom:4px;">
-              <input type="date" id="aziende-att-orig-a">
+              <input type="text" class="ew-date" id="aziende-att-orig-da" placeholder="Da..." style="margin-bottom:4px;">
+              <input type="text" class="ew-date" id="aziende-att-orig-a" placeholder="A...">
             </div>
             <div class="form-col">
               <label>Att. in corso</label>
-              <input type="date" id="aziende-att-corso-da" style="margin-bottom:4px;">
-              <input type="date" id="aziende-att-corso-a">
+              <input type="text" class="ew-date" id="aziende-att-corso-da" placeholder="Da..." style="margin-bottom:4px;">
+              <input type="text" class="ew-date" id="aziende-att-corso-a" placeholder="A...">
             </div>
             <div class="form-col">
               <label>Val. triennale</label>
-              <input type="date" id="aziende-val-tri-da" style="margin-bottom:4px;">
-              <input type="date" id="aziende-val-tri-a">
+              <input type="text" class="ew-date" id="aziende-val-tri-da" placeholder="Da..." style="margin-bottom:4px;">
+              <input type="text" class="ew-date" id="aziende-val-tri-a" placeholder="A...">
             </div>
           </div>
           <div class="form-row" style="grid-template-columns: repeat(4, 1fr);">
             <div class="form-col">
               <label>Ver. triennale</label>
-              <input type="date" id="aziende-ver-tri-da" style="margin-bottom:4px;">
-              <input type="date" id="aziende-ver-tri-a">
+              <input type="text" class="ew-date" id="aziende-ver-tri-da" placeholder="Da..." style="margin-bottom:4px;">
+              <input type="text" class="ew-date" id="aziende-ver-tri-a" placeholder="A...">
             </div>
             <div class="form-col">
               <label>Val. quinquennale</label>
-              <input type="date" id="aziende-val-quin-da" style="margin-bottom:4px;">
-              <input type="date" id="aziende-val-quin-a">
+              <input type="text" class="ew-date" id="aziende-val-quin-da" placeholder="Da..." style="margin-bottom:4px;">
+              <input type="text" class="ew-date" id="aziende-val-quin-a" placeholder="A...">
             </div>
             <div class="form-col">
               <label>Scadenza ISO</label>
-              <input type="date" id="aziende-scad-iso-da" style="margin-bottom:4px;">
-              <input type="date" id="aziende-scad-iso-a">
+              <input type="text" class="ew-date" id="aziende-scad-iso-da" placeholder="Da..." style="margin-bottom:4px;">
+              <input type="text" class="ew-date" id="aziende-scad-iso-a" placeholder="A...">
             </div>
             <div class="form-col" style="display:flex;flex-direction:column;justify-content:center;gap:10px;padding-top:16px;">
               <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'Comfortaa',cursive;"><input type="checkbox" id="aziende-inserite"> Inserite</label>
@@ -5713,6 +5790,38 @@ function showApp() {
   document.getElementById('loginPage').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
   selectSection('amministrazione');
+  // Init Flatpickr on all date fields
+  setTimeout(initFlatpickrAll, 200);
+}
+
+function initFlatpickrAll() {
+  if (typeof flatpickr === 'undefined') {
+    console.warn('Flatpickr not loaded, retrying...');
+    setTimeout(initFlatpickrAll, 500);
+    return;
+  }
+  const fpConfig = {
+    locale: 'it',
+    dateFormat: 'Y-m-d',
+    altInput: true,
+    altFormat: 'd/m/Y',
+    allowInput: true,
+    disableMobile: true,
+    animate: true
+  };
+  // Init all .ew-date inputs
+  document.querySelectorAll('.ew-date').forEach(el => {
+    if (el._flatpickr) return; // already initialized
+    flatpickr(el, fpConfig);
+  });
+  // Also init any remaining type="date" inputs across the app
+  document.querySelectorAll('input[type="date"]').forEach(el => {
+    if (el._flatpickr) return;
+    el.type = 'text';
+    el.classList.add('ew-date');
+    if (!el.placeholder) el.placeholder = 'Seleziona data...';
+    flatpickr(el, fpConfig);
+  });
 }
 
 async function handleLogin(event) {
@@ -8178,11 +8287,12 @@ async function viewAziendaDetail(id) {
 
 function resetAziendeSearch() {
   // Reset text inputs
-  ['aziende-piva','aziende-ragione','aziende-cf','aziende-cap','aziende-indirizzo','aziende-citta',
-   'aziende-agg-da','aziende-agg-a','aziende-att-orig-da','aziende-att-orig-a',
+  ['aziende-piva','aziende-ragione','aziende-cf','aziende-cap','aziende-indirizzo','aziende-citta'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  // Reset flatpickr date inputs
+  ['aziende-agg-da','aziende-agg-a','aziende-att-orig-da','aziende-att-orig-a',
    'aziende-att-corso-da','aziende-att-corso-a','aziende-val-tri-da','aziende-val-tri-a',
    'aziende-ver-tri-da','aziende-ver-tri-a','aziende-val-quin-da','aziende-val-quin-a',
-   'aziende-scad-iso-da','aziende-scad-iso-a'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+   'aziende-scad-iso-da','aziende-scad-iso-a'].forEach(id => { const el = document.getElementById(id); if(el && el._flatpickr) el._flatpickr.clear(); else if(el) el.value = ''; });
   // Reset selects
   ['aziende-soa','aziende-soa-legame','aziende-soa-classifica','aziende-email-filtro',
    'aziende-inserita-da','aziende-fornitrice','aziende-agente','aziende-responsabile'].forEach(id => { const el = document.getElementById(id); if(el) el.selectedIndex = 0; });
