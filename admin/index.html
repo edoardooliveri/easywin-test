@@ -2951,8 +2951,8 @@ span.flatpickr-weekday {
           <div class="az-detail-title" style="padding:10px 16px;font-size:1rem">
             <i class="fas fa-user-tie" style="color:#FF8C00;margin-right:8px"></i>NUOVO INTERMEDIARIO
           </div>
-          <div class="az-detail-body" style="padding:14px">
-            <div class="az-detail-col" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="az-detail-body" style="padding:14px;display:block">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
 
               <div class="az-consorzio-section" style="margin:0">
                 <div class="az-consorzio-title"><i class="fas fa-id-card"></i> DATI ANAGRAFICI</div>
@@ -5795,28 +5795,8 @@ span.flatpickr-weekday {
         </div>
       </div>
 
-      <!-- INTERMEDIARI PAGE -->
-      <div id="pageIntermediariList" class="page">
-        <div class="page-header">
-          <h1 class="page-title">INTERMEDIARI</h1>
-        </div>
-        <div class="search-section compact">
-          <div class="form-row">
-            <div class="form-col">
-              <label>Ricerca</label>
-              <input type="text" id="intermediari-search" placeholder="Nome, P.IVA...">
-            </div>
-          </div>
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="searchIntermediari()"><i class="fas fa-search"></i> CERCA</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('intermediari-search').value=''"><i class="fas fa-times"></i> RESET</button>
-            <button class="btn btn-success" onclick="showNewIntermediariForm()"><i class="fas fa-plus"></i> NUOVO</button>
-          </div>
-        </div>
-        <div class="table-container">
-          <div id="intermediari-results"></div>
-        </div>
-      </div>
+      <!-- INTERMEDIARI PAGE (legacy - replaced by pageIntermediariAziende) -->
+      <div id="pageIntermediariList" class="page" style="display:none"></div>
 
       <!-- NEW INTERMEDIARIO FORM PAGE (legacy - not used) -->
       <div id="pageCreateIntermediarioLegacy" class="page" style="display:none"></div>
