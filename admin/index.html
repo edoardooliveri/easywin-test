@@ -5534,6 +5534,34 @@ span.flatpickr-weekday {
           .afw-btn-ghost:hover { background:#f1f5f9; }
           .afw-success { background:linear-gradient(135deg,#dcfce7,#bbf7d0); border:1px solid #86efac; color:#14532d; padding:14px 18px; border-radius:12px; margin-bottom:16px; font-size:13px; display:none; align-items:center; gap:10px; }
           .afw-success.active { display:flex; }
+          .afw-stats-wrap { background:linear-gradient(135deg,#1E2D3D,#2d4258); color:#fff; border-radius:14px; padding:18px 20px; margin-bottom:20px; }
+          .afw-stats-head { display:flex; align-items:center; gap:10px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#F5C518; margin-bottom:12px; }
+          .afw-stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px; }
+          .afw-stat-card { background:rgba(255,255,255,0.08); border-radius:10px; padding:10px 12px; text-align:center; }
+          .afw-stat-num { font-size:22px; font-weight:800; color:#FF8C00; line-height:1; }
+          .afw-stat-lbl { font-size:10px; opacity:.75; margin-top:3px; text-transform:uppercase; letter-spacing:.3px; }
+          .afw-stats-soa { margin-top:8px; }
+          .afw-stats-soa-title { font-size:11px; text-transform:uppercase; opacity:.75; margin-bottom:6px; letter-spacing:.3px; }
+          .afw-stats-soa-row { display:flex; flex-wrap:wrap; gap:6px; }
+          .afw-stats-soa-chip { background:rgba(255,140,0,0.18); border:1px solid rgba(255,140,0,0.4); color:#FFB562; padding:4px 12px; border-radius:999px; font-size:11px; font-weight:600; }
+          .afw-stats-recs { margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1); }
+          .afw-stats-rec { font-size:12px; padding:6px 0; display:flex; gap:8px; align-items:flex-start; }
+          .afw-stats-rec i { color:#F5C518; margin-top:2px; }
+          .afw-stats-rec.success i { color:#34d399; }
+          .afw-stats-rec.warn i { color:#fbbf24; }
+          .afw-stats-loading { text-align:center; padding:20px; opacity:.7; font-size:12px; }
+          .afw-doc-list { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+          .afw-doc-row { display:flex; align-items:center; gap:10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:8px 12px; font-size:13px; }
+          .afw-doc-row .afw-doc-name { flex:1; color:#1e293b; font-weight:500; }
+          .afw-doc-row .afw-doc-tag { font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px; text-transform:uppercase; letter-spacing:.3px; }
+          .afw-doc-row .afw-doc-tag.obb { background:#fee2e2; color:#dc2626; }
+          .afw-doc-row .afw-doc-tag.fac { background:#dbeafe; color:#2563eb; }
+          .afw-doc-row .afw-doc-del { background:none; border:none; color:#94a3b8; cursor:pointer; font-size:14px; padding:2px 6px; }
+          .afw-doc-row .afw-doc-del:hover { color:#dc2626; }
+          .afw-doc-add-row { display:flex; gap:8px; }
+          .afw-doc-add-row input { flex:1; border:1px solid #d4dbe5; border-radius:10px; padding:9px 12px; font-size:13px; }
+          .afw-doc-add-row select { border:1px solid #d4dbe5; border-radius:10px; padding:9px 12px; font-size:13px; background:#fff; }
+          @media(max-width:700px){ .afw-stats-grid{grid-template-columns:repeat(2,1fr)} }
           @media(max-width:900px){ .af-kpis{grid-template-columns:repeat(2,1fr)} .afw-row{grid-template-columns:1fr} .af-hero{flex-direction:column;align-items:flex-start} .af-hero-cta{margin-left:0} }
         </style>
 
@@ -5625,28 +5653,12 @@ span.flatpickr-weekday {
                 </div>
               </div>
 
-              <!-- Step 3 - Categorie & Scadenza -->
+              <!-- Analisi automatica procedure negoziate -->
+              <div class="afw-stats-wrap" id="afwStatsWrap" style="display:none"></div>
+
+              <!-- Step 3 - Scadenza & Note -->
               <div class="afw-step">
-                <div class="afw-step-title"><span class="afw-num">3</span>Categorie e Scadenza <span style="color:#94a3b8;font-weight:400;text-transform:none">(opzionali)</span></div>
-                <div class="afw-field">
-                  <label>Categorie SOA</label>
-                  <div class="afw-chips" id="afwSoaChips">
-                    <input type="text" class="afw-chip-input" id="afwSoaInput" placeholder="Digita e premi Invio (es. OG1)" onkeydown="afwAddChip(event,'soa')">
-                  </div>
-                  <div class="afw-presets">
-                    <button type="button" class="afw-preset-btn" onclick="afwQuickChip('soa','OG1')">+ OG1</button>
-                    <button type="button" class="afw-preset-btn" onclick="afwQuickChip('soa','OG3')">+ OG3</button>
-                    <button type="button" class="afw-preset-btn" onclick="afwQuickChip('soa','OG11')">+ OG11</button>
-                    <button type="button" class="afw-preset-btn" onclick="afwQuickChip('soa','OS21')">+ OS21</button>
-                    <button type="button" class="afw-preset-btn" onclick="afwQuickChip('soa','OS28')">+ OS28</button>
-                  </div>
-                </div>
-                <div class="afw-field">
-                  <label>Categorie Merceologiche</label>
-                  <div class="afw-chips" id="afwMerceChips">
-                    <input type="text" class="afw-chip-input" id="afwMerceInput" placeholder="Digita e premi Invio (es. Lavori stradali)" onkeydown="afwAddChip(event,'merce')">
-                  </div>
-                </div>
+                <div class="afw-step-title"><span class="afw-num">3</span>Scadenza e Note <span style="color:#94a3b8;font-weight:400;text-transform:none">(opzionale)</span></div>
                 <div class="afw-row">
                   <div class="afw-field">
                     <label>Scadenza Iscrizione</label>
@@ -5659,15 +5671,31 @@ span.flatpickr-weekday {
                 </div>
               </div>
 
-              <!-- Step 4 - Procedura -->
+              <!-- Step 4 - Procedura & Documenti -->
               <div class="afw-step">
-                <div class="afw-step-title"><span class="afw-num">4</span>Procedura di Iscrizione <span style="color:#94a3b8;font-weight:400;text-transform:none">(opzionale, mostrata ai clienti)</span></div>
+                <div class="afw-step-title"><span class="afw-num">4</span>Procedura di Iscrizione e Documenti <span style="color:#94a3b8;font-weight:400;text-transform:none">(opzionale, mostrata ai clienti)</span></div>
                 <div class="afw-field">
+                  <label>Procedura</label>
                   <textarea id="afwProcedura" rows="4" placeholder="Descrivi i passaggi che le aziende devono seguire per iscriversi a questo albo…"></textarea>
                 </div>
                 <div class="afw-field">
-                  <label>Documenti Richiesti (uno per riga)</label>
-                  <textarea id="afwDocumenti" rows="3" placeholder="Visura camerale&#10;DURC&#10;Attestazione SOA"></textarea>
+                  <label>Documenti Richiesti</label>
+                  <div id="afwDocList" class="afw-doc-list"></div>
+                  <div class="afw-doc-add-row">
+                    <input type="text" id="afwDocName" placeholder="Nome documento (es. Visura camerale)" onkeydown="if(event.key==='Enter'){event.preventDefault();afwAddDoc()}">
+                    <select id="afwDocObbligo">
+                      <option value="true">Obbligatorio</option>
+                      <option value="false">Facoltativo</option>
+                    </select>
+                    <button type="button" class="afw-preset-btn" style="padding:8px 14px;font-size:12px" onclick="afwAddDoc()"><i class="fas fa-plus"></i> Aggiungi</button>
+                  </div>
+                  <div class="afw-presets" style="margin-top:8px">
+                    <button type="button" class="afw-preset-btn" onclick="afwQuickDoc('Visura camerale',true)">+ Visura camerale</button>
+                    <button type="button" class="afw-preset-btn" onclick="afwQuickDoc('DURC',true)">+ DURC</button>
+                    <button type="button" class="afw-preset-btn" onclick="afwQuickDoc('Attestazione SOA',true)">+ Attestazione SOA</button>
+                    <button type="button" class="afw-preset-btn" onclick="afwQuickDoc('Casellario giudiziale',false)">+ Casellario (facolt.)</button>
+                    <button type="button" class="afw-preset-btn" onclick="afwQuickDoc('ISO 9001',false)">+ ISO 9001 (facolt.)</button>
+                  </div>
                 </div>
               </div>
 
@@ -13129,7 +13157,9 @@ async function deleteAlbo(stazioneId) {
 
 // ════════════════ ALBI FORNITORI - NEW WIZARD ════════════════
 let afwSearchTimer = null;
-const afwChips = { soa: [], merce: [] };
+let afwDocs = []; // [{nome, obbligatorio}]
+let afwAutoSoa = []; // auto-populated from stats
+let afwAutoMerce = [];
 
 function openAfWizard(stazioneId) {
   const ov = document.getElementById('afwOverlay');
@@ -13150,11 +13180,12 @@ function openAfWizard(stazioneId) {
   document.getElementById('afwScadenza').value = '';
   document.getElementById('afwNote').value = '';
   document.getElementById('afwProcedura').value = '';
-  document.getElementById('afwDocumenti').value = '';
+  document.getElementById('afwStatsWrap').style.display = 'none';
+  document.getElementById('afwStatsWrap').innerHTML = '';
   document.getElementById('afwTitle').textContent = 'Crea Nuovo Albo Fornitori';
   document.getElementById('afwSuccess').classList.remove('active');
-  afwChips.soa = []; afwChips.merce = [];
-  afwRenderChips('soa'); afwRenderChips('merce');
+  afwDocs = []; afwAutoSoa = []; afwAutoMerce = [];
+  afwRenderDocs();
 
   if (stazioneId) {
     document.getElementById('afwTitle').textContent = 'Modifica Albo Fornitori';
@@ -13165,7 +13196,7 @@ function openAfWizard(stazioneId) {
         const albo = data.albo || {};
         const staz = data.stazione || {};
         document.getElementById('afwStazioneId').value = stazioneId;
-        afwSelectStazione(stazioneId, staz.nome || staz.Nome || ('Stazione #' + stazioneId), [staz.citta, staz.provincia].filter(Boolean).join(' · '));
+        afwSelectStazione(stazioneId, staz.nome_stazione || staz.nome || staz.Nome || ('Stazione #' + stazioneId), [staz.citta, staz.provincia].filter(Boolean).join(' · '));
         if (albo.id) document.getElementById('afwAlboId').value = albo.id;
         document.getElementById('afwNomeAlbo').value = albo.nome_albo || '';
         document.getElementById('afwUrl').value = albo.url_albo || '';
@@ -13173,12 +13204,51 @@ function openAfWizard(stazioneId) {
         document.getElementById('afwScadenza').value = albo.scadenza_iscrizione ? String(albo.scadenza_iscrizione).split('T')[0] : '';
         document.getElementById('afwNote').value = albo.note || '';
         document.getElementById('afwProcedura').value = albo.procedura_iscrizione || '';
-        if (Array.isArray(albo.categorie_soa)) { afwChips.soa = albo.categorie_soa.slice(); afwRenderChips('soa'); }
-        if (Array.isArray(albo.categorie_merceologiche)) { afwChips.merce = albo.categorie_merceologiche.slice(); afwRenderChips('merce'); }
         if (Array.isArray(albo.documenti_richiesti)) {
-          document.getElementById('afwDocumenti').value = albo.documenti_richiesti.map(d => typeof d === 'string' ? d : (d.nome || '')).filter(Boolean).join('\n');
+          afwDocs = albo.documenti_richiesti.map(d => typeof d === 'string' ? { nome: d, obbligatorio: true } : { nome: d.nome || '', obbligatorio: !!d.obbligatorio });
+          afwRenderDocs();
         }
       }).catch(e => console.error('preload albo error', e));
+  }
+}
+
+async function afwLoadStazioneStats(stazioneId) {
+  const wrap = document.getElementById('afwStatsWrap');
+  wrap.style.display = 'block';
+  wrap.innerHTML = '<div class="afw-stats-loading"><i class="fas fa-spinner fa-spin"></i> Analisi procedure negoziate in corso…</div>';
+  try {
+    const res = await fetch(`${API_BASE}/albi-fornitori/admin/stazione-stats/${stazioneId}`, { headers: authHeaders() });
+    if (!res.ok) throw new Error('stats fetch failed');
+    const data = await res.json();
+    const s = data.stats || {};
+    afwAutoSoa = data.soa_suggerite || [];
+    afwAutoMerce = data.merceologiche_suggerite || [];
+
+    const soaChips = (data.top_soa || []).map(r =>
+      `<span class="afw-stats-soa-chip" title="${esc(r.descrizione||'')}">${esc(r.codice)} · ${r.n}</span>`
+    ).join('');
+    const tipChips = (data.tipologie || []).map(r =>
+      `<span class="afw-stats-soa-chip">${esc(r.nome)} · ${r.n}</span>`
+    ).join('');
+    const recs = (data.raccomandazioni || []).map(r => {
+      const icon = r.tipo === 'success' ? 'fa-check-circle' : r.tipo === 'warn' ? 'fa-exclamation-triangle' : 'fa-lightbulb';
+      return `<div class="afw-stats-rec ${esc(r.tipo||'')}"><i class="fas ${icon}"></i><span>${esc(r.testo)}</span></div>`;
+    }).join('');
+
+    wrap.innerHTML = `
+      <div class="afw-stats-head"><i class="fas fa-chart-line"></i> Analisi AI procedure negoziate pubblicate</div>
+      <div class="afw-stats-grid">
+        <div class="afw-stat-card"><div class="afw-stat-num">${s.tot_negoziate||0}</div><div class="afw-stat-lbl">Negoziate Totali</div></div>
+        <div class="afw-stat-card"><div class="afw-stat-num">${s.neg_12m||0}</div><div class="afw-stat-lbl">Ultimi 12 mesi</div></div>
+        <div class="afw-stat-card"><div class="afw-stat-num">${s.freq_mensile||0}<span style="font-size:11px;opacity:.6">/mese</span></div><div class="afw-stat-lbl">Frequenza</div></div>
+        <div class="afw-stat-card"><div class="afw-stat-num">${s.perc_negoziate||0}%</div><div class="afw-stat-lbl">Su tot. bandi</div></div>
+      </div>
+      ${soaChips ? `<div class="afw-stats-soa"><div class="afw-stats-soa-title"><i class="fas fa-tags"></i> Categorie SOA più frequenti (auto-rilevate)</div><div class="afw-stats-soa-row">${soaChips}</div></div>` : ''}
+      ${tipChips ? `<div class="afw-stats-soa" style="margin-top:8px"><div class="afw-stats-soa-title"><i class="fas fa-briefcase"></i> Settori principali</div><div class="afw-stats-soa-row">${tipChips}</div></div>` : ''}
+      ${recs ? `<div class="afw-stats-recs">${recs}</div>` : ''}
+    `;
+  } catch(e) {
+    wrap.innerHTML = `<div class="afw-stats-loading" style="color:#fecaca"><i class="fas fa-exclamation-triangle"></i> Impossibile caricare le statistiche</div>`;
   }
 }
 
@@ -13219,6 +13289,8 @@ function afwSelectStazione(id, nome, meta) {
   sel.style.display = 'block';
   document.getElementById('afwStazioneSection').querySelector('.afw-typeahead').style.display = 'none';
   document.getElementById('afwStazioneSuggest').classList.remove('active');
+  // Auto-carica analisi procedure negoziate
+  afwLoadStazioneStats(id);
 }
 
 function afwClearStazione() {
@@ -13228,46 +13300,61 @@ function afwClearStazione() {
   document.getElementById('afwStazioneSection').querySelector('.afw-typeahead').style.display = 'block';
   document.getElementById('afwStazioneSearch').value = '';
   document.getElementById('afwStazioneSearch').focus();
+  document.getElementById('afwStatsWrap').style.display = 'none';
+  document.getElementById('afwStatsWrap').innerHTML = '';
+  afwAutoSoa = []; afwAutoMerce = [];
 }
 
-function afwAddChip(event, type) {
-  if (event.key !== 'Enter' && event.key !== ',') return;
-  event.preventDefault();
-  const inputId = type === 'soa' ? 'afwSoaInput' : 'afwMerceInput';
-  const inp = document.getElementById(inputId);
-  const val = inp.value.trim().replace(/,$/, '');
-  if (!val) return;
-  if (!afwChips[type].includes(val)) afwChips[type].push(val);
+function afwAddDoc() {
+  const inp = document.getElementById('afwDocName');
+  const nome = inp.value.trim();
+  if (!nome) return;
+  const obb = document.getElementById('afwDocObbligo').value === 'true';
+  if (!afwDocs.some(d => d.nome.toLowerCase() === nome.toLowerCase())) {
+    afwDocs.push({ nome, obbligatorio: obb });
+    afwRenderDocs();
+  }
   inp.value = '';
-  afwRenderChips(type);
+  inp.focus();
 }
 
-function afwQuickChip(type, value) {
-  if (!afwChips[type].includes(value)) afwChips[type].push(value);
-  afwRenderChips(type);
+function afwQuickDoc(nome, obbligatorio) {
+  if (!afwDocs.some(d => d.nome.toLowerCase() === nome.toLowerCase())) {
+    afwDocs.push({ nome, obbligatorio: !!obbligatorio });
+    afwRenderDocs();
+  }
 }
 
-function afwRemoveChip(type, idx) {
-  afwChips[type].splice(idx, 1);
-  afwRenderChips(type);
+function afwRemoveDoc(idx) {
+  afwDocs.splice(idx, 1);
+  afwRenderDocs();
 }
 
-function afwRenderChips(type) {
-  const containerId = type === 'soa' ? 'afwSoaChips' : 'afwMerceChips';
-  const inputId = type === 'soa' ? 'afwSoaInput' : 'afwMerceInput';
-  const placeholder = type === 'soa' ? 'Digita e premi Invio (es. OG1)' : 'Digita e premi Invio (es. Lavori stradali)';
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  const chipsHtml = afwChips[type].map((c, i) => `<span class="afw-chip">${esc(c)}<button type="button" onclick="afwRemoveChip('${type}',${i})">×</button></span>`).join('');
-  container.innerHTML = chipsHtml + `<input type="text" class="afw-chip-input" id="${inputId}" placeholder="${placeholder}" onkeydown="afwAddChip(event,'${type}')">`;
+function afwToggleDocObbligo(idx) {
+  if (afwDocs[idx]) { afwDocs[idx].obbligatorio = !afwDocs[idx].obbligatorio; afwRenderDocs(); }
+}
+
+function afwRenderDocs() {
+  const list = document.getElementById('afwDocList');
+  if (!list) return;
+  if (!afwDocs.length) {
+    list.innerHTML = '<div style="font-size:12px;color:#94a3b8;padding:8px 4px;font-style:italic">Nessun documento aggiunto — usa i pulsanti qui sotto o aggiungi manualmente</div>';
+    return;
+  }
+  list.innerHTML = afwDocs.map((d, i) => `
+    <div class="afw-doc-row">
+      <span class="afw-doc-name">${esc(d.nome)}</span>
+      <span class="afw-doc-tag ${d.obbligatorio ? 'obb' : 'fac'}" onclick="afwToggleDocObbligo(${i})" style="cursor:pointer" title="Clicca per cambiare">${d.obbligatorio ? 'Obbligatorio' : 'Facoltativo'}</span>
+      <button type="button" class="afw-doc-del" onclick="afwRemoveDoc(${i})" title="Rimuovi"><i class="fas fa-times"></i></button>
+    </div>
+  `).join('');
 }
 
 async function afwSubmit() {
   const stazioneId = document.getElementById('afwStazioneId').value;
   if (!stazioneId) { alert('Seleziona una stazione appaltante'); return; }
 
-  const docLines = document.getElementById('afwDocumenti').value.split('\n').map(s => s.trim()).filter(Boolean);
-  const documenti = docLines.length ? docLines.map(nome => ({ nome, obbligatorio: true })) : null;
+  const documenti = afwDocs.length ? afwDocs.slice() : null;
 
   const payload = {
     id_stazione: parseInt(stazioneId),
@@ -13276,8 +13363,9 @@ async function afwSubmit() {
     piattaforma: document.getElementById('afwPiattaforma').value || null,
     documenti_richiesti: documenti,
     procedura_iscrizione: document.getElementById('afwProcedura').value || null,
-    categorie_soa: afwChips.soa.length ? afwChips.soa : null,
-    categorie_merceologiche: afwChips.merce.length ? afwChips.merce : null,
+    // Categorie auto-rilevate dall'analisi AI delle procedure negoziate pubblicate
+    categorie_soa: afwAutoSoa.length ? afwAutoSoa : null,
+    categorie_merceologiche: afwAutoMerce.length ? afwAutoMerce : null,
     scadenza_iscrizione: document.getElementById('afwScadenza').value || null,
     note: document.getElementById('afwNote').value || null
   };

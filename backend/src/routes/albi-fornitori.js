@@ -398,6 +398,138 @@ export default async function albiFornitoRoutes(fastify) {
   });
 
   // ============================================================
+  // GET /api/albi-fornitori/admin/stazione-stats/:id
+  // Analizza procedure negoziate pubblicate dalla stazione:
+  // - totale, ultimi 12/24 mesi, frequenza mensile
+  // - top 5 categorie SOA
+  // - tipologie gare (Lavori/Servizi/Forniture)
+  // - raccomandazioni auto per categorizzazione albo
+  // ============================================================
+  fastify.get('/admin/stazione-stats/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { id } = request.params;
+
+    try {
+      // Totali e finestre temporali (solo procedure negoziate)
+      const totRes = await query(`
+        SELECT
+          COUNT(*)::int AS tot_negoziate,
+          COUNT(*) FILTER (WHERE b.data_pubblicazione >= NOW() - INTERVAL '12 months')::int AS neg_12m,
+          COUNT(*) FILTER (WHERE b.data_pubblicazione >= NOW() - INTERVAL '24 months')::int AS neg_24m,
+          MIN(b.data_pubblicazione) AS prima_neg,
+          MAX(b.data_pubblicazione) AS ultima_neg
+        FROM bandi b
+        LEFT JOIN tipologia_bandi tb ON b.id_tipologia_bando = tb.id
+        WHERE b.id_stazione = $1 AND b.annullato = false
+          AND tb.nome ILIKE '%negoziat%'
+      `, [id]);
+
+      // Totale bandi della stazione (per percentuale)
+      const totBandiRes = await query(`
+        SELECT COUNT(*)::int AS tot_bandi
+        FROM bandi b
+        WHERE b.id_stazione = $1 AND b.annullato = false
+      `, [id]);
+
+      // Top 5 categorie SOA nelle negoziate
+      const soaRes = await query(`
+        SELECT soa.codice, soa.descrizione, COUNT(*)::int AS n
+        FROM bandi b
+        LEFT JOIN tipologia_bandi tb ON b.id_tipologia_bando = tb.id
+        LEFT JOIN soa ON b.id_soa = soa.id
+        WHERE b.id_stazione = $1 AND b.annullato = false
+          AND tb.nome ILIKE '%negoziat%'
+          AND soa.codice IS NOT NULL
+        GROUP BY soa.codice, soa.descrizione
+        ORDER BY n DESC
+        LIMIT 5
+      `, [id]);
+
+      // Tipologie gare (Lavori / Servizi / Forniture)
+      const tipRes = await query(`
+        SELECT tg.nome, COUNT(*)::int AS n
+        FROM bandi b
+        LEFT JOIN tipologia_bandi tb ON b.id_tipologia_bando = tb.id
+        LEFT JOIN tipologia_gare tg ON b.id_tipologia = tg.id
+        WHERE b.id_stazione = $1 AND b.annullato = false
+          AND tb.nome ILIKE '%negoziat%'
+          AND tg.nome IS NOT NULL
+        GROUP BY tg.nome
+        ORDER BY n DESC
+      `, [id]);
+
+      // Serie mensile ultimi 12 mesi
+      const serieRes = await query(`
+        SELECT TO_CHAR(date_trunc('month', b.data_pubblicazione), 'YYYY-MM') AS mese,
+               COUNT(*)::int AS n
+        FROM bandi b
+        LEFT JOIN tipologia_bandi tb ON b.id_tipologia_bando = tb.id
+        WHERE b.id_stazione = $1 AND b.annullato = false
+          AND tb.nome ILIKE '%negoziat%'
+          AND b.data_pubblicazione >= NOW() - INTERVAL '12 months'
+        GROUP BY 1
+        ORDER BY 1
+      `, [id]);
+
+      const t = totRes.rows[0];
+      const totBandi = totBandiRes.rows[0].tot_bandi || 0;
+      const neg12 = t.neg_12m || 0;
+      const freqMensile = neg12 > 0 ? (neg12 / 12).toFixed(1) : '0';
+      const percNeg = totBandi > 0 ? Math.round((t.tot_negoziate / totBandi) * 100) : 0;
+
+      // Raccomandazioni testuali
+      const raccomandazioni = [];
+      if (t.tot_negoziate === 0) {
+        raccomandazioni.push({ tipo: 'info', testo: 'Nessuna procedura negoziata pubblicata. Albo comunque utile per intercettare future pubblicazioni.' });
+      } else {
+        if (neg12 >= 12) {
+          raccomandazioni.push({ tipo: 'success', testo: `Stazione molto attiva: ${neg12} procedure negoziate negli ultimi 12 mesi (~${freqMensile}/mese).` });
+        } else if (neg12 >= 3) {
+          raccomandazioni.push({ tipo: 'info', testo: `Attività moderata: ${neg12} procedure negoziate negli ultimi 12 mesi.` });
+        } else if (neg12 >= 1) {
+          raccomandazioni.push({ tipo: 'warn', testo: `Bassa frequenza: solo ${neg12} procedure negoziate negli ultimi 12 mesi.` });
+        } else {
+          raccomandazioni.push({ tipo: 'warn', testo: 'Nessuna procedura negoziata negli ultimi 12 mesi — stazione dormiente.' });
+        }
+        if (soaRes.rows.length > 0) {
+          const top = soaRes.rows[0];
+          raccomandazioni.push({ tipo: 'info', testo: `Categoria SOA dominante: ${top.codice}${top.descrizione ? ' — ' + top.descrizione : ''} (${top.n} bandi).` });
+        }
+        if (tipRes.rows.length > 0) {
+          const top = tipRes.rows[0];
+          raccomandazioni.push({ tipo: 'info', testo: `Settore principale: ${top.nome} (${top.n} procedure).` });
+        }
+        if (percNeg >= 50) {
+          raccomandazioni.push({ tipo: 'success', testo: `${percNeg}% di tutti i bandi sono procedure negoziate: albo fortemente consigliato.` });
+        }
+      }
+
+      return {
+        success: true,
+        stats: {
+          tot_negoziate: t.tot_negoziate || 0,
+          neg_12m: neg12,
+          neg_24m: t.neg_24m || 0,
+          tot_bandi: totBandi,
+          perc_negoziate: percNeg,
+          freq_mensile: parseFloat(freqMensile),
+          prima_negoziata: t.prima_neg,
+          ultima_negoziata: t.ultima_neg
+        },
+        top_soa: soaRes.rows,
+        tipologie: tipRes.rows,
+        serie_mensile: serieRes.rows,
+        raccomandazioni,
+        // Categorie auto-suggerite da usare come pre-fill del wizard
+        soa_suggerite: soaRes.rows.map(r => r.codice),
+        merceologiche_suggerite: tipRes.rows.map(r => r.nome)
+      };
+    } catch (err) {
+      request.log.error({ err }, 'stazione-stats error');
+      return reply.status(500).send({ error: 'Errore calcolo statistiche: ' + err.message });
+    }
+  });
+
+  // ============================================================
   // DELETE /api/albi-fornitori/admin/albo/:id - Disattiva albo
   // ============================================================
   fastify.delete('/admin/albo/:id', { preHandler: [fastify.authenticate] }, async (request) => {
