@@ -2084,59 +2084,63 @@ tbody tr:hover td {
         </div>
 
         <div class="search-section compact">
-          <div class="form-row">
+          <!-- Riga 1: Ragione Sociale (largo), Partita IVA, Codice Fiscale -->
+          <div class="form-row" style="grid-template-columns: 3fr 1fr 1fr;">
+            <div class="form-col">
+              <label>Ragione Sociale</label>
+              <input type="text" id="aziende-ragione" placeholder="es. Acme S.r.l.">
+            </div>
             <div class="form-col">
               <label>Partita IVA</label>
               <input type="text" id="aziende-piva" placeholder="es. 12345678901">
             </div>
             <div class="form-col">
-              <label>Ragione Sociale</label>
-              <input type="text" id="aziende-ragione" placeholder="es. Acme S.r.l.">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
               <label>Codice Fiscale</label>
               <input type="text" id="aziende-cf">
             </div>
+          </div>
+          <!-- Riga 2: CAP, Indirizzo, Città -->
+          <div class="form-row" style="grid-template-columns: 100px 1fr 1fr;">
             <div class="form-col">
-              <label>Codice SDI</label>
-              <input type="text" id="aziende-sdi">
+              <label>CAP</label>
+              <input type="text" id="aziende-cap" placeholder="00100">
+            </div>
+            <div class="form-col">
+              <label>Indirizzo</label>
+              <input type="text" id="aziende-indirizzo">
+            </div>
+            <div class="form-col">
+              <label>Città</label>
+              <input type="text" id="aziende-citta">
             </div>
           </div>
+          <!-- Riga 3: Province (largo) -->
           <div class="form-row">
-            <div class="form-col">
-              <label>Regioni</label>
-              <select id="aziende-regione" multiple size="3">
-                <option value="">Seleziona...</option>
-              </select>
-            </div>
-            <div class="form-col">
+            <div class="form-col" style="flex:1;">
               <label>Province</label>
-              <select id="aziende-provincia" multiple size="3">
-                <option value="">Seleziona...</option>
+              <select id="aziende-provincia" multiple size="3" style="width:100%;">
+                <option value="">Seleziona le opzioni</option>
               </select>
             </div>
           </div>
-          <div class="form-row">
+          <!-- Riga 4: Attestazione SOA, Legame, Classifica, Emails, Inserita da, Senza Att.(chk), Fornitrice -->
+          <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto 1fr;">
             <div class="form-col">
-              <label>SOA</label>
+              <label>Attestazione SOA</label>
               <select id="aziende-soa">
                 <option value="">Tutte</option>
               </select>
             </div>
             <div class="form-col">
-              <label>Legame SOA</label>
+              <label>Legame con Classifica</label>
               <select id="aziende-soa-legame">
-                <option value="">Qualsiasi</option>
+                <option value="">Tutte</option>
                 <option value="prevalente">Prevalente</option>
                 <option value="scorporabile">Scorporabile</option>
               </select>
             </div>
-          </div>
-          <div class="form-row">
             <div class="form-col">
-              <label>Classifica SOA</label>
+              <label>Classifica</label>
               <select id="aziende-soa-classifica">
                 <option value="">Tutte</option>
                 <option value="I">I</option>
@@ -2152,123 +2156,112 @@ tbody tr:hover td {
               </select>
             </div>
             <div class="form-col">
-              <label>Codice ATECO</label>
-              <input type="text" id="aziende-ateco">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>CAP</label>
-              <input type="text" id="aziende-cap" placeholder="es. 00100">
-            </div>
-            <div class="form-col">
-              <label>Indirizzo</label>
-              <input type="text" id="aziende-indirizzo">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Città</label>
-              <input type="text" id="aziende-citta">
-            </div>
-            <div class="form-col">
-              <label>Email</label>
-              <input type="text" id="aziende-email" placeholder="email@esempio.it">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Agente</label>
-              <select id="aziende-agente">
-                <option value="">Tutti gli agenti</option>
+              <label>Emails</label>
+              <select id="aziende-email-filtro">
+                <option value="">Tutte</option>
+                <option value="con">Con email</option>
+                <option value="senza">Senza email</option>
               </select>
             </div>
-            <div class="form-col">
-              <label>Stato Azienda</label>
-              <select id="aziende-stato">
-                <option value="">Tutti</option>
-                <option value="attiva">Attiva</option>
-                <option value="inattiva">Inattiva</option>
-                <option value="cessata">Cessata</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
             <div class="form-col">
               <label>Azienda inserita da</label>
               <select id="aziende-inserita-da">
                 <option value="">Tutti</option>
               </select>
             </div>
+            <div class="form-col" style="display:flex;align-items:end;padding-bottom:4px;">
+              <label class="checkbox-label" style="padding-top:0;white-space:nowrap;">
+                <input type="checkbox" id="aziende-senza-attestazioni"> Senza Att.
+              </label>
+            </div>
             <div class="form-col">
-              <label>Responsabile contatto</label>
-              <input type="text" id="aziende-responsabile">
+              <label>Azienda fornitrice</label>
+              <select id="aziende-fornitrice">
+                <option value="">Non indicato</option>
+                <option value="si">Sì</option>
+                <option value="no">No</option>
+              </select>
             </div>
           </div>
-          <div class="form-row">
+          <!-- Riga 5: Agente, Stato dell'azienda (radio), And/Or (radio), Responsabile contatto, Stato contatto (radio) -->
+          <div class="form-row" style="grid-template-columns: 140px 1fr auto 140px 1fr;">
             <div class="form-col">
-              <label>Stato contatto</label>
-              <select id="aziende-stato-contatto">
+              <label>Agente</label>
+              <select id="aziende-agente">
                 <option value="">Tutti</option>
-                <option value="nuovo">Nuovo</option>
-                <option value="contattato">Contattato</option>
-                <option value="in-trattativa">In trattativa</option>
-                <option value="acquisito">Acquisito</option>
-                <option value="perso">Perso</option>
               </select>
             </div>
             <div class="form-col">
-              <label>Logica ricerca</label>
-              <select id="aziende-logica">
-                <option value="and">AND (tutti i criteri)</option>
-                <option value="or">OR (almeno un criterio)</option>
+              <label>Stato dell'azienda</label>
+              <div class="radio-group" style="display:flex;gap:10px;flex-wrap:wrap;padding-top:6px;">
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato" value="" checked> Tutti</label>
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato" value="con_utente"> Con utente</label>
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato" value="temporanei"> Temporanei</label>
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato" value="effettivi"> Effettivi</label>
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato" value="senza_utente"> Senza utente</label>
+              </div>
+            </div>
+            <div class="form-col">
+              <label>And / Or</label>
+              <div class="radio-group" style="display:flex;gap:10px;padding-top:6px;">
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="radio" name="aziende-logica" value="and" checked> And</label>
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="radio" name="aziende-logica" value="or"> Or</label>
+              </div>
+            </div>
+            <div class="form-col">
+              <label>Responsabile di contatto</label>
+              <select id="aziende-responsabile">
+                <option value="">Tutti</option>
               </select>
             </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col" style="display:flex;gap:24px;align-items:center;padding-top:8px;">
-              <label class="checkbox-label" style="padding-top:0">
-                <input type="checkbox" id="aziende-senza-attestazioni"> Senza Attestazioni
-              </label>
-              <label class="checkbox-label" style="padding-top:0">
-                <input type="checkbox" id="aziende-fornitrice"> Fornitrice
-              </label>
-              <label class="checkbox-label" style="padding-top:0">
-                <input type="checkbox" id="aziende-invio-test"> Invio Test
-              </label>
-              <label class="checkbox-label" style="padding-top:0">
-                <input type="checkbox" id="aziende-mail-test"> Mail di test
-              </label>
+            <div class="form-col">
+              <label>Stato del contatto</label>
+              <div class="radio-group" style="display:flex;gap:10px;flex-wrap:wrap;padding-top:6px;">
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato-contatto" value="" checked> Tutti</label>
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato-contatto" value="non_contattate"> Non contattate</label>
+                <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;"><input type="radio" name="aziende-stato-contatto" value="contattate"> Contattate</label>
+              </div>
             </div>
           </div>
-          <div class="form-row" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
-            <div class="form-col"><label>Aggiornamento Da</label><input type="date" id="aziende-agg-da"></div>
-            <div class="form-col"><label>Aggiornamento A</label><input type="date" id="aziende-agg-a"></div>
+          <!-- Riga 6: Date ranges (7 colonne come il vecchio) -->
+          <div class="form-row" style="grid-template-columns: repeat(7, 1fr);margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+            <div class="form-col">
+              <label>Aggiornamento</label>
+              <input type="date" id="aziende-agg-da" style="margin-bottom:4px;">
+              <input type="date" id="aziende-agg-a">
+            </div>
+            <div class="form-col">
+              <label>Att. originale</label>
+              <input type="date" id="aziende-att-orig-da" style="margin-bottom:4px;">
+              <input type="date" id="aziende-att-orig-a">
+            </div>
+            <div class="form-col">
+              <label>Att. in corso</label>
+              <input type="date" id="aziende-att-corso-da" style="margin-bottom:4px;">
+              <input type="date" id="aziende-att-corso-a">
+            </div>
+            <div class="form-col">
+              <label>Validità triennale</label>
+              <input type="date" id="aziende-val-tri-da" style="margin-bottom:4px;">
+              <input type="date" id="aziende-val-tri-a">
+            </div>
+            <div class="form-col">
+              <label>Verifica triennale</label>
+              <input type="date" id="aziende-ver-tri-da" style="margin-bottom:4px;">
+              <input type="date" id="aziende-ver-tri-a">
+            </div>
+            <div class="form-col">
+              <label>Validità quinquennale</label>
+              <input type="date" id="aziende-val-quin-da" style="margin-bottom:4px;">
+              <input type="date" id="aziende-val-quin-a">
+            </div>
+            <div class="form-col">
+              <label>Scadenza ISO</label>
+              <input type="date" id="aziende-scad-iso-da" style="margin-bottom:4px;">
+              <input type="date" id="aziende-scad-iso-a">
+            </div>
           </div>
-          <div class="form-row">
-            <div class="form-col"><label>Att. originale Da</label><input type="date" id="aziende-att-orig-da"></div>
-            <div class="form-col"><label>Att. originale A</label><input type="date" id="aziende-att-orig-a"></div>
-          </div>
-          <div class="form-row">
-            <div class="form-col"><label>Att. in corso Da</label><input type="date" id="aziende-att-corso-da"></div>
-            <div class="form-col"><label>Att. in corso A</label><input type="date" id="aziende-att-corso-a"></div>
-          </div>
-          <div class="form-row">
-            <div class="form-col"><label>Validità triennale Da</label><input type="date" id="aziende-val-tri-da"></div>
-            <div class="form-col"><label>Validità triennale A</label><input type="date" id="aziende-val-tri-a"></div>
-          </div>
-          <div class="form-row">
-            <div class="form-col"><label>Verifica triennale Da</label><input type="date" id="aziende-ver-tri-da"></div>
-            <div class="form-col"><label>Verifica triennale A</label><input type="date" id="aziende-ver-tri-a"></div>
-          </div>
-          <div class="form-row">
-            <div class="form-col"><label>Validità quinquennale Da</label><input type="date" id="aziende-val-quin-da"></div>
-            <div class="form-col"><label>Validità quinquennale A</label><input type="date" id="aziende-val-quin-a"></div>
-          </div>
-          <div class="form-row">
-            <div class="form-col"><label>Scadenza ISO Da</label><input type="date" id="aziende-scad-iso-da"></div>
-            <div class="form-col"><label>Scadenza ISO A</label><input type="date" id="aziende-scad-iso-a"></div>
-          </div>
+          <!-- Riga 7: Inserite/Modificate checkboxes -->
           <div class="form-row">
             <div class="form-col" style="display:flex;gap:24px;align-items:center;">
               <label class="checkbox-label" style="padding-top:0"><input type="checkbox" id="aziende-inserite"> Inserite</label>
@@ -2276,33 +2269,16 @@ tbody tr:hover td {
             </div>
           </div>
 
-          <div class="form-col full">
-            <label>Stato di Approvazione</label>
-            <div class="radio-group">
-              <div class="radio-option">
-                <input type="radio" name="aziende-approvazione" id="aziende-app-tutte" value="" checked>
-                <label for="aziende-app-tutte">Tutte</label>
-              </div>
-              <div class="radio-option">
-                <input type="radio" name="aziende-approvazione" id="aziende-app-approvate" value="approved">
-                <label for="aziende-app-approvate">Approvate</label>
-              </div>
-              <div class="radio-option">
-                <input type="radio" name="aziende-approvazione" id="aziende-app-non" value="not_approved">
-                <label for="aziende-app-non">Non Approvate</label>
-              </div>
-            </div>
-          </div>
-
+          <!-- Bottoni -->
           <div style="display:flex;gap:10px;margin-top:20px;">
-            <button class="btn btn-primary" onclick="searchAziende()" style="flex:1;padding:14px;font-size:1rem;"><i class="fas fa-search"></i> CERCA AZIENDE</button>
-            <button class="btn btn-secondary" onclick="resetAziendeSearch()" style="padding:14px 20px;"><i class="fas fa-redo"></i></button>
+            <button class="btn btn-primary" onclick="searchAziende()" style="padding:14px 40px;font-size:1rem;"><i class="fas fa-search"></i> CERCA AZIENDE</button>
+            <button class="btn btn-secondary" onclick="resetAziendeSearch()" style="padding:14px 20px;">ANNULLA</button>
             <button class="btn btn-primary" onclick="inviaMailAziende()" style="background:var(--gradient);padding:14px 20px;"><i class="fas fa-envelope"></i></button>
           </div>
         </div>
 
         <div class="table-container">
-          <div id="aziendeCount" style="padding:12px 0;font-weight:600;color:var(--primary);"></div>
+          <div id="aziendeCount" style="padding:12px 0;font-weight:600;color:var(--orange);"></div>
           <div id="aziendeResults"></div>
         </div>
       </div>
@@ -7948,18 +7924,22 @@ async function searchAziende(page = 1) {
     const rows = data.dati || [];
     const total = data.totale || rows.length;
     if (!rows.length) { container.innerHTML = '<div class="empty-state"><i class="fas fa-building"></i><p>Nessuna azienda trovata</p></div>'; return; }
-    let html = `<div class="results-header"><h3>AZIENDE TROVATE: ${fmt(total)}</h3></div>`;
-    html += '<div class="table-container"><table><thead><tr><th>Ragione Sociale</th><th>P.IVA</th><th>Città</th><th>Provincia</th><th>Email</th><th>Telefono</th><th>SOA</th><th></th></tr></thead><tbody>';
+    let html = `<div class="results-header" style="color:var(--orange);font-weight:700;font-size:1.05rem;margin-bottom:12px;">AZIENDE TROVATE: ${fmt(total)}</div>`;
+    html += '<div class="table-container"><table><thead><tr><th>ID</th><th>Ragione Sociale</th><th>P.IVA</th><th>CAP</th><th>Città</th><th>Provincia</th><th>Attestazioni</th><th>Cliente</th><th>Email</th><th>Inserita da</th><th>Elim.</th></tr></thead><tbody>';
     rows.forEach(r => {
-      html += `<tr>
+      const tipoLabel = r.tipo_azienda ? `<span style="color:var(--orange);font-size:11px;">${esc(r.tipo_azienda)}</span>` : '';
+      html += `<tr style="cursor:pointer;" onclick="viewAziendaDetailEnhanced(${r.id},${currentAziendePage})">
+        <td>${r.id||''}<br>${tipoLabel}</td>
         <td>${esc(r.ragione_sociale||'')}</td>
         <td>${esc(r.partita_iva||'')}</td>
+        <td>${esc(r.cap||'')}</td>
         <td>${esc(r.citta||'')}</td>
         <td>${esc(r.provincia_nome||'')}</td>
-        <td>${esc(r.email||'')}</td>
-        <td>${esc(r.telefono||'')}</td>
-        <td>${esc(r.tipo_attestazione||'')}</td>
-        <td><button class="btn btn-sm btn-primary" onclick="viewAziendaDetailEnhanced(${r.id},${currentAziendePage})"><i class="fas fa-eye"></i></button></td>
+        <td style="font-size:11px;max-width:180px;white-space:normal;">${esc(r.tipo_attestazione||'')}</td>
+        <td>${r.cliente ? '<i class="fas fa-check" style="color:var(--success)"></i>' : ''}</td>
+        <td style="font-size:11px;">${esc(r.email||'')}<br>${r.telefono ? 'Tel.: '+esc(r.telefono) : ''}</td>
+        <td>${esc(r.inserita_da||r.created_by||'')}</td>
+        <td><button class="btn btn-sm" onclick="event.stopPropagation();" style="background:transparent;color:var(--text-muted);padding:4px;"><i class="fas fa-circle" style="font-size:10px;color:#ccc;"></i></button></td>
       </tr>`;
     });
     html += '</tbody></table></div>';
@@ -8046,8 +8026,26 @@ async function viewAziendaDetail(id) {
 }
 
 function resetAziendeSearch() {
-  ['aziende-piva','aziende-ragione','aziende-cf','aziende-sdi'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  // Reset text inputs
+  ['aziende-piva','aziende-ragione','aziende-cf','aziende-cap','aziende-indirizzo','aziende-citta',
+   'aziende-agg-da','aziende-agg-a','aziende-att-orig-da','aziende-att-orig-a',
+   'aziende-att-corso-da','aziende-att-corso-a','aziende-val-tri-da','aziende-val-tri-a',
+   'aziende-ver-tri-da','aziende-ver-tri-a','aziende-val-quin-da','aziende-val-quin-a',
+   'aziende-scad-iso-da','aziende-scad-iso-a'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  // Reset selects
+  ['aziende-soa','aziende-soa-legame','aziende-soa-classifica','aziende-email-filtro',
+   'aziende-inserita-da','aziende-fornitrice','aziende-agente','aziende-responsabile'].forEach(id => { const el = document.getElementById(id); if(el) el.selectedIndex = 0; });
+  // Reset multi-select
+  const provSel = document.getElementById('aziende-provincia');
+  if (provSel) Array.from(provSel.options).forEach(o => o.selected = false);
+  // Reset radio buttons to defaults
+  document.querySelectorAll('input[name="aziende-stato"][value=""]').forEach(r => r.checked = true);
+  document.querySelectorAll('input[name="aziende-logica"][value="and"]').forEach(r => r.checked = true);
+  document.querySelectorAll('input[name="aziende-stato-contatto"][value=""]').forEach(r => r.checked = true);
+  // Reset checkboxes
+  ['aziende-senza-attestazioni','aziende-inserite','aziende-modificate'].forEach(id => { const el = document.getElementById(id); if(el) el.checked = false; });
   document.getElementById('aziendeResults').innerHTML = '';
+  document.getElementById('aziendeCount').innerHTML = '';
 }
 
 // UTENTI — uses /api/admin/utenti
