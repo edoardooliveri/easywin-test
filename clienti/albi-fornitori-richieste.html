@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le Mie Richieste Albi Fornitori — EasyWin Area Clienti</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--dark:#1E2D3D;--yellow:#F5C518;--orange:#FF8C00;--gradient:linear-gradient(135deg,#F5C518 0%,#FF8C00 100%);--dark-card:#ffffff;--dark-surface:#eef1f6;--dark-bg:#f0f2f7;--text-white:#1e293b;--text-muted:#586879;--text-dim:#8895a5;--border-dark:#d4dbe5;--border-orange:rgba(255,140,0,0.3);--radius:8px;--radius-lg:16px;--transition:all 0.35s cubic-bezier(.4,0,.2,1);}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Comfortaa','Open Sans',sans-serif;background:var(--dark-bg);color:var(--text-white);min-height:100vh}
+a{text-decoration:none;color:inherit}
+.hero-wrapper{position:relative;background:#0f172a url('hero-bg.png') center 25% / cover no-repeat}
+.hero-wrapper::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,0.7) 0%,rgba(15,23,42,0.35) 30%,rgba(15,23,42,0.25) 55%,rgba(15,23,42,0.6) 100%);z-index:0}
+.hero-wrapper > *{position:relative;z-index:1}
+.header{background:transparent;padding:16px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.1);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.header .logo-img{height:44px}
+.header-tagline{position:absolute;left:50%;transform:translateX(-50%);font-family:Comfortaa,cursive;font-size:15px;font-weight:600;color:#fff;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;opacity:0.92;text-shadow:0 1px 8px rgba(0,0,0,0.3)}
+.header-user{display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:50px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);font-size:13px;color:rgba(255,255,255,0.8);cursor:pointer}
+.header-user i{color:var(--orange)}
+.navbar{background:rgba(15,23,42,0.4);backdrop-filter:blur(8px);padding:0 20px;display:flex;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08);position:sticky;top:76px;z-index:99}
+.navbar a{color:rgba(255,255,255,0.7);padding:14px 16px;font-family:Comfortaa,cursive;font-size:12px;font-weight:500;letter-spacing:0.3px;transition:var(--transition);position:relative}
+.navbar a:hover{color:#fff;background:rgba(255,255,255,0.08)}
+.navbar a.active{color:var(--orange);font-weight:700}
+.navbar a.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--gradient);border-radius:3px 3px 0 0}
+.content{padding:30px 25px;max-width:1420px;margin:0 auto}
+.page-title{font-family:Comfortaa,cursive;font-size:28px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.page-title i{color:var(--orange);font-size:32px}
+.page-subtitle{color:var(--text-muted);font-size:0.95rem;margin-bottom:30px;max-width:900px;line-height:1.6}
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:30px}
+.stat-card{background:#fff;border:1px solid var(--border-dark);border-radius:var(--radius-lg);padding:22px;position:relative;overflow:hidden;transition:var(--transition)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:var(--gradient)}
+.stat-card-label{font-family:Comfortaa,cursive;font-size:12px;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.5px}
+.stat-card-value{font-family:Comfortaa,cursive;font-size:28px;font-weight:700;color:var(--orange)}
+.filter-section{background:#fff;border:1px solid var(--border-dark);border-radius:var(--radius-lg);padding:24px;margin-bottom:30px}
+.filter-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:16px;align-items:end}
+.filter-label{font-family:Comfortaa,cursive;font-size:0.78rem;font-weight:600;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.5px;display:block;margin-bottom:6px}
+.filter-input,.filter-select{width:100%;padding:12px 16px;background:var(--dark-surface);color:var(--text-white);border:1px solid var(--border-dark);border-radius:25px;font-size:0.92rem;font-family:inherit}
+.filter-input:focus,.filter-select:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,140,0,0.15)}
+.btn-primary{background:var(--gradient);color:#fff;padding:12px 28px;border:none;border-radius:50px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:Comfortaa,cursive;text-transform:uppercase;letter-spacing:0.3px;display:inline-flex;align-items:center;gap:8px}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,140,0,0.3)}
+.richiesta-card{background:#fff;border:1px solid var(--border-dark);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:14px;transition:var(--transition);display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center}
+.richiesta-card:hover{border-color:var(--border-orange);box-shadow:0 8px 24px rgba(255,140,0,0.1);transform:translateY(-2px)}
+.richiesta-date{text-align:center;padding:12px 16px;background:var(--dark-surface);border-radius:12px;min-width:80px}
+.richiesta-date .day{font-family:Comfortaa,cursive;font-size:24px;font-weight:700;color:var(--orange);line-height:1}
+.richiesta-date .month{font-size:11px;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-top:4px}
+.richiesta-body h3{font-family:Comfortaa,cursive;font-size:16px;font-weight:700;margin-bottom:6px}
+.richiesta-body .meta{color:var(--text-muted);font-size:13px;display:flex;gap:16px;flex-wrap:wrap}
+.richiesta-body .meta span{display:inline-flex;align-items:center;gap:5px}
+.richiesta-body .meta i{color:var(--orange)}
+.badge{padding:6px 14px;border-radius:50px;font-size:11px;font-weight:700;text-transform:uppercase;color:#fff;white-space:nowrap}
+.badge.ricevuta{background:#f59e0b}
+.badge.in_lavorazione{background:#3b82f6}
+.badge.completata{background:#10b981}
+.badge.annullata{background:#64748b}
+.empty-state{text-align:center;padding:60px 20px;background:#fff;border:2px dashed var(--border-dark);border-radius:var(--radius-lg)}
+.empty-state i{font-size:48px;color:var(--orange);opacity:0.6;margin-bottom:16px}
+.footer{background:var(--dark);border-top:1px solid var(--border-dark);padding:30px 25px;text-align:center;color:var(--text-muted);font-size:12px;margin-top:50px}
+@media(max-width:768px){.content{padding:20px 16px}.filter-row{grid-template-columns:1fr}.richiesta-card{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="hero-wrapper">
+  <div class="header">
+    <a href="index.html" class="logo"><img src="../logo.png" class="logo-img" alt="EasyWin"></a>
+    <div class="header-tagline">Il futuro delle gare di appalto è qui</div>
+    <div class="header-user"><i class="fas fa-user-circle"></i><span>Area Clienti</span><i class="fas fa-sign-out-alt"></i></div>
+  </div>
+  <nav class="navbar">
+    <a href="index.html">Home</a>
+    <a href="bandi.html">Bandi di Gara</a>
+    <a href="esiti.html">Esiti di Gara</a>
+    <a href="index.html#sopralluoghi">Sopralluoghi</a>
+    <a href="albi-fornitori-richieste.html" class="active">Albi Fornitori</a>
+    <a href="index.html#contatti">Contatti</a>
+    <a href="../admin/index.html">Area Amministrazione</a>
+  </nav>
+</div>
+
+<div class="content">
+  <div class="page-title"><i class="fas fa-inbox"></i> Le Mie Richieste — Albi Fornitori</div>
+  <p class="page-subtitle">Tieni traccia di tutte le richieste di servizio di iscrizione che hai inviato per gli albi fornitori. Vedi lo stato di ogni richiesta, quando è stata presa in carico e quando verrà completata.</p>
+
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-card-label"><i class="fas fa-list"></i> Totale</div><div class="stat-card-value" id="statTot">-</div></div>
+    <div class="stat-card"><div class="stat-card-label"><i class="fas fa-bell"></i> In Attesa</div><div class="stat-card-value" id="statRic">-</div></div>
+    <div class="stat-card"><div class="stat-card-label"><i class="fas fa-cog"></i> In Lavorazione</div><div class="stat-card-value" id="statLav">-</div></div>
+    <div class="stat-card"><div class="stat-card-label"><i class="fas fa-check-circle"></i> Completate</div><div class="stat-card-value" id="statCom">-</div></div>
+  </div>
+
+  <div class="filter-section">
+    <div class="filter-row">
+      <div>
+        <label class="filter-label">Stato</label>
+        <select id="filterStato" class="filter-select">
+          <option value="">Tutte</option>
+          <option value="ricevuta">In attesa</option>
+          <option value="in_lavorazione">In lavorazione</option>
+          <option value="completata">Completate</option>
+          <option value="annullata">Annullate</option>
+        </select>
+      </div>
+      <div>
+        <label class="filter-label">Da data</label>
+        <input type="date" id="filterDal" class="filter-input">
+      </div>
+      <div>
+        <label class="filter-label">A data</label>
+        <input type="date" id="filterAl" class="filter-input">
+      </div>
+      <button class="btn-primary" onclick="loadRichieste()"><i class="fas fa-search"></i> Cerca</button>
+    </div>
+  </div>
+
+  <div id="richResults"></div>
+</div>
+
+<footer class="footer">© EasyWin — Il futuro delle gare di appalto è qui</footer>
+
+<script>
+const API_BASE = window.location.origin + '/api';
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function fmtDay(d){if(!d)return'-';try{return new Date(d).getDate()}catch(e){return'-'}}
+function fmtMonth(d){if(!d)return'';try{return new Date(d).toLocaleDateString('it-IT',{month:'short'}).toUpperCase()}catch(e){return''}}
+
+async function loadRichieste(){
+  const container = document.getElementById('richResults');
+  container.innerHTML = '<div style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="font-size:32px;color:#FF8C00"></i></div>';
+  try{
+    const stato = document.getElementById('filterStato').value;
+    const params = new URLSearchParams();
+    if(stato) params.set('stato', stato);
+    params.set('limit', 100);
+    const res = await fetch(`${API_BASE}/albi-fornitori/mie-richieste?${params}`);
+    const data = await res.json();
+    const rows = data.data || data || [];
+
+    document.getElementById('statTot').textContent = rows.length;
+    document.getElementById('statRic').textContent = rows.filter(r=>r.stato==='ricevuta').length;
+    document.getElementById('statLav').textContent = rows.filter(r=>r.stato==='in_lavorazione').length;
+    document.getElementById('statCom').textContent = rows.filter(r=>r.stato==='completata').length;
+
+    if(!rows.length){
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><h3 style="margin:8px 0">Nessuna richiesta inviata</h3><p style="color:#586879">Vai alla sezione Raccomandazioni AI per trovare gli albi fornitori più adatti alla tua azienda.</p></div>';
+      return;
+    }
+
+    let html = '';
+    rows.forEach(r => {
+      html += `<div class="richiesta-card">
+        <div class="richiesta-date"><div class="day">${fmtDay(r.created_at)}</div><div class="month">${fmtMonth(r.created_at)}</div></div>
+        <div class="richiesta-body">
+          <h3>${esc(r.nome_albo || r.stazione || 'Richiesta iscrizione')}</h3>
+          <div class="meta">
+            <span><i class="fas fa-map-marker-alt"></i> ${esc(r.stazione || '-')}</span>
+            <span><i class="fas fa-tag"></i> ${esc(r.tipo || 'Iscrizione albo')}</span>
+            ${r.note ? `<span><i class="fas fa-sticky-note"></i> ${esc(r.note)}</span>` : ''}
+          </div>
+        </div>
+        <div><span class="badge ${esc(r.stato||'ricevuta')}">${esc(r.stato||'ricevuta').replace('_',' ')}</span></div>
+      </div>`;
+    });
+    container.innerHTML = html;
+  }catch(e){
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color:#dc2626"></i><h3>Errore di caricamento</h3><p style="color:#586879">' + esc(e.message) + '</p></div>';
+  }
+}
+
+loadRichieste();
+</script>
+</body>
+</html>

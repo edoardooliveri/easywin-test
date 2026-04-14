@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scadenze Albi Fornitori — EasyWin Area Clienti</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--dark:#1E2D3D;--yellow:#F5C518;--orange:#FF8C00;--gradient:linear-gradient(135deg,#F5C518 0%,#FF8C00 100%);--dark-card:#ffffff;--dark-surface:#eef1f6;--dark-bg:#f0f2f7;--text-white:#1e293b;--text-muted:#586879;--text-dim:#8895a5;--border-dark:#d4dbe5;--border-orange:rgba(255,140,0,0.3);--radius:8px;--radius-lg:16px;--transition:all 0.35s cubic-bezier(.4,0,.2,1);}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Comfortaa','Open Sans',sans-serif;background:var(--dark-bg);color:var(--text-white);min-height:100vh}
+a{text-decoration:none;color:inherit}
+.hero-wrapper{position:relative;background:#0f172a url('hero-bg.png') center 25% / cover no-repeat}
+.hero-wrapper::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,0.7) 0%,rgba(15,23,42,0.35) 30%,rgba(15,23,42,0.25) 55%,rgba(15,23,42,0.6) 100%);z-index:0}
+.hero-wrapper > *{position:relative;z-index:1}
+.header{background:transparent;padding:16px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.1);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.header .logo-img{height:44px}
+.header-tagline{position:absolute;left:50%;transform:translateX(-50%);font-family:Comfortaa,cursive;font-size:15px;font-weight:600;color:#fff;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;opacity:0.92;text-shadow:0 1px 8px rgba(0,0,0,0.3)}
+.header-user{display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:50px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);font-size:13px;color:rgba(255,255,255,0.8);cursor:pointer}
+.header-user i{color:var(--orange)}
+.navbar{background:rgba(15,23,42,0.4);backdrop-filter:blur(8px);padding:0 20px;display:flex;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08);position:sticky;top:76px;z-index:99}
+.navbar a{color:rgba(255,255,255,0.7);padding:14px 16px;font-family:Comfortaa,cursive;font-size:12px;font-weight:500;letter-spacing:0.3px;transition:var(--transition);position:relative}
+.navbar a:hover{color:#fff;background:rgba(255,255,255,0.08)}
+.navbar a.active{color:var(--orange);font-weight:700}
+.navbar a.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--gradient);border-radius:3px 3px 0 0}
+.content{padding:30px 25px;max-width:1420px;margin:0 auto}
+.page-title{font-family:Comfortaa,cursive;font-size:28px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.page-title i{color:var(--orange);font-size:32px}
+.page-subtitle{color:var(--text-muted);font-size:0.95rem;margin-bottom:30px;max-width:900px;line-height:1.6}
+.alert-banner{background:linear-gradient(135deg,rgba(220,38,38,0.08),rgba(245,158,11,0.08));border:1px solid rgba(220,38,38,0.25);border-left:4px solid #dc2626;border-radius:var(--radius-lg);padding:18px 24px;margin-bottom:24px;display:flex;align-items:center;gap:16px}
+.alert-banner i{font-size:24px;color:#dc2626}
+.alert-banner-text{flex:1}
+.alert-banner-text strong{color:var(--dark);font-weight:700;font-family:Comfortaa,cursive}
+.alert-banner-text p{color:var(--text-muted);font-size:13px;margin-top:2px}
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:30px}
+.stat-card{background:#fff;border:1px solid var(--border-dark);border-radius:var(--radius-lg);padding:22px;position:relative;overflow:hidden;transition:var(--transition)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:var(--gradient)}
+.stat-card.critical::before{background:#dc2626}
+.stat-card.urgent::before{background:#f59e0b}
+.stat-card.warning::before{background:#3b82f6}
+.stat-card.safe::before{background:#10b981}
+.stat-card-label{font-family:Comfortaa,cursive;font-size:12px;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.5px}
+.stat-card-value{font-family:Comfortaa,cursive;font-size:28px;font-weight:700;color:var(--orange)}
+.stat-card.critical .stat-card-value{color:#dc2626}
+.stat-card.urgent .stat-card-value{color:#f59e0b}
+.stat-card.warning .stat-card-value{color:#3b82f6}
+.stat-card.safe .stat-card-value{color:#10b981}
+.filter-section{background:#fff;border:1px solid var(--border-dark);border-radius:var(--radius-lg);padding:24px;margin-bottom:30px}
+.filter-row{display:grid;grid-template-columns:1fr 1fr auto;gap:16px;align-items:end}
+.filter-label{font-family:Comfortaa,cursive;font-size:0.78rem;font-weight:600;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.5px;display:block;margin-bottom:6px}
+.filter-input,.filter-select{width:100%;padding:12px 16px;background:var(--dark-surface);color:var(--text-white);border:1px solid var(--border-dark);border-radius:25px;font-size:0.92rem;font-family:inherit}
+.filter-input:focus,.filter-select:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,140,0,0.15)}
+.btn-primary{background:var(--gradient);color:#fff;padding:12px 28px;border:none;border-radius:50px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:Comfortaa,cursive;text-transform:uppercase;letter-spacing:0.3px;display:inline-flex;align-items:center;gap:8px}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,140,0,0.3)}
+.scadenza-card{background:#fff;border:1px solid var(--border-dark);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:14px;transition:var(--transition);display:grid;grid-template-columns:auto 1fr auto auto;gap:20px;align-items:center}
+.scadenza-card.urgent{border-left:4px solid #dc2626}
+.scadenza-card.soon{border-left:4px solid #f59e0b}
+.scadenza-card.later{border-left:4px solid #3b82f6}
+.scadenza-card:hover{box-shadow:0 8px 24px rgba(255,140,0,0.1);transform:translateY(-2px)}
+.scadenza-days{text-align:center;padding:14px 18px;background:var(--dark-surface);border-radius:12px;min-width:90px}
+.scadenza-days .num{font-family:Comfortaa,cursive;font-size:26px;font-weight:700;color:var(--orange);line-height:1}
+.scadenza-days.urgent .num{color:#dc2626}
+.scadenza-days.soon .num{color:#f59e0b}
+.scadenza-days .lbl{font-size:10px;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-top:4px}
+.scadenza-body h3{font-family:Comfortaa,cursive;font-size:16px;font-weight:700;margin-bottom:6px}
+.scadenza-body .meta{color:var(--text-muted);font-size:13px;display:flex;gap:16px;flex-wrap:wrap}
+.scadenza-body .meta span{display:inline-flex;align-items:center;gap:5px}
+.scadenza-body .meta i{color:var(--orange)}
+.scadenza-date{text-align:center;font-family:Comfortaa,cursive;font-size:13px;color:var(--text-muted)}
+.scadenza-date strong{display:block;font-size:15px;color:var(--dark);margin-top:2px}
+.btn-rinnova{background:var(--gradient);color:#fff;padding:10px 22px;border:none;border-radius:50px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:Comfortaa,cursive;text-transform:uppercase;display:inline-flex;align-items:center;gap:6px}
+.btn-rinnova:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(255,140,0,0.3)}
+.empty-state{text-align:center;padding:60px 20px;background:#fff;border:2px dashed var(--border-dark);border-radius:var(--radius-lg)}
+.empty-state i{font-size:48px;color:var(--orange);opacity:0.6;margin-bottom:16px}
+.footer{background:var(--dark);border-top:1px solid var(--border-dark);padding:30px 25px;text-align:center;color:var(--text-muted);font-size:12px;margin-top:50px}
+@media(max-width:768px){.content{padding:20px 16px}.filter-row{grid-template-columns:1fr}.scadenza-card{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="hero-wrapper">
+  <div class="header">
+    <a href="index.html" class="logo"><img src="../logo.png" class="logo-img" alt="EasyWin"></a>
+    <div class="header-tagline">Il futuro delle gare di appalto è qui</div>
+    <div class="header-user"><i class="fas fa-user-circle"></i><span>Area Clienti</span><i class="fas fa-sign-out-alt"></i></div>
+  </div>
+  <nav class="navbar">
+    <a href="index.html">Home</a>
+    <a href="bandi.html">Bandi di Gara</a>
+    <a href="esiti.html">Esiti di Gara</a>
+    <a href="index.html#sopralluoghi">Sopralluoghi</a>
+    <a href="albi-fornitori-scadenze.html" class="active">Albi Fornitori</a>
+    <a href="index.html#contatti">Contatti</a>
+    <a href="../admin/index.html">Area Amministrazione</a>
+  </nav>
+</div>
+
+<div class="content">
+  <div class="page-title"><i class="fas fa-hourglass-half"></i> Scadenze — Albi Fornitori</div>
+  <p class="page-subtitle">Monitora le scadenze delle tue iscrizioni agli albi fornitori. Ti avvisiamo in tempo per rinnovare senza perdere continuità operativa nelle gare di appalto.</p>
+
+  <div id="alertBanner"></div>
+
+  <div class="stats-bar">
+    <div class="stat-card critical"><div class="stat-card-label"><i class="fas fa-fire"></i> Entro 7 giorni</div><div class="stat-card-value" id="stat7">-</div></div>
+    <div class="stat-card urgent"><div class="stat-card-label"><i class="fas fa-exclamation-triangle"></i> Entro 30 giorni</div><div class="stat-card-value" id="stat30">-</div></div>
+    <div class="stat-card warning"><div class="stat-card-label"><i class="fas fa-clock"></i> Entro 60 giorni</div><div class="stat-card-value" id="stat60">-</div></div>
+    <div class="stat-card safe"><div class="stat-card-label"><i class="fas fa-calendar"></i> Entro 90 giorni</div><div class="stat-card-value" id="stat90">-</div></div>
+  </div>
+
+  <div class="filter-section">
+    <div class="filter-row">
+      <div>
+        <label class="filter-label">Finestra temporale</label>
+        <select id="filterWin" class="filter-select">
+          <option value="90">Prossimi 90 giorni</option>
+          <option value="60">Prossimi 60 giorni</option>
+          <option value="30">Prossimi 30 giorni</option>
+          <option value="7">Prossimi 7 giorni</option>
+          <option value="180">Prossimi 6 mesi</option>
+        </select>
+      </div>
+      <div>
+        <label class="filter-label">Stazione</label>
+        <input type="text" id="filterStaz" class="filter-input" placeholder="Cerca per stazione...">
+      </div>
+      <button class="btn-primary" onclick="loadScadenze()"><i class="fas fa-search"></i> Aggiorna</button>
+    </div>
+  </div>
+
+  <div id="scadResults"></div>
+</div>
+
+<footer class="footer">© EasyWin — Il futuro delle gare di appalto è qui</footer>
+
+<script>
+const API_BASE = window.location.origin + '/api';
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function fmtDate(d){if(!d)return'-';try{return new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'})}catch(e){return'-'}}
+function daysUntil(d){if(!d)return 9999;const now=new Date();const t=new Date(d);return Math.ceil((t-now)/(1000*60*60*24))}
+
+async function loadScadenze(){
+  const container = document.getElementById('scadResults');
+  const banner = document.getElementById('alertBanner');
+  container.innerHTML = '<div style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="font-size:32px;color:#FF8C00"></i></div>';
+  try{
+    const win = document.getElementById('filterWin').value;
+    const staz = document.getElementById('filterStaz').value;
+    const params = new URLSearchParams();
+    params.set('giorni', win);
+    if(staz) params.set('stazione', staz);
+    params.set('limit', 100);
+    const res = await fetch(`${API_BASE}/albi-fornitori/mie-scadenze?${params}`);
+    const data = await res.json();
+    const rows = data.data || data || [];
+
+    const c7 = rows.filter(r=>{const d=daysUntil(r.data_scadenza);return d>=0 && d<=7}).length;
+    const c30 = rows.filter(r=>{const d=daysUntil(r.data_scadenza);return d>=0 && d<=30}).length;
+    const c60 = rows.filter(r=>{const d=daysUntil(r.data_scadenza);return d>=0 && d<=60}).length;
+    const c90 = rows.filter(r=>{const d=daysUntil(r.data_scadenza);return d>=0 && d<=90}).length;
+
+    document.getElementById('stat7').textContent = c7;
+    document.getElementById('stat30').textContent = c30;
+    document.getElementById('stat60').textContent = c60;
+    document.getElementById('stat90').textContent = c90;
+
+    if(c7 > 0){
+      banner.innerHTML = `<div class="alert-banner"><i class="fas fa-exclamation-circle"></i><div class="alert-banner-text"><strong>Attenzione: hai ${c7} iscrizion${c7>1?'i':'e'} in scadenza entro 7 giorni!</strong><p>Procedi subito al rinnovo per non interrompere la tua presenza negli albi fornitori.</p></div></div>`;
+    } else {
+      banner.innerHTML = '';
+    }
+
+    if(!rows.length){
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle" style="color:#10b981"></i><h3 style="margin:8px 0">Nessuna scadenza imminente</h3><p style="color:#586879">Tutte le tue iscrizioni sono in regola per il periodo selezionato.</p></div>';
+      return;
+    }
+
+    rows.sort((a,b)=>daysUntil(a.data_scadenza)-daysUntil(b.data_scadenza));
+
+    let html = '';
+    rows.forEach(r => {
+      const d = daysUntil(r.data_scadenza);
+      const cls = d<=7?'urgent':(d<=30?'soon':'later');
+      html += `<div class="scadenza-card ${cls}">
+        <div class="scadenza-days ${cls}"><div class="num">${d}</div><div class="lbl">${d===1?'giorno':'giorni'}</div></div>
+        <div class="scadenza-body">
+          <h3>${esc(r.nome_albo || r.stazione || 'Iscrizione')}</h3>
+          <div class="meta">
+            <span><i class="fas fa-building"></i> ${esc(r.stazione || '-')}</span>
+            <span><i class="fas fa-map-marker-alt"></i> ${esc(r.regione || '-')}</span>
+            ${r.categoria ? `<span><i class="fas fa-tag"></i> ${esc(r.categoria)}</span>` : ''}
+          </div>
+        </div>
+        <div class="scadenza-date">Scade il<strong>${fmtDate(r.data_scadenza)}</strong></div>
+        <button class="btn-rinnova" onclick="rinnova('${esc(r.id||'')}')"><i class="fas fa-sync-alt"></i> Rinnova</button>
+      </div>`;
+    });
+    container.innerHTML = html;
+  }catch(e){
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color:#dc2626"></i><h3>Errore di caricamento</h3><p style="color:#586879">' + esc(e.message) + '</p></div>';
+  }
+}
+
+async function rinnova(id){
+  if(!id) return;
+  if(!confirm('Vuoi richiedere il rinnovo di questa iscrizione? Il nostro team ti contatterà a breve.')) return;
+  try{
+    const res = await fetch(`${API_BASE}/albi-fornitori/${id}/richiedi-rinnovo`,{method:'POST'});
+    if(res.ok){
+      alert('Richiesta di rinnovo inviata con successo.');
+      loadScadenze();
+    } else {
+      alert('Errore durante l\'invio della richiesta. Riprova.');
+    }
+  }catch(e){
+    alert('Errore: ' + e.message);
+  }
+}
+
+loadScadenze();
+</script>
+</body>
+</html>
