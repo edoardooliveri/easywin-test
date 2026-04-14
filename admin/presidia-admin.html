@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Import Presidia — EasyWin</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; font-family: 'Comfortaa', cursive; background: #f5f7fa; color: #1E2D3D; }
+  .bp-top {
+    background: linear-gradient(135deg, #1E2D3D, #2c3e50); color: #fff; padding: 14px 24px;
+    display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .bp-top h1 { font-size: 16px; margin: 0; font-weight: 700; flex: 1; }
+  .bp-btn {
+    background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+  }
+  .bp-btn:hover { background: rgba(255,255,255,0.22); }
+  .bp-btn.success { background: #10b981; border-color: #10b981; }
+  .bp-btn.danger { background: #dc2626; border-color: #dc2626; }
+  .bp-btn.primary { background: #FF8C00; border-color: #FF8C00; }
+
+  .bp-wrap { max-width: 1200px; margin: 24px auto; padding: 0 24px 60px; }
+  .bp-card { background: #fff; border-radius: 12px; padding: 24px 28px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .bp-card h2 { margin: 0 0 18px; font-size: 14px; color: #FF8C00; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #fef3e2; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+
+  .bp-toast { position: fixed; bottom: 24px; right: 24px; background: #1E2D3D; color: #fff; padding: 14px 20px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); font-size: 13px; font-weight: 600; display: none; z-index: 100; }
+  .bp-toast.ok { background: #10b981; }
+  .bp-toast.err { background: #dc2626; }
+
+  .stat-box { display: inline-flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 16px; }
+  .stat-box .num { font-size: 1.2rem; font-weight: 700; }
+  .stat-box .lbl { font-size: 10.5px; color: #64748b; text-transform: uppercase; font-weight: 700; }
+
+  .chip { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .chip.green { background: #dcfce7; color: #166534; }
+  .chip.red { background: #fef2f2; color: #dc2626; }
+  .chip.blue { background: #dbeafe; color: #1e40af; }
+  .chip.orange { background: #fef3e2; color: #c2410c; }
+  .chip.gray { background: #f1f5f9; color: #64748b; }
+
+  table.log-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.log-table th { background: #f8fafc; color: #64748b; font-size: 10.5px; text-transform: uppercase; text-align: left; padding: 10px 10px; }
+  table.log-table td { padding: 9px 10px; border-top: 1px solid #f1f5f9; }
+  table.log-table tr:hover td { background: #fefce8; }
+
+  .big-btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px; border-radius: 12px;
+    font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; border: none;
+    color: #fff; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .big-btn.orange { background: linear-gradient(135deg, #FF8C00, #e67e00); }
+  .big-btn.orange:hover { background: linear-gradient(135deg, #e67e00, #cc7000); }
+  .big-btn.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+  .big-btn.blue:hover { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+  .big-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .form-row { display: flex; gap: 16px; align-items: end; flex-wrap: wrap; margin-bottom: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group label { font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.3px; }
+  .form-group input {
+    padding: 8px 12px; border: 1.5px solid #d4dbe5; border-radius: 8px; font-family: inherit; font-size: 13px; min-width: 160px;
+  }
+  .form-group input:focus { outline: none; border-color: #FF8C00; }
+
+  .output-box { background: #1E2D3D; color: #e2e8f0; padding: 16px 20px; border-radius: 10px; font-family: monospace; font-size: 12px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; display: none; margin-top: 12px; }
+
+  .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+  .slot-card {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .slot-card .slot-time { font-weight: 700; font-size: 14px; }
+  .slot-card .slot-detail { font-size: 11px; color: #64748b; }
+  .slot-card.ok { border-color: #10b981; background: #f0fdf4; }
+  .slot-card.fail { border-color: #dc2626; background: #fef2f2; }
+  .slot-card.pending { border-color: #e2e8f0; background: #f8fafc; }
+
+  .stats-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+</style>
+</head>
+<body>
+
+<div class="bp-top">
+  <a href="/admin/" class="bp-btn"><i class="fas fa-arrow-left"></i> Admin</a>
+  <h1><i class="fas fa-shield-alt"></i> Import Presidia — Dashboard</h1>
+  <span id="schedulerBadge" class="chip gray">Caricamento...</span>
+  <button class="bp-btn primary" onclick="testSoap()"><i class="fas fa-plug"></i> Test SOAP</button>
+  <button class="bp-btn success" onclick="loadAll()"><i class="fas fa-sync"></i> Aggiorna</button>
+</div>
+
+<div class="bp-wrap">
+
+  <!-- STATO -->
+  <div class="bp-card">
+    <h2><i class="fas fa-tachometer-alt"></i> Stato</h2>
+    <div class="stats-row" id="statsRow">
+      <div class="stat-box"><span class="num" id="statTotPresidia">-</span><span class="lbl">Bandi Presidia</span></div>
+      <div class="stat-box"><span class="num" id="statUltimi24">-</span><span class="lbl">Ultimi 24h</span></div>
+      <div class="stat-box"><span class="num" id="statUltimi7g">-</span><span class="lbl">Ultimi 7g</span></div>
+      <div class="stat-box"><span class="num" id="statRunOggi">-</span><span class="lbl">Run oggi</span></div>
+    </div>
+    <div id="soapStatus" style="font-size:12px; color:#64748b;"></div>
+  </div>
+
+  <!-- SLOT DEL GIORNO -->
+  <div class="bp-card">
+    <h2><i class="fas fa-clock"></i> Slot del giorno</h2>
+    <div class="slots-grid" id="slotsGrid">
+      <div style="color:#64748b; font-size:12px;">Caricamento...</div>
+    </div>
+  </div>
+
+  <!-- AZIONI MANUALI -->
+  <div class="bp-card">
+    <h2><i class="fas fa-tools"></i> Azioni manuali</h2>
+    <div class="form-row">
+      <button class="big-btn orange" onclick="forzaImport()" id="btnForza">
+        <i class="fas fa-download"></i> Forza import oggi
+      </button>
+      <button class="big-btn blue" onclick="riepilogoSync()" id="btnSync">
+        <i class="fas fa-sync-alt"></i> Riepilogo ultimi 7 giorni
+      </button>
+    </div>
+    <div class="form-row" style="margin-top:16px;">
+      <div class="form-group">
+        <label>Codice bando</label>
+        <input type="text" id="inputCodice" placeholder="Es. 123456">
+      </div>
+      <button class="big-btn orange" onclick="importSingolo()" style="padding:10px 24px; font-size:12px;">
+        <i class="fas fa-file-import"></i> Import singolo
+      </button>
+    </div>
+    <div class="output-box" id="actionOutput"></div>
+  </div>
+
+  <!-- STORICO 7 GIORNI -->
+  <div class="bp-card">
+    <h2><i class="fas fa-history"></i> Storico (ultimi 7 giorni)</h2>
+    <table class="log-table">
+      <thead>
+        <tr>
+          <th>Data/Ora</th>
+          <th>Tipo</th>
+          <th>Range</th>
+          <th>Presidia</th>
+          <th>Importati</th>
+          <th>Rettifiche</th>
+          <th>Skippati</th>
+          <th>Errori</th>
+          <th>Durata</th>
+          <th>Stato</th>
+        </tr>
+      </thead>
+      <tbody id="storicoBody">
+        <tr><td colspan="10" style="color:#64748b; text-align:center;">Caricamento...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ERRORI RECENTI -->
+  <div class="bp-card">
+    <h2><i class="fas fa-exclamation-triangle" style="color:#dc2626"></i> Errori recenti</h2>
+    <table class="log-table">
+      <thead>
+        <tr>
+          <th>Data/Ora</th>
+          <th>Slot</th>
+          <th>Retry</th>
+          <th>Errore</th>
+        </tr>
+      </thead>
+      <tbody id="erroriBody">
+        <tr><td colspan="4" style="color:#64748b; text-align:center;">Caricamento...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="bp-toast" id="toast"></div>
+
+<script>
+const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:3001/api' : '/api';
+const TOKEN = localStorage.getItem('easywin_token');
+
+function authHeaders() {
+  return { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' };
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function toast(msg, type = 'ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'bp-toast ' + type;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 4000);
+}
+
+function fmtDate(d) {
+  if (!d) return '-';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('it-IT') + ' ' + dt.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ── SLOT DEFINITIONS ──
+const SLOT_TIMES = [
+  '11:00', '12:00', '13:00', '14:00', '15:00', '16:00',
+  '16:45', '17:15', '17:45', '18:15', '18:45', '19:15',
+  '04:00'
+];
+
+// ── LOAD ALL ──
+async function loadAll() {
+  await Promise.all([loadStatus(), loadSlotsToday(), loadStorico(), loadErrori()]);
+}
+
+// ── STATUS ──
+async function loadStatus() {
+  try {
+    const [statusRes, schedulerRes] = await Promise.all([
+      fetch(API + '/presidia/status', { headers: authHeaders() }),
+      fetch(API + '/presidia/scheduler-status', { headers: authHeaders() })
+    ]);
+    const status = await statusRes.json();
+    const sched = await schedulerRes.json();
+
+    const s = status.statistiche || {};
+    document.getElementById('statTotPresidia').textContent = s.totale || 0;
+    document.getElementById('statUltimi24').textContent = s.ultimi_24h || 0;
+    document.getElementById('statUltimi7g').textContent = s.ultimi_7_giorni || 0;
+
+    const badge = document.getElementById('schedulerBadge');
+    if (sched.enabled) {
+      badge.className = 'chip green';
+      badge.textContent = 'Attivo (' + sched.total_slots + ' slot/giorno)';
+    } else {
+      badge.className = 'chip red';
+      badge.textContent = 'Disabilitato';
+    }
+
+    document.getElementById('soapStatus').textContent =
+      status.connected ? 'SOAP: connesso a ' + status.soap_url
+        : 'SOAP: non connesso — ' + (status.connection_error || '');
+  } catch (e) {
+    console.error('loadStatus:', e);
+  }
+}
+
+// ── SLOTS TODAY ──
+async function loadSlotsToday() {
+  try {
+    const res = await fetch(API + '/presidia/runs/today', { headers: authHeaders() });
+    const data = await res.json();
+    const runs = data.runs || [];
+
+    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const runsBySlot = {};
+    for (const r of runs) {
+      // Extract time from slot_key like "2026-04-13_11:00_scheduled"
+      const parts = (r.slot_key || '').split('_');
+      if (parts.length >= 2) runsBySlot[parts[1]] = r;
+    }
+
+    document.getElementById('statRunOggi').textContent = runs.length;
+
+    let html = '';
+    for (const time of SLOT_TIMES) {
+      const run = runsBySlot[time];
+      const isRiepilogo = time === '04:00';
+      const [h, m] = time.split(':').map(Number);
+      const slotDate = new Date(now); slotDate.setHours(h, m, 0, 0);
+      const isPast = now > slotDate;
+
+      let cls = 'pending', statusText = 'Atteso', details = '';
+      if (run) {
+        if (run.success) {
+          cls = 'ok';
+          statusText = 'OK';
+          details = `${run.imported || 0} imp, ${run.updated || 0} rett, ${run.skipped || 0} skip`;
+          if (run.errors > 0) details += `, ${run.errors} err`;
+          if (run.duration_ms) details += ` (${(run.duration_ms / 1000).toFixed(1)}s)`;
+        } else {
+          cls = 'fail';
+          statusText = 'Fallito';
+          details = run.error_message || 'Errore';
+        }
+      } else if (isPast) {
+        statusText = 'Non eseguito';
+      }
+
+      html += `<div class="slot-card ${cls}">
+        <div class="slot-time">${time} ${isRiepilogo ? '<span style="font-size:10px;color:#64748b;">(riepilogo)</span>' : ''}</div>
+        <div class="slot-detail"><span class="chip ${cls === 'ok' ? 'green' : cls === 'fail' ? 'red' : 'gray'}">${statusText}</span></div>
+        <div class="slot-detail">${esc(details)}</div>
+      </div>`;
+    }
+    document.getElementById('slotsGrid').innerHTML = html || '<div style="color:#64748b;">Nessun dato</div>';
+  } catch (e) {
+    console.error('loadSlotsToday:', e);
+    document.getElementById('slotsGrid').innerHTML = '<div style="color:#dc2626;">Errore caricamento</div>';
+  }
+}
+
+// ── STORICO ──
+async function loadStorico() {
+  try {
+    const res = await fetch(API + '/presidia/runs?days=7', { headers: authHeaders() });
+    const data = await res.json();
+    const runs = data.runs || [];
+
+    if (runs.length === 0) {
+      document.getElementById('storicoBody').innerHTML = '<tr><td colspan="10" style="text-align:center;color:#64748b;">Nessun run negli ultimi 7 giorni</td></tr>';
+      return;
+    }
+
+    let html = '';
+    for (const r of runs) {
+      html += `<tr>
+        <td>${fmtDate(r.run_at)}</td>
+        <td><span class="chip ${r.tipo === 'riepilogo' ? 'blue' : r.tipo === 'manuale' ? 'orange' : 'gray'}">${esc(r.tipo)}</span></td>
+        <td style="font-size:11px;">${r.data_dal || '-'} / ${r.data_al || '-'}</td>
+        <td>${r.total_presidia || 0}</td>
+        <td style="font-weight:700;color:#10b981;">${r.imported || 0}</td>
+        <td style="font-weight:700;color:#3b82f6;">${r.updated || 0}</td>
+        <td>${r.skipped || 0}</td>
+        <td style="${r.errors > 0 ? 'color:#dc2626;font-weight:700;' : ''}">${r.errors || 0}</td>
+        <td>${r.duration_ms ? (r.duration_ms / 1000).toFixed(1) + 's' : '-'}</td>
+        <td><span class="chip ${r.success ? 'green' : 'red'}">${r.success ? 'OK' : 'FAIL'}</span></td>
+      </tr>`;
+    }
+    document.getElementById('storicoBody').innerHTML = html;
+  } catch (e) {
+    console.error('loadStorico:', e);
+  }
+}
+
+// ── ERRORI ──
+async function loadErrori() {
+  try {
+    const res = await fetch(API + '/presidia/runs/errors', { headers: authHeaders() });
+    const data = await res.json();
+    const runs = data.runs || [];
+
+    if (runs.length === 0) {
+      document.getElementById('erroriBody').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#64748b;">Nessun errore recente</td></tr>';
+      return;
+    }
+
+    let html = '';
+    for (const r of runs) {
+      const err = r.error_detail;
+      const msg = typeof err === 'string' ? err : (err?.message || JSON.stringify(err) || '-');
+      html += `<tr>
+        <td>${fmtDate(r.run_at)}</td>
+        <td style="font-size:11px;">${esc(r.slot_key || '-')}</td>
+        <td>${r.retry_count || 0}</td>
+        <td style="font-size:11px;color:#dc2626;">${esc(String(msg).substring(0, 200))}</td>
+      </tr>`;
+    }
+    document.getElementById('erroriBody').innerHTML = html;
+  } catch (e) {
+    console.error('loadErrori:', e);
+  }
+}
+
+// ── TEST SOAP ──
+async function testSoap() {
+  try {
+    const res = await fetch(API + '/presidia/test', { headers: authHeaders() });
+    const data = await res.json();
+    if (data.success) {
+      toast('SOAP connesso! Fonti: ' + data.fonti_count, 'ok');
+    } else {
+      toast('SOAP fallito: ' + (data.error || 'errore'), 'err');
+    }
+  } catch (e) {
+    toast('Errore test: ' + e.message, 'err');
+  }
+}
+
+// ── FORZA IMPORT ──
+async function forzaImport() {
+  const btn = document.getElementById('btnForza');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Import in corso...';
+  const out = document.getElementById('actionOutput');
+  out.style.display = 'block';
+  out.textContent = 'Avvio import...\n';
+
+  const today = new Date().toISOString().split('T')[0];
+  try {
+    const res = await fetch(API + '/presidia/import', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ data_dal: today, data_al: today })
+    });
+    const data = await res.json();
+    out.textContent += JSON.stringify(data, null, 2);
+    toast(data.message || 'Import completato', res.ok ? 'ok' : 'err');
+    loadAll();
+  } catch (e) {
+    out.textContent += 'ERRORE: ' + e.message;
+    toast('Errore: ' + e.message, 'err');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-download"></i> Forza import oggi';
+}
+
+// ── RIEPILOGO SYNC ──
+async function riepilogoSync() {
+  const btn = document.getElementById('btnSync');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sync in corso...';
+  const out = document.getElementById('actionOutput');
+  out.style.display = 'block';
+  out.textContent = 'Avvio sync ultimi 7 giorni...\n';
+
+  try {
+    const res = await fetch(API + '/presidia/sync', {
+      method: 'POST',
+      headers: authHeaders()
+    });
+    const raw = await res.text();
+    let data;
+    try { data = JSON.parse(raw); } catch { data = raw; }
+    const body = typeof data === 'object' && data.body ? JSON.parse(data.body) : data;
+    out.textContent += JSON.stringify(body, null, 2);
+    toast('Sync completata', res.ok ? 'ok' : 'err');
+    loadAll();
+  } catch (e) {
+    out.textContent += 'ERRORE: ' + e.message;
+    toast('Errore: ' + e.message, 'err');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-sync-alt"></i> Riepilogo ultimi 7 giorni';
+}
+
+// ── IMPORT SINGOLO ──
+async function importSingolo() {
+  const codice = document.getElementById('inputCodice').value.trim();
+  if (!codice) { toast('Inserire codice bando', 'err'); return; }
+
+  const out = document.getElementById('actionOutput');
+  out.style.display = 'block';
+  out.textContent = 'Import singolo codice: ' + codice + '...\n';
+
+  try {
+    const res = await fetch(API + '/presidia/import-single', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ codice })
+    });
+    const data = await res.json();
+    out.textContent += JSON.stringify(data, null, 2);
+    toast(data.message || (data.error || 'Fatto'), res.ok ? 'ok' : 'err');
+    if (res.ok) loadAll();
+  } catch (e) {
+    out.textContent += 'ERRORE: ' + e.message;
+    toast('Errore: ' + e.message, 'err');
+  }
+}
+
+// ── INIT ──
+if (!TOKEN) {
+  document.querySelector('.bp-wrap').innerHTML = '<div class="bp-card"><h2>Accesso negato</h2><p>Devi effettuare il login come admin.</p><a href="/admin/" class="bp-btn primary">Vai al login</a></div>';
+} else {
+  loadAll();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avvalimenti — EasyWin</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:'Comfortaa',cursive;background:#f5f7fa;color:#1E2D3D}
+  .top{background:linear-gradient(135deg,#1E2D3D,#2c3e50);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+  .top h1{font-size:16px;margin:0;font-weight:700;flex:1}
+  .btn{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 14px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+  .btn:hover{background:rgba(255,255,255,.22)}
+  .btn.primary{background:#FF8C00;border-color:#FF8C00}
+  .wrap{max-width:1300px;margin:24px auto;padding:0 24px 60px}
+  .card{background:#fff;border-radius:12px;padding:24px 28px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .card h2{margin:0 0 18px;font-size:14px;color:#FF8C00;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #fef3e2;padding-bottom:10px;display:flex;align-items:center;gap:10px}
+  .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px}
+  .field{display:flex;flex-direction:column;gap:4px}
+  .field label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase}
+  input,select{padding:8px 12px;border:1.5px solid #d4dbe5;border-radius:8px;font-family:inherit;font-size:13px}
+  input:focus,select:focus{outline:none;border-color:#FF8C00}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{background:#f8fafc;color:#64748b;font-size:10.5px;text-transform:uppercase;text-align:left;padding:10px;cursor:pointer}
+  th:hover{color:#FF8C00}
+  td{padding:9px 10px;border-top:1px solid #f1f5f9}
+  tr:hover td{background:#fefce8}
+  .chip{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+  .chip.a{background:#dbeafe;color:#1e40af}
+  .chip.b{background:#fef3e2;color:#c2410c}
+  .chip.ati{background:#dcfce7;color:#166534}
+  .toast{position:fixed;bottom:24px;right:24px;background:#1E2D3D;color:#fff;padding:14px 20px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.2);font-size:13px;font-weight:600;display:none;z-index:100}
+  .toast.ok{background:#10b981}.toast.err{background:#dc2626}
+  .mini{font-size:11px;color:#64748b}
+  .tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid #f1f5f9}
+  .tab{padding:10px 18px;cursor:pointer;font-size:12.5px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-2px}
+  .tab.active{color:#FF8C00;border-bottom-color:#FF8C00}
+  .detail-grid{display:grid;grid-template-columns:max-content 1fr;gap:8px 20px;margin-top:10px}
+  .detail-grid dt{color:#64748b;font-size:11px;text-transform:uppercase;font-weight:700}
+  .detail-grid dd{margin:0;font-size:13px}
+</style>
+</head>
+<body>
+<div class="top">
+  <i class="fa-solid fa-handshake" style="font-size:20px;color:#FF8C00"></i>
+  <h1>Avvalimenti</h1>
+  <a href="/admin/" class="btn"><i class="fa-solid fa-arrow-left"></i> Torna al gestionale</a>
+</div>
+
+<div class="wrap">
+  <div class="tabs">
+    <div class="tab active" onclick="setTab('ricerca')">Ricerca esiti</div>
+    <div class="tab" onclick="setTab('dettaglio')">Dettaglio avvalimento</div>
+  </div>
+
+  <!-- TAB: RICERCA ESITI -->
+  <div id="tab-ricerca" class="tab-content">
+    <div class="card">
+      <h2><i class="fa-solid fa-search"></i> Ricerca esiti con avvalimento</h2>
+      <div class="row">
+        <div class="field"><label>Azienda 1 (ID)</label><input id="a1" type="number" placeholder="es. 1234"/></div>
+        <div class="field"><label>Azienda 2 (ID)</label><input id="a2" type="number" placeholder="es. 5678"/></div>
+        <div class="field"><label>Tipo risultati</label>
+          <select id="tRis"><option value="0">Tutti</option><option value="1">Solo vincitrici</option><option value="2">Solo escluse</option></select>
+        </div>
+        <div class="field"><label>Tipo ruolo</label>
+          <select id="tEsiti"><option value="0">Entrambe</option><option value="1">A1 mandataria di A2</option><option value="2">A2 mandataria di A1</option></select>
+        </div>
+        <button class="btn primary" onclick="searchEsiti()"><i class="fa-solid fa-magnifying-glass"></i> Cerca</button>
+      </div>
+      <div id="searchResult"><p class="mini">Inserisci due ID azienda e premi Cerca.</p></div>
+    </div>
+  </div>
+
+  <!-- TAB: DETTAGLIO -->
+  <div id="tab-dettaglio" class="tab-content" style="display:none">
+    <div class="card">
+      <h2><i class="fa-solid fa-circle-info"></i> Dettaglio avvalimento su gara</h2>
+      <div class="row">
+        <div class="field"><label>ID Gara</label><input id="dGara" type="number"/></div>
+        <div class="field"><label>ID Mandataria</label><input id="dMand" type="number"/></div>
+        <button class="btn primary" onclick="loadDettaglio()"><i class="fa-solid fa-magnifying-glass"></i> Carica</button>
+      </div>
+      <div id="dettaglioResult"><p class="mini">Inserisci ID gara + ID mandataria e premi Carica.</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = window.location.origin.replace(/:\d+$/,'') + ':3001/api';
+const token = localStorage.getItem('easywin_token');
+
+function showToast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'ok');t.style.display='block';setTimeout(()=>t.style.display='none',3500)}
+async function api(path,opts={}){
+  const r = await fetch(API_BASE + path, { ...opts, headers: {'Content-Type':'application/json','Authorization':'Bearer '+token, ...(opts.headers||{})} });
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'HTTP '+r.status)}
+  return r.json();
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fmtEuro(n){ if(n==null) return '—'; return Number(n).toLocaleString('it-IT',{style:'currency',currency:'EUR'}); }
+function fmtDate(s){ if(!s) return '—'; try{ return new Date(s).toLocaleDateString('it-IT'); }catch{ return s; } }
+
+function setTab(t){
+  document.querySelectorAll('.tab').forEach((el,i) => el.classList.toggle('active', (i===0 && t==='ricerca') || (i===1 && t==='dettaglio')));
+  document.getElementById('tab-ricerca').style.display    = t==='ricerca'?'block':'none';
+  document.getElementById('tab-dettaglio').style.display  = t==='dettaglio'?'block':'none';
+}
+
+async function searchEsiti(){
+  const a1=document.getElementById('a1').value, a2=document.getElementById('a2').value;
+  if(!a1||!a2){showToast('Inserisci entrambi gli ID azienda','err');return}
+  const params = new URLSearchParams({id_azienda1:a1,id_azienda2:a2,tipo_risultati:document.getElementById('tRis').value,tipo_esiti:document.getElementById('tEsiti').value,page_size:'50'});
+  try{
+    const res = await api('/avvalimenti/esiti?'+params.toString());
+    const cont = document.getElementById('searchResult');
+    const hdr = `<p class="mini">Azienda 1: <strong>${esc(res.azienda1?.ragione_sociale||a1)}</strong> · Azienda 2: <strong>${esc(res.azienda2?.ragione_sociale||a2)}</strong> · Trovati <strong>${res.total}</strong> esiti</p>`;
+    if (res.esiti.length === 0) { cont.innerHTML = hdr + '<p class="mini">Nessun esito trovato.</p>'; return; }
+    let html = hdr + '<table><thead><tr><th>Data</th><th>Stazione</th><th>Titolo</th><th>SOA</th><th style="text-align:right">Importo</th><th style="text-align:right">Ribasso</th><th>Vincitore</th></tr></thead><tbody>';
+    res.esiti.forEach(g => {
+      html += `<tr>
+        <td>${fmtDate(g.data)}</td>
+        <td>${esc(g.stazione||'')}</td>
+        <td><a href="/admin/#/esiti/${g.id}" target="_blank" style="color:#3b82f6">${esc((g.titolo||'').slice(0,70))}${(g.titolo||'').length>70?'…':''}</a></td>
+        <td>${esc(g.soa_val||'')}</td>
+        <td style="text-align:right">${fmtEuro(g.importo)}</td>
+        <td style="text-align:right">${g.ribasso!=null?Number(g.ribasso).toFixed(2)+'%':'—'}</td>
+        <td>${esc(g.vincitore||'')}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    cont.innerHTML = html;
+  }catch(e){ document.getElementById('searchResult').innerHTML='<p class="mini" style="color:#dc2626">'+e.message+'</p>' }
+}
+
+async function loadDettaglio(){
+  const g=document.getElementById('dGara').value, m=document.getElementById('dMand').value;
+  if(!g||!m){showToast('Inserisci ID gara + ID mandataria','err');return}
+  try{
+    const res = await api('/avvalimenti/details?id_gara='+g+'&id_mandataria='+m);
+    let html = `<dl class="detail-grid">
+      <dt>ID Gara</dt><dd>${res.id_gara}</dd>
+      <dt>Mandataria</dt><dd><strong>${esc(res.mandataria||'—')}</strong></dd>
+      <dt>Stato</dt><dd>${res.is_ati?'<span class="chip ati">ATI</span>':''}${res.is_avvalimento?'<span class="chip a">Avvalimento</span>':''}${!res.is_ati&&!res.is_avvalimento?'<span class="chip b">Nessuno</span>':''}</dd>
+    </dl>`;
+    if (res.mandanti.length === 0) {
+      html += '<p class="mini">Nessun mandante trovato.</p>';
+    } else {
+      html += '<h3 style="margin-top:24px;font-size:13px;color:#FF8C00;text-transform:uppercase">Mandanti ('+res.mandanti.length+')</h3>';
+      html += '<table><thead><tr><th>ID</th><th>Ragione sociale</th><th>Tipo</th></tr></thead><tbody>';
+      res.mandanti.forEach(mm => {
+        html += `<tr><td>${mm.id_mandante}</td><td>${esc(mm.mandante||'')}</td><td>${mm.ati?'<span class="chip ati">ATI</span>':''}${mm.avvalimento?'<span class="chip a">Avvalimento</span>':''}</td></tr>`;
+      });
+      html += '</tbody></table>';
+    }
+    document.getElementById('dettaglioResult').innerHTML = html;
+  }catch(e){ document.getElementById('dettaglioResult').innerHTML='<p class="mini" style="color:#dc2626">'+e.message+'</p>' }
+}
+</script>
+</body>
+</html>

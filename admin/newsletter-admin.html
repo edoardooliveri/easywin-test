@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Newsletter Admin — EasyWin</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; font-family: 'Comfortaa', cursive; background: #f5f7fa; color: #1E2D3D; }
+  .bp-top {
+    background: linear-gradient(135deg, #1E2D3D, #2c3e50); color: #fff; padding: 14px 24px;
+    display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .bp-top h1 { font-size: 16px; margin: 0; font-weight: 700; flex: 1; }
+  .bp-btn {
+    background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+  }
+  .bp-btn:hover { background: rgba(255,255,255,0.22); }
+  .bp-btn.success { background: #10b981; border-color: #10b981; }
+  .bp-btn.danger { background: #dc2626; border-color: #dc2626; }
+  .bp-btn.primary { background: #FF8C00; border-color: #FF8C00; }
+
+  .bp-wrap { max-width: 1200px; margin: 24px auto; padding: 0 24px 60px; }
+  .bp-card { background: #fff; border-radius: 12px; padding: 24px 28px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .bp-card h2 { margin: 0 0 18px; font-size: 14px; color: #FF8C00; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #fef3e2; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+
+  .bp-toast { position: fixed; bottom: 24px; right: 24px; background: #1E2D3D; color: #fff; padding: 14px 20px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); font-size: 13px; font-weight: 600; display: none; z-index: 100; }
+  .bp-toast.ok { background: #10b981; }
+  .bp-toast.err { background: #dc2626; }
+
+  .form-row { display: flex; gap: 16px; align-items: end; flex-wrap: wrap; margin-bottom: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group label { font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.3px; }
+  .form-group input, .form-group select, .form-group textarea {
+    padding: 8px 12px; border: 1.5px solid #d4dbe5; border-radius: 8px; font-family: inherit; font-size: 13px; min-width: 160px;
+  }
+  .form-group input:focus, .form-group select:focus { outline: none; border-color: #FF8C00; }
+
+  .stat-box { display: inline-flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 16px; }
+  .stat-box .num { font-size: 1.2rem; font-weight: 700; }
+  .stat-box .lbl { font-size: 10.5px; color: #64748b; text-transform: uppercase; font-weight: 700; }
+
+  .chip { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .chip.green { background: #dcfce7; color: #166534; }
+  .chip.red { background: #fef2f2; color: #dc2626; }
+  .chip.blue { background: #dbeafe; color: #1e40af; }
+  .chip.orange { background: #fef3e2; color: #c2410c; }
+
+  table.log-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.log-table th { background: #f8fafc; color: #64748b; font-size: 10.5px; text-transform: uppercase; text-align: left; padding: 10px 10px; }
+  table.log-table td { padding: 9px 10px; border-top: 1px solid #f1f5f9; }
+  table.log-table tr:hover td { background: #fefce8; }
+
+  .preview-frame { width: 100%; min-height: 400px; border: 2px solid #d4dbe5; border-radius: 8px; background: #fff; }
+
+  .big-btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px; border-radius: 12px;
+    font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; border: none;
+    color: #fff; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .big-btn.orange { background: linear-gradient(135deg, #FF8C00, #e67e00); }
+  .big-btn.orange:hover { background: linear-gradient(135deg, #e67e00, #cc7000); }
+  .big-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .output-box { background: #1E2D3D; color: #e2e8f0; padding: 16px 20px; border-radius: 10px; font-family: monospace; font-size: 12px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; display: none; margin-top: 12px; }
+
+  .search-results { position: absolute; background: #fff; border: 1px solid #d4dbe5; border-radius: 8px; max-height: 200px; overflow-y: auto; z-index: 20; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-width: 260px; }
+  .search-results div { padding: 8px 12px; cursor: pointer; font-size: 12px; }
+  .search-results div:hover { background: #fef3e2; }
+
+  .tabs { display: flex; gap: 0; border-bottom: 2px solid #e2e8f0; margin-bottom: 20px; }
+  .tab { padding: 10px 20px; font-size: 12px; font-weight: 700; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; color: #64748b; }
+  .tab.active { color: #FF8C00; border-bottom-color: #FF8C00; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="bp-top">
+  <a href="/admin/#sistema" class="bp-btn"><i class="fas fa-arrow-left"></i> Admin</a>
+  <h1><i class="fas fa-envelope" style="color:#FF8C00;margin-right:8px"></i> Newsletter Admin</h1>
+  <button class="bp-btn" onclick="window.print()"><i class="fas fa-print"></i> Stampa</button>
+</div>
+
+<div class="bp-wrap">
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('scheduler')"><i class="fas fa-clock"></i> Scheduler</div>
+    <div class="tab" onclick="switchTab('invio')"><i class="fas fa-paper-plane"></i> Invio Manuale</div>
+    <div class="tab" onclick="switchTab('log')"><i class="fas fa-history"></i> Log Invii</div>
+    <div class="tab" onclick="switchTab('anteprima')"><i class="fas fa-eye"></i> Anteprima</div>
+  </div>
+
+  <!-- TAB 1: SCHEDULER -->
+  <div id="tab-scheduler" class="tab-content active">
+    <div class="bp-card">
+      <h2><i class="fas fa-cog"></i> Stato Scheduler Newsletter</h2>
+      <div id="scheduler-status" style="color:#64748b">Caricamento...</div>
+      <div class="form-row" style="margin-top:16px">
+        <div class="form-group">
+          <label>Orario invio (HH:MM)</label>
+          <input type="time" id="sched-ora" value="04:00">
+        </div>
+        <button class="bp-btn success" onclick="toggleScheduler(true)"><i class="fas fa-play"></i> Attiva</button>
+        <button class="bp-btn danger" onclick="toggleScheduler(false)"><i class="fas fa-stop"></i> Disattiva</button>
+        <button class="bp-btn" onclick="saveSchedulerTime()"><i class="fas fa-save"></i> Salva Orario</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: INVIO MANUALE -->
+  <div id="tab-invio" class="tab-content">
+    <div class="bp-card">
+      <h2><i class="fas fa-paper-plane"></i> Invio Manuale Newsletter</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="inv-tipo">
+            <option value="bandi">Bandi</option>
+            <option value="esiti">Esiti</option>
+            <option value="both">Entrambi</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Data riferimento</label>
+          <input type="date" id="inv-data">
+        </div>
+        <div class="form-group" style="align-self:end">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" id="inv-dryrun" checked> Modalita test (dryRun)
+          </label>
+        </div>
+      </div>
+      <div style="margin-top:16px">
+        <button class="big-btn orange" id="inv-send-btn" onclick="inviaManuale()">
+          <i class="fas fa-paper-plane"></i> INVIA ORA
+        </button>
+      </div>
+      <div id="inv-output" class="output-box"></div>
+    </div>
+  </div>
+
+  <!-- TAB 3: LOG INVII -->
+  <div id="tab-log" class="tab-content">
+    <div class="bp-card">
+      <h2><i class="fas fa-history"></i> Log Invii Recenti</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="log-tipo" onchange="loadLog()">
+            <option value="">Tutti</option>
+            <option value="bandi_auto">Bandi Auto</option>
+            <option value="esiti_auto">Esiti Auto</option>
+            <option value="bandi">Bandi Manuale</option>
+            <option value="esiti">Esiti Manuale</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Esito</label>
+          <select id="log-esito" onchange="loadLog()">
+            <option value="">Tutti</option>
+            <option value="ok">Solo OK</option>
+            <option value="err">Solo Errori</option>
+          </select>
+        </div>
+        <button class="bp-btn" onclick="loadLog()"><i class="fas fa-sync"></i> Aggiorna</button>
+      </div>
+      <div id="log-table" style="margin-top:12px">Caricamento...</div>
+      <div id="log-pag" style="margin-top:12px;text-align:center"></div>
+    </div>
+  </div>
+
+  <!-- TAB 4: ANTEPRIMA -->
+  <div id="tab-anteprima" class="tab-content">
+    <div class="bp-card">
+      <h2><i class="fas fa-eye"></i> Anteprima Newsletter per Utente</h2>
+      <div class="form-row">
+        <div class="form-group" style="position:relative">
+          <label>Utente</label>
+          <input type="text" id="ant-user" placeholder="Cerca utente..." oninput="searchUser(this.value)">
+          <div id="ant-user-results" class="search-results" style="display:none"></div>
+        </div>
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="ant-tipo">
+            <option value="bandi">Bandi</option>
+            <option value="esiti">Esiti</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Data</label>
+          <input type="date" id="ant-data">
+        </div>
+        <button class="big-btn orange" onclick="generaAnteprima()"><i class="fas fa-magic"></i> GENERA ANTEPRIMA</button>
+      </div>
+      <div id="ant-info" style="margin-top:8px;font-size:12px;color:#64748b"></div>
+      <div style="margin-top:16px">
+        <iframe id="ant-frame" class="preview-frame" style="display:none"></iframe>
+      </div>
+      <div class="form-row" style="margin-top:12px">
+        <div class="form-group">
+          <label>Invia anteprima a email</label>
+          <input type="email" id="ant-email" placeholder="admin@easywin.it">
+        </div>
+        <button class="bp-btn success" onclick="inviaAnteprima()"><i class="fas fa-envelope"></i> Invia a me stesso</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="bp-toast" class="bp-toast"></div>
+
+<script>
+const API_BASE = '/api';
+let _selectedUsername = null;
+let _logOffset = 0;
+
+function tok() { return localStorage.getItem('easywin_token') || localStorage.getItem('auth_token') || localStorage.getItem('token'); }
+function authHeaders() { const t = tok(); return t ? { 'Authorization': 'Bearer ' + t } : {}; }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+function toast(msg, kind) { const t = document.getElementById('bp-toast'); t.textContent = msg; t.className = 'bp-toast '+(kind||''); t.style.display = 'block'; setTimeout(()=>{t.style.display='none';}, 4000); }
+
+// Auth guard
+if (!tok()) { location.replace('/index.html'); }
+
+// Default date = ieri
+const ieri = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+document.getElementById('inv-data').value = ieri;
+document.getElementById('ant-data').value = ieri;
+
+// === TABS ===
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'scheduler') loadSchedulerStatus();
+  if (name === 'log') loadLog();
+}
+
+// === SCHEDULER ===
+async function loadSchedulerStatus() {
+  try {
+    const r = await fetch(API_BASE + '/admin/sistema/tasks/newsletter_auto', { headers: authHeaders() });
+    if (r.status === 401) { location.replace('/index.html'); return; }
+    const task = await r.json();
+    if (task.error) {
+      document.getElementById('scheduler-status').innerHTML = '<span class="chip red">Non configurato</span> — Il task newsletter_auto non esiste ancora.';
+      return;
+    }
+    const attivo = task.attivo;
+    const ora = task.ora_invio || '04:00';
+    const ultima = task.data_ultima_esecuzione ? new Date(task.data_ultima_esecuzione).toLocaleString('it-IT') : '—';
+    const stato = task.stato_ultima_esecuzione || '—';
+    const msg = task.messaggio_ultima_esecuzione || '';
+    const prossima = task.prossima_esecuzione ? new Date(task.prossima_esecuzione).toLocaleString('it-IT') : '—';
+
+    document.getElementById('scheduler-status').innerHTML = `
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+        <div class="stat-box"><span class="chip ${attivo ? 'green' : 'red'}">${attivo ? 'ATTIVO' : 'DISATTIVATO'}</span></div>
+        <div class="stat-box"><div class="lbl">Orario</div><div class="num">${esc(ora)}</div></div>
+        <div class="stat-box"><div class="lbl">Ultima esecuzione</div><div class="num" style="font-size:13px">${esc(ultima)}</div></div>
+        <div class="stat-box"><div class="lbl">Stato</div><div class="num" style="font-size:13px">${esc(stato)}</div></div>
+        <div class="stat-box"><div class="lbl">Prossima</div><div class="num" style="font-size:13px">${esc(prossima)}</div></div>
+      </div>
+      ${msg ? '<div style="margin-top:8px;font-size:11px;color:#64748b">' + esc(msg) + '</div>' : ''}
+    `;
+    document.getElementById('sched-ora').value = ora;
+  } catch (e) {
+    document.getElementById('scheduler-status').innerHTML = '<span class="chip red">Errore</span> ' + esc(e.message);
+  }
+}
+
+async function toggleScheduler(attivo) {
+  try {
+    const r = await fetch(API_BASE + '/admin/sistema/tasks/newsletter_auto', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ attivo })
+    });
+    const data = await r.json();
+    if (data.error) { toast(data.error, 'err'); return; }
+    toast(attivo ? 'Scheduler attivato' : 'Scheduler disattivato', 'ok');
+    loadSchedulerStatus();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function saveSchedulerTime() {
+  const ora = document.getElementById('sched-ora').value;
+  if (!ora) { toast('Inserisci un orario', 'err'); return; }
+  try {
+    const r = await fetch(API_BASE + '/admin/sistema/tasks/newsletter_auto', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ ora_invio: ora })
+    });
+    const data = await r.json();
+    if (data.error) { toast(data.error, 'err'); return; }
+    toast('Orario aggiornato a ' + ora, 'ok');
+    loadSchedulerStatus();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+// === INVIO MANUALE ===
+async function inviaManuale() {
+  const tipo = document.getElementById('inv-tipo').value;
+  const data = document.getElementById('inv-data').value;
+  const dryRun = document.getElementById('inv-dryrun').checked;
+  const btn = document.getElementById('inv-send-btn');
+  const output = document.getElementById('inv-output');
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Invio in corso...';
+  output.style.display = 'block';
+  output.textContent = 'Avvio invio newsletter...\n';
+
+  try {
+    const r = await fetch(API_BASE + '/admin/newsletter/auto', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ tipo, data_riferimento: data, dryRun })
+    });
+    const result = await r.json();
+    if (result.error) {
+      output.textContent += 'ERRORE: ' + result.error + '\n';
+      if (result.details) output.textContent += 'Dettagli: ' + result.details + '\n';
+      toast('Errore invio', 'err');
+    } else {
+      output.textContent += 'Risultato:\n';
+      output.textContent += '  Data riferimento: ' + (result.data_riferimento || data) + '\n';
+      if (result.bandi) {
+        output.textContent += '  BANDI: ' + result.bandi.sent + ' inviati, ' + result.bandi.skipped + ' skip, ' + result.bandi.failed + ' falliti\n';
+        if (result.bandi.errors && result.bandi.errors.length > 0) {
+          output.textContent += '  Errori bandi:\n';
+          result.bandi.errors.forEach(e => { output.textContent += '    - ' + e.user + ' (' + e.email + '): ' + e.error + '\n'; });
+        }
+      }
+      if (result.esiti) {
+        output.textContent += '  ESITI: ' + result.esiti.sent + ' inviati, ' + result.esiti.skipped + ' skip, ' + result.esiti.failed + ' falliti\n';
+        if (result.esiti.errors && result.esiti.errors.length > 0) {
+          output.textContent += '  Errori esiti:\n';
+          result.esiti.errors.forEach(e => { output.textContent += '    - ' + e.user + ' (' + e.email + '): ' + e.error + '\n'; });
+        }
+      }
+      output.textContent += '\n' + (result.message || 'Completato');
+      toast(dryRun ? 'DryRun completato' : 'Newsletter inviate', 'ok');
+    }
+  } catch (e) {
+    output.textContent += 'ERRORE: ' + e.message + '\n';
+    toast('Errore: ' + e.message, 'err');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-paper-plane"></i> INVIA ORA';
+}
+
+// === LOG ===
+async function loadLog(offset) {
+  _logOffset = offset || 0;
+  const tipo = document.getElementById('log-tipo').value;
+  const esito = document.getElementById('log-esito').value;
+  const container = document.getElementById('log-table');
+  const pagEl = document.getElementById('log-pag');
+
+  try {
+    const params = new URLSearchParams({ limit: 30, offset: _logOffset });
+    if (tipo) params.set('tipo', tipo);
+    if (esito) params.set('esito', esito);
+
+    const r = await fetch(API_BASE + '/admin/newsletter/log?' + params, { headers: authHeaders() });
+    const data = await r.json();
+    if (data.error) { container.innerHTML = '<div style="color:#dc2626">' + esc(data.error) + '</div>'; return; }
+
+    const rows = data.log || [];
+    if (rows.length === 0) {
+      container.innerHTML = '<div style="color:#94a3b8;font-size:13px">Nessun invio registrato</div>';
+      pagEl.innerHTML = '';
+      return;
+    }
+
+    let html = '<table class="log-table"><thead><tr><th>Data</th><th>Tipo</th><th>Oggetto</th><th>Dest.</th><th>Inviati</th><th>Falliti</th><th>Note</th></tr></thead><tbody>';
+    rows.forEach(row => {
+      const dataStr = row.data_invio ? new Date(row.data_invio).toLocaleString('it-IT') : '—';
+      const hasErrors = (row.falliti || 0) > 0;
+      html += '<tr>';
+      html += '<td style="white-space:nowrap">' + esc(dataStr) + '</td>';
+      html += '<td><span class="chip ' + (row.tipo?.includes('auto') ? 'blue' : 'orange') + '">' + esc(row.tipo || '') + '</span></td>';
+      html += '<td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(row.oggetto || '') + '</td>';
+      html += '<td style="text-align:center">' + (row.destinatari || 0) + '</td>';
+      html += '<td style="text-align:center;color:#10b981;font-weight:700">' + (row.inviati || 0) + '</td>';
+      html += '<td style="text-align:center;color:' + (hasErrors ? '#dc2626' : '#94a3b8') + ';font-weight:700">' + (row.falliti || 0) + '</td>';
+      html += '<td style="font-size:10px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(row.note || '') + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+
+    // Pagination
+    const total = data.total || 0;
+    const limit = data.limit || 30;
+    if (total > limit) {
+      const pages = Math.ceil(total / limit);
+      const current = Math.floor(_logOffset / limit) + 1;
+      let ph = '';
+      for (let p = 1; p <= Math.min(pages, 10); p++) {
+        ph += '<button style="margin:0 2px;padding:4px 10px;border:1px solid #d4dbe5;border-radius:6px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;' + (p === current ? 'background:#FF8C00;color:#fff;border-color:#FF8C00' : 'background:#fff;color:#1E2D3D') + '" onclick="loadLog(' + ((p-1)*limit) + ')">' + p + '</button>';
+      }
+      pagEl.innerHTML = ph;
+    } else {
+      pagEl.innerHTML = '';
+    }
+  } catch (e) {
+    container.innerHTML = '<div style="color:#dc2626">Errore: ' + esc(e.message) + '</div>';
+  }
+}
+
+// === ANTEPRIMA ===
+let _searchTimeout = null;
+async function searchUser(q) {
+  clearTimeout(_searchTimeout);
+  const el = document.getElementById('ant-user-results');
+  if (!q || q.length < 2) { el.style.display = 'none'; return; }
+  _searchTimeout = setTimeout(async () => {
+    try {
+      const r = await fetch(API_BASE + '/admin/utenti?search=' + encodeURIComponent(q) + '&limit=10', { headers: authHeaders() });
+      const data = await r.json();
+      const users = data.utenti || data.data || [];
+      if (users.length === 0) { el.style.display = 'none'; return; }
+      el.innerHTML = users.map(u =>
+        '<div onclick="pickUser(\'' + esc(u.username) + '\')">' + esc(u.username) + ' <span style="color:#94a3b8;font-size:10px">' + esc(u.email || '') + '</span></div>'
+      ).join('');
+      el.style.display = 'block';
+    } catch (e) { el.style.display = 'none'; }
+  }, 300);
+}
+
+function pickUser(username) {
+  _selectedUsername = username;
+  document.getElementById('ant-user').value = username;
+  document.getElementById('ant-user-results').style.display = 'none';
+}
+
+async function generaAnteprima() {
+  const username = _selectedUsername || document.getElementById('ant-user').value;
+  if (!username) { toast('Seleziona un utente', 'err'); return; }
+  const tipo = document.getElementById('ant-tipo').value;
+  const data = document.getElementById('ant-data').value;
+  const info = document.getElementById('ant-info');
+  const frame = document.getElementById('ant-frame');
+
+  info.textContent = 'Generazione anteprima...';
+  try {
+    const r = await fetch(API_BASE + '/admin/newsletter/auto/anteprima', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ username, tipo, data_riferimento: data })
+    });
+    const result = await r.json();
+    if (result.error) { info.textContent = 'Errore: ' + result.error; toast(result.error, 'err'); return; }
+
+    info.innerHTML = '<span class="chip blue">' + result.items_count + ' ' + tipo + '</span> trovati con <span class="chip orange">' + result.filtri_count + ' filtri</span> attivi — data: ' + esc(result.data || data);
+
+    // Render HTML in iframe
+    frame.style.display = 'block';
+    const doc = frame.contentDocument || frame.contentWindow.document;
+    doc.open();
+    doc.write(result.html || '<p>Nessun contenuto</p>');
+    doc.close();
+    // Auto-resize
+    setTimeout(() => { frame.style.height = Math.max(400, doc.body.scrollHeight + 40) + 'px'; }, 200);
+
+    toast('Anteprima generata', 'ok');
+  } catch (e) {
+    info.textContent = 'Errore: ' + e.message;
+    toast('Errore: ' + e.message, 'err');
+  }
+}
+
+async function inviaAnteprima() {
+  const username = _selectedUsername || document.getElementById('ant-user').value;
+  const email = document.getElementById('ant-email').value;
+  if (!username || !email) { toast('Seleziona utente e inserisci email', 'err'); return; }
+
+  const tipo = document.getElementById('ant-tipo').value;
+  const data = document.getElementById('ant-data').value;
+
+  try {
+    const r = await fetch(API_BASE + '/admin/newsletter/auto/anteprima', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ username, tipo, data_riferimento: data, override_email: email })
+    });
+    const result = await r.json();
+    if (result.error) { toast('Errore: ' + result.error, 'err'); return; }
+    toast('Email inviata a ' + result.email_sent_to, 'ok');
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+// Init
+loadSchedulerStatus();
+</script>
+</body>
+</html>

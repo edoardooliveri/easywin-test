@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bando — EasyWin</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; font-family: 'Comfortaa', cursive; background: #f5f7fa; color: #1E2D3D; }
+  .bp-top {
+    background: linear-gradient(135deg, #1E2D3D, #2c3e50);
+    color: #fff;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 50;
+    flex-wrap: wrap;
+  }
+  .bp-top h1 { font-size: 16px; margin: 0; font-weight: 700; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 200px; }
+  .bp-mode-badge { background: #FF8C00; color: #fff; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .bp-mode-badge.edit { background: #E91E63; }
+  .bp-btn {
+    background: rgba(255,255,255,0.12);
+    color: #fff; border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 8px; cursor: pointer;
+    font-family: inherit; font-size: 12px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 6px;
+    text-decoration: none;
+  }
+  .bp-btn:hover { background: rgba(255,255,255,0.22); }
+  .bp-btn.primary { background: #FF8C00; border-color: #FF8C00; }
+  .bp-btn.primary:hover { background: #e67e00; }
+  .bp-btn.success { background: #10b981; border-color: #10b981; }
+  .bp-btn.success:hover { background: #059669; }
+
+  .bp-wrap { max-width: 1280px; margin: 24px auto; padding: 0 24px 60px; }
+  .bp-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .bp-card h2 {
+    margin: 0 0 18px;
+    font-size: 14px;
+    color: #FF8C00;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #fef3e2;
+    padding-bottom: 10px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .bp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px 24px; }
+  .bp-field { display: flex; flex-direction: column; }
+  .bp-field label {
+    font-size: 10.5px; font-weight: 700;
+    color: #64748b; text-transform: uppercase;
+    letter-spacing: 0.4px; margin-bottom: 4px;
+  }
+  .bp-field .val {
+    font-size: 14px; color: #1E2D3D; font-weight: 600;
+    padding: 8px 0; min-height: 20px;
+    word-break: break-word;
+  }
+  .bp-field input, .bp-field textarea, .bp-field select {
+    padding: 9px 12px;
+    border: 1.5px solid #d4dbe5;
+    border-radius: 8px;
+    font-family: inherit; font-size: 13px;
+    background: #fff; color: #1E2D3D;
+    width: 100%;
+  }
+  .bp-field input:focus, .bp-field textarea:focus, .bp-field select:focus {
+    outline: none; border-color: #FF8C00; box-shadow: 0 0 0 3px rgba(255,140,0,0.12);
+  }
+  .bp-field textarea { resize: vertical; min-height: 80px; }
+  .bp-field.span-2 { grid-column: span 2; }
+  .bp-field.span-full { grid-column: 1 / -1; }
+
+  .bp-allegati-list { list-style: none; padding: 0; margin: 0; }
+  .bp-allegati-list li {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border: 1px solid #eef1f5;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .bp-allegati-list li i.fa-file { color: #FF8C00; font-size: 18px; }
+  .bp-allegati-list li .nome { flex: 1; font-size: 13px; font-weight: 600; }
+  .bp-allegati-list li .meta { font-size: 11px; color: #94a3b8; }
+  .bp-allegati-list li a {
+    background: #2196F3; color: #fff;
+    padding: 6px 10px; border-radius: 6px;
+    text-decoration: none; font-size: 11px; font-weight: 700;
+  }
+
+  .bp-loading, .bp-error {
+    text-align: center; padding: 80px 20px;
+    color: #64748b; font-size: 14px;
+  }
+  .bp-error { color: #dc2626; }
+  .bp-loading i { font-size: 32px; color: #FF8C00; margin-bottom: 14px; }
+
+  .bp-toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: #1E2D3D; color: #fff;
+    padding: 14px 20px; border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    font-size: 13px; font-weight: 600;
+    display: none; z-index: 100;
+    max-width: 360px;
+  }
+  .bp-toast.ok { background: #10b981; }
+  .bp-toast.err { background: #dc2626; }
+
+  .bp-chip {
+    display: inline-block; padding: 3px 10px;
+    background: #fef3e2; color: #FF8C00;
+    border-radius: 10px; font-size: 11px; font-weight: 700;
+    margin-right: 6px;
+  }
+
+  /* Action bar */
+  .bp-actions-bar {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-bottom: 20px;
+  }
+  .bp-action-group {
+    background: #fff; border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .bp-action-group .group-label {
+    font-size: 10px; font-weight: 700; color: #94a3b8;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-right: 4px; white-space: nowrap;
+  }
+  .bp-abtn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 7px 13px; border-radius: 8px;
+    font-family: inherit; font-size: 11px; font-weight: 700;
+    border: none; cursor: pointer; color: #fff;
+    transition: opacity .15s;
+  }
+  .bp-abtn:hover { opacity: 0.85; }
+  .bp-abtn.green { background: #4CAF50; }
+  .bp-abtn.blue { background: #2196F3; }
+  .bp-abtn.orange { background: #FF8C00; }
+  .bp-abtn.red { background: #E91E63; }
+  .bp-abtn.purple { background: #9C27B0; }
+  .bp-abtn.teal { background: #009688; }
+  .bp-abtn.gray { background: #607D8B; }
+
+  /* Modal */
+  .bp-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 200;
+    justify-content: center; align-items: center;
+  }
+  .bp-modal-overlay.active { display: flex; }
+  .bp-modal {
+    background: #fff; border-radius: 14px;
+    padding: 28px; width: 90%; max-width: 480px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+    max-height: 80vh; overflow-y: auto;
+  }
+  .bp-modal h3 {
+    margin: 0 0 16px; font-size: 16px; color: #1E2D3D;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .bp-modal label {
+    display: block; font-size: 11px; font-weight: 700;
+    color: #64748b; text-transform: uppercase;
+    margin: 12px 0 4px;
+  }
+  .bp-modal input, .bp-modal textarea, .bp-modal select {
+    width: 100%; padding: 9px 12px;
+    border: 1.5px solid #d4dbe5; border-radius: 8px;
+    font-family: inherit; font-size: 13px;
+  }
+  .bp-modal textarea { min-height: 60px; resize: vertical; }
+  .bp-modal-actions { margin-top: 18px; display: flex; gap: 10px; justify-content: flex-end; }
+  .bp-modal-actions button {
+    padding: 9px 18px; border-radius: 8px; border: none;
+    font-family: inherit; font-size: 12px; font-weight: 700;
+    cursor: pointer; color: #fff;
+  }
+  .bp-modal-actions .btn-cancel { background: #94a3b8; }
+  .bp-modal-actions .btn-ok { background: #FF8C00; }
+
+  /* Mini tables */
+  .bp-mini-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .bp-mini-table th {
+    background: #f1f5f9; padding: 8px 10px;
+    text-align: left; font-size: 10px; font-weight: 700;
+    color: #64748b; text-transform: uppercase;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  .bp-mini-table td {
+    padding: 8px 10px; border-bottom: 1px solid #f1f5f9;
+    color: #1E2D3D;
+  }
+  .bp-mini-table tr:hover td { background: #fefce8; }
+  .bp-mini-table .empty-row td { color: #94a3b8; text-align: center; font-style: italic; }
+  .bp-mini-table .del-btn {
+    background: #fee2e2; color: #dc2626; border: none;
+    padding: 4px 8px; border-radius: 6px; cursor: pointer;
+    font-size: 10px; font-weight: 700;
+  }
+  .bp-mini-table .del-btn:hover { background: #fca5a5; }
+
+  /* Tabs for liste collegate */
+  .bp-tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; }
+  .bp-tab {
+    padding: 8px 16px; font-family: inherit; font-size: 11px;
+    font-weight: 700; border: none; background: none;
+    cursor: pointer; color: #94a3b8;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px; transition: all .15s;
+  }
+  .bp-tab.active { color: #FF8C00; border-bottom-color: #FF8C00; }
+  .bp-tab:hover { color: #1E2D3D; }
+  .bp-tab-panel { display: none; }
+  .bp-tab-panel.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="bp-top">
+  <a href="/admin/bandi" class="bp-btn"><i class="fas fa-arrow-left"></i> Torna ai bandi</a>
+  <h1 id="bp-title">Caricamento bando...</h1>
+  <span id="bp-mode-badge" class="bp-mode-badge">VISUALIZZA</span>
+  <button id="bp-save-btn" class="bp-btn success" style="display:none" onclick="saveBando()"><i class="fas fa-save"></i> Salva modifiche</button>
+  <button id="bp-converti-btn" class="bp-btn" style="background:#4CAF50;border-color:#4CAF50;display:none" onclick="convertiBandoInEsito()"><i class="fas fa-exchange-alt"></i> Converti in Esito</button>
+  <button id="bp-edit-btn" class="bp-btn" style="background:#E91E63;border-color:#E91E63;display:none" onclick="goEdit()"><i class="fas fa-pen"></i> Modifica</button>
+  <button class="bp-btn" onclick="window.print()"><i class="fas fa-print"></i> Stampa</button>
+</div>
+
+<div class="bp-wrap">
+  <div id="bp-actions" style="display:none"></div>
+  <div id="bp-content">
+    <div class="bp-loading">
+      <i class="fas fa-spinner fa-spin"></i>
+      <div>Caricamento bando in corso…</div>
+    </div>
+  </div>
+  <div id="bp-extra" style="display:none"></div>
+</div>
+
+<!-- Modal generico -->
+<div id="bp-modal" class="bp-modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="bp-modal">
+    <h3 id="bp-modal-title"></h3>
+    <div id="bp-modal-body"></div>
+    <div class="bp-modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Annulla</button>
+      <button class="btn-ok" id="bp-modal-ok">Conferma</button>
+    </div>
+  </div>
+</div>
+
+<div id="bp-toast" class="bp-toast"></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const BANDO_ID = params.get('id');
+const MODE = (params.get('mode') || 'view').toLowerCase();
+const IS_EDIT = MODE === 'edit';
+const API_BASE = '/api';
+
+function tok() {
+  return localStorage.getItem('easywin_token') || localStorage.getItem('auth_token') || localStorage.getItem('token');
+}
+
+// Auth guard
+(function() {
+  const t = tok();
+  if (!t) { location.href = '/index.html'; return; }
+  try {
+    const payload = JSON.parse(atob(t.split('.')[1]));
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      localStorage.removeItem('easywin_token');
+      localStorage.removeItem('auth_token');
+      location.href = '/index.html';
+    }
+  } catch(e) { /* token parse fail, let server reject */ }
+})();
+
+function authHeaders() {
+  const t = tok();
+  return t ? { 'Authorization': 'Bearer ' + t } : {};
+}
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]);
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  try {
+    const dt = new Date(d);
+    return dt.toLocaleString('it-IT', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  } catch (e) { return String(d); }
+}
+function fmtImporto(v) {
+  if (v == null || v === '') return '—';
+  const n = Number(v);
+  if (!isFinite(n)) return String(v);
+  return '€ ' + n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function toInputDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return '';
+  const p = n => String(n).padStart(2,'0');
+  return dt.getFullYear() + '-' + p(dt.getMonth()+1) + '-' + p(dt.getDate());
+}
+function toast(msg, kind) {
+  const t = document.getElementById('bp-toast');
+  t.textContent = msg;
+  t.className = 'bp-toast ' + (kind || '');
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 4000);
+}
+
+// ── Modal helpers ───────────────────────────────────────────
+function openModal(title, bodyHtml, onOk) {
+  document.getElementById('bp-modal-title').innerHTML = title;
+  document.getElementById('bp-modal-body').innerHTML = bodyHtml;
+  document.getElementById('bp-modal-ok').onclick = onOk;
+  document.getElementById('bp-modal').classList.add('active');
+}
+function closeModal() {
+  document.getElementById('bp-modal').classList.remove('active');
+}
+
+// ── FASE A: Converti in Esito ───────────────────────────────
+async function convertiBandoInEsito() {
+  if (!BANDO_ID) { toast('ID bando mancante','err'); return; }
+  if (!confirm('Vuoi convertire questo bando in un esito?\n\nVerrà creato un nuovo esito con i dati del bando (stazione, SOA, importo, CIG, ecc.).\nL\'esito verrà creato come BOZZA (temp) e dovrà essere completato con la graduatoria.')) return;
+  try {
+    const res = await fetch(API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID) + '/converti-esito', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      if (res.status === 409 && data.esito_id) {
+        if (confirm('Esiste già un esito collegato (ID: ' + data.esito_id + ').\nVuoi visualizzarlo?')) {
+          window.open('/admin/esito-pagina.html?id=' + data.esito_id + '&mode=view', '_blank');
+        }
+        return;
+      }
+      throw new Error(data.error || 'Errore HTTP ' + res.status);
+    }
+    toast('Bando convertito in esito (ID: ' + data.esito.id + '). L\'esito è in BOZZA.', 'ok');
+    setTimeout(() => {
+      window.open('/admin/esito-pagina.html?id=' + data.esito.id + '&mode=edit', '_blank');
+    }, 1200);
+  } catch(e) { toast('Errore conversione: ' + e.message, 'err'); }
+}
+
+// ── FASE B: Gestione Bando ──────────────────────────────────
+function goEdit() {
+  location.href = '/admin/bando-pagina.html?id=' + encodeURIComponent(BANDO_ID) + '&mode=edit';
+}
+
+async function eliminaBando() {
+  if (!confirm('Sei sicuro di voler eliminare questo bando?\nL\'azione verrà registrata nel log.')) return;
+  try {
+    const res = await fetch(API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID), {
+      method: 'DELETE', headers: authHeaders()
+    });
+    if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + res.status); }
+    toast('Bando eliminato', 'ok');
+    setTimeout(() => { location.href = '/admin/index.html'; }, 1500);
+  } catch(e) { toast('Errore eliminazione: ' + e.message, 'err'); }
+}
+
+async function clonaBando() {
+  if (!confirm('Clonare questo bando? Verrà creata una copia identica.')) return;
+  try {
+    const res = await fetch(API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID) + '/clona', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+    toast('Bando clonato (ID: ' + data.id + ')', 'ok');
+    setTimeout(() => {
+      window.open('/admin/bando-pagina.html?id=' + data.id + '&mode=edit', '_blank');
+    }, 1200);
+  } catch(e) { toast('Errore clonazione: ' + e.message, 'err'); }
+}
+
+function posticipaScadenza() {
+  const b = window.__bando || {};
+  openModal(
+    '<i class="fas fa-calendar-plus"></i> Posticipa Scadenza',
+    '<label>Nuova data offerta</label>' +
+    '<input type="date" id="m-nuova-offerta" value="' + esc(toInputDate(b.data_offerta)) + '">' +
+    '<label>Nuova data apertura</label>' +
+    '<input type="date" id="m-nuova-apertura" value="' + esc(toInputDate(b.data_apertura_posticipata || b.data_apertura)) + '">' +
+    '<label>Motivo</label>' +
+    '<input type="text" id="m-motivo" placeholder="es. Proroga richiesta dalla stazione">',
+    doPosticipa
+  );
+}
+async function doPosticipa() {
+  const body = {
+    nuova_data_offerta: document.getElementById('m-nuova-offerta').value || null,
+    nuova_data_apertura: document.getElementById('m-nuova-apertura').value || null,
+    motivo: document.getElementById('m-motivo').value || ''
+  };
+  if (!body.nuova_data_offerta && !body.nuova_data_apertura) { toast('Specificare almeno una data', 'err'); return; }
+  try {
+    const res = await fetch(API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID) + '/posticipa', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + res.status); }
+    closeModal();
+    toast('Scadenza posticipata', 'ok');
+    setTimeout(loadBando, 900);
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+// ── Associa Esito ───────────────────────────────────────────
+function associaEsito() {
+  openModal(
+    '<i class="fas fa-link"></i> Associa Esito Esistente',
+    '<label>ID Esito</label>' +
+    '<input type="number" id="m-esito-id" placeholder="es. 144544">',
+    doAssociaEsito
+  );
+}
+async function doAssociaEsito() {
+  const esitoId = document.getElementById('m-esito-id').value;
+  if (!esitoId) { toast('Inserire l\'ID dell\'esito', 'err'); return; }
+  try {
+    const res = await fetch(API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID) + '/associa-esito', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ esito_id: Number(esitoId) })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+    closeModal();
+    toast('Esito #' + esitoId + ' associato al bando', 'ok');
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+// ── FASE C: Links ───────────────────────────────────────────
+async function loadLinks() {
+  const el = document.getElementById('bp-links-table');
+  if (!el) return;
+  try {
+    const res = await fetch(API_BASE + '/admin/bandi-import/bandi/' + encodeURIComponent(BANDO_ID) + '/links', { headers: authHeaders() });
+    if (!res.ok) { el.innerHTML = '<tr class="empty-row"><td colspan="4">Errore caricamento links</td></tr>'; return; }
+    const data = await res.json();
+    const links = data.links || [];
+    if (!links.length) {
+      el.innerHTML = '<tr class="empty-row"><td colspan="4">Nessun link</td></tr>';
+      return;
+    }
+    el.innerHTML = links.map(l =>
+      '<tr><td><span class="bp-chip">' + esc(l.tipo || 'generic') + '</span></td>' +
+      '<td><a href="' + esc(l.url) + '" target="_blank" style="color:#2196F3;font-weight:600;word-break:break-all">' + esc(l.url).substring(0, 60) + '</a></td>' +
+      '<td>' + esc(l.descrizione || '') + '</td>' +
+      '<td><button class="del-btn" onclick="deleteLink(' + l.id + ')"><i class="fas fa-trash"></i></button></td></tr>'
+    ).join('');
+  } catch(e) { el.innerHTML = '<tr class="empty-row"><td colspan="4">Errore: ' + esc(e.message) + '</td></tr>'; }
+}
+
+function aggiungiLink() {
+  openModal(
+    '<i class="fas fa-link"></i> Aggiungi Link',
+    '<label>URL</label>' +
+    '<input type="url" id="m-link-url" placeholder="https://...">' +
+    '<label>Descrizione (opzionale)</label>' +
+    '<input type="text" id="m-link-desc" placeholder="es. Link piattaforma gara">',
+    doAggiungiLink
+  );
+}
+async function doAggiungiLink() {
+  const url = document.getElementById('m-link-url').value;
+  if (!url) { toast('Inserire l\'URL', 'err'); return; }
+  try {
+    const res = await fetch(API_BASE + '/admin/bandi-import/bandi/' + encodeURIComponent(BANDO_ID) + '/link-esteso', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ url, descrizione: document.getElementById('m-link-desc').value || '' })
+    });
+    if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + res.status); }
+    closeModal();
+    toast('Link aggiunto', 'ok');
+    loadLinks();
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function deleteLink(linkId) {
+  if (!confirm('Eliminare questo link?')) return;
+  try {
+    const res = await fetch(API_BASE + '/admin/bandi-import/bandi/links/' + linkId, {
+      method: 'DELETE', headers: authHeaders()
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    toast('Link eliminato', 'ok');
+    loadLinks();
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+// ── FASE C: Allegati Upload ─────────────────────────────────
+const ALLEGATI_CATEGORIE = ['Bando','Disciplinare','Allegati','Elaborati','Rettifica 1','Rettifica 2','Rettifica 3','Rettifica 4','Rettifica 5','Chiarimenti','Esito'];
+
+function uploadAllegati() {
+  openModal(
+    '<i class="fas fa-upload"></i> Carica Allegati',
+    '<label>Categoria</label>' +
+    '<select id="m-allegato-cat">' + ALLEGATI_CATEGORIE.map(c => '<option value="' + esc(c) + '">' + esc(c) + '</option>').join('') + '</select>' +
+    '<label>File (multipli)</label>' +
+    '<input type="file" id="m-allegato-files" multiple>',
+    doUploadAllegati
+  );
+}
+async function doUploadAllegati() {
+  const files = document.getElementById('m-allegato-files').files;
+  const cat = document.getElementById('m-allegato-cat').value;
+  if (!files.length) { toast('Seleziona almeno un file', 'err'); return; }
+  const fd = new FormData();
+  fd.append('categoria', cat);
+  for (let i = 0; i < files.length; i++) fd.append('files', files[i]);
+  try {
+    const res = await fetch(API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID) + '/allegati', {
+      method: 'POST', headers: authHeaders(), body: fd
+    });
+    if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + res.status); }
+    closeModal();
+    toast(files.length + ' allegato/i caricato/i', 'ok');
+    setTimeout(loadBando, 600);
+  } catch(e) { toast('Errore upload: ' + e.message, 'err'); }
+}
+
+async function deleteAllegato(allegatoId) {
+  if (!confirm('Eliminare questo allegato?')) return;
+  try {
+    const res = await fetch(API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID) + '/allegati/' + allegatoId, {
+      method: 'DELETE', headers: authHeaders()
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    toast('Allegato eliminato', 'ok');
+    setTimeout(loadBando, 600);
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+// ── FASE D: Liste collegate ─────────────────────────────────
+function switchTab(tabName) {
+  document.querySelectorAll('.bp-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+  document.querySelectorAll('.bp-tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tabName));
+  loadListeTab(tabName);
+}
+
+async function loadListeTab(tipo) {
+  const panel = document.getElementById('panel-' + tipo);
+  if (!panel) return;
+  const tbody = panel.querySelector('tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="5"><i class="fas fa-spinner fa-spin"></i> Caricamento...</td></tr>';
+  try {
+    const res = await fetch(API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID) + '/' + tipo, { headers: authHeaders() });
+    if (!res.ok) { tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Errore HTTP ' + res.status + '</td></tr>'; return; }
+    const data = await res.json();
+    const items = data[tipo] || data.data || data.rows || [];
+    if (!items.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Nessun elemento</td></tr>'; return; }
+
+    if (tipo === 'aperture') {
+      tbody.innerHTML = items.map(i =>
+        '<tr><td>' + esc(fmtDate(i.data_apertura || i.data)) + '</td><td>' + esc(i.ora || '') + '</td>' +
+        '<td>' + esc(i.luogo || i.note || '') + '</td><td>' + esc(i.eseguito ? 'Eseguito' : 'Da fare') + '</td>' +
+        '<td>' + esc(i.utente_nome || '') + '</td></tr>'
+      ).join('');
+    } else if (tipo === 'scritture') {
+      tbody.innerHTML = items.map(i =>
+        '<tr><td>' + esc(i.tipologia || i.tipo || '') + '</td><td>' + esc(fmtDate(i.data)) + '</td>' +
+        '<td>' + esc(i.note || '') + '</td><td>' + esc(i.stato || '') + '</td>' +
+        '<td>' + esc(i.utente_nome || '') + '</td></tr>'
+      ).join('');
+    } else if (tipo === 'sopralluoghi') {
+      tbody.innerHTML = items.map(i =>
+        '<tr><td>' + esc(fmtDate(i.data_sopralluogo || i.data)) + '</td><td>' + esc(i.ora || '') + '</td>' +
+        '<td>' + esc(i.indirizzo || i.luogo || '') + '</td><td>' + esc(i.stato || (i.eseguito ? 'Eseguito' : 'Da fare')) + '</td>' +
+        '<td>' + esc(i.utente_nome || i.azienda_nome || '') + '</td></tr>'
+      ).join('');
+    } else if (tipo === 'elaborati') {
+      tbody.innerHTML = items.map(i =>
+        '<tr><td>' + esc(i.titolo || i.tipo || '') + '</td><td>' + esc(fmtDate(i.data)) + '</td>' +
+        '<td>' + esc(i.note || '') + '</td><td>' + esc(i.stato || '') + '</td>' +
+        '<td>' + esc(i.utente_nome || '') + '</td></tr>'
+      ).join('');
+    }
+  } catch(e) { tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Errore: ' + esc(e.message) + '</td></tr>'; }
+}
+
+// ── Render actions bar + extra sections ─────────────────────
+function renderActions() {
+  if (IS_EDIT) return; // No action bar in edit mode
+
+  // Show header buttons for view mode
+  document.getElementById('bp-converti-btn').style.display = 'inline-flex';
+  document.getElementById('bp-edit-btn').style.display = 'inline-flex';
+
+  // Action bar
+  const actionsEl = document.getElementById('bp-actions');
+  actionsEl.style.display = 'block';
+  actionsEl.innerHTML =
+    '<div class="bp-actions-bar">' +
+      '<div class="bp-action-group">' +
+        '<span class="group-label">Esito</span>' +
+        '<button class="bp-abtn green" onclick="convertiBandoInEsito()"><i class="fas fa-exchange-alt"></i> Converti</button>' +
+        '<button class="bp-abtn blue" onclick="associaEsito()"><i class="fas fa-link"></i> Associa</button>' +
+      '</div>' +
+      '<div class="bp-action-group">' +
+        '<span class="group-label">Gestione</span>' +
+        '<button class="bp-abtn orange" onclick="goEdit()"><i class="fas fa-pen"></i> Modifica</button>' +
+        '<button class="bp-abtn purple" onclick="clonaBando()"><i class="fas fa-copy"></i> Clona</button>' +
+        '<button class="bp-abtn teal" onclick="posticipaScadenza()"><i class="fas fa-calendar-plus"></i> Posticipa</button>' +
+        '<button class="bp-abtn red" onclick="eliminaBando()"><i class="fas fa-trash"></i> Elimina</button>' +
+      '</div>' +
+      '<div class="bp-action-group">' +
+        '<span class="group-label">Altro</span>' +
+        '<button class="bp-abtn blue" onclick="uploadAllegati()"><i class="fas fa-upload"></i> Allegati</button>' +
+        '<button class="bp-abtn gray" onclick="aggiungiLink()"><i class="fas fa-link"></i> Link</button>' +
+      '</div>' +
+    '</div>';
+
+  // Extra sections: Links + Liste collegate
+  const extraEl = document.getElementById('bp-extra');
+  extraEl.style.display = 'block';
+
+  let extra = '';
+
+  // Links card
+  extra += '<div class="bp-card"><h2><i class="fas fa-external-link-alt"></i> Links Bando' +
+    '<button class="bp-abtn blue" style="margin-left:auto;font-size:10px;padding:5px 10px" onclick="aggiungiLink()"><i class="fas fa-plus"></i> Aggiungi</button>' +
+    '</h2>' +
+    '<table class="bp-mini-table"><thead><tr><th>Tipo</th><th>URL</th><th>Descrizione</th><th></th></tr></thead>' +
+    '<tbody id="bp-links-table"><tr class="empty-row"><td colspan="4"><i class="fas fa-spinner fa-spin"></i></td></tr></tbody></table></div>';
+
+  // Liste collegate card
+  extra += '<div class="bp-card"><h2><i class="fas fa-list"></i> Liste Collegate</h2>' +
+    '<div class="bp-tabs">' +
+      '<button class="bp-tab active" data-tab="aperture" onclick="switchTab(\'aperture\')">Aperture</button>' +
+      '<button class="bp-tab" data-tab="scritture" onclick="switchTab(\'scritture\')">Scritture</button>' +
+      '<button class="bp-tab" data-tab="sopralluoghi" onclick="switchTab(\'sopralluoghi\')">Sopralluoghi</button>' +
+      '<button class="bp-tab" data-tab="elaborati" onclick="switchTab(\'elaborati\')">Elaborati</button>' +
+    '</div>' +
+    '<div id="panel-aperture" class="bp-tab-panel active">' +
+      '<table class="bp-mini-table"><thead><tr><th>Data</th><th>Ora</th><th>Luogo/Note</th><th>Stato</th><th>Utente</th></tr></thead><tbody></tbody></table>' +
+    '</div>' +
+    '<div id="panel-scritture" class="bp-tab-panel">' +
+      '<table class="bp-mini-table"><thead><tr><th>Tipologia</th><th>Data</th><th>Note</th><th>Stato</th><th>Utente</th></tr></thead><tbody></tbody></table>' +
+    '</div>' +
+    '<div id="panel-sopralluoghi" class="bp-tab-panel">' +
+      '<table class="bp-mini-table"><thead><tr><th>Data</th><th>Ora</th><th>Indirizzo</th><th>Stato</th><th>Assegnato</th></tr></thead><tbody></tbody></table>' +
+    '</div>' +
+    '<div id="panel-elaborati" class="bp-tab-panel">' +
+      '<table class="bp-mini-table"><thead><tr><th>Titolo</th><th>Data</th><th>Note</th><th>Stato</th><th>Utente</th></tr></thead><tbody></tbody></table>' +
+    '</div>' +
+    '</div>';
+
+  extraEl.innerHTML = extra;
+
+  // Load links + first tab
+  loadLinks();
+  loadListeTab('aperture');
+}
+
+// ── Load Bando ──────────────────────────────────────────────
+async function loadBando() {
+  if (!BANDO_ID) {
+    document.getElementById('bp-content').innerHTML = '<div class="bp-error"><i class="fas fa-exclamation-triangle"></i> ID bando mancante</div>';
+    return;
+  }
+  if (IS_EDIT) {
+    document.getElementById('bp-mode-badge').classList.add('edit');
+    document.getElementById('bp-mode-badge').textContent = 'MODIFICA';
+    document.getElementById('bp-save-btn').style.display = 'inline-flex';
+  }
+  try {
+    const r = await fetch(API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID), { headers: authHeaders() });
+    if (r.status === 401) { location.href = '/index.html'; return; }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const b = await r.json();
+    window.__bando = b;
+    render(b);
+    renderActions();
+    if (IS_EDIT && Array.isArray(b.allegati) && b.allegati.length) {
+      downloadAllAttachments(b.allegati);
+    }
+  } catch (e) {
+    document.getElementById('bp-content').innerHTML = '<div class="bp-error"><i class="fas fa-exclamation-triangle"></i> Errore: ' + esc(e.message) + '</div>';
+  }
+}
+
+function field(label, value, opts) {
+  opts = opts || {};
+  const span = opts.span === 2 ? 'span-2' : (opts.span === 'full' ? 'span-full' : '');
+  if (IS_EDIT && opts.name) {
+    const type = opts.type || 'text';
+    const v = value == null ? '' : value;
+    if (type === 'textarea') {
+      return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><textarea name="' + esc(opts.name) + '">' + esc(v) + '</textarea></div>';
+    }
+    if (type === 'date') {
+      return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><input type="date" name="' + esc(opts.name) + '" value="' + esc(toInputDate(v)) + '"></div>';
+    }
+    return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><input type="' + esc(type) + '" name="' + esc(opts.name) + '" value="' + esc(v) + '"></div>';
+  }
+  return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><div class="val">' + (opts.html ? value : esc(value ?? '—')) + '</div></div>';
+}
+
+function render(b) {
+  document.getElementById('bp-title').textContent = (b.titolo || 'Bando senza titolo').substring(0, 100);
+  document.title = 'Bando: ' + (b.titolo || b.id || '').substring(0, 80);
+
+  let chips = '';
+  if (b.annullato) chips += '<span class="bp-chip" style="background:#fee2e2;color:#dc2626">ANNULLATO</span>';
+  if (b.privato) chips += '<span class="bp-chip" style="background:#dbeafe;color:#2563eb">PRIVATO</span>';
+  if (b.soa_categoria) chips += '<span class="bp-chip">SOA ' + esc(b.soa_categoria) + '</span>';
+
+  let html = '';
+
+  // Anagrafica
+  html += '<div class="bp-card"><h2><i class="fas fa-info-circle"></i> Anagrafica bando</h2>';
+  html += chips ? '<div style="margin-bottom:12px">' + chips + '</div>' : '';
+  html += '<div class="bp-grid">';
+  html += field('Titolo / Oggetto', b.titolo, { name: 'titolo', span: 'full', type: 'textarea' });
+  html += field('Stazione Appaltante', b.stazione_nome || '—');
+  html += field('Città stazione', b.stazione_citta || b.citta || '—');
+  html += field('Regione', b.regione_nome || b.regione || '—');
+  html += field('Provincia', b.provincia_nome || '—');
+  html += field('Codice CIG', b.codice_cig, { name: 'codice_cig' });
+  html += field('Codice CUP', b.codice_cup, { name: 'codice_cup' });
+  html += field('SOA categoria', b.soa_categoria ? (b.soa_categoria + (b.soa_descrizione ? ' — ' + b.soa_descrizione : '')) : '—');
+  html += '</div></div>';
+
+  // Date e scadenze
+  html += '<div class="bp-card"><h2><i class="fas fa-calendar-alt"></i> Date e scadenze</h2><div class="bp-grid">';
+  html += field('Data pubblicazione', IS_EDIT ? b.data_pubblicazione : fmtDate(b.data_pubblicazione), { name: 'data_pubblicazione', type: 'date' });
+  html += field('Scadenza offerta', IS_EDIT ? b.data_offerta : fmtDate(b.data_offerta), { name: 'data_offerta', type: 'date' });
+  html += field('Data apertura', IS_EDIT ? b.data_apertura : fmtDate(b.data_apertura), { name: 'data_apertura', type: 'date' });
+  html += field('Apertura posticipata', IS_EDIT ? b.data_apertura_posticipata : fmtDate(b.data_apertura_posticipata), { name: 'data_apertura_posticipata', type: 'date' });
+  html += '</div></div>';
+
+  // Importi
+  html += '<div class="bp-card"><h2><i class="fas fa-euro-sign"></i> Importi</h2><div class="bp-grid">';
+  html += field('Importo S.O.', IS_EDIT ? b.importo_so : fmtImporto(b.importo_so), { name: 'importo_so', type: 'number' });
+  html += field('Importo C.O.', IS_EDIT ? b.importo_co : fmtImporto(b.importo_co), { name: 'importo_co', type: 'number' });
+  html += field('Importo Eco', IS_EDIT ? b.importo_eco : fmtImporto(b.importo_eco), { name: 'importo_eco', type: 'number' });
+  html += field('Manodopera', IS_EDIT ? b.importo_manodopera : fmtImporto(b.importo_manodopera), { name: 'importo_manodopera', type: 'number' });
+  html += field('Oneri progettazione', IS_EDIT ? b.oneri_progettazione : fmtImporto(b.oneri_progettazione), { name: 'oneri_progettazione', type: 'number' });
+  html += field('Soglia riferimento', IS_EDIT ? b.soglia_riferimento : fmtImporto(b.soglia_riferimento), { name: 'soglia_riferimento', type: 'number' });
+  html += '</div></div>';
+
+  // Piattaforma / tipologia
+  html += '<div class="bp-card"><h2><i class="fas fa-laptop-code"></i> Piattaforma e tipologia</h2><div class="bp-grid">';
+  html += field('Piattaforma', b.piattaforma_nome || '—');
+  html += field('URL piattaforma', b.piattaforma_url ? '<a href="' + esc(b.piattaforma_url) + '" target="_blank">' + esc(b.piattaforma_url) + '</a>' : '—', { html: true });
+  html += field('Tipologia gara', b.tipologia_gare_nome || '—');
+  html += field('Criterio aggiudicazione', b.criterio_nome || '—');
+  html += field('Link bando', b.link_bando ? '<a href="' + esc(b.link_bando) + '" target="_blank">' + esc(b.link_bando) + '</a>' : '—', { html: true, name: 'link_bando' });
+  html += '</div></div>';
+
+  // Note
+  html += '<div class="bp-card"><h2><i class="fas fa-sticky-note"></i> Note</h2><div class="bp-grid">';
+  html += field('Note principali', b.note || '', { name: 'note', type: 'textarea', span: 'full' });
+  if (b.note_01 || IS_EDIT) html += field('Nota 01', b.note_01 || '', { name: 'note_01', type: 'textarea', span: 2 });
+  if (b.note_02 || IS_EDIT) html += field('Nota 02', b.note_02 || '', { name: 'note_02', type: 'textarea', span: 2 });
+  html += '</div></div>';
+
+  // Allegati
+  const allegati = Array.isArray(b.allegati) ? b.allegati : [];
+  html += '<div class="bp-card"><h2><i class="fas fa-paperclip"></i> Allegati (' + allegati.length + ')';
+  if (!IS_EDIT) html += '<button class="bp-abtn blue" style="margin-left:auto;font-size:10px;padding:5px 10px" onclick="uploadAllegati()"><i class="fas fa-upload"></i> Carica</button>';
+  if (IS_EDIT && allegati.length) html += '<span style="margin-left:auto;font-size:11px;color:#E91E63;text-transform:none;letter-spacing:0"><i class="fas fa-download"></i> Download automatico in corso...</span>';
+  html += '</h2>';
+  if (!allegati.length) {
+    html += '<div style="color:#94a3b8;font-size:13px">Nessun allegato</div>';
+  } else {
+    html += '<ul class="bp-allegati-list">';
+    allegati.forEach(a => {
+      const nome = a.NomeFile || a.nome_file || 'file';
+      const cat = a.categoria ? ' · ' + esc(a.categoria) : '';
+      const dim = a.dimensione ? ' · ' + Math.round(a.dimensione/1024) + ' KB' : '';
+      html += '<li><i class="fas fa-file"></i><div style="flex:1"><div class="nome">' + esc(nome) + '</div><div class="meta">' + esc(a.UserName || '') + cat + dim + '</div></div>';
+      html += '<a href="' + API_BASE + '/bandi/' + encodeURIComponent(b.id) + '/allegati/' + a.id + '/download" target="_blank"><i class="fas fa-download"></i> Scarica</a>';
+      if (!IS_EDIT) html += ' <button class="del-btn" style="margin-left:6px" onclick="deleteAllegato(' + a.id + ')"><i class="fas fa-trash"></i></button>';
+      html += '</li>';
+    });
+    html += '</ul>';
+  }
+  html += '</div>';
+
+  // Metadata
+  html += '<div class="bp-card"><h2><i class="fas fa-fingerprint"></i> Metadata</h2><div class="bp-grid">';
+  html += field('ID bando', b.id);
+  html += field('External code', b.external_code || '—');
+  html += field('Fonte dati', b.fonte_dati || '—');
+  html += field('Creato', fmtDate(b.created_at));
+  html += field('Ultima modifica', fmtDate(b.updated_at));
+  html += '</div></div>';
+
+  document.getElementById('bp-content').innerHTML = IS_EDIT ? '<form id="bp-form" onsubmit="event.preventDefault();saveBando()">' + html + '</form>' : html;
+}
+
+async function downloadAllAttachments(allegati) {
+  toast('Avvio download di ' + allegati.length + ' allegato/i...', 'ok');
+  for (let i = 0; i < allegati.length; i++) {
+    const a = allegati[i];
+    const url = API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID) + '/allegati/' + a.id + '/download';
+    try {
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = url;
+      document.body.appendChild(iframe);
+      await new Promise(r => setTimeout(r, 500));
+    } catch (e) { console.warn('download fail', e); }
+  }
+}
+
+async function saveBando() {
+  const form = document.getElementById('bp-form');
+  if (!form) return;
+  const payload = {};
+  Array.from(form.elements).forEach(el => {
+    if (!el.name) return;
+    let v = el.value;
+    if (el.type === 'number') v = v === '' ? null : Number(v);
+    if (v === '') v = null;
+    payload[el.name] = v;
+  });
+  try {
+    const r = await fetch(API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
+      throw new Error(j.error || ('HTTP ' + r.status));
+    }
+    toast('Bando salvato con successo', 'ok');
+    setTimeout(loadBando, 900);
+  } catch (e) {
+    toast('Errore salvataggio: ' + e.message, 'err');
+  }
+}
+
+loadBando();
+</script>
+</body>
+</html>

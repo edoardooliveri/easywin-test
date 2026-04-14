@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATI Esito — EasyWin</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; font-family: 'Comfortaa', cursive; background: #f5f7fa; color: #1E2D3D; }
+  .bp-top {
+    background: linear-gradient(135deg, #1E2D3D, #2c3e50); color: #fff; padding: 14px 24px;
+    display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .bp-top h1 { font-size: 16px; margin: 0; font-weight: 700; flex: 1; }
+  .bp-btn {
+    background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+  }
+  .bp-btn:hover { background: rgba(255,255,255,0.22); }
+  .bp-btn.success { background: #10b981; border-color: #10b981; }
+  .bp-btn.danger { background: #dc2626; border-color: #dc2626; }
+
+  .bp-wrap { max-width: 1200px; margin: 24px auto; padding: 0 24px 60px; }
+  .bp-card { background: #fff; border-radius: 12px; padding: 24px 28px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .bp-card h2 { margin: 0 0 18px; font-size: 14px; color: #FF8C00; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #fef3e2; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+  .bp-chip { display: inline-block; padding: 3px 10px; background: #fef3e2; color: #FF8C00; border-radius: 10px; font-size: 11px; font-weight: 700; }
+
+  .bp-loading, .bp-error { text-align: center; padding: 80px 20px; color: #64748b; font-size: 14px; }
+  .bp-error { color: #dc2626; }
+  .bp-toast { position: fixed; bottom: 24px; right: 24px; background: #1E2D3D; color: #fff; padding: 14px 20px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); font-size: 13px; font-weight: 600; display: none; z-index: 100; }
+  .bp-toast.ok { background: #10b981; }
+  .bp-toast.err { background: #dc2626; }
+
+  table.bp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.bp-table th { background: #f8fafc; color: #64748b; font-size: 10.5px; text-transform: uppercase; text-align: left; padding: 10px 12px; }
+  table.bp-table td { padding: 10px 12px; border-top: 1px solid #f1f5f9; }
+  table.bp-table tr:hover td { background: #fefce8; }
+
+  .bp-add-form { display: grid; grid-template-columns: 2fr 2fr 1fr auto auto; gap: 12px; align-items: end; margin-top: 16px; padding: 16px; background: #f8fafc; border-radius: 10px; }
+  .bp-add-form label { font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 4px; }
+  .bp-add-form input, .bp-add-form select { padding: 8px 10px; border: 1.5px solid #d4dbe5; border-radius: 8px; font-family: inherit; font-size: 13px; width: 100%; }
+  .bp-add-form input:focus { outline: none; border-color: #FF8C00; }
+
+  .search-results { position: absolute; background: #fff; border: 1px solid #d4dbe5; border-radius: 8px; max-height: 200px; overflow-y: auto; z-index: 20; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; }
+  .search-results div { padding: 8px 12px; cursor: pointer; font-size: 12px; }
+  .search-results div:hover { background: #fef3e2; }
+
+  .action-btns { display: flex; gap: 4px; }
+  .action-btns button { padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 700; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="bp-top">
+  <a id="bp-back" href="#" class="bp-btn"><i class="fas fa-arrow-left"></i> Torna all'esito</a>
+  <h1 id="bp-title">ATI / RTI Esito</h1>
+  <button class="bp-btn" onclick="window.print()"><i class="fas fa-print"></i> Stampa</button>
+</div>
+
+<div class="bp-wrap"><div id="bp-content"><div class="bp-loading"><i class="fas fa-spinner fa-spin"></i><div>Caricamento ATI...</div></div></div></div>
+<div id="bp-toast" class="bp-toast"></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const ESITO_ID = params.get('id');
+const API_BASE = '/api';
+
+document.getElementById('bp-back').href = '/admin/esito-pagina.html?id=' + encodeURIComponent(ESITO_ID) + '&mode=view';
+
+function tok() { return localStorage.getItem('token') || localStorage.getItem('auth_token') || localStorage.getItem('easywin_token'); }
+function authHeaders() { const t = tok(); return t ? { 'Authorization': 'Bearer ' + t } : {}; }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+function toast(msg, kind) { const t = document.getElementById('bp-toast'); t.textContent = msg; t.className = 'bp-toast '+(kind||''); t.style.display = 'block'; setTimeout(()=>{t.style.display='none';}, 4000); }
+
+let selMandataria = null, selMandante = null;
+
+async function loadATI() {
+  if (!ESITO_ID) { document.getElementById('bp-content').innerHTML = '<div class="bp-error">ID mancante</div>'; return; }
+  try {
+    const r = await fetch(API_BASE + '/esiti/' + encodeURIComponent(ESITO_ID) + '/ati', { headers: authHeaders() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    const list = Array.isArray(data) ? data : (data.data || []);
+    renderATI(list);
+  } catch (e) {
+    document.getElementById('bp-content').innerHTML = '<div class="bp-error">Errore: ' + esc(e.message) + '</div>';
+  }
+}
+
+function renderATI(list) {
+  let html = '<div class="bp-card"><h2><i class="fas fa-handshake"></i> ATI / RTI (' + list.length + ')</h2>';
+
+  if (list.length > 0) {
+    html += '<table class="bp-table"><thead><tr><th>Mandataria</th><th>Mandante</th><th>Tipo ATI</th><th>Avvalimento</th><th>Azioni</th></tr></thead><tbody>';
+    list.forEach(a => {
+      const avvBadge = a.avvalimento ? '<span class="bp-chip" style="background:#dbeafe;color:#1e40af">SI</span>' : 'NO';
+      html += '<tr>';
+      html += '<td><strong>' + esc(a.mandataria_nome || '') + '</strong></td>';
+      html += '<td>' + esc(a.mandante_nome || '') + '</td>';
+      html += '<td>' + esc(a.tipo_ati || '') + '</td>';
+      html += '<td>' + avvBadge + '</td>';
+      html += '<td><div class="action-btns">';
+      html += '<button style="background:#dc2626" onclick="deleteATI(' + a.id + ')"><i class="fas fa-trash" style="font-size:10px"></i></button>';
+      html += '</div></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+  } else {
+    html += '<div style="color:#94a3b8;font-size:13px">Nessuna ATI registrata</div>';
+  }
+
+  html += '<div class="bp-add-form">';
+  html += '<div style="position:relative"><label>Mandataria (cerca)</label><input id="add-mand" placeholder="Cerca azienda..." oninput="searchAz(this.value,\'mand\')"><div id="res-mand" class="search-results" style="display:none"></div></div>';
+  html += '<div style="position:relative"><label>Mandante (cerca)</label><input id="add-mante" placeholder="Cerca azienda..." oninput="searchAz(this.value,\'mante\')"><div id="res-mante" class="search-results" style="display:none"></div></div>';
+  html += '<div><label>Tipo ATI</label><select id="add-tipo"><option value="">—</option><option value="RTI">RTI</option><option value="ATI">ATI</option><option value="Consorzio">Consorzio</option></select></div>';
+  html += '<div><label>Avvalimento</label><select id="add-avv"><option value="false">No</option><option value="true">Si</option></select></div>';
+  html += '<button class="bp-btn success" onclick="addATI()"><i class="fas fa-plus"></i> Aggiungi</button>';
+  html += '</div>';
+
+  html += '</div>';
+  document.getElementById('bp-content').innerHTML = html;
+}
+
+let searchTimeout = null;
+function searchAz(q, role) {
+  clearTimeout(searchTimeout);
+  if (!q || q.length < 2) { document.getElementById('res-' + role).style.display = 'none'; return; }
+  searchTimeout = setTimeout(async () => {
+    try {
+      const r = await fetch(API_BASE + '/esiti/' + encodeURIComponent(ESITO_ID) + '/graduatoria/cerca-azienda', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ q })
+      });
+      if (!r.ok) return;
+      const data = await r.json();
+      const list = Array.isArray(data) ? data : (data.data || []);
+      const el = document.getElementById('res-' + role);
+      if (list.length === 0) { el.style.display = 'none'; return; }
+      el.innerHTML = list.slice(0, 10).map(a => '<div onclick="pickAz(' + a.id + ',\'' + esc(a.ragione_sociale || '') + '\',\'' + role + '\')">' + esc(a.ragione_sociale || '') + '</div>').join('');
+      el.style.display = 'block';
+    } catch (e) { /* ignore */ }
+  }, 300);
+}
+
+function pickAz(id, nome, role) {
+  if (role === 'mand') { selMandataria = id; document.getElementById('add-mand').value = nome; document.getElementById('res-mand').style.display = 'none'; }
+  else { selMandante = id; document.getElementById('add-mante').value = nome; document.getElementById('res-mante').style.display = 'none'; }
+}
+
+async function addATI() {
+  if (!selMandataria || !selMandante) { toast('Seleziona mandataria e mandante', 'err'); return; }
+  try {
+    const r = await fetch(API_BASE + '/esiti/' + encodeURIComponent(ESITO_ID) + '/ati', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({
+        id_mandataria: selMandataria, id_mandante: selMandante,
+        tipo_ati: document.getElementById('add-tipo').value || null,
+        avvalimento: document.getElementById('add-avv').value === 'true'
+      })
+    });
+    if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+    toast('ATI aggiunta', 'ok');
+    selMandataria = null; selMandante = null;
+    loadATI();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function deleteATI(atiId) {
+  if (!confirm('Eliminare questa ATI?')) return;
+  try {
+    const r = await fetch(API_BASE + '/esiti/' + encodeURIComponent(ESITO_ID) + '/ati/' + atiId, { method: 'DELETE', headers: authHeaders() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    toast('ATI eliminata', 'ok');
+    loadATI();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+loadATI();
+</script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Categorie SOA — EasyWin</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:'Comfortaa',cursive;background:#f5f7fa;color:#1E2D3D}
+  .top{background:linear-gradient(135deg,#1E2D3D,#2c3e50);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,0,0,.1);position:sticky;top:0;z-index:50}
+  .top h1{font-size:16px;margin:0;font-weight:700;flex:1}
+  .btn{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 14px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+  .btn:hover{background:rgba(255,255,255,.22)}
+  .btn.primary{background:#FF8C00;border-color:#FF8C00}
+  .btn.danger{background:#dc2626;border-color:#dc2626}
+  .wrap{max-width:1100px;margin:24px auto;padding:0 24px 60px}
+  .card{background:#fff;border-radius:12px;padding:24px 28px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .card h2{margin:0 0 18px;font-size:14px;color:#FF8C00;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #fef3e2;padding-bottom:10px;display:flex;align-items:center;gap:10px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:#f8fafc;color:#64748b;font-size:10.5px;text-transform:uppercase;text-align:left;padding:10px}
+  td{padding:9px 10px;border-top:1px solid #f1f5f9}
+  tr:hover td{background:#fefce8}
+  .chip{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+  .chip.og{background:#dcfce7;color:#166534}
+  .chip.os{background:#dbeafe;color:#1e40af}
+  .chip.on{background:#f1f5f9;color:#64748b}
+  .actions a{color:#3b82f6;text-decoration:none;margin-right:8px;cursor:pointer}
+  .actions a:hover{text-decoration:underline}
+  .del{color:#dc2626!important}
+  .toast{position:fixed;bottom:24px;right:24px;background:#1E2D3D;color:#fff;padding:14px 20px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.2);font-size:13px;font-weight:600;display:none;z-index:100}
+  .toast.ok{background:#10b981}.toast.err{background:#dc2626}
+  .mini{font-size:11px;color:#64748b}
+  .group-header{background:#fef3e2;padding:12px 16px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#c2410c;border-radius:8px;margin-top:22px;display:flex;justify-content:space-between;align-items:center}
+  input,select{padding:8px 12px;border:1.5px solid #d4dbe5;border-radius:8px;font-family:inherit;font-size:13px}
+  input:focus,select:focus{outline:none;border-color:#FF8C00}
+  .form-row{display:grid;grid-template-columns:120px 1fr 140px auto;gap:12px;align-items:center;margin-bottom:10px}
+  label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase}
+  .search-bar{margin-bottom:12px}
+  .search-bar input{width:100%;max-width:360px}
+</style>
+</head>
+<body>
+<div class="top">
+  <i class="fa-solid fa-certificate" style="font-size:20px;color:#FF8C00"></i>
+  <h1>Categorie SOA</h1>
+  <a href="/admin/" class="btn"><i class="fa-solid fa-arrow-left"></i> Torna al gestionale</a>
+  <button class="btn primary" onclick="openCreate()"><i class="fa-solid fa-plus"></i> Nuova categoria</button>
+</div>
+
+<div class="wrap">
+  <div class="card" id="formCard" style="display:none">
+    <h2><i class="fa-solid fa-pen"></i> <span id="formTitle">Nuova categoria SOA</span></h2>
+    <div class="form-row">
+      <label>Codice</label>
+      <input id="fCod" placeholder="OG1, OS21..." maxlength="10"/>
+      <label>Tipo</label>
+      <select id="fTipo"><option value="OG">OG (Lavori)</option><option value="OS">OS (Specialistiche)</option></select>
+    </div>
+    <div class="form-row">
+      <label>Descrizione</label>
+      <input id="fDesc" placeholder="Descrizione categoria" style="grid-column: span 2"/>
+      <label style="text-align:right"><input type="checkbox" id="fAttivo" checked/> Attivo</label>
+    </div>
+    <div style="text-align:right;margin-top:8px">
+      <button class="btn" style="background:#e5e7eb;color:#1E2D3D" onclick="closeForm()">Annulla</button>
+      <button class="btn primary" onclick="saveForm()"><i class="fa-solid fa-save"></i> Salva</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><i class="fa-solid fa-list"></i> Elenco categorie</h2>
+    <div class="search-bar"><input id="search" placeholder="Cerca per codice o descrizione..." oninput="filterRows()"/></div>
+    <div id="list"><p class="mini">Caricamento…</p></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = window.location.origin.replace(/:\d+$/,'') + ':3001/api';
+const token = localStorage.getItem('easywin_token');
+let _rows = [];
+let _editId = null;
+
+function showToast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'ok');t.style.display='block';setTimeout(()=>t.style.display='none',3500)}
+async function api(path,opts={}){
+  const r = await fetch(API_BASE + path, {
+    ...opts,
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+token, ...(opts.headers||{})}
+  });
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'HTTP '+r.status)}
+  return r.json();
+}
+async function load(){
+  try{
+    _rows = await api('/soa');
+    render();
+  }catch(e){document.getElementById('list').innerHTML='<p class="mini" style="color:#dc2626">Errore: '+e.message+'</p>'}
+}
+function render(){
+  const q = (document.getElementById('search').value||'').toLowerCase();
+  const filtered = _rows.filter(r => !q || r.codice.toLowerCase().includes(q) || r.descrizione.toLowerCase().includes(q));
+  const groups = {};
+  filtered.forEach(r => { const g = r.gruppo || 'Altro'; (groups[g] = groups[g] || []).push(r); });
+  const cont = document.getElementById('list');
+  if (filtered.length === 0) { cont.innerHTML = '<p class="mini">Nessuna categoria trovata.</p>'; return; }
+  let html = '';
+  Object.keys(groups).sort().forEach(g => {
+    html += `<div class="group-header"><span>${g}</span><span class="mini" style="color:#c2410c">${groups[g].length} voci</span></div>`;
+    html += '<table><thead><tr><th style="width:90px">Codice</th><th>Descrizione</th><th style="width:80px">Tipo</th><th style="width:90px">Stato</th><th style="width:160px">Azioni</th></tr></thead><tbody>';
+    groups[g].forEach(r => {
+      html += `<tr>
+        <td><strong>${r.codice}</strong></td>
+        <td>${escapeHtml(r.descrizione)}</td>
+        <td><span class="chip ${r.tipo==='OG'?'og':r.tipo==='OS'?'os':'on'}">${r.tipo}</span></td>
+        <td>${r.attivo ? '<span class="chip og">attivo</span>' : '<span class="chip on">disattivo</span>'}</td>
+        <td class="actions">
+          <a onclick="edit(${r.id})"><i class="fa-solid fa-pen"></i> modifica</a>
+          <a class="del" onclick="del(${r.id})"><i class="fa-solid fa-trash"></i> disattiva</a>
+        </td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+  });
+  cont.innerHTML = html;
+}
+function filterRows(){ render(); }
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function openCreate(){ _editId=null; document.getElementById('formTitle').textContent='Nuova categoria SOA'; document.getElementById('fCod').value=''; document.getElementById('fDesc').value=''; document.getElementById('fTipo').value='OG'; document.getElementById('fAttivo').checked=true; document.getElementById('formCard').style.display='block'; }
+function closeForm(){ document.getElementById('formCard').style.display='none' }
+function edit(id){ const r=_rows.find(x=>x.id===id); if(!r) return; _editId=id; document.getElementById('formTitle').textContent='Modifica '+r.codice; document.getElementById('fCod').value=r.codice; document.getElementById('fDesc').value=r.descrizione; document.getElementById('fTipo').value=r.tipo; document.getElementById('fAttivo').checked=!!r.attivo; document.getElementById('formCard').style.display='block'; window.scrollTo({top:0,behavior:'smooth'}); }
+async function saveForm(){
+  const body = {
+    codice: document.getElementById('fCod').value.trim(),
+    descrizione: document.getElementById('fDesc').value.trim(),
+    tipo: document.getElementById('fTipo').value,
+    attivo: document.getElementById('fAttivo').checked
+  };
+  if (!body.codice || !body.descrizione) { showToast('Codice e descrizione obbligatori','err'); return; }
+  try{
+    if (_editId) await api('/soa/'+_editId, { method: 'PUT', body: JSON.stringify(body) });
+    else await api('/soa', { method: 'POST', body: JSON.stringify(body) });
+    showToast('Salvato');
+    closeForm();
+    load();
+  }catch(e){ showToast('Errore: '+e.message,'err') }
+}
+async function del(id){
+  const r = _rows.find(x=>x.id===id); if(!r) return;
+  if (!confirm('Disattivare la categoria '+r.codice+'?')) return;
+  try{
+    const u = await api('/soa/'+id+'/usage').catch(()=>null);
+    if (u && (u.bandi>0 || u.gare>0 || u.utenti>0)) {
+      if (!confirm(`Questa SOA è usata in:\n- ${u.bandi} bandi\n- ${u.gare} gare\n- ${u.utenti} utenti\n\nDisattivare comunque?`)) return;
+    }
+    await api('/soa/'+id, { method: 'DELETE' });
+    showToast('Disattivato');
+    load();
+  }catch(e){ showToast('Errore: '+e.message,'err') }
+}
+load();
+</script>
+</body>
+</html>

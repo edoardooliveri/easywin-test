@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Albo Fornitori AI — EasyWin</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:'Comfortaa',cursive;background:#f5f7fa;color:#1E2D3D}
+.bp-top{background:linear-gradient(135deg,#1E2D3D,#2c3e50);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,0,0,0.1);position:sticky;top:0;z-index:50;flex-wrap:wrap}
+.bp-top h1{font-size:16px;margin:0;font-weight:700;flex:1;min-width:200px}
+.bp-btn{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.2);padding:8px 14px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.bp-btn:hover{background:rgba(255,255,255,0.22)}
+.bp-btn.green{background:#10b981;border-color:#10b981}
+.bp-btn.orange{background:#FF8C00;border-color:#FF8C00}
+.bp-wrap{max-width:1300px;margin:24px auto;padding:0 24px 60px}
+.bp-card{background:#fff;border-radius:12px;padding:24px 28px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.bp-card h2{margin:0 0 18px;font-size:14px;color:#FF8C00;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #fef3e2;padding-bottom:10px;display:flex;align-items:center;gap:10px}
+.bp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px 24px}
+.bp-field{display:flex;flex-direction:column}
+.bp-field label{font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px}
+.bp-field input,.bp-field textarea,.bp-field select{padding:9px 12px;border:1.5px solid #d4dbe5;border-radius:8px;font-family:inherit;font-size:13px;background:#fff;color:#1E2D3D;width:100%}
+.bp-field input:focus,.bp-field textarea:focus{outline:none;border-color:#FF8C00;box-shadow:0 0 0 3px rgba(255,140,0,0.12)}
+.bp-field textarea{resize:vertical;min-height:60px}
+.bp-chip{display:inline-block;padding:3px 10px;background:#fef3e2;color:#FF8C00;border-radius:10px;font-size:11px;font-weight:700;margin:2px 4px 2px 0}
+.bp-toast{position:fixed;bottom:24px;right:24px;background:#1E2D3D;color:#fff;padding:14px 20px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.2);font-size:13px;font-weight:600;display:none;z-index:100;max-width:360px}
+.bp-toast.ok{background:#10b981}.bp-toast.err{background:#dc2626}
+.abtn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-family:inherit;font-size:11px;font-weight:700;border:none;cursor:pointer;color:#fff;margin:4px}
+.abtn:hover{opacity:0.85}.abtn.orange{background:#FF8C00}.abtn.blue{background:#2196F3}.abtn.green{background:#4CAF50}
+table.rt{width:100%;border-collapse:collapse;font-size:12px}
+table.rt th{background:#f8fafc;padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:2px solid #e2e8f0}
+table.rt td{padding:8px 10px;border-bottom:1px solid #f1f5f9}
+table.rt tr:hover td{background:#fefce8}
+.big-btn{display:block;width:100%;padding:18px;background:linear-gradient(135deg,#FF8C00,#e67e00);color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;text-align:center;margin:12px 0}
+.big-btn:hover{opacity:0.9}
+.big-btn i{margin-right:8px}
+</style>
+</head>
+<body>
+
+<div class="bp-top">
+  <a class="bp-btn" id="back-btn"><i class="fas fa-arrow-left"></i> Torna utente</a>
+  <h1 id="bp-title">Preferenze Albo Fornitori AI</h1>
+  <button class="bp-btn green" onclick="salvaCriteri()"><i class="fas fa-save"></i> Salva Criteri</button>
+</div>
+
+<div class="bp-wrap">
+  <div id="pref-section"></div>
+  <div id="racc-section"></div>
+</div>
+
+<div id="bp-toast" class="bp-toast"></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const USERNAME = params.get('username');
+const API = '/api/admin';
+function tok(){return localStorage.getItem('easywin_token')||localStorage.getItem('auth_token')||localStorage.getItem('token')}
+(function(){if(!tok()){location.href='/index.html'}})();
+function authHeaders(){const t=tok();return t?{'Authorization':'Bearer '+t}:{}}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]))}
+function toast(msg,kind){const t=document.getElementById('bp-toast');t.textContent=msg;t.className='bp-toast '+(kind||'');t.style.display='block';setTimeout(()=>{t.style.display='none'},4000)}
+
+document.getElementById('back-btn').href = '/admin/utente-pagina.html?username=' + encodeURIComponent(USERNAME) + '&mode=view';
+document.getElementById('bp-title').textContent = 'Albo Fornitori AI — ' + USERNAME;
+
+const PROVINCE = ['AG','AL','AN','AO','AP','AQ','AR','AT','AV','BA','BG','BI','BL','BN','BO','BR','BS','BT','BZ','CA','CB','CE','CH','CL','CN','CO','CR','CS','CT','CZ','EN','FC','FE','FG','FI','FM','FR','GE','GO','GR','IM','IS','KR','LC','LE','LI','LO','LT','LU','MB','MC','ME','MI','MN','MO','MS','MT','NA','NO','NU','OR','PA','PC','PD','PE','PG','PI','PN','PO','PR','PT','PU','PV','PZ','RA','RC','RE','RG','RI','RM','RN','RO','SA','SI','SO','SP','SR','SS','SU','SV','TA','TE','TN','TO','TP','TR','TS','TV','UD','VA','VB','VC','VE','VI','VR','VT','VV'];
+
+let PREF = {};
+
+async function loadPref() {
+  try {
+    const res = await fetch(API + '/utenti/' + encodeURIComponent(USERNAME) + '/albo-ai/preferenze', { headers: authHeaders() });
+    PREF = await res.json();
+    renderPref();
+  } catch(e) { document.getElementById('pref-section').innerHTML = '<div class="bp-card" style="color:#dc2626">Errore: ' + esc(e.message) + '</div>'; }
+}
+
+function renderPref() {
+  const p = PREF;
+  let h = '<div class="bp-card"><h2><i class="fas fa-sliders-h"></i> Criteri Matching</h2><div class="bp-grid">';
+
+  // SOA
+  h += '<div class="bp-field" style="grid-column:1/-1"><label>Categorie SOA (auto da attestazioni)</label>';
+  h += '<div style="margin-bottom:6px">';
+  (p.soa_codici || []).forEach(s => { h += '<span class="bp-chip">' + esc(s) + '</span>'; });
+  if (!(p.soa_codici || []).length) h += '<span style="color:#94a3b8;font-size:12px">Nessuna SOA configurata</span>';
+  h += '</div>';
+  h += '<input type="text" id="pref-soa" placeholder="SOA manuali (virgola: OG1,OG3,OS2-A)" value="' + esc((p.soa_codici || []).join(',')) + '">';
+  h += '</div>';
+
+  // Province
+  h += '<div class="bp-field" style="grid-column:1/-1"><label>Province di interesse</label>';
+  h += '<input type="text" id="pref-prov" placeholder="Province (virgola: TO,MI,RM)" value="' + esc((p.province || []).join(',')) + '">';
+  h += '</div>';
+
+  // CPV
+  h += '<div class="bp-field" style="grid-column:1/-1"><label>Categorie CPV</label>';
+  h += '<input type="text" id="pref-cpv" placeholder="Codici CPV (virgola)" value="' + esc((p.cpv_codici || []).join(',')) + '">';
+  h += '</div>';
+
+  // Soglia
+  h += '<div class="bp-field"><label>Soglia min negoziate/anno</label><input type="number" id="pref-soglia" value="' + (p.soglia_min_negoziate || 0) + '" min="0"></div>';
+
+  // Notifiche
+  h += '<div class="bp-field"><label>Notifiche nuovi albi</label><div><input type="checkbox" id="pref-notifiche" ' + (p.notifiche_nuovi_albi !== false ? 'checked' : '') + '> Attive</div></div>';
+
+  // Note
+  h += '<div class="bp-field" style="grid-column:1/-1"><label>Note admin</label><textarea id="pref-note">' + esc(p.note || '') + '</textarea></div>';
+
+  h += '</div></div>';
+
+  // Ricalcola button
+  h += '<button class="big-btn" onclick="ricalcola()"><i class="fas fa-brain"></i> Ricalcola Raccomandazioni</button>';
+
+  document.getElementById('pref-section').innerHTML = h;
+
+  // Load raccomandazioni
+  loadRaccomandazioni();
+}
+
+async function salvaCriteri() {
+  const body = {
+    soa_codici: document.getElementById('pref-soa').value.split(',').map(s => s.trim()).filter(Boolean),
+    province: document.getElementById('pref-prov').value.split(',').map(s => s.trim()).filter(Boolean),
+    cpv_codici: document.getElementById('pref-cpv').value.split(',').map(s => s.trim()).filter(Boolean),
+    soglia_min_negoziate: Number(document.getElementById('pref-soglia').value) || 0,
+    notifiche_nuovi_albi: document.getElementById('pref-notifiche').checked,
+    note: document.getElementById('pref-note').value,
+    auto_popolato_soa: false,
+  };
+  try {
+    const res = await fetch(API + '/utenti/' + encodeURIComponent(USERNAME) + '/albo-ai/preferenze', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    toast('Criteri salvati', 'ok');
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function ricalcola() {
+  const el = document.getElementById('racc-section');
+  el.innerHTML = '<div class="bp-card" style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="font-size:28px;color:#FF8C00"></i><div style="margin-top:12px">Ricalcolo in corso...</div></div>';
+  try {
+    const res = await fetch(API + '/utenti/' + encodeURIComponent(USERNAME) + '/albo-ai/ricalcola', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: '{}'
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+    toast('Ricalcolate ' + data.count + ' raccomandazioni', 'ok');
+    loadRaccomandazioni();
+  } catch(e) { toast('Errore: ' + e.message, 'err'); el.innerHTML = ''; }
+}
+
+let raccPage = 0;
+async function loadRaccomandazioni(page) {
+  raccPage = page || 0;
+  const el = document.getElementById('racc-section');
+  const search = document.getElementById('racc-search')?.value || '';
+  try {
+    const res = await fetch(API + '/utenti/' + encodeURIComponent(USERNAME) + '/albo-ai/raccomandazioni?limit=50&offset=' + (raccPage * 50) + '&search=' + encodeURIComponent(search), { headers: authHeaders() });
+    const data = await res.json();
+    const items = data.data || [];
+    const total = data.total || 0;
+
+    let h = '<div class="bp-card"><h2><i class="fas fa-star"></i> Raccomandazioni (' + total + ')</h2>';
+    h += '<div style="margin-bottom:12px"><input type="text" id="racc-search" placeholder="Cerca stazione..." value="' + esc(search) + '" style="padding:8px 12px;border:1.5px solid #d4dbe5;border-radius:8px;font-family:inherit;font-size:13px;width:300px" onkeydown="if(event.key===\'Enter\')loadRaccomandazioni(0)"> ';
+    h += '<button class="abtn blue" onclick="loadRaccomandazioni(0)"><i class="fas fa-search"></i></button></div>';
+
+    if (!items.length) {
+      h += '<div style="color:#94a3b8;font-size:13px">Nessuna raccomandazione. Clicca "Ricalcola" per generarle.</div>';
+    } else {
+      h += '<div style="overflow-x:auto"><table class="rt"><thead><tr><th>#</th><th>Stazione</th><th>Citta</th><th>Provincia</th><th>Negoziate/anno</th><th>Score</th><th>Motivazione</th><th></th></tr></thead><tbody>';
+      items.forEach((r, i) => {
+        h += '<tr><td>' + (raccPage * 50 + i + 1) + '</td>';
+        h += '<td style="font-weight:700">' + esc(r.stazione_nome || '—') + '</td>';
+        h += '<td>' + esc(r.stazione_citta || '') + '</td>';
+        h += '<td>' + esc(r.provincia_nome || '') + '</td>';
+        h += '<td>' + (r.n_negoziate_anno || 0) + '</td>';
+        h += '<td style="font-weight:700;color:#FF8C00">' + Number(r.score || 0).toFixed(1) + '</td>';
+        h += '<td style="font-size:11px">' + esc(r.motivazione || '') + '</td>';
+        h += '<td><a href="/admin/stazione-pagina.html?id=' + r.id_stazione + '&mode=view" target="_blank" class="abtn blue" style="font-size:10px;padding:4px 8px"><i class="fas fa-external-link-alt"></i></a></td></tr>';
+      });
+      h += '</tbody></table></div>';
+
+      // Pagination
+      if (total > 50) {
+        h += '<div style="margin-top:12px;text-align:center">';
+        if (raccPage > 0) h += '<button class="abtn gray" onclick="loadRaccomandazioni(' + (raccPage - 1) + ')"><i class="fas fa-chevron-left"></i> Prec</button>';
+        h += '<span style="margin:0 12px;font-size:12px;color:#64748b">Pagina ' + (raccPage + 1) + ' / ' + Math.ceil(total / 50) + '</span>';
+        if ((raccPage + 1) * 50 < total) h += '<button class="abtn gray" onclick="loadRaccomandazioni(' + (raccPage + 1) + ')"><i class="fas fa-chevron-right"></i> Succ</button>';
+        h += '</div>';
+      }
+    }
+    h += '</div>';
+    el.innerHTML = h;
+  } catch(e) { el.innerHTML = '<div class="bp-card" style="color:#dc2626">Errore: ' + esc(e.message) + '</div>'; }
+}
+
+loadPref();
+</script>
+</body>
+</html>

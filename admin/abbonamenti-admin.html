@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestione Abbonamenti — EasyWin</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:'Comfortaa',cursive;background:#f5f7fa;color:#1E2D3D}
+  .top{background:linear-gradient(135deg,#1E2D3D,#2c3e50);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,0,0,.1);position:sticky;top:0;z-index:50}
+  .top h1{font-size:16px;margin:0;font-weight:700;flex:1}
+  .btn{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 14px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+  .btn:hover{background:rgba(255,255,255,.22)}
+  .btn.primary{background:#FF8C00;border-color:#FF8C00}
+  .btn.ok{background:#10b981;border-color:#10b981}
+  .wrap{max-width:1400px;margin:24px auto;padding:0 24px 60px}
+  .card{background:#fff;border-radius:12px;padding:24px 28px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .card h2{margin:0 0 18px;font-size:14px;color:#FF8C00;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #fef3e2;padding-bottom:10px;display:flex;align-items:center;gap:10px}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:10px}
+  .stat{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px}
+  .stat .label{font-size:10.5px;color:#64748b;text-transform:uppercase;font-weight:700}
+  .stat .nums{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+  .stat .n{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:16px;font-size:11.5px;font-weight:700}
+  .n.attivo{background:#dcfce7;color:#166534}
+  .n.attenzione{background:#fef3c7;color:#92400e}
+  .n.critico{background:#fef3e2;color:#c2410c}
+  .n.scaduto{background:#fef2f2;color:#dc2626}
+  .n.nessuno{background:#f1f5f9;color:#64748b}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{background:#f8fafc;color:#64748b;font-size:10.5px;text-transform:uppercase;text-align:left;padding:10px;position:sticky;top:64px;z-index:5}
+  td{padding:9px 10px;border-top:1px solid #f1f5f9;vertical-align:middle}
+  tr:hover td{background:#fefce8}
+  .chip{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10.5px;font-weight:700;margin:1px}
+  .chip.attivo{background:#dcfce7;color:#166534}
+  .chip.attenzione{background:#fef3c7;color:#92400e}
+  .chip.critico{background:#fef3e2;color:#c2410c}
+  .chip.scaduto{background:#fef2f2;color:#dc2626}
+  .chip.none{background:#f1f5f9;color:#94a3b8}
+  .filter-bar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+  input,select{padding:8px 12px;border:1.5px solid #d4dbe5;border-radius:8px;font-family:inherit;font-size:13px}
+  input:focus,select:focus{outline:none;border-color:#FF8C00}
+  .toast{position:fixed;bottom:24px;right:24px;background:#1E2D3D;color:#fff;padding:14px 20px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.2);font-size:13px;font-weight:600;display:none;z-index:100}
+  .toast.ok{background:#10b981}.toast.err{background:#dc2626}
+  .mini{font-size:11px;color:#64748b}
+  .user-cell{display:flex;flex-direction:column;gap:2px}
+  .user-cell .u{font-weight:700}
+  .user-cell .e{font-size:10.5px;color:#64748b}
+  .svc-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+  .svc{padding:4px 6px;border-radius:6px;font-size:10px;text-align:center}
+  a.action{color:#3b82f6;cursor:pointer;text-decoration:none;margin-right:6px}
+  a.action:hover{text-decoration:underline}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;justify-content:center;align-items:center;z-index:200}
+  .modal-bg.show{display:flex}
+  .modal{background:#fff;border-radius:14px;padding:24px;max-width:460px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal h3{margin-top:0;color:#FF8C00}
+  .modal label{display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;margin-top:10px;margin-bottom:4px}
+  .modal input,.modal select,.modal textarea{width:100%}
+</style>
+</head>
+<body>
+<div class="top">
+  <i class="fa-solid fa-wallet" style="font-size:20px;color:#FF8C00"></i>
+  <h1>Gestione Abbonamenti</h1>
+  <a href="/admin/" class="btn"><i class="fa-solid fa-arrow-left"></i> Torna al gestionale</a>
+  <button class="btn ok" onclick="triggerScheduler()"><i class="fa-solid fa-bolt"></i> Trigger scheduler</button>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <h2><i class="fa-solid fa-chart-pie"></i> Panoramica</h2>
+    <div id="overview"><p class="mini">Caricamento…</p></div>
+  </div>
+
+  <div class="card">
+    <h2><i class="fa-solid fa-users"></i> Utenti</h2>
+    <div class="filter-bar">
+      <input id="fSearch" placeholder="Cerca username / email / rag. sociale..." style="width:280px" oninput="searchDebounced()"/>
+      <select id="fService">
+        <option value="">Tutti i servizi</option>
+        <option value="bandi">Bandi</option>
+        <option value="esiti">Esiti</option>
+        <option value="esiti_light">Esiti Light</option>
+        <option value="newsletter_bandi">Newsletter Bandi</option>
+        <option value="newsletter_esiti">Newsletter Esiti</option>
+        <option value="presidia">Presidia</option>
+      </select>
+      <select id="fStatus">
+        <option value="">Tutti gli stati</option>
+        <option value="critico">Critico (≤7gg)</option>
+        <option value="attenzione">Attenzione (≤30gg)</option>
+        <option value="scaduto">Scaduto</option>
+        <option value="attivo">Attivo</option>
+      </select>
+      <button class="btn primary" onclick="loadUsers()"><i class="fa-solid fa-search"></i> Filtra</button>
+    </div>
+    <div id="users"><p class="mini">Applica un filtro o usa la ricerca.</p></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="rinnovaModal">
+  <div class="modal">
+    <h3>Rinnova abbonamento</h3>
+    <div id="rinnovaUser" class="mini"></div>
+    <label>Servizio</label>
+    <select id="rService"></select>
+    <label>Mesi</label>
+    <input type="number" id="rMesi" value="12" min="1" max="60"/>
+    <label>Note</label>
+    <textarea id="rNote" rows="2" placeholder="Note opzionali"></textarea>
+    <div style="text-align:right;margin-top:18px">
+      <button class="btn" style="background:#e5e7eb;color:#1E2D3D" onclick="closeRinnova()">Annulla</button>
+      <button class="btn ok" onclick="confirmRinnova()"><i class="fa-solid fa-check"></i> Rinnova</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = window.location.origin.replace(/:\d+$/,'') + ':3001/api';
+const token = localStorage.getItem('easywin_token');
+const SERVICES = [
+  {key:'bandi',label:'Bandi'},
+  {key:'esiti',label:'Esiti'},
+  {key:'esiti_light',label:'Esiti Light'},
+  {key:'newsletter_bandi',label:'Nl Bandi'},
+  {key:'newsletter_esiti',label:'Nl Esiti'},
+  {key:'presidia',label:'Presidia'},
+];
+let _users = [];
+let _rinnovaCtx = null;
+
+function showToast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'ok');t.style.display='block';setTimeout(()=>t.style.display='none',3500)}
+async function api(path,opts={}){
+  const r = await fetch(API_BASE + path, { ...opts, headers: {'Content-Type':'application/json','Authorization':'Bearer '+token, ...(opts.headers||{})} });
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'HTTP '+r.status)}
+  return r.json();
+}
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+async function loadOverview(){
+  try{
+    const ov = await api('/abbonamenti/overview');
+    const cont = document.getElementById('overview');
+    let html = `<p class="mini">Totale utenti attivi: <strong>${ov.totale_utenti}</strong></p><div class="stat-grid">`;
+    SERVICES.forEach(s => {
+      const v = ov.servizi[s.key] || {};
+      html += `<div class="stat"><div class="label">${v.label||s.label}</div><div class="nums">
+        <span class="n attivo" title="Attivo">${v.attivo||0}</span>
+        <span class="n attenzione" title="Attenzione ≤30gg">${v.attenzione||0}</span>
+        <span class="n critico" title="Critico ≤7gg">${v.critico||0}</span>
+        <span class="n scaduto" title="Scaduto">${v.scaduto||0}</span>
+        <span class="n nessuno" title="Senza abbonamento">${v.nessuno||0}</span>
+      </div></div>`;
+    });
+    html += '</div>';
+    cont.innerHTML = html;
+  }catch(e){ document.getElementById('overview').innerHTML = '<p class="mini" style="color:#dc2626">'+e.message+'</p>' }
+}
+
+let _searchTO=null;
+function searchDebounced(){ clearTimeout(_searchTO); _searchTO=setTimeout(loadUsers, 400); }
+
+async function loadUsers(){
+  const q = document.getElementById('fSearch').value.trim();
+  const service = document.getElementById('fService').value;
+  const status = document.getElementById('fStatus').value;
+  const params = new URLSearchParams();
+  if (q) params.set('search', q);
+  if (service) params.set('service', service);
+  if (status) params.set('status', status);
+  try{
+    const res = await api('/abbonamenti/utenti?' + params.toString());
+    _users = res.utenti;
+    renderUsers();
+  }catch(e){ document.getElementById('users').innerHTML = '<p class="mini" style="color:#dc2626">'+e.message+'</p>' }
+}
+
+function renderUsers(){
+  const cont = document.getElementById('users');
+  if (_users.length === 0) { cont.innerHTML='<p class="mini">Nessun utente trovato.</p>'; return; }
+  let html = `<table><thead><tr>
+    <th style="width:180px">Utente</th>
+    <th>Stati abbonamenti</th>
+    <th style="width:160px">Azioni</th>
+  </tr></thead><tbody>`;
+  _users.forEach(u => {
+    html += `<tr>
+      <td><div class="user-cell"><span class="u">${escapeHtml(u.username)}</span><span class="e">${escapeHtml(u.email||'')}</span><span class="e">${escapeHtml(u.ragione_sociale||'')}</span></div></td>
+      <td><div class="svc-grid">`;
+    SERVICES.forEach(s => {
+      const a = u.abbonamenti[s.key] || {};
+      const cls = a.stato && a.stato !== 'none' ? a.stato : 'none';
+      const d = a.giorni_residui == null ? '—' : (a.giorni_residui < 0 ? Math.abs(a.giorni_residui)+'gg fa' : a.giorni_residui+'gg');
+      html += `<span class="svc chip ${cls}">${s.label}: ${d}</span>`;
+    });
+    html += `</div></td>
+      <td><a class="action" onclick="openRinnova(${u.id},'${escapeHtml(u.username)}')"><i class="fa-solid fa-rotate"></i> rinnova</a></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  cont.innerHTML = html;
+}
+
+function openRinnova(id, username){
+  _rinnovaCtx = { id, username };
+  document.getElementById('rinnovaUser').textContent = 'Utente: '+username;
+  const sel = document.getElementById('rService');
+  sel.innerHTML = SERVICES.map(s=>`<option value="${s.key}">${s.label}</option>`).join('');
+  document.getElementById('rMesi').value = 12;
+  document.getElementById('rNote').value = '';
+  document.getElementById('rinnovaModal').classList.add('show');
+}
+function closeRinnova(){ document.getElementById('rinnovaModal').classList.remove('show') }
+async function confirmRinnova(){
+  if(!_rinnovaCtx) return;
+  const body = { service: document.getElementById('rService').value, mesi: parseInt(document.getElementById('rMesi').value,10)||12, note: document.getElementById('rNote').value };
+  try{
+    const res = await api('/abbonamenti/utenti/'+_rinnovaCtx.id+'/rinnova', { method:'POST', body: JSON.stringify(body) });
+    showToast('Rinnovato — nuova scadenza: '+res.nuova_scadenza);
+    closeRinnova();
+    loadOverview();
+    loadUsers();
+  }catch(e){ showToast('Errore: '+e.message,'err') }
+}
+async function triggerScheduler(){
+  try{
+    await api('/abbonamenti/scheduler/run', { method:'POST' });
+    showToast('Scheduler triggered');
+  }catch(e){ showToast('Errore: '+e.message,'err') }
+}
+
+loadOverview();
+</script>
+</body>
+</html>

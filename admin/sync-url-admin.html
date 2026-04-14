@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sync URL — EasyWin</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:'Comfortaa',cursive;background:#f5f7fa;color:#1E2D3D}
+  .top{background:linear-gradient(135deg,#1E2D3D,#2c3e50);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+  .top h1{font-size:16px;margin:0;font-weight:700;flex:1}
+  .btn{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 14px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+  .btn:hover{background:rgba(255,255,255,.22)}
+  .btn.primary{background:#FF8C00;border-color:#FF8C00}
+  .btn.ok{background:#10b981;border-color:#10b981}
+  .wrap{max-width:1200px;margin:24px auto;padding:0 24px 60px}
+  .card{background:#fff;border-radius:12px;padding:24px 28px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .card h2{margin:0 0 18px;font-size:14px;color:#FF8C00;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #fef3e2;padding-bottom:10px;display:flex;align-items:center;gap:10px}
+  .status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+  .stat{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px}
+  .stat .label{font-size:10.5px;color:#64748b;text-transform:uppercase;font-weight:700}
+  .stat .num{font-size:22px;font-weight:700;margin-top:6px}
+  .chip{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+  .chip.ok{background:#dcfce7;color:#166534}
+  .chip.err{background:#fef2f2;color:#dc2626}
+  .chip.n{background:#f1f5f9;color:#64748b}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{background:#f8fafc;color:#64748b;font-size:10.5px;text-transform:uppercase;text-align:left;padding:10px}
+  td{padding:9px 10px;border-top:1px solid #f1f5f9}
+  input,textarea{padding:10px 12px;border:1.5px solid #d4dbe5;border-radius:8px;font-family:inherit;font-size:13px;width:100%}
+  input:focus,textarea:focus{outline:none;border-color:#FF8C00}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .toast{position:fixed;bottom:24px;right:24px;background:#1E2D3D;color:#fff;padding:14px 20px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.2);font-size:13px;font-weight:600;display:none;z-index:100}
+  .toast.ok{background:#10b981}.toast.err{background:#dc2626}
+  .mini{font-size:11px;color:#64748b}
+  pre{background:#1E2D3D;color:#e2e8f0;padding:16px;border-radius:10px;font-size:11.5px;max-height:340px;overflow:auto;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div class="top">
+  <i class="fa-solid fa-globe" style="font-size:20px;color:#FF8C00"></i>
+  <h1>Sync URL / Fonti Web</h1>
+  <a href="/admin/" class="btn"><i class="fa-solid fa-arrow-left"></i> Torna al gestionale</a>
+  <button class="btn ok" onclick="runAll()"><i class="fa-solid fa-play"></i> Sync tutte</button>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <h2><i class="fa-solid fa-chart-bar"></i> Stato scheduler</h2>
+    <div id="status"><p class="mini">Caricamento…</p></div>
+  </div>
+
+  <div class="card">
+    <h2><i class="fa-solid fa-list"></i> Log fonti</h2>
+    <div id="log"><p class="mini">Caricamento…</p></div>
+  </div>
+
+  <div class="card">
+    <h2><i class="fa-solid fa-flask"></i> Test URL (HTML → testo)</h2>
+    <div class="row"><input id="tUrl" placeholder="https://…" style="flex:1;min-width:280px"/><button class="btn primary" onclick="doFetch()"><i class="fa-solid fa-download"></i> Scarica e converti</button></div>
+    <div class="row" id="tMeta" style="display:none"></div>
+    <pre id="tOut" style="display:none"></pre>
+  </div>
+
+  <div class="card">
+    <h2><i class="fa-solid fa-code"></i> HTML → testo (manuale)</h2>
+    <textarea id="tHtml" rows="6" placeholder="Incolla HTML..."></textarea>
+    <div style="margin-top:10px;display:flex;gap:10px"><button class="btn primary" onclick="doHtml()">Converti</button></div>
+    <pre id="hOut" style="display:none;margin-top:12px"></pre>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = window.location.origin.replace(/:\d+$/,'') + ':3001/api';
+const token = localStorage.getItem('easywin_token');
+function showToast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'ok');t.style.display='block';setTimeout(()=>t.style.display='none',3500)}
+async function api(path,opts={}){
+  const r = await fetch(API_BASE + path, { ...opts, headers: {'Content-Type':'application/json','Authorization':'Bearer '+token, ...(opts.headers||{})} });
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'HTTP '+r.status)}
+  return r.json();
+}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+async function loadStatus(){
+  try{
+    const s = await api('/sync-url/status');
+    const sched = s.scheduler || {};
+    const f = s.fonti || {};
+    document.getElementById('status').innerHTML = `<div class="status-grid">
+      <div class="stat"><div class="label">Fonti totali</div><div class="num">${f.totali||0}</div></div>
+      <div class="stat"><div class="label">Fonti attive</div><div class="num">${f.attive||0}</div></div>
+      <div class="stat"><div class="label">Fonti in errore</div><div class="num" style="color:#dc2626">${f.in_errore||0}</div></div>
+      <div class="stat"><div class="label">Intervallo sync</div><div class="num">${s.intervallo_minuti||10} min</div></div>
+      <div class="stat"><div class="label">Ultima esecuzione</div><div class="num" style="font-size:13px">${sched.data_ultima_esecuzione ? new Date(sched.data_ultima_esecuzione).toLocaleString('it-IT') : '—'}</div></div>
+      <div class="stat"><div class="label">Stato</div><div class="num" style="font-size:13px">${sched.stato_ultima_esecuzione ? `<span class="chip ${sched.stato_ultima_esecuzione==='errore'?'err':'ok'}">${sched.stato_ultima_esecuzione}</span>` : '<span class="chip n">mai</span>'}</div></div>
+    </div>`;
+  }catch(e){ document.getElementById('status').innerHTML='<p class="mini" style="color:#dc2626">'+e.message+'</p>' }
+}
+async function loadLog(){
+  try{
+    const s = await api('/sync-url/log?limit=100');
+    if (s.log.length===0){ document.getElementById('log').innerHTML='<p class="mini">Nessuna fonte configurata.</p>'; return; }
+    let html = '<table><thead><tr><th>ID</th><th>Nome</th><th>URL</th><th>Intervallo</th><th>Ultimo controllo</th><th>Errore</th><th>Azione</th></tr></thead><tbody>';
+    s.log.forEach(r => {
+      html += `<tr>
+        <td>${r.id}</td>
+        <td>${esc(r.nome||'')}</td>
+        <td><a href="${r.url}" target="_blank" rel="noopener" style="color:#3b82f6">${esc((r.url||'').slice(0,60))}${(r.url||'').length>60?'…':''}</a></td>
+        <td>${r.intervallo_minuti||'—'} min</td>
+        <td>${r.ultimo_controllo ? new Date(r.ultimo_controllo).toLocaleString('it-IT') : '—'}</td>
+        <td>${r.ultimo_errore ? `<span class="chip err" title="${esc(r.ultimo_errore)}">errore</span>` : (r.attiva?'<span class="chip ok">ok</span>':'<span class="chip n">off</span>')}</td>
+        <td><button class="btn primary" style="padding:4px 8px;font-size:11px" onclick="runOne(${r.id})"><i class="fa-solid fa-play"></i></button></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('log').innerHTML = html;
+  }catch(e){ document.getElementById('log').innerHTML='<p class="mini" style="color:#dc2626">'+e.message+'</p>' }
+}
+async function runAll(){
+  try{ const r = await api('/sync-url/run',{method:'POST'}); showToast('Sync avviata: '+(r.synced||0)+' ok, '+(r.errors||0)+' errori'); loadStatus(); loadLog(); }
+  catch(e){ showToast('Errore: '+e.message,'err') }
+}
+async function runOne(id){
+  try{ await api('/sync-url/run/'+id,{method:'POST'}); showToast('Sync forzata fonte '+id); loadStatus(); loadLog(); }
+  catch(e){ showToast('Errore: '+e.message,'err') }
+}
+async function doFetch(){
+  const url = document.getElementById('tUrl').value.trim();
+  if(!url) return;
+  try{
+    const r = await api('/sync-url/fetch?url='+encodeURIComponent(url));
+    document.getElementById('tMeta').style.display='flex';
+    document.getElementById('tMeta').innerHTML = `<span class="chip ok">HTTP ${r.status}</span> <span class="mini">${esc(r.content_type||'')}</span> <span class="mini">HTML: ${r.html_length} char · Testo: ${r.text_length} char</span>`;
+    document.getElementById('tOut').style.display='block';
+    document.getElementById('tOut').textContent = r.text_preview || '';
+  }catch(e){ showToast('Errore fetch: '+e.message,'err') }
+}
+async function doHtml(){
+  const html = document.getElementById('tHtml').value;
+  if(!html) return;
+  try{
+    const r = await api('/sync-url/html-to-text',{method:'POST',body:JSON.stringify({html})});
+    document.getElementById('hOut').style.display='block';
+    document.getElementById('hOut').textContent = r.text || '';
+    showToast('Convertiti '+r.length+' caratteri');
+  }catch(e){ showToast('Errore: '+e.message,'err') }
+}
+
+loadStatus();
+loadLog();
+</script>
+</body>
+</html>

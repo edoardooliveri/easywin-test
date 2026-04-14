@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stazione Appaltante — EasyWin</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; font-family: 'Comfortaa', cursive; background: #f5f7fa; color: #1E2D3D; }
+  .bp-top {
+    background: linear-gradient(135deg, #1E2D3D, #2c3e50); color: #fff; padding: 14px 24px;
+    display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .bp-top h1 { font-size: 16px; margin: 0; font-weight: 700; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bp-mode-badge { background: #FF8C00; color: #fff; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .bp-mode-badge.edit { background: #E91E63; }
+  .bp-btn {
+    background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+  }
+  .bp-btn:hover { background: rgba(255,255,255,0.22); }
+  .bp-btn.primary { background: #FF8C00; border-color: #FF8C00; }
+  .bp-btn.success { background: #10b981; border-color: #10b981; }
+  .bp-btn.danger { background: #dc2626; border-color: #dc2626; }
+
+  .bp-wrap { max-width: 1280px; margin: 24px auto; padding: 0 24px 60px; }
+  .bp-card { background: #fff; border-radius: 12px; padding: 24px 28px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .bp-card h2 {
+    margin: 0 0 18px; font-size: 14px; color: #FF8C00; text-transform: uppercase;
+    letter-spacing: 0.5px; border-bottom: 2px solid #fef3e2; padding-bottom: 10px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .bp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px 24px; }
+  .bp-field { display: flex; flex-direction: column; }
+  .bp-field label { font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+  .bp-field .val { font-size: 14px; color: #1E2D3D; font-weight: 600; padding: 8px 0; min-height: 20px; word-break: break-word; }
+  .bp-field input, .bp-field textarea, .bp-field select {
+    padding: 9px 12px; border: 1.5px solid #d4dbe5; border-radius: 8px;
+    font-family: inherit; font-size: 13px; background: #fff; color: #1E2D3D; width: 100%;
+  }
+  .bp-field input:focus, .bp-field textarea:focus, .bp-field select:focus { outline: none; border-color: #FF8C00; box-shadow: 0 0 0 3px rgba(255,140,0,0.12); }
+  .bp-field textarea { resize: vertical; min-height: 80px; }
+  .bp-field.span-2 { grid-column: span 2; }
+  .bp-field.span-full { grid-column: 1 / -1; }
+
+  .bp-chip { display: inline-block; padding: 3px 10px; background: #fef3e2; color: #FF8C00; border-radius: 10px; font-size: 11px; font-weight: 700; margin-right: 6px; }
+  .bp-loading, .bp-error { text-align: center; padding: 80px 20px; color: #64748b; font-size: 14px; }
+  .bp-error { color: #dc2626; }
+  .bp-toast { position: fixed; bottom: 24px; right: 24px; background: #1E2D3D; color: #fff; padding: 14px 20px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); font-size: 13px; font-weight: 600; display: none; z-index: 100; max-width: 360px; }
+  .bp-toast.ok { background: #10b981; }
+  .bp-toast.err { background: #dc2626; }
+
+  table.bp-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+  table.bp-table th { background: #f8fafc; color: #64748b; font-size: 10.5px; text-transform: uppercase; text-align: left; padding: 10px 12px; }
+  table.bp-table td { padding: 10px 12px; border-top: 1px solid #f1f5f9; }
+  table.bp-table tr:hover td { background: #fefce8; }
+
+  .sub-add { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; align-items: end; }
+  .sub-add input, .sub-add select { padding: 7px 10px; border: 1.5px solid #d4dbe5; border-radius: 8px; font-family: inherit; font-size: 12px; }
+  .sub-add input:focus { outline: none; border-color: #FF8C00; }
+  .sub-add button { padding: 7px 12px; border: none; border-radius: 8px; background: #10b981; color: #fff; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+
+  .action-btns button { padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 700; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="bp-top">
+  <a href="/admin/#stazioni" class="bp-btn"><i class="fas fa-arrow-left"></i> Torna alle stazioni</a>
+  <h1 id="bp-title">Caricamento stazione...</h1>
+  <span id="bp-mode-badge" class="bp-mode-badge">VISUALIZZA</span>
+  <button id="bp-save-btn" class="bp-btn success" style="display:none" onclick="saveStazione()"><i class="fas fa-save"></i> Salva modifiche</button>
+  <button class="bp-btn" onclick="window.print()"><i class="fas fa-print"></i> Stampa</button>
+</div>
+
+<div class="bp-wrap">
+  <div id="bp-content">
+    <div class="bp-loading"><i class="fas fa-spinner fa-spin"></i><div>Caricamento stazione in corso...</div></div>
+  </div>
+</div>
+
+<div id="bp-toast" class="bp-toast"></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const STAZ_ID = params.get('id');
+const MODE = (params.get('mode') || 'view').toLowerCase();
+const IS_EDIT = MODE === 'edit';
+const API_BASE = '/api';
+const STAZ_BASE = API_BASE + '/admin/stazioni/stazioni';
+
+function tok() { return localStorage.getItem('easywin_token') || localStorage.getItem('auth_token') || localStorage.getItem('token'); }
+function authHeaders() { const t = tok(); return t ? { 'Authorization': 'Bearer ' + t } : {}; }
+
+// Auth guard: se non c'è token o è scaduto, torna al login
+(function() {
+  var t = tok();
+  if (!t) { location.replace('/index.html'); return; }
+  try {
+    var parts = t.split('.');
+    if (parts.length === 3) {
+      var payload = JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
+      if (payload && payload.exp && Date.now() / 1000 > payload.exp) {
+        localStorage.removeItem('easywin_token');
+        localStorage.removeItem('auth_token');
+        location.replace('/index.html');
+        return;
+      }
+    }
+  } catch(e) { location.replace('/index.html'); }
+})();
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+function fmtDate(d) {
+  if (!d) return '\u2014';
+  try { return new Date(d).toLocaleString('it-IT', { day:'2-digit', month:'2-digit', year:'numeric' }); } catch(e) { return String(d); }
+}
+function fmtImporto(v) {
+  if (v == null || v === '') return '\u2014';
+  const n = Number(v); if (!isFinite(n)) return String(v);
+  return '\u20AC ' + n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function toInputDate(d) {
+  if (!d) return '';
+  const dt = new Date(d); if (isNaN(dt.getTime())) return '';
+  const p = n => String(n).padStart(2,'0');
+  return dt.getFullYear() + '-' + p(dt.getMonth()+1) + '-' + p(dt.getDate());
+}
+function toast(msg, kind) {
+  const t = document.getElementById('bp-toast');
+  t.textContent = msg; t.className = 'bp-toast ' + (kind||'');
+  t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 4000);
+}
+
+function field(label, value, opts) {
+  opts = opts || {};
+  const span = opts.span === 2 ? 'span-2' : (opts.span === 'full' ? 'span-full' : '');
+  if (IS_EDIT && opts.name) {
+    const type = opts.type || 'text';
+    const v = value == null ? '' : value;
+    if (type === 'textarea') return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><textarea name="' + esc(opts.name) + '">' + esc(v) + '</textarea></div>';
+    if (type === 'date') return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><input type="date" name="' + esc(opts.name) + '" value="' + esc(toInputDate(v)) + '"></div>';
+    if (type === 'select' && opts.options) {
+      let h = '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><select name="' + esc(opts.name) + '">';
+      h += '<option value="">\u2014</option>';
+      opts.options.forEach(o => { h += '<option value="' + esc(o.value) + '"' + (String(o.value) === String(v) ? ' selected' : '') + '>' + esc(o.label) + '</option>'; });
+      h += '</select></div>';
+      return h;
+    }
+    return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><input type="' + esc(type) + '" name="' + esc(opts.name) + '" value="' + esc(v) + '"></div>';
+  }
+  return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><div class="val">' + (opts.html ? value : esc(value ?? '\u2014')) + '</div></div>';
+}
+
+let _province = [];
+
+async function loadStazione() {
+  if (!STAZ_ID) { document.getElementById('bp-content').innerHTML = '<div class="bp-error"><i class="fas fa-exclamation-triangle"></i> ID stazione mancante</div>'; return; }
+  if (IS_EDIT) {
+    document.getElementById('bp-mode-badge').classList.add('edit');
+    document.getElementById('bp-mode-badge').textContent = 'MODIFICA';
+    document.getElementById('bp-save-btn').style.display = 'inline-flex';
+    // Pre-load province for select
+    try {
+      const pr = await fetch(API_BASE + '/province', { headers: authHeaders() });
+      if (pr.ok) { const d = await pr.json(); _province = Array.isArray(d) ? d : (d.data || []); }
+    } catch(e) {}
+  }
+  try {
+    const r = await fetch(STAZ_BASE + '/' + encodeURIComponent(STAZ_ID), { headers: authHeaders() });
+    if (r.status === 401) { location.replace('/index.html'); return; }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    const s = data.stazione || data;
+    s.personale = data.personale || [];
+    s.iscrizioni = data.iscrizioni || [];
+    s.bandi_recenti = data.bandi_recenti || [];
+    s.esiti_recenti = data.esiti_recenti || [];
+    s.n_fonti_web = data.n_fonti_web || 0;
+    window.__stazione = s;
+    render(s);
+    // Load fonti web in parallelo
+    loadFontiWeb();
+  } catch (e) {
+    const hasToken = !!tok();
+    document.getElementById('bp-content').innerHTML = '<div class="bp-error"><i class="fas fa-exclamation-triangle"></i> Errore: ' + esc(e.message) + (hasToken ? '' : ' (token assente — <a href="/index.html">vai al login</a>)') + '</div>';
+  }
+}
+
+function render(s) {
+  const nome = s.RagioneSociale || s.Nome || s.nome || s.ragione_sociale || '';
+  document.getElementById('bp-title').textContent = nome.substring(0, 100) || 'Stazione';
+  document.title = 'Stazione: ' + nome.substring(0, 80);
+
+  let chips = '';
+  const obsoleta = s.Obsoleta || s.obsoleta;
+  const attivo = s.attivo;
+  if (attivo === false || obsoleta === true) chips += '<span class="bp-chip" style="background:#fee2e2;color:#dc2626">OBSOLETA</span>';
+  else chips += '<span class="bp-chip" style="background:#d1fae5;color:#065f46">ATTIVA</span>';
+
+  let html = '';
+
+  // 1. Anagrafica
+  html += '<div class="bp-card"><h2><i class="fas fa-landmark"></i> Anagrafica</h2>';
+  html += '<div style="margin-bottom:12px">' + chips + '</div>';
+  html += '<div class="bp-grid">';
+  html += field('Ragione Sociale', nome, { name: 'ragione_sociale', span: 'full' });
+  html += field('Partita IVA', s.PartitaIva || s.partita_iva, { name: 'partita_iva' });
+  html += field('Codice Fiscale', s.cod || s.codice_fiscale, { name: 'codice_fiscale' });
+  html += field('Codice AUSA', s.codice_ausa, { name: 'codice_ausa' });
+  html += '</div></div>';
+
+  // 2. Sede
+  html += '<div class="bp-card"><h2><i class="fas fa-map-marker-alt"></i> Sede</h2><div class="bp-grid">';
+  html += field('Indirizzo', s.Indirizzo || s.indirizzo, { name: 'indirizzo' });
+  html += field('CAP', s.Cap || s.cap, { name: 'cap' });
+  html += field('Citta', s['Citt\u00e0'] || s.citta, { name: 'citta' });
+  if (IS_EDIT && _province.length > 0) {
+    const provOpts = _province.map(p => ({ value: p.id, label: (p.sigla || '') + ' - ' + (p.nome || '') }));
+    html += field('Provincia', s.id_provincia, { name: 'id_provincia', type: 'select', options: provOpts });
+  } else {
+    html += field('Provincia', s.provincia_nome || '');
+  }
+  html += field('Regione', s.regione_nome || '');
+  html += '</div></div>';
+
+  // 3. Contatti
+  html += '<div class="bp-card"><h2><i class="fas fa-phone-alt"></i> Contatti</h2><div class="bp-grid">';
+  html += field('Telefono', s.Tel || s.telefono, { name: 'telefono' });
+  html += field('Fax', s.fax, { name: 'fax' });
+  html += field('Email', s.Email || s.email, { name: 'email' });
+  html += field('PEC', s.pec, { name: 'pec' });
+  html += field('Sito Web', s.sito_web ? '<a href="' + esc(s.sito_web) + '" target="_blank">' + esc(s.sito_web) + '</a>' : '\u2014', { html: true, name: 'sito_web' });
+  html += '</div></div>';
+
+  // 4. Piattaforma digitale
+  html += '<div class="bp-card"><h2><i class="fas fa-laptop-code"></i> Piattaforma digitale</h2><div class="bp-grid">';
+  html += field('Piattaforma', s.piattaforma_nome ? '<span class="bp-chip">' + esc(s.piattaforma_nome) + '</span>' : '\u2014', { html: true });
+  html += field('Link piattaforma', s.piattaforma_link ? '<a href="' + esc(s.piattaforma_link) + '" target="_blank">' + esc(s.piattaforma_link) + '</a>' : '\u2014', { html: true });
+  html += '</div></div>';
+
+  // 5. Stato
+  html += '<div class="bp-card"><h2><i class="fas fa-toggle-on"></i> Stato</h2><div class="bp-grid">';
+  html += field('Note', s.Note || s.note, { name: 'note', type: 'textarea', span: 'full' });
+  html += '</div></div>';
+
+  // 6. Personale
+  const pers = Array.isArray(s.personale) ? s.personale : [];
+  html += '<div class="bp-card"><h2><i class="fas fa-users"></i> Personale (' + pers.length + ')</h2>';
+  if (pers.length > 0) {
+    html += '<table class="bp-table"><thead><tr><th>Nome</th><th>Cognome</th><th>Ruolo</th><th>Email</th><th>Telefono</th>';
+    if (IS_EDIT) html += '<th>Azioni</th>';
+    html += '</tr></thead><tbody>';
+    pers.forEach(p => {
+      html += '<tr><td>' + esc(p.nome || '') + '</td><td>' + esc(p.cognome || '') + '</td><td>' + esc(p.ruolo || '') + '</td><td>' + esc(p.email || '') + '</td><td>' + esc(p.telefono || '') + '</td>';
+      if (IS_EDIT) html += '<td><button style="background:#dc2626" class="action-btns" onclick="deletePersonale(' + p.id + ')"><i class="fas fa-trash" style="font-size:10px;color:#fff"></i></button></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+  } else {
+    html += '<div style="color:#94a3b8;font-size:13px">Nessun personale registrato</div>';
+  }
+  if (IS_EDIT) {
+    html += '<div class="sub-add"><input id="p-nome" placeholder="Nome" style="width:110px"><input id="p-cognome" placeholder="Cognome" style="width:110px"><input id="p-ruolo" placeholder="Ruolo" style="width:110px"><input id="p-email" placeholder="Email" style="width:150px"><input id="p-tel" placeholder="Telefono" style="width:110px"><button onclick="addPersonale()"><i class="fas fa-plus"></i> Aggiungi</button></div>';
+  }
+  html += '</div>';
+
+  // 7. Iscrizioni / Albi Fornitori
+  const iscr = Array.isArray(s.iscrizioni) ? s.iscrizioni : [];
+  html += '<div class="bp-card"><h2><i class="fas fa-clipboard-list"></i> Iscrizioni / Albi Fornitori (' + iscr.length + ')</h2>';
+  if (iscr.length > 0) {
+    html += '<table class="bp-table"><thead><tr><th>Piattaforma</th><th>Tipo</th><th>Scadenza</th><th>Albo Fornitori</th>';
+    if (IS_EDIT) html += '<th>Azioni</th>';
+    html += '</tr></thead><tbody>';
+    iscr.forEach(i => {
+      const alboChip = i.is_albo_fornitori ? '<span class="bp-chip" style="background:#dbeafe;color:#1e40af">SI</span>' : 'NO';
+      html += '<tr><td>' + esc(i.piattaforma_nome || i.nome_piattaforma || '') + '</td><td>' + esc(i.tipo || '') + '</td><td>' + fmtDate(i.scadenza) + '</td><td>' + alboChip + '</td>';
+      if (IS_EDIT) html += '<td><button style="background:#dc2626" class="action-btns" onclick="deleteIscrizione(' + i.id + ')"><i class="fas fa-trash" style="font-size:10px;color:#fff"></i></button></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+  } else {
+    html += '<div style="color:#94a3b8;font-size:13px">Nessuna iscrizione</div>';
+  }
+  if (IS_EDIT) {
+    html += '<div class="sub-add"><input id="is-piatt" placeholder="ID piattaforma" style="width:120px"><input id="is-tipo" placeholder="Tipo" style="width:100px"><input id="is-scad" type="date" style="width:140px"><label style="font-size:12px;display:flex;align-items:center;gap:4px"><input type="checkbox" id="is-albo"> Albo fornitori</label><button onclick="addIscrizione()"><i class="fas fa-plus"></i> Aggiungi</button></div>';
+  }
+  html += '</div>';
+
+  // 8. Bandi recenti
+  const bandi = Array.isArray(s.bandi_recenti) ? s.bandi_recenti : [];
+  html += '<div class="bp-card"><h2><i class="fas fa-gavel"></i> Bandi recenti (' + bandi.length + ')</h2>';
+  if (bandi.length > 0) {
+    html += '<table class="bp-table"><thead><tr><th>Data</th><th>Titolo</th><th>CIG</th><th>Importo</th><th>Scadenza offerta</th></tr></thead><tbody>';
+    bandi.forEach(b => {
+      html += '<tr><td>' + fmtDate(b.data_pubblicazione) + '</td><td>' + esc((b.titolo || '').substring(0, 80)) + '</td><td>' + esc(b.codice_cig || '') + '</td><td>' + fmtImporto(b.importo_so) + '</td><td>' + fmtDate(b.data_offerta) + '</td></tr>';
+    });
+    html += '</tbody></table>';
+  } else {
+    html += '<div style="color:#94a3b8;font-size:13px">Nessun bando recente</div>';
+  }
+  html += '</div>';
+
+  // 9. Esiti recenti
+  const esiti = Array.isArray(s.esiti_recenti) ? s.esiti_recenti : [];
+  html += '<div class="bp-card"><h2><i class="fas fa-trophy"></i> Esiti recenti (' + esiti.length + ')</h2>';
+  if (esiti.length > 0) {
+    html += '<table class="bp-table"><thead><tr><th>Data</th><th>Titolo</th><th>CIG</th><th>Importo</th><th>Partecipanti</th><th>Ribasso %</th></tr></thead><tbody>';
+    esiti.forEach(e => {
+      html += '<tr><td>' + fmtDate(e.data) + '</td><td>' + esc((e.titolo || '').substring(0, 80)) + '</td><td>' + esc(e.codice_cig || '') + '</td><td>' + fmtImporto(e.importo) + '</td><td>' + esc(e.n_partecipanti || 0) + '</td><td>' + esc(e.ribasso ?? '') + '</td></tr>';
+    });
+    html += '</tbody></table>';
+  } else {
+    html += '<div style="color:#94a3b8;font-size:13px">Nessun esito recente</div>';
+  }
+  html += '</div>';
+
+  // 10. Fonti web (loaded async)
+  html += '<div class="bp-card"><h2><i class="fas fa-globe"></i> Fonti Web</h2><div id="fonti-web-content"><div style="color:#94a3b8;font-size:13px">Caricamento...</div></div></div>';
+
+  // 11. Metadata
+  html += '<div class="bp-card"><h2><i class="fas fa-fingerprint"></i> Metadata</h2><div class="bp-grid">';
+  html += field('ID stazione', s.id);
+  html += field('N. fonti web', s.n_fonti_web || 0);
+  html += field('Creato', fmtDate(s.created_at));
+  html += field('Ultima modifica', fmtDate(s.updated_at));
+  html += '</div></div>';
+
+  document.getElementById('bp-content').innerHTML = IS_EDIT ? '<form id="bp-form" onsubmit="event.preventDefault();saveStazione()">' + html + '</form>' : html;
+}
+
+async function loadFontiWeb() {
+  try {
+    const r = await fetch(STAZ_BASE + '/' + encodeURIComponent(STAZ_ID) + '/fonti-web', { headers: authHeaders() });
+    if (!r.ok) { document.getElementById('fonti-web-content').textContent = 'Non disponibile'; return; }
+    const data = await r.json();
+    const list = Array.isArray(data) ? data : (data.data || []);
+    const el = document.getElementById('fonti-web-content');
+    if (!el) return;
+    if (list.length === 0 && !IS_EDIT) { el.textContent = 'Nessuna fonte web'; return; }
+    let h = '';
+    if (list.length > 0) {
+      h += '<table class="bp-table"><thead><tr><th>URL</th><th>Tipo</th><th>Descrizione</th>';
+      if (IS_EDIT) h += '<th>Azioni</th>';
+      h += '</tr></thead><tbody>';
+      list.forEach(f => {
+        h += '<tr><td><a href="' + esc(f.url || '') + '" target="_blank" style="color:#2196F3;font-size:12px">' + esc((f.url || '').substring(0, 60)) + '</a></td>';
+        h += '<td>' + esc(f.tipo || '') + '</td><td>' + esc(f.descrizione || '') + '</td>';
+        if (IS_EDIT) h += '<td><button style="background:#dc2626" class="action-btns" onclick="deleteFonteWeb(' + f.id + ')"><i class="fas fa-trash" style="font-size:10px;color:#fff"></i></button></td>';
+        h += '</tr>';
+      });
+      h += '</tbody></table>';
+    }
+    if (IS_EDIT) {
+      h += '<div class="sub-add"><input id="fw-url" placeholder="URL" style="flex:2;min-width:200px"><input id="fw-tipo" placeholder="Tipo" style="width:100px"><input id="fw-desc" placeholder="Descrizione" style="flex:1"><button onclick="addFonteWeb()"><i class="fas fa-plus"></i> Aggiungi</button></div>';
+    }
+    el.innerHTML = h;
+  } catch (e) {
+    const el = document.getElementById('fonti-web-content');
+    if (el) el.textContent = 'Errore caricamento fonti web';
+  }
+}
+
+// CRUD Personale
+async function addPersonale() {
+  const body = { nome: document.getElementById('p-nome').value, cognome: document.getElementById('p-cognome').value || null, ruolo: document.getElementById('p-ruolo').value || null, email: document.getElementById('p-email').value || null, telefono: document.getElementById('p-tel').value || null };
+  if (!body.nome) { toast('Inserisci il nome', 'err'); return; }
+  try {
+    const r = await fetch(STAZ_BASE + '/' + STAZ_ID + '/personale', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) });
+    if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+    toast('Personale aggiunto', 'ok'); loadStazione();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+async function deletePersonale(id) {
+  if (!confirm('Eliminare personale?')) return;
+  try {
+    const r = await fetch(STAZ_BASE + '/personale/' + id, { method: 'DELETE', headers: authHeaders() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    toast('Personale eliminato', 'ok'); loadStazione();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+// CRUD Iscrizioni
+async function addIscrizione() {
+  const body = { id_piattaforma: parseInt(document.getElementById('is-piatt').value) || null, tipo: document.getElementById('is-tipo').value || null, scadenza: document.getElementById('is-scad').value || null, is_albo_fornitori: document.getElementById('is-albo').checked };
+  if (!body.id_piattaforma) { toast('Inserisci ID piattaforma', 'err'); return; }
+  try {
+    const r = await fetch(STAZ_BASE + '/' + STAZ_ID + '/iscrizioni', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) });
+    if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+    toast('Iscrizione aggiunta', 'ok'); loadStazione();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+async function deleteIscrizione(id) {
+  if (!confirm('Eliminare iscrizione?')) return;
+  try {
+    const r = await fetch(STAZ_BASE + '/iscrizioni/' + id, { method: 'DELETE', headers: authHeaders() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    toast('Iscrizione eliminata', 'ok'); loadStazione();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+// CRUD Fonti Web
+async function addFonteWeb() {
+  const body = { url: document.getElementById('fw-url').value, tipo: document.getElementById('fw-tipo').value || null, descrizione: document.getElementById('fw-desc').value || null };
+  if (!body.url) { toast('Inserisci URL', 'err'); return; }
+  try {
+    const r = await fetch(STAZ_BASE + '/' + STAZ_ID + '/fonti-web', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) });
+    if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+    toast('Fonte web aggiunta', 'ok'); loadFontiWeb();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+async function deleteFonteWeb(id) {
+  if (!confirm('Eliminare fonte web?')) return;
+  try {
+    const r = await fetch(STAZ_BASE + '/fonti-web/' + id, { method: 'DELETE', headers: authHeaders() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    toast('Fonte web eliminata', 'ok'); loadFontiWeb();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+// Save
+async function saveStazione() {
+  const form = document.getElementById('bp-form');
+  if (!form) return;
+  const payload = {};
+  Array.from(form.elements).forEach(el => {
+    if (!el.name) return;
+    let v = el.value;
+    if (el.type === 'number') v = v === '' ? null : Number(v);
+    if (v === '') v = null;
+    payload[el.name] = v;
+  });
+  try {
+    const r = await fetch(STAZ_BASE + '/' + encodeURIComponent(STAZ_ID), {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+    toast('Stazione salvata con successo', 'ok');
+    setTimeout(loadStazione, 900);
+  } catch (e) { toast('Errore salvataggio: ' + e.message, 'err'); }
+}
+
+loadStazione();
+</script>
+</body>
+</html>

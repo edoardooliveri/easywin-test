@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azienda — EasyWin</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; font-family: 'Comfortaa', cursive; background: #f5f7fa; color: #1E2D3D; }
+  .bp-top {
+    background: linear-gradient(135deg, #1E2D3D, #2c3e50); color: #fff; padding: 14px 24px;
+    display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .bp-top h1 { font-size: 16px; margin: 0; font-weight: 700; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bp-mode-badge { background: #FF8C00; color: #fff; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .bp-mode-badge.edit { background: #E91E63; }
+  .bp-btn {
+    background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+  }
+  .bp-btn:hover { background: rgba(255,255,255,0.22); }
+  .bp-btn.primary { background: #FF8C00; border-color: #FF8C00; }
+  .bp-btn.success { background: #10b981; border-color: #10b981; }
+  .bp-btn.danger { background: #dc2626; border-color: #dc2626; }
+
+  .bp-wrap { max-width: 1280px; margin: 24px auto; padding: 0 24px 60px; }
+  .bp-card { background: #fff; border-radius: 12px; padding: 24px 28px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .bp-card h2 { margin: 0 0 18px; font-size: 14px; color: #FF8C00; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #fef3e2; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+  .bp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px 24px; }
+  .bp-field { display: flex; flex-direction: column; }
+  .bp-field label { font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+  .bp-field .val { font-size: 14px; color: #1E2D3D; font-weight: 600; padding: 8px 0; min-height: 20px; word-break: break-word; }
+  .bp-field input, .bp-field textarea, .bp-field select {
+    padding: 9px 12px; border: 1.5px solid #d4dbe5; border-radius: 8px;
+    font-family: inherit; font-size: 13px; background: #fff; color: #1E2D3D; width: 100%;
+  }
+  .bp-field input:focus, .bp-field textarea:focus, .bp-field select:focus { outline: none; border-color: #FF8C00; box-shadow: 0 0 0 3px rgba(255,140,0,0.12); }
+  .bp-field textarea { resize: vertical; min-height: 80px; }
+  .bp-field.span-2 { grid-column: span 2; }
+  .bp-field.span-full { grid-column: 1 / -1; }
+
+  .bp-chip { display: inline-block; padding: 3px 10px; background: #fef3e2; color: #FF8C00; border-radius: 10px; font-size: 11px; font-weight: 700; margin-right: 6px; }
+
+  .bp-loading, .bp-error { text-align: center; padding: 80px 20px; color: #64748b; font-size: 14px; }
+  .bp-error { color: #dc2626; }
+  .bp-toast { position: fixed; bottom: 24px; right: 24px; background: #1E2D3D; color: #fff; padding: 14px 20px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); font-size: 13px; font-weight: 600; display: none; z-index: 100; max-width: 360px; }
+  .bp-toast.ok { background: #10b981; }
+  .bp-toast.err { background: #dc2626; }
+
+  table.bp-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+  table.bp-table th { background: #f8fafc; color: #64748b; font-size: 10.5px; text-transform: uppercase; text-align: left; padding: 10px 12px; }
+  table.bp-table td { padding: 10px 12px; border-top: 1px solid #f1f5f9; }
+  table.bp-table tr:hover td { background: #fefce8; }
+
+  .sub-add { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .sub-add input, .sub-add select { padding: 7px 10px; border: 1.5px solid #d4dbe5; border-radius: 8px; font-family: inherit; font-size: 12px; }
+  .sub-add input:focus { outline: none; border-color: #FF8C00; }
+  .sub-add button { padding: 7px 12px; border: none; border-radius: 8px; background: #10b981; color: #fff; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+  .action-btns { display: flex; gap: 4px; }
+  .action-btns button { padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 700; color: #fff; }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .stat-box { background: #f8fafc; border-radius: 10px; padding: 16px; text-align: center; }
+  .stat-box .num { font-size: 28px; font-weight: 700; color: #FF8C00; }
+  .stat-box .lbl { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="bp-top">
+  <a href="/admin/#aziende" class="bp-btn"><i class="fas fa-arrow-left"></i> Torna alle aziende</a>
+  <h1 id="bp-title">Caricamento azienda...</h1>
+  <span id="bp-mode-badge" class="bp-mode-badge">VISUALIZZA</span>
+  <button id="bp-save-btn" class="bp-btn success" style="display:none" onclick="saveAzienda()"><i class="fas fa-save"></i> Salva modifiche</button>
+  <button class="bp-btn" onclick="window.print()"><i class="fas fa-print"></i> Stampa</button>
+</div>
+
+<div class="bp-wrap">
+  <div id="bp-content">
+    <div class="bp-loading"><i class="fas fa-spinner fa-spin"></i><div>Caricamento azienda in corso...</div></div>
+  </div>
+</div>
+
+<div id="bp-toast" class="bp-toast"></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const AZ_ID = params.get('id');
+const MODE = (params.get('mode') || 'view').toLowerCase();
+const IS_EDIT = MODE === 'edit';
+const API_BASE = '/api';
+
+function tok() { return localStorage.getItem('easywin_token') || localStorage.getItem('auth_token') || localStorage.getItem('token'); }
+function authHeaders() { const t = tok(); return t ? { 'Authorization': 'Bearer ' + t } : {}; }
+
+// Auth guard: se non c'è token o è scaduto, torna al login
+(function() {
+  var t = tok();
+  if (!t) { location.replace('/index.html'); return; }
+  try {
+    var parts = t.split('.');
+    if (parts.length === 3) {
+      var payload = JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
+      if (payload && payload.exp && Date.now() / 1000 > payload.exp) {
+        localStorage.removeItem('easywin_token');
+        localStorage.removeItem('auth_token');
+        location.replace('/index.html');
+        return;
+      }
+    }
+  } catch(e) { location.replace('/index.html'); }
+})();
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+function fmtDate(d) { if (!d) return '\u2014'; try { return new Date(d).toLocaleString('it-IT', { day:'2-digit', month:'2-digit', year:'numeric' }); } catch(e) { return String(d); } }
+function fmtImporto(v) { if (v == null || v === '') return '\u2014'; const n = Number(v); if (!isFinite(n)) return String(v); return '\u20AC ' + n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function toInputDate(d) { if (!d) return ''; const dt = new Date(d); if (isNaN(dt.getTime())) return ''; const p = n => String(n).padStart(2,'0'); return dt.getFullYear() + '-' + p(dt.getMonth()+1) + '-' + p(dt.getDate()); }
+function toast(msg, kind) { const t = document.getElementById('bp-toast'); t.textContent = msg; t.className = 'bp-toast '+(kind||''); t.style.display = 'block'; setTimeout(()=>{t.style.display='none';}, 4000); }
+
+function field(label, value, opts) {
+  opts = opts || {};
+  const span = opts.span === 2 ? 'span-2' : (opts.span === 'full' ? 'span-full' : '');
+  if (IS_EDIT && opts.name) {
+    const type = opts.type || 'text';
+    const v = value == null ? '' : value;
+    if (type === 'textarea') return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><textarea name="' + esc(opts.name) + '">' + esc(v) + '</textarea></div>';
+    if (type === 'date') return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><input type="date" name="' + esc(opts.name) + '" value="' + esc(toInputDate(v)) + '"></div>';
+    return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><input type="' + esc(type) + '" name="' + esc(opts.name) + '" value="' + esc(v) + '"></div>';
+  }
+  return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><div class="val">' + (opts.html ? value : esc(value ?? '\u2014')) + '</div></div>';
+}
+
+async function loadAzienda() {
+  if (!AZ_ID) { document.getElementById('bp-content').innerHTML = '<div class="bp-error"><i class="fas fa-exclamation-triangle"></i> ID azienda mancante</div>'; return; }
+  if (IS_EDIT) {
+    document.getElementById('bp-mode-badge').classList.add('edit');
+    document.getElementById('bp-mode-badge').textContent = 'MODIFICA';
+    document.getElementById('bp-save-btn').style.display = 'inline-flex';
+  }
+  try {
+    const r = await fetch(API_BASE + '/admin/aziende/' + encodeURIComponent(AZ_ID), { headers: authHeaders() });
+    if (r.status === 401) { location.replace('/index.html'); return; }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    const a = data.azienda || data;
+    a.attestazioni = data.attestazioni || [];
+    a.personale = data.personale || [];
+    a.note_list = data.note || [];
+    a.eventi = data.eventi || [];
+    a.gare_recenti = data.gare_recenti || [];
+    a.consorzi = data.consorzi || [];
+    window.__azienda = a;
+    render(a);
+    // ATI in parallelo (endpoint separato)
+    fetch(API_BASE + '/admin/aziende/' + encodeURIComponent(AZ_ID) + '/ati', { headers: authHeaders() })
+      .then(res => res.ok ? res.json() : [])
+      .then(list => { a.ati = Array.isArray(list) ? list : (list.ati || []); render(a); })
+      .catch(() => {});
+    loadStats();
+  } catch (e) {
+    const hasToken = !!tok();
+    document.getElementById('bp-content').innerHTML = '<div class="bp-error"><i class="fas fa-exclamation-triangle"></i> Errore: ' + esc(e.message) + (hasToken ? '' : ' (token assente — <a href="/index.html">vai al login</a>)') + '</div>';
+  }
+}
+
+function render(a) {
+  document.getElementById('bp-title').textContent = (a.ragione_sociale || 'Azienda').substring(0, 100);
+  document.title = 'Azienda: ' + (a.ragione_sociale || a.id || '').substring(0, 80);
+
+  let chips = '';
+  if (a.attivo === false || a.attivo === 0) chips += '<span class="bp-chip" style="background:#fee2e2;color:#dc2626">NON ATTIVO</span>';
+  else chips += '<span class="bp-chip" style="background:#d1fae5;color:#065f46">ATTIVO</span>';
+  if (a.non_interessata) chips += '<span class="bp-chip" style="background:#fef3c7;color:#92400e">NON INTERESSATA</span>';
+  if (a.eliminata) chips += '<span class="bp-chip" style="background:#fee2e2;color:#dc2626">ELIMINATA</span>';
+
+  let html = '';
+
+  // Anagrafica
+  html += '<div class="bp-card"><h2><i class="fas fa-building"></i> Anagrafica</h2>';
+  html += '<div style="margin-bottom:12px">' + chips + '</div>';
+  html += '<div class="bp-grid">';
+  html += field('Ragione sociale', a.ragione_sociale, { name: 'ragione_sociale', span: 'full' });
+  html += field('Partita IVA', a.partita_iva, { name: 'partita_iva' });
+  html += field('Codice Fiscale', a.codice_fiscale, { name: 'codice_fiscale' });
+  html += field('Forma giuridica', a.forma_giuridica, { name: 'forma_giuridica' });
+  html += '</div></div>';
+
+  // Sede
+  html += '<div class="bp-card"><h2><i class="fas fa-map-marker-alt"></i> Sede</h2><div class="bp-grid">';
+  html += field('Indirizzo', a.indirizzo, { name: 'indirizzo' });
+  html += field('CAP', a.cap, { name: 'cap' });
+  html += field('Citta', a.citta, { name: 'citta' });
+  html += field('Provincia', a.provincia_nome || '');
+  html += field('Regione', a.regione_nome || '');
+  html += '</div></div>';
+
+  // Contatti
+  html += '<div class="bp-card"><h2><i class="fas fa-phone-alt"></i> Contatti</h2><div class="bp-grid">';
+  html += field('Telefono', a.tel || a.telefono, { name: 'tel' });
+  html += field('Fax', a.fax, { name: 'fax' });
+  html += field('Email', a.email, { name: 'email' });
+  html += field('PEC', a.indirizzo_pec || a.pec, { name: 'indirizzo_pec' });
+  html += field('Sito Web', a.sito_web ? '<a href="' + esc(a.sito_web) + '" target="_blank">' + esc(a.sito_web) + '</a>' : '\u2014', { html: true, name: 'sito_web' });
+  html += '</div></div>';
+
+  // Referente
+  html += '<div class="bp-card"><h2><i class="fas fa-user-tie"></i> Referente</h2><div class="bp-grid">';
+  html += field('Nome referente', a.referente_nome, { name: 'referente_nome' });
+  html += field('Cognome referente', a.referente_cognome, { name: 'referente_cognome' });
+  html += field('Telefono referente', a.referente_telefono, { name: 'referente_telefono' });
+  html += field('Email referente', a.referente_email, { name: 'referente_email' });
+  html += '</div></div>';
+
+  // Stato
+  html += '<div class="bp-card"><h2><i class="fas fa-toggle-on"></i> Stato</h2><div class="bp-grid">';
+  html += field('Note', a.note, { name: 'note', type: 'textarea', span: 'full' });
+  html += '</div></div>';
+
+  // Attestazioni SOA
+  const att = Array.isArray(a.attestazioni) ? a.attestazioni : [];
+  html += '<div class="bp-card"><h2><i class="fas fa-certificate"></i> Attestazioni SOA (' + att.length + ')</h2>';
+  if (att.length > 0) {
+    html += '<table class="bp-table"><thead><tr><th>Codice SOA</th><th>Descrizione</th><th>Classifica</th><th>Scadenza</th><th>Organismo</th>';
+    if (IS_EDIT) html += '<th>Azioni</th>';
+    html += '</tr></thead><tbody>';
+    att.forEach(at => {
+      html += '<tr><td><strong>' + esc(at.codice_soa || '') + '</strong></td>';
+      html += '<td>' + esc(at.descrizione_soa || '') + '</td>';
+      html += '<td>' + esc(at.classifica || '') + '</td>';
+      html += '<td>' + fmtDate(at.data_scadenza) + '</td>';
+      html += '<td>' + esc(at.organismo || '') + '</td>';
+      if (IS_EDIT) html += '<td><button style="background:#dc2626;padding:4px 8px;border:none;border-radius:4px;cursor:pointer;color:#fff;font-size:11px;font-weight:700" onclick="deleteAttestazione(' + at.id + ')"><i class="fas fa-trash"></i></button></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+  } else {
+    html += '<div style="color:#94a3b8;font-size:13px">Nessuna attestazione SOA</div>';
+  }
+  if (IS_EDIT) {
+    html += '<div class="sub-add" id="att-add"><input id="att-soa" placeholder="ID SOA" style="width:80px"><input id="att-class" placeholder="Classifica" style="width:100px"><input id="att-org" placeholder="Organismo" style="width:140px"><input id="att-scad" type="date" style="width:140px"><button onclick="addAttestazione()"><i class="fas fa-plus"></i> Aggiungi</button></div>';
+  }
+  html += '</div>';
+
+  // Personale
+  const pers = Array.isArray(a.personale) ? a.personale : [];
+  html += '<div class="bp-card"><h2><i class="fas fa-users"></i> Personale (' + pers.length + ')</h2>';
+  if (pers.length > 0) {
+    html += '<table class="bp-table"><thead><tr><th>Nome</th><th>Cognome</th><th>Ruolo</th><th>Email</th><th>Telefono</th>';
+    if (IS_EDIT) html += '<th>Azioni</th>';
+    html += '</tr></thead><tbody>';
+    pers.forEach(p => {
+      html += '<tr><td>' + esc(p.nome || '') + '</td><td>' + esc(p.cognome || '') + '</td><td>' + esc(p.ruolo || '') + '</td><td>' + esc(p.email || '') + '</td><td>' + esc(p.telefono || '') + '</td>';
+      if (IS_EDIT) html += '<td><button style="background:#dc2626;padding:4px 8px;border:none;border-radius:4px;cursor:pointer;color:#fff;font-size:11px;font-weight:700" onclick="deletePersonale(' + p.id + ')"><i class="fas fa-trash"></i></button></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+  } else {
+    html += '<div style="color:#94a3b8;font-size:13px">Nessun personale registrato</div>';
+  }
+  if (IS_EDIT) {
+    html += '<div class="sub-add"><input id="pers-nome" placeholder="Nome" style="width:120px"><input id="pers-cognome" placeholder="Cognome" style="width:120px"><input id="pers-ruolo" placeholder="Ruolo" style="width:120px"><input id="pers-email" placeholder="Email" style="width:160px"><button onclick="addPersonale()"><i class="fas fa-plus"></i> Aggiungi</button></div>';
+  }
+  html += '</div>';
+
+  // Note azienda
+  const noteList = Array.isArray(a.note_list || a.note_azienda) ? (a.note_list || a.note_azienda) : [];
+  html += '<div class="bp-card"><h2><i class="fas fa-sticky-note"></i> Note azienda (' + noteList.length + ')</h2>';
+  html += '<div id="note-list">';
+  if (noteList.length > 0) {
+    noteList.forEach(n => {
+      html += '<div style="padding:10px 14px;background:#f8fafc;border:1px solid #eef1f5;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;gap:12px">';
+      html += '<div style="flex:1;font-size:13px">' + esc(n.testo || '') + '<br><span style="font-size:10px;color:#94a3b8">' + esc(n.username || '') + ' — ' + fmtDate(n.data_inserimento) + '</span></div>';
+      if (IS_EDIT) html += '<button style="background:#dc2626;padding:4px 8px;border:none;border-radius:4px;cursor:pointer;color:#fff;font-size:11px;font-weight:700" onclick="deleteNota(' + n.id + ')"><i class="fas fa-trash"></i></button>';
+      html += '</div>';
+    });
+  } else {
+    html += '<div style="color:#94a3b8;font-size:13px">Nessuna nota</div>';
+  }
+  html += '</div>';
+  if (IS_EDIT) {
+    html += '<div class="sub-add"><input id="nota-testo" placeholder="Scrivi una nota..." style="flex:1"><button onclick="addNota()"><i class="fas fa-plus"></i> Aggiungi</button></div>';
+  }
+  html += '</div>';
+
+  // Eventi
+  const eventiList = Array.isArray(a.eventi) ? a.eventi : [];
+  html += '<div class="bp-card"><h2><i class="fas fa-history"></i> Eventi (' + eventiList.length + ')</h2>';
+  if (eventiList.length > 0) {
+    html += '<table class="bp-table"><thead><tr><th>Tipo</th><th>Descrizione</th><th>Data</th><th>Utente</th>';
+    if (IS_EDIT) html += '<th>Azioni</th>';
+    html += '</tr></thead><tbody>';
+    eventiList.forEach(ev => {
+      html += '<tr><td><span class="bp-chip">' + esc(ev.tipo || '') + '</span></td><td>' + esc(ev.descrizione || '') + '</td><td>' + fmtDate(ev.data || ev.data_inserimento) + '</td><td>' + esc(ev.username || '') + '</td>';
+      if (IS_EDIT) html += '<td><button style="background:#dc2626;padding:4px 8px;border:none;border-radius:4px;cursor:pointer;color:#fff;font-size:11px;font-weight:700" onclick="deleteEvento(' + ev.id + ')"><i class="fas fa-trash"></i></button></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+  } else {
+    html += '<div style="color:#94a3b8;font-size:13px">Nessun evento</div>';
+  }
+  if (IS_EDIT) {
+    html += '<div class="sub-add"><select id="ev-tipo" style="width:120px"><option value="telefonata">Telefonata</option><option value="email">Email</option><option value="incontro">Incontro</option><option value="altro">Altro</option></select><input id="ev-desc" placeholder="Descrizione" style="flex:1"><button onclick="addEvento()"><i class="fas fa-plus"></i> Aggiungi</button></div>';
+  }
+  html += '</div>';
+
+  // Partecipazioni ATI (read-only)
+  const atiList = Array.isArray(a.ati) ? a.ati : [];
+  if (atiList.length > 0) {
+    html += '<div class="bp-card"><h2><i class="fas fa-handshake"></i> Partecipazioni ATI (' + atiList.length + ')</h2>';
+    html += '<table class="bp-table"><thead><tr><th>Ruolo</th><th>Partner</th><th>Esito ID</th></tr></thead><tbody>';
+    atiList.forEach(at => {
+      const ruolo = at.id_mandataria == AZ_ID ? 'Mandataria' : 'Mandante';
+      const partner = at.id_mandataria == AZ_ID ? (at.mandante_nome || '') : (at.mandataria_nome || '');
+      html += '<tr><td><span class="bp-chip">' + esc(ruolo) + '</span></td><td>' + esc(partner) + '</td>';
+      html += '<td><a href="/admin/esito-pagina.html?id=' + esc(at.id_gara || '') + '&mode=view" style="color:#2196F3">' + esc(at.id_gara || '') + '</a></td></tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+
+  // Statistiche (loaded async)
+  html += '<div class="bp-card"><h2><i class="fas fa-chart-bar"></i> Statistiche</h2><div id="stats-content"><div style="color:#94a3b8;font-size:13px">Caricamento statistiche...</div></div></div>';
+
+  // Metadata
+  html += '<div class="bp-card"><h2><i class="fas fa-fingerprint"></i> Metadata</h2><div class="bp-grid">';
+  html += field('ID azienda', a.id);
+  html += field('Creato', fmtDate(a.created_at));
+  html += field('Ultima modifica', fmtDate(a.updated_at));
+  html += '</div></div>';
+
+  document.getElementById('bp-content').innerHTML = IS_EDIT ? '<form id="bp-form" onsubmit="event.preventDefault();saveAzienda()">' + html + '</form>' : html;
+}
+
+async function loadStats() {
+  try {
+    const r = await fetch(API_BASE + '/admin/aziende/' + encodeURIComponent(AZ_ID) + '/statistiche', { headers: authHeaders() });
+    if (!r.ok) return;
+    const s = await r.json();
+    const el = document.getElementById('stats-content');
+    if (!el) return;
+    el.innerHTML = '<div class="stat-grid">' +
+      '<div class="stat-box"><div class="num">' + (s.totale_esiti || 0) + '</div><div class="lbl">Esiti totali</div></div>' +
+      '<div class="stat-box"><div class="num">' + (s.vittorie || 0) + '</div><div class="lbl">Vittorie</div></div>' +
+      '<div class="stat-box"><div class="num">' + (s.percentuale_vittoria || 0).toFixed(1) + '%</div><div class="lbl">% Vittoria</div></div>' +
+      '<div class="stat-box"><div class="num">' + (s.ribasso_medio || 0).toFixed(3) + '%</div><div class="lbl">Ribasso medio</div></div>' +
+      '<div class="stat-box"><div class="num">' + (s.posizione_media || 0).toFixed(1) + '</div><div class="lbl">Posizione media</div></div>' +
+      '</div>';
+  } catch (e) {
+    const el = document.getElementById('stats-content');
+    if (el) el.innerHTML = '<div style="color:#94a3b8;font-size:13px">Statistiche non disponibili</div>';
+  }
+}
+
+// CRUD sub-entities
+async function addAttestazione() {
+  const body = { id_soa: parseInt(document.getElementById('att-soa').value), classifica: document.getElementById('att-class').value, organismo: document.getElementById('att-org').value || null, data_scadenza: document.getElementById('att-scad').value || null };
+  if (!body.id_soa) { toast('Inserisci ID SOA', 'err'); return; }
+  try {
+    const r = await fetch(API_BASE + '/admin/aziende/' + AZ_ID + '/attestazioni', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) });
+    if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+    toast('Attestazione aggiunta', 'ok'); loadAzienda();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function deleteAttestazione(id) {
+  if (!confirm('Eliminare attestazione?')) return;
+  try {
+    const r = await fetch(API_BASE + '/admin/aziende/attestazioni/' + id, { method: 'DELETE', headers: authHeaders() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    toast('Attestazione eliminata', 'ok'); loadAzienda();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function addPersonale() {
+  const body = { nome: document.getElementById('pers-nome').value, cognome: document.getElementById('pers-cognome').value || null, ruolo: document.getElementById('pers-ruolo').value || null, email: document.getElementById('pers-email').value || null };
+  if (!body.nome) { toast('Inserisci il nome', 'err'); return; }
+  try {
+    const r = await fetch(API_BASE + '/admin/aziende/' + AZ_ID + '/personale', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) });
+    if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+    toast('Personale aggiunto', 'ok'); loadAzienda();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function deletePersonale(id) {
+  if (!confirm('Eliminare personale?')) return;
+  try {
+    const r = await fetch(API_BASE + '/admin/aziende/personale/' + id, { method: 'DELETE', headers: authHeaders() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    toast('Personale eliminato', 'ok'); loadAzienda();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function addNota() {
+  const testo = document.getElementById('nota-testo').value;
+  if (!testo) { toast('Inserisci il testo', 'err'); return; }
+  try {
+    const r = await fetch(API_BASE + '/admin/aziende/' + AZ_ID + '/note', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ testo }) });
+    if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+    toast('Nota aggiunta', 'ok'); loadAzienda();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function deleteNota(id) {
+  if (!confirm('Eliminare nota?')) return;
+  try {
+    const r = await fetch(API_BASE + '/admin/aziende/note/' + id, { method: 'DELETE', headers: authHeaders() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    toast('Nota eliminata', 'ok'); loadAzienda();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function addEvento() {
+  const tipo = document.getElementById('ev-tipo').value;
+  const descrizione = document.getElementById('ev-desc').value;
+  if (!tipo) return;
+  try {
+    const r = await fetch(API_BASE + '/admin/aziende/' + AZ_ID + '/eventi', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ tipo, descrizione }) });
+    if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+    toast('Evento aggiunto', 'ok'); loadAzienda();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function deleteEvento(id) {
+  if (!confirm('Eliminare evento?')) return;
+  try {
+    const r = await fetch(API_BASE + '/admin/aziende/eventi/' + id, { method: 'DELETE', headers: authHeaders() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    toast('Evento eliminato', 'ok'); loadAzienda();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function saveAzienda() {
+  const form = document.getElementById('bp-form');
+  if (!form) return;
+  const payload = {};
+  Array.from(form.elements).forEach(el => {
+    if (!el.name) return;
+    let v = el.value;
+    if (el.type === 'number') v = v === '' ? null : Number(v);
+    if (v === '') v = null;
+    payload[el.name] = v;
+  });
+  try {
+    const r = await fetch(API_BASE + '/admin/aziende/' + encodeURIComponent(AZ_ID), {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+    toast('Azienda salvata con successo', 'ok');
+    setTimeout(loadAzienda, 900);
+  } catch (e) { toast('Errore salvataggio: ' + e.message, 'err'); }
+}
+
+loadAzienda();
+</script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Graduatoria Esito — EasyWin</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; font-family: 'Comfortaa', cursive; background: #f5f7fa; color: #1E2D3D; }
+  .bp-top {
+    background: linear-gradient(135deg, #1E2D3D, #2c3e50); color: #fff; padding: 14px 24px;
+    display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .bp-top h1 { font-size: 16px; margin: 0; font-weight: 700; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bp-btn {
+    background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+  }
+  .bp-btn:hover { background: rgba(255,255,255,0.22); }
+  .bp-btn.primary { background: #FF8C00; border-color: #FF8C00; }
+  .bp-btn.success { background: #10b981; border-color: #10b981; }
+  .bp-btn.danger { background: #dc2626; border-color: #dc2626; }
+  .bp-btn.info { background: #2196F3; border-color: #2196F3; }
+
+  .bp-wrap { max-width: 1400px; margin: 24px auto; padding: 0 24px 60px; }
+  .bp-card { background: #fff; border-radius: 12px; padding: 24px 28px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .bp-card h2 { margin: 0 0 18px; font-size: 14px; color: #FF8C00; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #fef3e2; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+  .bp-chip { display: inline-block; padding: 3px 10px; background: #fef3e2; color: #FF8C00; border-radius: 10px; font-size: 11px; font-weight: 700; margin-right: 6px; }
+
+  .bp-loading, .bp-error { text-align: center; padding: 80px 20px; color: #64748b; font-size: 14px; }
+  .bp-error { color: #dc2626; }
+  .bp-toast { position: fixed; bottom: 24px; right: 24px; background: #1E2D3D; color: #fff; padding: 14px 20px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); font-size: 13px; font-weight: 600; display: none; z-index: 100; max-width: 360px; }
+  .bp-toast.ok { background: #10b981; }
+  .bp-toast.err { background: #dc2626; }
+
+  table.bp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.bp-table th { background: #f8fafc; color: #64748b; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; text-align: left; padding: 10px 12px; position: sticky; top: 60px; z-index: 10; }
+  table.bp-table td { padding: 10px 12px; border-top: 1px solid #f1f5f9; }
+  table.bp-table tr:hover td { background: #fefce8; }
+  table.bp-table input { padding: 6px 8px; border: 1.5px solid #d4dbe5; border-radius: 6px; font-family: inherit; font-size: 12px; width: 100%; }
+  table.bp-table input:focus { outline: none; border-color: #FF8C00; }
+
+  .bp-add-form { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: end; margin-top: 16px; padding: 16px; background: #f8fafc; border-radius: 10px; }
+  .bp-add-form label { font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 4px; }
+  .bp-add-form input { padding: 8px 10px; border: 1.5px solid #d4dbe5; border-radius: 8px; font-family: inherit; font-size: 13px; width: 100%; }
+  .bp-add-form input:focus { outline: none; border-color: #FF8C00; }
+  .bp-add-form button { padding: 10px 16px; }
+
+  .search-results { position: absolute; background: #fff; border: 1px solid #d4dbe5; border-radius: 8px; max-height: 200px; overflow-y: auto; z-index: 20; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; }
+  .search-results div { padding: 8px 12px; cursor: pointer; font-size: 12px; }
+  .search-results div:hover { background: #fef3e2; }
+
+  .action-btns { display: flex; gap: 4px; }
+  .action-btns button { padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 700; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="bp-top">
+  <a id="bp-back" href="#" class="bp-btn"><i class="fas fa-arrow-left"></i> Torna all'esito</a>
+  <h1 id="bp-title">Graduatoria esito</h1>
+  <button class="bp-btn info" onclick="riordina('ribasso')"><i class="fas fa-sort-amount-down"></i> Riordina per ribasso</button>
+  <button class="bp-btn" onclick="window.print()"><i class="fas fa-print"></i> Stampa</button>
+</div>
+
+<div class="bp-wrap">
+  <div id="bp-content">
+    <div class="bp-loading"><i class="fas fa-spinner fa-spin"></i><div>Caricamento graduatoria...</div></div>
+  </div>
+</div>
+
+<div id="bp-toast" class="bp-toast"></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const ESITO_ID = params.get('id');
+const API_BASE = '/api';
+let editingRow = null;
+
+document.getElementById('bp-back').href = '/admin/esito-pagina.html?id=' + encodeURIComponent(ESITO_ID) + '&mode=view';
+
+function tok() { return localStorage.getItem('token') || localStorage.getItem('auth_token') || localStorage.getItem('easywin_token'); }
+function authHeaders() { const t = tok(); return t ? { 'Authorization': 'Bearer ' + t } : {}; }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+function fmtImporto(v) { if (v == null || v === '') return '—'; const n = Number(v); if (!isFinite(n)) return String(v); return '\u20AC ' + n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function toast(msg, kind) { const t = document.getElementById('bp-toast'); t.textContent = msg; t.className = 'bp-toast ' + (kind||''); t.style.display = 'block'; setTimeout(()=>{ t.style.display='none'; }, 4000); }
+
+async function loadGraduatoria() {
+  if (!ESITO_ID) { document.getElementById('bp-content').innerHTML = '<div class="bp-error">ID mancante</div>'; return; }
+  try {
+    const r = await fetch(API_BASE + '/esiti/' + encodeURIComponent(ESITO_ID) + '/graduatoria', { headers: authHeaders() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    const list = Array.isArray(data) ? data : (data.data || []);
+    window.__grad = list;
+    renderGraduatoria(list);
+  } catch (e) {
+    document.getElementById('bp-content').innerHTML = '<div class="bp-error">Errore: ' + esc(e.message) + '</div>';
+  }
+}
+
+function renderGraduatoria(list) {
+  let html = '<div class="bp-card"><h2><i class="fas fa-list-ol"></i> Graduatoria (' + list.length + ' concorrenti)</h2>';
+
+  if (list.length > 0) {
+    html += '<table class="bp-table"><thead><tr><th>Pos.</th><th>Azienda</th><th>P.IVA</th><th>Ribasso %</th><th>Importo offerta</th><th>Anomalia</th><th>Note</th><th>Azioni</th></tr></thead><tbody>';
+    list.forEach(g => {
+      const anomBadge = g.anomala ? '<span class="bp-chip" style="background:#fee2e2;color:#dc2626">SI</span>' : '<span class="bp-chip" style="background:#d1fae5;color:#065f46">NO</span>';
+      html += '<tr id="row-' + g.id + '">';
+      html += '<td>' + esc(g.posizione) + '</td>';
+      html += '<td><strong>' + esc(g.ragione_sociale || '') + '</strong></td>';
+      html += '<td style="font-size:11px">' + esc(g.partita_iva || '') + '</td>';
+      html += '<td>' + esc(g.ribasso ?? '') + '</td>';
+      html += '<td>' + fmtImporto(g.importo_offerta) + '</td>';
+      html += '<td>' + anomBadge + '</td>';
+      html += '<td style="font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis">' + esc(g.note || '') + '</td>';
+      html += '<td><div class="action-btns">';
+      html += '<button style="background:#FF8C00" onclick="startEdit(' + g.id + ')"><i class="fas fa-pen" style="font-size:10px"></i></button>';
+      html += '<button style="background:#dc2626" onclick="deleteRow(' + g.id + ')"><i class="fas fa-trash" style="font-size:10px"></i></button>';
+      html += '</div></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+  } else {
+    html += '<div style="color:#94a3b8;font-size:13px">Graduatoria vuota</div>';
+  }
+
+  // Add form
+  html += '<div class="bp-add-form">';
+  html += '<div style="position:relative"><label>Azienda (cerca)</label><input id="add-azienda" placeholder="Cerca ragione sociale..." oninput="searchAzienda(this.value)"><div id="add-results" class="search-results" style="display:none"></div></div>';
+  html += '<div><label>Ribasso %</label><input id="add-ribasso" type="number" step="0.001" placeholder="0.000"></div>';
+  html += '<div><label>Importo offerta</label><input id="add-importo" type="number" step="0.01" placeholder="0.00"></div>';
+  html += '<button class="bp-btn success" onclick="addRow()"><i class="fas fa-plus"></i> Aggiungi</button>';
+  html += '</div>';
+
+  html += '</div>';
+  document.getElementById('bp-content').innerHTML = html;
+}
+
+let searchTimeout = null;
+let selectedAziendaId = null;
+
+function searchAzienda(q) {
+  clearTimeout(searchTimeout);
+  if (!q || q.length < 2) { document.getElementById('add-results').style.display = 'none'; return; }
+  searchTimeout = setTimeout(async () => {
+    try {
+      const r = await fetch(API_BASE + '/esiti/' + encodeURIComponent(ESITO_ID) + '/graduatoria/cerca-azienda', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ q })
+      });
+      if (!r.ok) return;
+      const data = await r.json();
+      const list = Array.isArray(data) ? data : (data.data || []);
+      const el = document.getElementById('add-results');
+      if (list.length === 0) { el.style.display = 'none'; return; }
+      el.innerHTML = list.slice(0, 10).map(a => '<div onclick="selectAzienda(' + a.id + ',\'' + esc(a.ragione_sociale || '') + '\')">' + esc(a.ragione_sociale || '') + ' <span style="color:#94a3b8;font-size:10px">' + esc(a.partita_iva || '') + '</span></div>').join('');
+      el.style.display = 'block';
+    } catch (e) { /* ignore */ }
+  }, 300);
+}
+
+function selectAzienda(id, nome) {
+  selectedAziendaId = id;
+  document.getElementById('add-azienda').value = nome;
+  document.getElementById('add-results').style.display = 'none';
+}
+
+async function addRow() {
+  if (!selectedAziendaId) { toast('Seleziona un\'azienda dalla ricerca', 'err'); return; }
+  const ribasso = document.getElementById('add-ribasso').value;
+  const importo = document.getElementById('add-importo').value;
+  try {
+    const r = await fetch(API_BASE + '/esiti/' + encodeURIComponent(ESITO_ID) + '/graduatoria', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ id_azienda: selectedAziendaId, ribasso: ribasso || null, importo_offerta: importo || null })
+    });
+    if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+    toast('Concorrente aggiunto', 'ok');
+    selectedAziendaId = null;
+    loadGraduatoria();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function deleteRow(detId) {
+  if (!confirm('Eliminare questo concorrente dalla graduatoria?')) return;
+  try {
+    const r = await fetch(API_BASE + '/esiti/' + encodeURIComponent(ESITO_ID) + '/graduatoria/' + detId, {
+      method: 'DELETE', headers: authHeaders()
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    toast('Concorrente eliminato', 'ok');
+    loadGraduatoria();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function startEdit(detId) {
+  const g = (window.__grad || []).find(x => x.id === detId);
+  if (!g) return;
+  const newRibasso = prompt('Nuovo ribasso % (attuale: ' + (g.ribasso || '') + '):', g.ribasso || '');
+  if (newRibasso === null) return;
+  const newImporto = prompt('Nuovo importo offerta (attuale: ' + (g.importo_offerta || '') + '):', g.importo_offerta || '');
+  if (newImporto === null) return;
+  try {
+    const r = await fetch(API_BASE + '/esiti/' + encodeURIComponent(ESITO_ID) + '/graduatoria/' + detId, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ ribasso: newRibasso || null, importo_offerta: newImporto || null })
+    });
+    if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+    toast('Riga aggiornata', 'ok');
+    loadGraduatoria();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function riordina(tipo) {
+  if (!confirm('Riordinare la graduatoria per ' + tipo + '?')) return;
+  try {
+    const r = await fetch(API_BASE + '/esiti/' + encodeURIComponent(ESITO_ID) + '/graduatoria/riordina', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ tipo })
+    });
+    if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+    toast('Graduatoria riordinata', 'ok');
+    loadGraduatoria();
+  } catch (e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+loadGraduatoria();
+</script>
+</body>
+</html>

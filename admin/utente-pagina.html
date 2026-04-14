@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Utente — EasyWin</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:'Comfortaa',cursive;background:#f5f7fa;color:#1E2D3D}
+.bp-top{background:linear-gradient(135deg,#1E2D3D,#2c3e50);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,0,0,0.1);position:sticky;top:0;z-index:50;flex-wrap:wrap}
+.bp-top h1{font-size:16px;margin:0;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:200px}
+.bp-mode-badge{background:#FF8C00;color:#fff;padding:4px 12px;border-radius:12px;font-size:11px;font-weight:700;text-transform:uppercase}
+.bp-mode-badge.edit{background:#E91E63}
+.bp-btn{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.2);padding:8px 14px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.bp-btn:hover{background:rgba(255,255,255,0.22)}
+.bp-btn.success{background:#10b981;border-color:#10b981}
+.bp-wrap{max-width:1300px;margin:0 auto;padding:20px 24px 60px}
+.bp-card{background:#fff;border-radius:12px;padding:24px 28px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.bp-card h2{margin:0 0 18px;font-size:14px;color:#FF8C00;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #fef3e2;padding-bottom:10px;display:flex;align-items:center;gap:10px}
+.bp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px 24px}
+.bp-field{display:flex;flex-direction:column}
+.bp-field label{font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px}
+.bp-field .val{font-size:14px;color:#1E2D3D;font-weight:600;padding:8px 0;min-height:20px;word-break:break-word}
+.bp-field input,.bp-field textarea,.bp-field select{padding:9px 12px;border:1.5px solid #d4dbe5;border-radius:8px;font-family:inherit;font-size:13px;background:#fff;color:#1E2D3D;width:100%}
+.bp-field input:focus,.bp-field textarea:focus,.bp-field select:focus{outline:none;border-color:#FF8C00;box-shadow:0 0 0 3px rgba(255,140,0,0.12)}
+.bp-chip{display:inline-block;padding:3px 10px;background:#fef3e2;color:#FF8C00;border-radius:10px;font-size:11px;font-weight:700;margin:2px 4px 2px 0}
+.bp-toast{position:fixed;bottom:24px;right:24px;background:#1E2D3D;color:#fff;padding:14px 20px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.2);font-size:13px;font-weight:600;display:none;z-index:100;max-width:360px}
+.bp-toast.ok{background:#10b981}.bp-toast.err{background:#dc2626}
+
+/* Tabs */
+.tab-bar{display:flex;gap:0;background:#fff;border-radius:12px 12px 0 0;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin-bottom:0;overflow-x:auto}
+.tab-btn{padding:14px 22px;font-family:inherit;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;color:#94a3b8;border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s}
+.tab-btn.active{color:#FF8C00;border-bottom-color:#FF8C00;background:#fff}
+.tab-btn:hover{color:#1E2D3D}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* Matrice abbonamento */
+.mat-table{width:100%;border-collapse:collapse;font-size:12px}
+.mat-table th{background:#f8fafc;padding:8px 6px;text-align:center;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:2px solid #e2e8f0}
+.mat-table th:first-child{text-align:left}
+.mat-table td{padding:7px 6px;text-align:center;border-bottom:1px solid #f1f5f9}
+.mat-table td:first-child{text-align:left;font-weight:700;font-size:11px;color:#64748b;text-transform:uppercase}
+.mat-table input[type=date]{width:120px;font-size:11px;padding:4px 6px;border:1px solid #d4dbe5;border-radius:6px}
+.mat-table input[type=number]{width:90px;font-size:12px;padding:4px 6px;border:1px solid #d4dbe5;border-radius:6px;text-align:right}
+.mat-table input[type=checkbox]{width:18px;height:18px;accent-color:#FF8C00}
+.mat-total{font-weight:700;color:#FF8C00;font-size:14px}
+
+/* Mini table */
+.mini-table{width:100%;border-collapse:collapse;font-size:12px}
+.mini-table th{background:#f1f5f9;padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:2px solid #e2e8f0}
+.mini-table td{padding:8px 10px;border-bottom:1px solid #f1f5f9}
+.mini-table .empty td{color:#94a3b8;text-align:center;font-style:italic}
+
+/* Action buttons inline */
+.abtn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-family:inherit;font-size:11px;font-weight:700;border:none;cursor:pointer;color:#fff;margin:4px 4px 4px 0}
+.abtn:hover{opacity:0.85}
+.abtn.orange{background:#FF8C00}.abtn.blue{background:#2196F3}.abtn.green{background:#4CAF50}.abtn.red{background:#E91E63}.abtn.gray{background:#607D8B}.abtn.purple{background:#9C27B0}
+</style>
+</head>
+<body>
+
+<div class="bp-top">
+  <a href="/admin/index.html#utenti" class="bp-btn"><i class="fas fa-arrow-left"></i> Torna utenti</a>
+  <h1 id="bp-title">Caricamento utente...</h1>
+  <span id="bp-mode-badge" class="bp-mode-badge">VISUALIZZA</span>
+  <button id="bp-save-btn" class="bp-btn success" style="display:none" onclick="saveUser()"><i class="fas fa-save"></i> Salva</button>
+  <button class="bp-btn" onclick="window.print()"><i class="fas fa-print"></i> Stampa</button>
+</div>
+
+<div class="bp-wrap">
+  <div class="tab-bar" id="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('abbonamento')">Abbonamento</button>
+    <button class="tab-btn" onclick="switchTab('anagrafica')">Anagrafica</button>
+    <button class="tab-btn" onclick="switchTab('emails')">Emails</button>
+    <button class="tab-btn" onclick="switchTab('password')">Password</button>
+    <button class="tab-btn" onclick="switchTab('filtri')">Filtri Newsletter</button>
+  </div>
+
+  <div id="tab-abbonamento" class="tab-panel active"></div>
+  <div id="tab-anagrafica" class="tab-panel"></div>
+  <div id="tab-emails" class="tab-panel"></div>
+  <div id="tab-password" class="tab-panel"></div>
+  <div id="tab-filtri" class="tab-panel"></div>
+</div>
+
+<div id="bp-toast" class="bp-toast"></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const USERNAME = params.get('username');
+const MODE = (params.get('mode') || 'view').toLowerCase();
+const IS_EDIT = MODE === 'edit';
+const API = '/api/admin';
+
+function tok(){return localStorage.getItem('easywin_token')||localStorage.getItem('auth_token')||localStorage.getItem('token')}
+(function(){const t=tok();if(!t){location.href='/index.html';return}try{const p=JSON.parse(atob(t.split('.')[1]));if(p.exp&&p.exp*1000<Date.now()){location.href='/index.html'}}catch(e){}})();
+function authHeaders(){const t=tok();return t?{'Authorization':'Bearer '+t}:{}}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]))}
+function fmtDate(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('it-IT')}catch(e){return String(d)}}
+function toInputDate(d){if(!d)return'';const dt=new Date(d);if(isNaN(dt.getTime()))return'';const p=n=>String(n).padStart(2,'0');return dt.getFullYear()+'-'+p(dt.getMonth()+1)+'-'+p(dt.getDate())}
+function toast(msg,kind){const t=document.getElementById('bp-toast');t.textContent=msg;t.className='bp-toast '+(kind||'');t.style.display='block';setTimeout(()=>{t.style.display='none'},4000)}
+
+let USER = {};
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    const tabs = ['abbonamento','anagrafica','emails','password','filtri'];
+    b.classList.toggle('active', tabs[i] === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+  // Lazy load
+  if (name === 'emails' && !document.getElementById('tab-emails').innerHTML) loadEmails();
+  if (name === 'filtri' && !document.getElementById('tab-filtri').innerHTML) loadFiltri();
+}
+
+// ── LOAD USER ───────────────────────────────────────────────
+async function loadUser() {
+  if (!USERNAME) { document.querySelector('.bp-wrap').innerHTML = '<div style="text-align:center;padding:80px;color:#dc2626">Username mancante nell\'URL</div>'; return; }
+  if (IS_EDIT) {
+    document.getElementById('bp-mode-badge').classList.add('edit');
+    document.getElementById('bp-mode-badge').textContent = 'MODIFICA';
+    document.getElementById('bp-save-btn').style.display = 'inline-flex';
+  }
+  try {
+    const res = await fetch(API + '/utenti/' + encodeURIComponent(USERNAME) + '/abbonamento', { headers: authHeaders() });
+    if (res.status === 401) { location.href = '/index.html'; return; }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    USER = await res.json();
+    document.getElementById('bp-title').textContent = (USER.nome || '') + ' ' + (USER.cognome || '') + ' (' + USERNAME + ')';
+    document.title = 'Utente: ' + USERNAME;
+    renderAbbonamento();
+    renderAnagrafica();
+    renderPassword();
+  } catch(e) { document.querySelector('.bp-wrap').innerHTML = '<div style="text-align:center;padding:80px;color:#dc2626">Errore: ' + esc(e.message) + '</div>'; }
+}
+
+// ── TAB 1: ABBONAMENTO ──────────────────────────────────────
+const SERVIZI = [
+  { key: 'esiti', label: 'Esiti' },
+  { key: 'bandi', label: 'Bandi' },
+  { key: 'esiti_light', label: 'EsitiLight' },
+  { key: 'newsletter_esiti', label: 'NL Esiti' },
+  { key: 'newsletter_bandi', label: 'NL Bandi' },
+  { key: 'albo_ai', label: 'Albo AI' },
+];
+
+function renderAbbonamento() {
+  const u = USER;
+  let h = '<div class="bp-card"><h2><i class="fas fa-th"></i> Matrice Abbonamento</h2>';
+  h += '<div style="overflow-x:auto"><table class="mat-table"><thead><tr><th></th>';
+  SERVIZI.forEach(s => { h += '<th>' + s.label + '</th>'; });
+  h += '<th>Totale</th></tr></thead><tbody>';
+
+  // Row: Rinnovo
+  h += '<tr><td>Rinnovo</td>';
+  SERVIZI.forEach(s => {
+    const v = u['rinnovo_' + s.key];
+    h += '<td><input type="checkbox" data-field="rinnovo_' + s.key + '" ' + (v ? 'checked' : '') + (IS_EDIT ? '' : ' disabled') + '></td>';
+  });
+  h += '<td></td></tr>';
+
+  // Row: Inizio
+  h += '<tr><td>Inizio</td>';
+  SERVIZI.forEach(s => {
+    const v = u['inizio_' + s.key] || '';
+    h += '<td><input type="date" data-field="inizio_' + s.key + '" value="' + esc(toInputDate(v)) + '"' + (IS_EDIT ? '' : ' disabled') + '></td>';
+  });
+  h += '<td></td></tr>';
+
+  // Row: Scadenza
+  h += '<tr><td>Scadenza</td>';
+  SERVIZI.forEach(s => {
+    const k = s.scadKey || ('scadenza_' + s.key);
+    const v = u[k] || '';
+    h += '<td><input type="date" data-field="' + k + '" value="' + esc(toInputDate(v)) + '"' + (IS_EDIT ? '' : ' disabled') + '></td>';
+  });
+  h += '<td></td></tr>';
+
+  // Row: Importi
+  h += '<tr><td>Importi</td>';
+  let tot = 0;
+  SERVIZI.forEach(s => {
+    const v = Number(u['prezzo_' + s.key]) || 0;
+    tot += v;
+    h += '<td><input type="number" step="0.01" data-field="prezzo_' + s.key + '" value="' + v + '"' + (IS_EDIT ? '' : ' disabled') + ' oninput="calcTotale()"></td>';
+  });
+  h += '<td class="mat-total" id="mat-totale">' + tot.toFixed(2) + '</td></tr>';
+
+  // Row: Provvigioni
+  h += '<tr><td>Provvigioni</td>';
+  SERVIZI.forEach(s => {
+    const v = Number(u['provv_' + s.key]) || 0;
+    h += '<td><input type="number" step="0.01" data-field="provv_' + s.key + '" value="' + v + '"' + (IS_EDIT ? '' : ' disabled') + '></td>';
+  });
+  h += '<td></td></tr>';
+
+  h += '</tbody></table></div>';
+
+  // Save importi button
+  if (IS_EDIT) {
+    h += '<div style="margin-top:14px;text-align:right"><button class="abtn orange" onclick="salvaImporti()"><i class="fas fa-save"></i> Salva Importi</button></div>';
+  }
+  h += '</div>';
+
+  // Flags
+  h += '<div class="bp-card"><h2><i class="fas fa-toggle-on"></i> Flags Abbonamento</h2><div class="bp-grid">';
+  const flags = [
+    ['abbonato_albo_ai', 'Abilitato Albo Fornitori AI'],
+    ['newsletter_separata', 'Newsletter separata'],
+    ['sync_registro_gare', 'Sync registro gare'],
+    ['abbonato_sopralluoghi', 'Abbonato sopralluoghi'],
+    ['abbonato_aperture', 'Abbonato aperture'],
+    ['temporaneo', 'Temporaneo'],
+  ];
+  flags.forEach(([k, label]) => {
+    h += '<div class="bp-field"><label>' + esc(label) + '</label><div><input type="checkbox" data-field="' + k + '" ' + (u[k] ? 'checked' : '') + (IS_EDIT ? '' : ' disabled') + '> ' + (u[k] ? 'SI' : 'NO') + '</div></div>';
+  });
+  if (u.temporaneo || IS_EDIT) {
+    h += '<div class="bp-field"><label>Inizio temp.</label><input type="date" data-field="data_inizio_temporaneo" value="' + esc(toInputDate(u.data_inizio_temporaneo)) + '"' + (IS_EDIT ? '' : ' disabled') + '></div>';
+    h += '<div class="bp-field"><label>Fine temp.</label><input type="date" data-field="data_fine_temporaneo" value="' + esc(toInputDate(u.data_fine_temporaneo)) + '"' + (IS_EDIT ? '' : ' disabled') + '></div>';
+  }
+  h += '<div class="bp-field"><label>Mesi rinnovo</label><input type="number" data-field="mesi_rinnovo" value="' + (u.mesi_rinnovo || 12) + '"' + (IS_EDIT ? '' : ' disabled') + '></div>';
+  h += '</div></div>';
+
+  // Albo AI link
+  if (u.abbonato_albo_ai) {
+    h += '<div class="bp-card" style="background:#fef3e2"><h2><i class="fas fa-brain"></i> Albo Fornitori AI</h2>';
+    h += '<button class="abtn orange" onclick="window.open(\'/admin/utente-albo-ai-pagina.html?username=' + esc(USERNAME) + '\',\'_blank\')"><i class="fas fa-external-link-alt"></i> Apri preferenze Albo AI</button></div>';
+  }
+
+  // Links
+  h += '<div class="bp-card"><h2><i class="fas fa-external-link-alt"></i> Pagine Collegate</h2>';
+  h += '<button class="abtn blue" onclick="window.open(\'/admin/utente-storico-pagina.html?username=' + esc(USERNAME) + '\',\'_blank\')"><i class="fas fa-history"></i> Apri Storico</button>';
+  h += '<button class="abtn green" onclick="window.open(\'/admin/utente-selezione-bandi-pagina.html?username=' + esc(USERNAME) + '\',\'_blank\')"><i class="fas fa-filter"></i> Selezione Bandi</button>';
+  h += '<button class="abtn green" onclick="window.open(\'/admin/utente-selezione-esiti-pagina.html?username=' + esc(USERNAME) + '\',\'_blank\')"><i class="fas fa-filter"></i> Selezione Esiti</button>';
+  h += '<button class="abtn purple" onclick="window.open(\'/admin/utente-selezione-newsletter-bandi-pagina.html?username=' + esc(USERNAME) + '\',\'_blank\')"><i class="fas fa-envelope"></i> NL Bandi</button>';
+  h += '<button class="abtn purple" onclick="window.open(\'/admin/utente-selezione-newsletter-esiti-pagina.html?username=' + esc(USERNAME) + '\',\'_blank\')"><i class="fas fa-envelope"></i> NL Esiti</button>';
+  h += '</div>';
+
+  document.getElementById('tab-abbonamento').innerHTML = h;
+}
+
+function calcTotale() {
+  let tot = 0;
+  SERVIZI.forEach(s => {
+    const el = document.querySelector('[data-field="prezzo_' + s.key + '"]');
+    if (el) tot += Number(el.value) || 0;
+  });
+  const totEl = document.getElementById('mat-totale');
+  if (totEl) totEl.textContent = tot.toFixed(2);
+}
+
+async function salvaImporti() {
+  const body = {};
+  SERVIZI.forEach(s => {
+    const el = document.querySelector('[data-field="prezzo_' + s.key + '"]');
+    if (el) body['prezzo_' + s.key] = Number(el.value) || 0;
+    const pe = document.querySelector('[data-field="provv_' + s.key + '"]');
+    if (pe) body['provv_' + s.key] = Number(pe.value) || 0;
+  });
+  try {
+    const res = await fetch(API + '/utenti/' + encodeURIComponent(USERNAME) + '/salva-importi', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body)
+    });
+    if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + res.status); }
+    toast('Importi salvati', 'ok');
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+// ── TAB 2: ANAGRAFICA ───────────────────────────────────────
+async function renderAnagrafica() {
+  // Load full user detail
+  let u = USER;
+  try {
+    const res = await fetch(API + '/utenti/' + encodeURIComponent(USERNAME), { headers: authHeaders() });
+    if (res.ok) { const json = await res.json(); const full = json.utente || json; u = { ...USER, ...full }; USER = u; }
+  } catch(e) {}
+
+  const f = (label, val, opts) => {
+    opts = opts || {};
+    const span = opts.span === 'full' ? 'style="grid-column:1/-1"' : '';
+    if (IS_EDIT && opts.name) {
+      const type = opts.type || 'text';
+      const v = val == null ? '' : val;
+      if (type === 'textarea') return '<div class="bp-field" ' + span + '><label>' + esc(label) + '</label><textarea name="' + esc(opts.name) + '" style="min-height:60px;resize:vertical">' + esc(v) + '</textarea></div>';
+      if (opts.readonly) return '<div class="bp-field" ' + span + '><label>' + esc(label) + '</label><input type="text" value="' + esc(v) + '" disabled style="background:#f1f5f9"></div>';
+      return '<div class="bp-field" ' + span + '><label>' + esc(label) + '</label><input type="' + esc(type) + '" name="' + esc(opts.name) + '" value="' + esc(v) + '"></div>';
+    }
+    return '<div class="bp-field" ' + span + '><label>' + esc(label) + '</label><div class="val">' + esc(val ?? '—') + '</div></div>';
+  };
+
+  let h = '';
+
+  // Company
+  h += '<div class="bp-card"><h2><i class="fas fa-building"></i> Dati Azienda</h2><div class="bp-grid">';
+  h += f('Partita IVA', u.partita_iva, { name: 'partita_iva' });
+  h += f('Ragione Sociale', u.ragione_sociale || u.company, { name: 'company' });
+  h += f('Codice SDI', u.codice_sdi, { name: 'codice_sdi' });
+  h += f('PEC', u.indirizzo_pec, { name: 'indirizzo_pec' });
+  h += '</div></div>';
+
+  // Address
+  h += '<div class="bp-card"><h2><i class="fas fa-map-marker-alt"></i> Indirizzo</h2><div class="bp-grid">';
+  h += f('Indirizzo', u.indirizzo, { name: 'indirizzo' });
+  h += f('CAP', u.cap, { name: 'cap' });
+  h += f('Città', u.citta, { name: 'citta' });
+  h += f('Provincia', u.provincia, { name: 'provincia' });
+  h += '</div></div>';
+
+  // User info
+  h += '<div class="bp-card"><h2><i class="fas fa-user"></i> Dati Utente</h2><div class="bp-grid">';
+  h += f('Nome', u.nome || u.first_name, { name: 'nome' });
+  h += f('Cognome', u.cognome || u.last_name, { name: 'cognome' });
+  h += f('Email', u.email, { name: 'email' });
+  h += f('Email NL Bandi', u.email_newsletter_bandi_servizi, { name: 'email_newsletter_bandi_servizi' });
+  h += f('Email NL Esiti', u.email_newsletter_esiti, { name: 'email_newsletter_esiti' });
+  h += f('Telefono', u.telefono, { name: 'telefono' });
+  h += '</div></div>';
+
+  // Account
+  h += '<div class="bp-card"><h2><i class="fas fa-key"></i> Account</h2><div class="bp-grid">';
+  h += f('Username', u.username, { name: 'username', readonly: true });
+  h += f('Ruolo', u.ruolo, { name: 'ruolo' });
+  h += '<div class="bp-field"><label>Attivo</label><div><input type="checkbox" name="attivo" ' + (u.attivo ? 'checked' : '') + (IS_EDIT ? '' : ' disabled') + '></div></div>';
+  h += '<div class="bp-field"><label>Bloccato</label><div><input type="checkbox" name="bloccato" ' + (u.bloccato ? 'checked' : '') + (IS_EDIT ? '' : ' disabled') + '></div></div>';
+  h += '</div></div>';
+
+  // Agent
+  h += '<div class="bp-card"><h2><i class="fas fa-user-tie"></i> Agente</h2><div class="bp-grid">';
+  h += f('Codice Agente', u.codice_agente, { name: 'codice_agente' });
+  h += f('Sub Agente 1', u.sub_agente_1, { name: 'sub_agente_1' });
+  h += f('Importo Sub 1', u.importo_sub_agente_1, { name: 'importo_sub_agente_1', type: 'number' });
+  h += f('Sub Agente 2', u.sub_agente_2, { name: 'sub_agente_2' });
+  h += f('Importo Sub 2', u.importo_sub_agente_2, { name: 'importo_sub_agente_2', type: 'number' });
+  h += '</div></div>';
+
+  // Metadata
+  h += '<div class="bp-card"><h2><i class="fas fa-fingerprint"></i> Metadata</h2><div class="bp-grid">';
+  h += f('Creato', fmtDate(u.created_at));
+  h += f('Ultimo accesso', fmtDate(u.ultimo_accesso));
+  h += f('Aggiornato', fmtDate(u.updated_at));
+  h += '</div></div>';
+
+  document.getElementById('tab-anagrafica').innerHTML = IS_EDIT ? '<form id="anagrafica-form" onsubmit="event.preventDefault();saveUser()">' + h + '</form>' : h;
+}
+
+async function saveUser() {
+  const form = document.getElementById('anagrafica-form');
+  if (!form) { toast('Nessun form da salvare', 'err'); return; }
+  const payload = {};
+  form.querySelectorAll('input[name], textarea[name], select[name]').forEach(el => {
+    if (el.type === 'checkbox') payload[el.name] = el.checked;
+    else if (el.type === 'number') payload[el.name] = el.value === '' ? null : Number(el.value);
+    else payload[el.name] = el.value || null;
+  });
+  // Also collect matrice fields from abbonamento tab
+  document.querySelectorAll('[data-field]').forEach(el => {
+    const k = el.dataset.field;
+    if (el.type === 'checkbox') payload[k] = el.checked;
+    else if (el.type === 'number') payload[k] = el.value === '' ? null : Number(el.value);
+    else if (el.type === 'date') payload[k] = el.value || null;
+    else payload[k] = el.value || null;
+  });
+  try {
+    const res = await fetch(API + '/utenti/' + encodeURIComponent(USERNAME), {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(payload)
+    });
+    if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + res.status); }
+    toast('Utente salvato', 'ok');
+    setTimeout(loadUser, 800);
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+// ── TAB 3: EMAILS ───────────────────────────────────────────
+async function loadEmails() {
+  const el = document.getElementById('tab-emails');
+  el.innerHTML = '<div style="padding:40px;text-align:center;color:#94a3b8"><i class="fas fa-spinner fa-spin"></i></div>';
+  try {
+    const res = await fetch(API + '/utenti/' + encodeURIComponent(USERNAME) + '/emails', { headers: authHeaders() });
+    const data = await res.json();
+    const emails = data.data || data.emails || [];
+
+    let h = '<div class="bp-card"><h2><i class="fas fa-envelope"></i> Emails Aggiuntive</h2>';
+    h += '<table class="mini-table"><thead><tr><th>Email</th><th>Attivo</th><th>Data</th><th></th></tr></thead><tbody>';
+    if (!emails.length) h += '<tr class="empty"><td colspan="4">Nessuna email aggiuntiva</td></tr>';
+    emails.forEach(e => {
+      h += '<tr><td>' + esc(e.email) + '</td><td>' + (e.attivo ? 'SI' : 'NO') + '</td><td>' + fmtDate(e.created_at) + '</td>';
+      h += '<td><button class="abtn red" style="font-size:10px;padding:4px 8px" onclick="deleteEmail(' + e.id + ')"><i class="fas fa-trash"></i></button></td></tr>';
+    });
+    h += '</tbody></table>';
+
+    h += '<div style="margin-top:16px;display:flex;gap:10px;align-items:end">';
+    h += '<div class="bp-field" style="flex:1"><label>Nuova email</label><input type="email" id="new-email" placeholder="email@example.com"></div>';
+    h += '<button class="abtn green" onclick="addEmail()"><i class="fas fa-plus"></i> Aggiungi</button>';
+    h += '</div></div>';
+
+    el.innerHTML = h;
+  } catch(e) { el.innerHTML = '<div class="bp-card" style="color:#dc2626">Errore: ' + esc(e.message) + '</div>'; }
+}
+
+async function addEmail() {
+  const email = document.getElementById('new-email').value.trim();
+  if (!email) { toast('Inserisci email', 'err'); return; }
+  try {
+    const res = await fetch(API + '/utenti/' + encodeURIComponent(USERNAME) + '/emails', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ email })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    toast('Email aggiunta', 'ok');
+    loadEmails();
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function deleteEmail(id) {
+  if (!confirm('Eliminare questa email?')) return;
+  try {
+    const res = await fetch(API + '/utenti/' + encodeURIComponent(USERNAME) + '/emails/' + id, { method: 'DELETE', headers: authHeaders() });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    toast('Email eliminata', 'ok');
+    loadEmails();
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+// ── TAB 4: PASSWORD ─────────────────────────────────────────
+function renderPassword() {
+  let h = '<div class="bp-card"><h2><i class="fas fa-lock"></i> Cambio Password</h2>';
+  h += '<div class="bp-grid">';
+  h += '<div class="bp-field"><label>Nuova password (min 8 car.)</label><input type="password" id="pw-new" minlength="8"></div>';
+  h += '<div class="bp-field"><label>Conferma password</label><input type="password" id="pw-confirm"></div>';
+  h += '</div>';
+  h += '<div style="margin-top:14px"><button class="abtn orange" onclick="changePassword()"><i class="fas fa-key"></i> Cambia Password</button></div>';
+  h += '</div>';
+  document.getElementById('tab-password').innerHTML = h;
+}
+
+async function changePassword() {
+  const pw = document.getElementById('pw-new').value;
+  const pw2 = document.getElementById('pw-confirm').value;
+  if (pw.length < 8) { toast('Password minimo 8 caratteri', 'err'); return; }
+  if (pw !== pw2) { toast('Le password non coincidono', 'err'); return; }
+  try {
+    const res = await fetch(API + '/utenti/' + encodeURIComponent(USERNAME) + '/cambio-password', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ new_password: pw })
+    });
+    if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + res.status); }
+    toast('Password cambiata con successo', 'ok');
+    document.getElementById('pw-new').value = '';
+    document.getElementById('pw-confirm').value = '';
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+// ── TAB 5: FILTRI NEWSLETTER ────────────────────────────────
+async function loadFiltri() {
+  const el = document.getElementById('tab-filtri');
+  el.innerHTML = '<div style="padding:40px;text-align:center;color:#94a3b8"><i class="fas fa-spinner fa-spin"></i></div>';
+  try {
+    const res = await fetch(API + '/utenti/' + encodeURIComponent(USERNAME) + '/filtri-bandi', { headers: authHeaders() });
+    const data = await res.json();
+    const filtri = data.data || data.filtri || [];
+
+    let h = '<div class="bp-card"><h2><i class="fas fa-filter"></i> Regole Filtri Newsletter</h2>';
+    h += '<table class="mini-table"><thead><tr><th>SOA</th><th>Province</th><th>Importo min</th><th>Importo max</th><th>Attiva</th><th></th></tr></thead><tbody>';
+    if (!filtri.length) h += '<tr class="empty"><td colspan="6">Nessuna regola</td></tr>';
+    filtri.forEach(f => {
+      const soa = Array.isArray(f.soa_codici) ? f.soa_codici.join(', ') : (f.soa_codici || '—');
+      const prov = Array.isArray(f.province) ? f.province.join(', ') : (f.province || '—');
+      h += '<tr><td>' + esc(soa) + '</td><td>' + esc(prov) + '</td>';
+      h += '<td>' + (f.importo_min || '—') + '</td><td>' + (f.importo_max || '—') + '</td>';
+      h += '<td>' + (f.attiva !== false ? 'SI' : 'NO') + '</td>';
+      h += '<td><button class="abtn red" style="font-size:10px;padding:4px 8px" onclick="deleteFiltro(' + f.id + ')"><i class="fas fa-trash"></i></button></td></tr>';
+    });
+    h += '</tbody></table>';
+
+    // Add form
+    h += '<div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:end">';
+    h += '<div class="bp-field"><label>SOA (virgola)</label><input type="text" id="nf-soa" placeholder="OG1,OG3" style="width:120px"></div>';
+    h += '<div class="bp-field"><label>Province (virgola)</label><input type="text" id="nf-prov" placeholder="TO,MI" style="width:120px"></div>';
+    h += '<div class="bp-field"><label>Imp. min</label><input type="number" id="nf-min" style="width:100px"></div>';
+    h += '<div class="bp-field"><label>Imp. max</label><input type="number" id="nf-max" style="width:100px"></div>';
+    h += '<button class="abtn green" onclick="addFiltro()"><i class="fas fa-plus"></i> Aggiungi</button>';
+    h += '</div></div>';
+
+    // Test regole
+    h += '<div class="bp-card"><h2><i class="fas fa-vial"></i> Test Regole</h2>';
+    h += '<button class="abtn blue" onclick="testFiltri()"><i class="fas fa-search"></i> Testa (ultimi 7 giorni)</button>';
+    h += '<div id="filtri-test-results" style="margin-top:12px"></div></div>';
+
+    el.innerHTML = h;
+  } catch(e) { el.innerHTML = '<div class="bp-card" style="color:#dc2626">Errore: ' + esc(e.message) + '</div>'; }
+}
+
+async function addFiltro() {
+  const soa = document.getElementById('nf-soa').value.split(',').map(s => s.trim()).filter(Boolean);
+  const prov = document.getElementById('nf-prov').value.split(',').map(s => s.trim()).filter(Boolean);
+  const importo_min = Number(document.getElementById('nf-min').value) || null;
+  const importo_max = Number(document.getElementById('nf-max').value) || null;
+  try {
+    const res = await fetch(API + '/utenti/' + encodeURIComponent(USERNAME) + '/filtri-bandi', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ soa_codici: soa, province: prov, importo_min, importo_max, attiva: true })
+    });
+    if (!res.ok) throw new Error('HTTP ' + (await res.json().catch(()=>({}))).error || res.status);
+    toast('Regola aggiunta', 'ok');
+    loadFiltri();
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function deleteFiltro(id) {
+  if (!confirm('Eliminare questa regola?')) return;
+  try {
+    await fetch(API + '/utenti/' + encodeURIComponent(USERNAME) + '/filtri-bandi/' + id, { method: 'DELETE', headers: authHeaders() });
+    toast('Regola eliminata', 'ok');
+    loadFiltri();
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function testFiltri() {
+  const el = document.getElementById('filtri-test-results');
+  el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+  try {
+    const res = await fetch(API + '/utenti/' + encodeURIComponent(USERNAME) + '/bandi-matching?giorni=7&limit=20', { headers: authHeaders() });
+    const data = await res.json();
+    const bandi = data.bandi || data.data || [];
+    if (!bandi.length) { el.innerHTML = '<div style="color:#94a3b8">Nessun bando matching negli ultimi 7 giorni</div>'; return; }
+    let h = '<table class="mini-table"><thead><tr><th>Titolo</th><th>Stazione</th><th>Importo</th><th>Scadenza</th></tr></thead><tbody>';
+    bandi.forEach(b => {
+      h += '<tr><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc((b.titolo || '').substring(0, 60)) + '</td>';
+      h += '<td>' + esc(b.stazione_nome || '') + '</td>';
+      h += '<td>' + (b.importo_so ? Number(b.importo_so).toLocaleString('it-IT') : '—') + '</td>';
+      h += '<td>' + fmtDate(b.data_offerta) + '</td></tr>';
+    });
+    h += '</tbody></table>';
+    el.innerHTML = h;
+  } catch(e) { el.innerHTML = '<div style="color:#dc2626">Errore: ' + esc(e.message) + '</div>'; }
+}
+
+loadUser();
+</script>
+</body>
+</html>

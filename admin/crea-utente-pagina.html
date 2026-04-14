@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crea Utente — EasyWin</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:'Comfortaa',cursive;background:#f5f7fa;color:#1E2D3D}
+.bp-top{background:linear-gradient(135deg,#1E2D3D,#2c3e50);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,0,0,0.1);position:sticky;top:0;z-index:50}
+.bp-top h1{font-size:16px;margin:0;font-weight:700;flex:1}
+.bp-btn{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.2);padding:8px 14px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.bp-btn:hover{background:rgba(255,255,255,0.22)}
+.bp-btn.success{background:#10b981;border-color:#10b981}
+.bp-wrap{max-width:900px;margin:24px auto;padding:0 24px 60px}
+.bp-card{background:#fff;border-radius:12px;padding:24px 28px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.bp-card h2{margin:0 0 18px;font-size:14px;color:#FF8C00;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #fef3e2;padding-bottom:10px;display:flex;align-items:center;gap:10px}
+.bp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px 24px}
+.bp-field{display:flex;flex-direction:column;position:relative}
+.bp-field label{font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px}
+.bp-field input,.bp-field select{padding:9px 12px;border:1.5px solid #d4dbe5;border-radius:8px;font-family:inherit;font-size:13px;background:#fff;color:#1E2D3D;width:100%}
+.bp-field input:focus{outline:none;border-color:#FF8C00;box-shadow:0 0 0 3px rgba(255,140,0,0.12)}
+.bp-toast{position:fixed;bottom:24px;right:24px;background:#1E2D3D;color:#fff;padding:14px 20px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.2);font-size:13px;font-weight:600;display:none;z-index:100;max-width:360px}
+.bp-toast.ok{background:#10b981}.bp-toast.err{background:#dc2626}
+/* Autocomplete dropdown */
+.ac-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #d4dbe5;border-radius:0 0 8px 8px;box-shadow:0 6px 20px rgba(0,0,0,0.12);max-height:240px;overflow-y:auto;z-index:60;display:none}
+.ac-dropdown.open{display:block}
+.ac-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9}
+.ac-item:hover{background:#fef3e2}
+.ac-item .ac-name{font-weight:700;font-size:13px;color:#1E2D3D}
+.ac-item .ac-meta{font-size:11px;color:#64748b;margin-top:2px}
+</style>
+</head>
+<body>
+
+<div class="bp-top">
+  <a href="/admin/index.html#utenti" class="bp-btn"><i class="fas fa-arrow-left"></i> Torna utenti</a>
+  <h1>Crea Nuovo Utente</h1>
+  <button class="bp-btn success" onclick="creaUtente()"><i class="fas fa-user-plus"></i> Crea Utente</button>
+</div>
+
+<div class="bp-wrap">
+  <form id="create-form" onsubmit="event.preventDefault();creaUtente()">
+
+  <div class="bp-card"><h2><i class="fas fa-key"></i> Account</h2><div class="bp-grid">
+    <div class="bp-field"><label>Username *</label><input type="text" name="username" required></div>
+    <div class="bp-field"><label>Password *</label><input type="password" name="password" required minlength="8"></div>
+    <div class="bp-field"><label>Email *</label><input type="email" name="email" required></div>
+    <div class="bp-field"><label>Ruolo</label>
+      <select name="ruolo"><option value="utente">Utente</option><option value="admin">Admin</option><option value="publisher">Publisher</option><option value="agente">Agente</option></select>
+    </div>
+  </div></div>
+
+  <div class="bp-card"><h2><i class="fas fa-building"></i> Dati Azienda</h2><div class="bp-grid">
+    <div class="bp-field">
+      <label>Partita IVA</label>
+      <input type="text" name="partita_iva" id="piva-input" autocomplete="off" placeholder="Cerca per P.IVA o ragione sociale...">
+      <div class="ac-dropdown" id="piva-dropdown"></div>
+    </div>
+    <div class="bp-field"><label>Ragione Sociale</label><input type="text" name="company" id="f-company"></div>
+    <div class="bp-field"><label>Codice SDI</label><input type="text" name="codice_sdi" id="f-codice_sdi"></div>
+    <div class="bp-field"><label>PEC</label><input type="email" name="indirizzo_pec" id="f-indirizzo_pec"></div>
+  </div></div>
+
+  <div class="bp-card"><h2><i class="fas fa-map-marker-alt"></i> Indirizzo</h2><div class="bp-grid">
+    <div class="bp-field"><label>Indirizzo</label><input type="text" name="indirizzo" id="f-indirizzo"></div>
+    <div class="bp-field"><label>CAP</label><input type="text" name="cap" id="f-cap"></div>
+    <div class="bp-field"><label>Città</label><input type="text" name="citta" id="f-citta"></div>
+    <div class="bp-field"><label>Provincia</label><input type="text" name="provincia" id="f-provincia"></div>
+  </div></div>
+
+  <div class="bp-card"><h2><i class="fas fa-user"></i> Dati Utente</h2><div class="bp-grid">
+    <div class="bp-field"><label>Nome</label><input type="text" name="nome"></div>
+    <div class="bp-field"><label>Cognome</label><input type="text" name="cognome"></div>
+    <div class="bp-field"><label>Telefono</label><input type="text" name="telefono" id="f-telefono"></div>
+  </div></div>
+
+  </form>
+</div>
+
+<div id="bp-toast" class="bp-toast"></div>
+
+<script>
+const API = '/api/admin';
+function tok(){return localStorage.getItem('easywin_token')||localStorage.getItem('auth_token')||localStorage.getItem('token')}
+(function(){const t=tok();if(!t){location.href='/index.html';return}try{const p=JSON.parse(atob(t.split('.')[1]));if(p.exp&&p.exp*1000<Date.now()){location.href='/index.html'}}catch(e){}})();
+function authHeaders(){const t=tok();return t?{'Authorization':'Bearer '+t}:{}}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]))}
+function toast(msg,kind){const t=document.getElementById('bp-toast');t.textContent=msg;t.className='bp-toast '+(kind||'');t.style.display='block';setTimeout(()=>{t.style.display='none'},4000)}
+
+// Autocomplete P.IVA / ragione sociale
+let acTimer = null;
+const pivaInput = document.getElementById('piva-input');
+const dropdown = document.getElementById('piva-dropdown');
+
+pivaInput.addEventListener('input', function() {
+  clearTimeout(acTimer);
+  const q = this.value.trim();
+  if (q.length < 3) { dropdown.classList.remove('open'); return; }
+  acTimer = setTimeout(() => searchAziende(q), 300);
+});
+
+pivaInput.addEventListener('blur', () => setTimeout(() => dropdown.classList.remove('open'), 200));
+
+async function searchAziende(q) {
+  try {
+    const res = await fetch(API + '/utenti/anagrafica-lookup?q=' + encodeURIComponent(q), { headers: authHeaders() });
+    const data = await res.json();
+    const items = data.data || [];
+    if (!items.length) { dropdown.classList.remove('open'); return; }
+    dropdown.innerHTML = items.map((a, i) =>
+      '<div class="ac-item" data-idx="' + i + '">' +
+      '<div class="ac-name">' + esc(a.ragione_sociale || '—') + '</div>' +
+      '<div class="ac-meta">' + esc(a.partita_iva || '') + ' &bull; ' + esc(a.citta || '') + '</div></div>'
+    ).join('');
+    dropdown.classList.add('open');
+    // Store items for click
+    dropdown._items = items;
+    dropdown.querySelectorAll('.ac-item').forEach(el => {
+      el.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        const a = dropdown._items[this.dataset.idx];
+        pivaInput.value = a.partita_iva || '';
+        document.getElementById('f-company').value = a.ragione_sociale || '';
+        document.getElementById('f-codice_sdi').value = a.codice_sdi || '';
+        document.getElementById('f-indirizzo_pec').value = a.pec || '';
+        document.getElementById('f-indirizzo').value = a.indirizzo || '';
+        document.getElementById('f-cap').value = a.cap || '';
+        document.getElementById('f-citta').value = a.citta || '';
+        document.getElementById('f-provincia').value = a.provincia || '';
+        document.getElementById('f-telefono').value = a.telefono || '';
+        dropdown.classList.remove('open');
+      });
+    });
+  } catch(e) { console.warn(e); }
+}
+
+async function creaUtente() {
+  const form = document.getElementById('create-form');
+  const payload = {};
+  form.querySelectorAll('input[name], select[name]').forEach(el => {
+    const v = el.value.trim();
+    if (v) payload[el.name] = v;
+  });
+  if (!payload.username || !payload.password || !payload.email) {
+    toast('Username, password e email sono obbligatori', 'err'); return;
+  }
+  try {
+    const res = await fetch(API + '/utenti', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+    toast('Utente creato!', 'ok');
+    setTimeout(() => {
+      location.href = '/admin/utente-pagina.html?username=' + encodeURIComponent(payload.username) + '&mode=view';
+    }, 1200);
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+</script>
+</body>
+</html>
