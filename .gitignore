@@ -10,3 +10,32 @@ sql_output/
 !backend/scripts/
 !backend/src/
 !backend/package.json
+DEAD_CODE_REPORT.md
+PR7_AUDIT_REPORT.md
+
+# --- Data dumps (transient, non codice) ---
+data/albi_fornitori_results.json
+data/albi_fornitori_ok_only.json
+data/import-albi-report.json
+data/search_batches.json
+data/stazioni_da_cercare.json
+
+# --- CC prompts e report di workflow (non codice) ---
+PROMPT_CC_*.md
+PR*_AUDIT*.md
+PR*_REPORT*.md
+AUDIT_*.md
+TEST_REPORT_*.md
+PIANO-*.md
+ISTRUZIONI_*.md
+
+# --- Office temp/lock files ---
+~$*.docx
+~$*.xlsx
+~$*.pptx
+*.~lock.*
+
+# --- Backend scan logs/progress ---
+backend/scripts/*.txt
+backend/scripts/*progress.json
+backend/scripts/*report.json
