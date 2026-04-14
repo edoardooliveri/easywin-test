@@ -448,26 +448,38 @@ export default async function adminDashboardRoutes(fastify, opts) {
       const transporter = await getMailTransporter();
 
       let query_bandi = `SELECT * FROM bandi WHERE 1=1`;
+      const bandi_params = [];
+      let bandi_idx = 1;
       if (filtro_regioni && filtro_regioni.length > 0) {
-        query_bandi += ` AND regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
+        const ph = filtro_regioni.map((_, i) => `$${bandi_idx + i}`).join(',');
+        query_bandi += ` AND regione IN (${ph})`;
+        bandi_params.push(...filtro_regioni);
+        bandi_idx += filtro_regioni.length;
       }
-      if (data_da) query_bandi += ` AND data >= '${data_da}'`;
-      if (data_a) query_bandi += ` AND data <= '${data_a}'`;
+      if (data_da) { query_bandi += ` AND data >= $${bandi_idx}`; bandi_params.push(data_da); bandi_idx++; }
+      if (data_a) { query_bandi += ` AND data <= $${bandi_idx}`; bandi_params.push(data_a); bandi_idx++; }
 
-      const bandi_result = await query(query_bandi);
+      const bandi_result = await query(query_bandi, bandi_params);
 
       let query_recipients = `SELECT DISTINCT u.email FROM users u
         INNER JOIN users_periodi up ON u.username = up.username
         WHERE up.attivo = true AND up.importo_bandi > 0`;
-
+      const recip_params = [];
+      let recip_idx = 1;
       if (filtro_regioni && filtro_regioni.length > 0) {
-        query_recipients += ` AND u.regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
+        const ph = filtro_regioni.map((_, i) => `$${recip_idx + i}`).join(',');
+        query_recipients += ` AND u.regione IN (${ph})`;
+        recip_params.push(...filtro_regioni);
+        recip_idx += filtro_regioni.length;
       }
       if (filtro_soa && filtro_soa.length > 0) {
-        query_recipients += ` AND u.soa IN (${filtro_soa.map(s => `'${s}'`).join(',')})`;
+        const ph = filtro_soa.map((_, i) => `$${recip_idx + i}`).join(',');
+        query_recipients += ` AND u.soa IN (${ph})`;
+        recip_params.push(...filtro_soa);
+        recip_idx += filtro_soa.length;
       }
 
-      const recipients_result = await query(query_recipients);
+      const recipients_result = await query(query_recipients, recip_params);
       const html = buildNewsletterHtml('bandi', oggetto || 'Newsletter Bandi', bandi_result.rows, testo_aggiuntivo);
 
       let sent_count = 0;
@@ -514,26 +526,38 @@ export default async function adminDashboardRoutes(fastify, opts) {
       const transporter = await getMailTransporter();
 
       let query_esiti = `SELECT * FROM gare WHERE 1=1`;
+      const esiti_params = [];
+      let esiti_idx = 1;
       if (filtro_regioni && filtro_regioni.length > 0) {
-        query_esiti += ` AND regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
+        const ph = filtro_regioni.map((_, i) => `$${esiti_idx + i}`).join(',');
+        query_esiti += ` AND regione IN (${ph})`;
+        esiti_params.push(...filtro_regioni);
+        esiti_idx += filtro_regioni.length;
       }
-      if (data_da) query_esiti += ` AND data >= '${data_da}'`;
-      if (data_a) query_esiti += ` AND data <= '${data_a}'`;
+      if (data_da) { query_esiti += ` AND data >= $${esiti_idx}`; esiti_params.push(data_da); esiti_idx++; }
+      if (data_a) { query_esiti += ` AND data <= $${esiti_idx}`; esiti_params.push(data_a); esiti_idx++; }
 
-      const esiti_result = await query(query_esiti);
+      const esiti_result = await query(query_esiti, esiti_params);
 
       let query_recipients = `SELECT DISTINCT u.email FROM users u
         INNER JOIN users_periodi up ON u.username = up.username
         WHERE up.attivo = true AND (up.importo_esiti > 0 OR up.importo_esiti_light > 0)`;
-
+      const recip_params = [];
+      let recip_idx = 1;
       if (filtro_regioni && filtro_regioni.length > 0) {
-        query_recipients += ` AND u.regione IN (${filtro_regioni.map(r => `'${r}'`).join(',')})`;
+        const ph = filtro_regioni.map((_, i) => `$${recip_idx + i}`).join(',');
+        query_recipients += ` AND u.regione IN (${ph})`;
+        recip_params.push(...filtro_regioni);
+        recip_idx += filtro_regioni.length;
       }
       if (filtro_soa && filtro_soa.length > 0) {
-        query_recipients += ` AND u.soa IN (${filtro_soa.map(s => `'${s}'`).join(',')})`;
+        const ph = filtro_soa.map((_, i) => `$${recip_idx + i}`).join(',');
+        query_recipients += ` AND u.soa IN (${ph})`;
+        recip_params.push(...filtro_soa);
+        recip_idx += filtro_soa.length;
       }
 
-      const recipients_result = await query(query_recipients);
+      const recipients_result = await query(query_recipients, recip_params);
       const html = buildNewsletterHtml('esiti', oggetto || 'Newsletter Esiti', esiti_result.rows, testo_aggiuntivo);
 
       let sent_count = 0;
