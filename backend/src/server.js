@@ -277,6 +277,7 @@ const AUTO_MIGRATIONS = [
   '022_utenti_completo.sql',
   '023_sopralluoghi_align_schema.sql',
   '024_presidia_import_runs.sql',
+  '025_gare_edit_fields.sql',
 ];
 
 async function runAutoMigrations() {
