@@ -296,7 +296,7 @@ export default async function bandiRoutes(fastify, opts) {
       'indirizzo','cap','citta','regione','annullato','privato',
       'external_code','fonte_dati','note',
       'note_01','note_02','note_03','note_04','note_05',
-      'id_esito','link_bando',
+      'link_bando','id_azienda_dedicata',
       'data_avviso','ora_avviso','username_avviso','tipo_apertura_avviso','note_avviso'
     ];
 
@@ -412,8 +412,8 @@ export default async function bandiRoutes(fastify, opts) {
       'note_03': 'note_03',
       'note_04': 'note_04',
       'note_05': 'note_05',
-      'id_esito': 'id_esito',
       'link_bando': 'link_bando',
+      'id_azienda_dedicata': 'id_azienda_dedicata',
       'data_avviso': 'data_avviso',
       'ora_avviso': 'ora_avviso',
       'username_avviso': 'username_avviso',
