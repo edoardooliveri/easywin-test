@@ -502,7 +502,7 @@ export default async function adminDashboardRoutes(fastify, opts) {
 
       // Log to newsletter history
       await query(
-        `INSERT INTO newsletter_storico (tipo, data_invio, destinatari, inviati, falliti, oggetto)
+        `INSERT INTO newsletter_invii (tipo, data_invio, destinatari, inviati, falliti, oggetto)
          VALUES ($1, NOW(), $2, $3, $4, $5)`,
         ['bandi', recipients_result.rows.length, sent_count, failed_count, oggetto]
       );
@@ -580,7 +580,7 @@ export default async function adminDashboardRoutes(fastify, opts) {
 
       // Log to newsletter history
       await query(
-        `INSERT INTO newsletter_storico (tipo, data_invio, destinatari, inviati, falliti, oggetto)
+        `INSERT INTO newsletter_invii (tipo, data_invio, destinatari, inviati, falliti, oggetto)
          VALUES ($1, NOW(), $2, $3, $4, $5)`,
         ['esiti', recipients_result.rows.length, sent_count, failed_count, oggetto]
       );
