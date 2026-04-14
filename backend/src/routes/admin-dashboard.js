@@ -1,35 +1,5 @@
 import { query } from '../db/pool.js';
-import nodemailer from 'nodemailer';
-
-// Configure email transporter
-let mailTransporter;
-async function getMailTransporter() {
-  if (mailTransporter) return mailTransporter;
-
-  // Try to use pool if available from environment
-  if (process.env.SMTP_POOL) {
-    try {
-      mailTransporter = nodemailer.createTransport(JSON.parse(process.env.SMTP_POOL));
-    } catch (err) {
-      fastify.log.warn('Failed to parse SMTP_POOL, falling back to SMTP vars');
-    }
-  }
-
-  // Fall back to individual SMTP environment variables
-  if (!mailTransporter) {
-    mailTransporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'localhost',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
-    });
-  }
-
-  return mailTransporter;
-}
+import { send as mailSend } from '../lib/mail-transport.js';
 
 // Newsletter HTML template builder
 function buildNewsletterHtml(type, title, items, testo_aggiuntivo = '') {
@@ -445,7 +415,6 @@ export default async function adminDashboardRoutes(fastify, opts) {
   fastify.post('/newsletter/invia-bandi', async (request, reply) => {
     try {
       const { filtro_regioni, filtro_province, filtro_soa, data_da, data_a, oggetto, testo_aggiuntivo } = request.body;
-      const transporter = await getMailTransporter();
 
       let query_bandi = `SELECT * FROM bandi WHERE 1=1`;
       const bandi_params = [];
@@ -487,11 +456,12 @@ export default async function adminDashboardRoutes(fastify, opts) {
 
       for (const recipient of recipients_result.rows) {
         try {
-          await transporter.sendMail({
-            from: process.env.SMTP_FROM || 'noreply@easywin.it',
+          await mailSend({
             to: recipient.email,
             subject: oggetto || 'Newsletter Bandi EasyWin',
-            html: html
+            html: html,
+            channel: 'newsletter_bandi',
+            meta: { username_invio: request.user?.username || 'admin' }
           });
           sent_count++;
         } catch (err) {
@@ -523,7 +493,6 @@ export default async function adminDashboardRoutes(fastify, opts) {
   fastify.post('/newsletter/invia-esiti', async (request, reply) => {
     try {
       const { filtro_regioni, filtro_province, filtro_soa, data_da, data_a, oggetto, testo_aggiuntivo } = request.body;
-      const transporter = await getMailTransporter();
 
       let query_esiti = `SELECT * FROM gare WHERE 1=1`;
       const esiti_params = [];
@@ -565,11 +534,12 @@ export default async function adminDashboardRoutes(fastify, opts) {
 
       for (const recipient of recipients_result.rows) {
         try {
-          await transporter.sendMail({
-            from: process.env.SMTP_FROM || 'noreply@easywin.it',
+          await mailSend({
             to: recipient.email,
             subject: oggetto || 'Newsletter Esiti EasyWin',
-            html: html
+            html: html,
+            channel: 'newsletter_esiti',
+            meta: { username_invio: request.user?.username || 'admin' }
           });
           sent_count++;
         } catch (err) {
