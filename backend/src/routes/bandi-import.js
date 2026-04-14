@@ -54,7 +54,7 @@ export default async function bandiImportRoutes(fastify, opts) {
   // ==================== MANUAL IMPORT ====================
 
   // POST /api/admin/bandi-import/manuale
-  fastify.post('/bandi-import/manuale', async (request, reply) => {
+  fastify.post('/manuale', async (request, reply) => {
     try {
       const {
         titolo, cig, importo, data, id_stazione, id_regione, id_provincia,
@@ -96,7 +96,7 @@ export default async function bandiImportRoutes(fastify, opts) {
   });
 
   // POST /api/admin/bandi-import/bulk
-  fastify.post('/bandi-import/bulk', async (request, reply) => {
+  fastify.post('/bulk', async (request, reply) => {
     try {
       const { bandi } = request.body;
 
@@ -158,7 +158,7 @@ export default async function bandiImportRoutes(fastify, opts) {
   // ==================== EXTERNAL SOURCE IMPORT ====================
 
   // POST /api/admin/bandi-import/presidia
-  fastify.post('/bandi-import/presidia', async (request, reply) => {
+  fastify.post('/presidia', async (request, reply) => {
     try {
       const { id_presidia, data_da, data_a } = request.body;
 
@@ -239,7 +239,7 @@ export default async function bandiImportRoutes(fastify, opts) {
   });
 
   // POST /api/admin/bandi-import/maggioli
-  fastify.post('/bandi-import/maggioli', async (request, reply) => {
+  fastify.post('/maggioli', async (request, reply) => {
     try {
       const { url, filtri } = request.body;
 
@@ -312,7 +312,7 @@ export default async function bandiImportRoutes(fastify, opts) {
   });
 
   // POST /api/admin/bandi-import/csv
-  fastify.post('/bandi-import/csv', async (request, reply) => {
+  fastify.post('/csv', async (request, reply) => {
     try {
       const { file, mapping } = request.body;
 
@@ -387,7 +387,7 @@ export default async function bandiImportRoutes(fastify, opts) {
   // ==================== DUPLICATE DETECTION ====================
 
   // GET /api/admin/bandi-import/duplicati
-  fastify.get('/bandi-import/duplicati', async (request, reply) => {
+  fastify.get('/duplicati', async (request, reply) => {
     try {
       // Find duplicates by CIG
       const cigDuplicates = await query(`
@@ -438,7 +438,7 @@ export default async function bandiImportRoutes(fastify, opts) {
   });
 
   // POST /api/admin/bandi-import/risolvi-duplicato
-  fastify.post('/bandi-import/risolvi-duplicato', async (request, reply) => {
+  fastify.post('/risolvi-duplicato', async (request, reply) => {
     try {
       const { id_originale, id_duplicato, azione } = request.body;
 
@@ -479,7 +479,7 @@ export default async function bandiImportRoutes(fastify, opts) {
   // ==================== IMPORT HISTORY ====================
 
   // GET /api/admin/bandi-import/storico
-  fastify.get('/bandi-import/storico', async (request, reply) => {
+  fastify.get('/storico', async (request, reply) => {
     try {
       const result = await query(`
         SELECT id, fonte, data_import, bandi_importati, bandi_duplicati, errori, note
@@ -498,7 +498,7 @@ export default async function bandiImportRoutes(fastify, opts) {
   });
 
   // GET /api/admin/bandi-import/storico/:id
-  fastify.get('/bandi-import/storico/:id', async (request, reply) => {
+  fastify.get('/storico/:id', async (request, reply) => {
     try {
       const { id } = request.params;
 
