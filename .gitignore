@@ -39,3 +39,15 @@ ISTRUZIONI_*.md
 backend/scripts/*.txt
 backend/scripts/*progress.json
 backend/scripts/*report.json
+
+# --- Prompt CC con nomi alternativi ---
+PROMPT_*.md
+
+# --- Backup file ---
+*.bak-*
+*.bak
+*.backup
+
+# --- Backend data reports (one-shot output) ---
+backend/data/*report*.json
+backend/data/*_report.json
