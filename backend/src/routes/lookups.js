@@ -292,6 +292,12 @@ export default async function lookupRoutes(fastify, opts) {
     return result.rows;
   });
 
+  // GET /api/lookups/tipo-sopralluogo
+  fastify.get('/tipo-sopralluogo', async () => {
+    const result = await query('SELECT id, nome FROM tipo_sopralluogo ORDER BY id');
+    return result.rows;
+  });
+
   // GET /api/lookups/stats - Statistiche generali
   fastify.get('/stats', async () => {
     const result = await query(`

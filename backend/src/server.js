@@ -278,6 +278,10 @@ const AUTO_MIGRATIONS = [
   '023_sopralluoghi_align_schema.sql',
   '024_presidia_import_runs.sql',
   '025_gare_edit_fields.sql',
+  '026_tipo_sopralluogo.sql',
+  '027_bandi_link_bando.sql',
+  '028_bandi_id_azienda_dedicata.sql',
+  '029_bandi_sped_to_boolean.sql',
 ];
 
 async function runAutoMigrations() {
