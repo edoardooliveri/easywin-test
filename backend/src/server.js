@@ -38,16 +38,27 @@ import simulazioniEngineRoutes from './routes/simulazioni-engine.js';
 import fontiWebRoutes from './routes/fonti-web.js';
 import piattaformeRoutes from './routes/piattaforme.js';
 import ricercaDoppiaRoutes from './routes/ricerca-doppia.js';
+import soaRoutes from './routes/soa.js';
+import avvalimentiRoutes from './routes/avvalimenti.js';
+import abbonamentiRoutes from './routes/abbonamenti.js';
+import syncUrlRoutes from './routes/sync-url.js';
 import pubblicoRoutes from './routes/pubblico.js';
 import apiPubblicaRoutes from './routes/api-pubblica.js';
 import sistemaRoutes from './routes/sistema.js';
 import newsletterRoutes from './routes/newsletter.js';
 import bandiImportRoutes from './routes/bandi-import.js';
 import bandiAllegatiRoutes from './routes/bandi-allegati.js';
+import bandiExportRoutes from './routes/bandi-export.js';
 import tasksManagerRoutes from './routes/tasks-manager.js';
 import calendarioRoutes from './routes/calendario.js';
+import appuntamentiRoutes from './routes/appuntamenti.js';
 import provinceGestioneRoutes from './routes/province-gestione.js';
 import seedRoutes from './routes/seed.js';
+import { startNewsletterScheduler } from './services/newsletter-scheduler.js';
+import { startAbbonamentoScheduler } from './services/abbonamenti-scheduler.js';
+import { startFontiWebScheduler } from './services/fonti-web-scheduler.js';
+import { startPresidiaScheduler } from './services/presidia-scheduler.js';
+import rssRoutes from './routes/rss.js';
 
 dotenv.config();
 
@@ -98,41 +109,6 @@ fastify.decorate('requireAdmin', async function (request, reply) {
   }
 });
 
-// Gestionale access decorator (admin, agente, incaricato, operatore)
-fastify.decorate('requireGestionale', async function (request, reply) {
-  const perms = request.user?.permissions;
-  if (!perms?.gestionale) {
-    reply.status(403).send({ error: 'Accesso riservato al personale gestionale' });
-  }
-});
-
-// Permission check decorator factory — checks specific feature flags
-fastify.decorate('requirePermission', function (permissionKey) {
-  return async function (request, reply) {
-    const perms = request.user?.permissions;
-    const ruolo = request.user?.ruolo;
-    // Admin/superadmin bypass all permission checks
-    if (ruolo === 'admin' || ruolo === 'superadmin') return;
-    // Check expired subscription
-    if (request.user?.isExpired) {
-      reply.status(403).send({ error: 'Abbonamento scaduto. Rinnovare per accedere a questa funzionalità.' });
-      return;
-    }
-    if (!perms || !perms[permissionKey]) {
-      reply.status(403).send({ error: `Non hai i permessi per accedere a questa funzionalità (${permissionKey})` });
-    }
-  };
-});
-
-// Subscription active check decorator
-fastify.decorate('requireActiveSubscription', async function (request, reply) {
-  const ruolo = request.user?.ruolo;
-  if (ruolo === 'admin' || ruolo === 'superadmin' || ruolo === 'agente' || ruolo === 'incaricato' || ruolo === 'operatore') return;
-  if (request.user?.isExpired) {
-    reply.status(403).send({ error: 'Abbonamento scaduto. Contattare l\'assistenza per il rinnovo.' });
-  }
-});
-
 // Health check
 fastify.get('/api/health', async () => ({
   status: 'ok',
@@ -166,6 +142,9 @@ await fastify.register(bandiServiziRoutes, { prefix: '/api/bandi' });
 // Bandi Allegati (upload, download, delete, list)
 await fastify.register(bandiAllegatiRoutes, { prefix: '/api/bandi' });
 
+// Bandi Export (PDF, XLSX)
+await fastify.register(bandiExportRoutes, { prefix: '/api/bandi' });
+
 // Entity management
 await fastify.register(concorrentiRoutes, { prefix: '/api/concorrenti' });
 await fastify.register(intermediariRoutes, { prefix: '/api/intermediari' });
@@ -179,8 +158,17 @@ await fastify.register(fontiWebRoutes, { prefix: '/api/admin/fonti-web' });
 await fastify.register(piattaformeRoutes, { prefix: '/api/piattaforme' });
 await fastify.register(ricercaDoppiaRoutes, { prefix: '/api/ricerca-doppia' });
 
+// Moduli portati dal vecchio sito (Abbonamenti area)
+await fastify.register(soaRoutes, { prefix: '/api/soa' });
+await fastify.register(avvalimentiRoutes, { prefix: '/api/avvalimenti' });
+await fastify.register(abbonamentiRoutes, { prefix: '/api/abbonamenti' });
+await fastify.register(syncUrlRoutes, { prefix: '/api/sync-url' });
+
 // Public routes (no auth)
 await fastify.register(pubblicoRoutes, { prefix: '/api/pubblico' });
+
+// RSS Feeds (public, no auth)
+await fastify.register(rssRoutes, { prefix: '/api/rss' });
 
 // Public API v1 (API key auth)
 await fastify.register(apiPubblicaRoutes, { prefix: '/api/v1' });
@@ -193,6 +181,15 @@ await fastify.register(async function adminScope(instance) {
       await request.jwtVerify();
     } catch (err) {
       return reply.status(401).send({ error: 'Non autorizzato' });
+    }
+    // Publisher role: block access to admin panels (utenti, aziende, dashboard, gestionale)
+    const ruolo = request.user?.ruolo;
+    if (ruolo === 'publisher') {
+      const url = request.url;
+      const blocked = ['/api/admin/utenti', '/api/admin/aziende', '/api/admin/dashboard', '/api/admin/gestionale', '/api/admin/stazioni'];
+      if (blocked.some(prefix => url.startsWith(prefix))) {
+        return reply.status(403).send({ error: 'Accesso non consentito per il ruolo publisher' });
+      }
     }
   });
 
@@ -209,6 +206,7 @@ await fastify.register(async function adminScope(instance) {
 
 // Calendar/Agenda
 await fastify.register(calendarioRoutes, { prefix: '/api/calendario' });
+await fastify.register(appuntamentiRoutes, { prefix: '/api/appuntamenti' });
 
 // Province/Regioni/Comuni + File Downloads
 await fastify.register(provinceGestioneRoutes, { prefix: '/api' });
@@ -244,25 +242,85 @@ await fastify.register(fastifyStatic, {
 });
 
 // Fallback for frontend client-side routing
+// Step 5: /admin/* (senza estensione file) → serve admin/index.html (SPA con History API)
 fastify.setNotFoundHandler((request, reply) => {
-  if (request.url.startsWith('/api')) {
+  const url = (request.url || '').split('?')[0];
+  if (url.startsWith('/api')) {
     reply.code(404).send({ error: 'Endpoint API non trovato' });
-  } else {
-    reply.sendFile('index.html');
+    return;
   }
+  // SPA admin: qualsiasi /admin/<qualcosa> che non corrisponde a un file statico
+  // viene servito come admin/index.html (il client-side router fa il dispatch)
+  if (url.startsWith('/admin/') || url === '/admin') {
+    // Escludi comunque percorsi con estensione (asset mancanti → 404 normale)
+    const last = url.split('/').pop();
+    if (last && last.includes('.')) {
+      reply.code(404).send({ error: 'Asset non trovato' });
+      return;
+    }
+    reply.sendFile('admin/index.html');
+    return;
+  }
+  reply.sendFile('index.html');
 });
+
+// Auto-migration: esegue migrazioni pending-only all'avvio (idempotente)
+// Elenco delle migration da auto-applicare. Sono tutte scritte con IF NOT EXISTS
+// quindi sicure da eseguire ripetutamente.
+const AUTO_MIGRATIONS = [
+  '014_utenti_abbonamento_complete.sql',
+  '015_utenti_selezioni.sql',
+  '016_utenti_filtri_bandi.sql',
+  '017_bandi_privato_livelli.sql',
+  '018_user_documents_doppie_login.sql',
+  '019_fonti_web_scraper.sql',
+  '020_tasks_newsletter.sql',
+  '021_bandi_links.sql',
+  '022_utenti_completo.sql',
+  '023_sopralluoghi_align_schema.sql',
+  '024_presidia_import_runs.sql',
+];
+
+async function runAutoMigrations() {
+  const { default: pool } = await import('./db/pool.js');
+  const { readFileSync } = await import('fs');
+  for (const name of AUTO_MIGRATIONS) {
+    const sqlPath = path.join(__dirname, 'db/migrations', name);
+    try {
+      const sql = readFileSync(sqlPath, 'utf8');
+      await pool.query(sql);
+      console.log(`✓ auto-migration ${name} applicata`);
+    } catch (err) {
+      console.error(`✗ auto-migration ${name} fallita:`, err.message);
+    }
+  }
+}
 
 // Start
 const start = async () => {
   try {
+    await runAutoMigrations();
     const port = parseInt(process.env.PORT || '3001');
     const host = process.env.HOST || '0.0.0.0';
     await fastify.listen({ port, host });
+
+    // Avvia schedulers automatici
+    startNewsletterScheduler(fastify);    // Newsletter personalizzata ore 4:00
+    startAbbonamentoScheduler(fastify);   // Gestione abbonamenti ore 6:00
+    startFontiWebScheduler(fastify);      // Sync fonti web ogni 10 min
+    startPresidiaScheduler(fastify);       // Import automatico Presidia (13 slot/giorno + riepilogo 04:00)
+
+    const presidiaStatus = process.env.PRESIDIA_AUTO === 'true' ? 'attivo (13 slot+riepilogo)' : 'disabilitato';
     console.log(`
-  ╔══════════════════════════════════════════╗
-  ║     easyWin API Server v3.0.0           ║
-  ║     Running on ${host}:${port}             ║
-  ╚══════════════════════════════════════════╝
+  ╔══════════════════════════════════════════════╗
+  ║     easyWin API Server v3.0.0               ║
+  ║     Running on ${host}:${port}                 ║
+  ║     Newsletter scheduler: attivo (4:30)     ║
+  ║     Abbonamenti scheduler: attivo (6:00)    ║
+  ║     Fonti Web scheduler: attivo (10min)     ║
+  ║     Presidia scheduler: ${presidiaStatus.padEnd(20)}║
+  ║     RSS feeds: /api/rss/bandi & esiti       ║
+  ╚══════════════════════════════════════════════╝
     `);
   } catch (err) {
     fastify.log.error(err);
