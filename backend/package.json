@@ -20,6 +20,7 @@
     "@fontsource/comfortaa": "^5.2.8",
     "axios": "^1.6.5",
     "bcryptjs": "^2.4.3",
+    "bottleneck": "^2.19.5",
     "cheerio": "^1.2.0",
     "csv-parse": "^5.5.3",
     "dotenv": "^16.4.1",
