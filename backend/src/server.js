@@ -49,7 +49,6 @@ import newsletterRoutes from './routes/newsletter.js';
 import bandiImportRoutes from './routes/bandi-import.js';
 import bandiAllegatiRoutes from './routes/bandi-allegati.js';
 import bandiExportRoutes from './routes/bandi-export.js';
-import tasksManagerRoutes from './routes/tasks-manager.js';
 import calendarioRoutes from './routes/calendario.js';
 import appuntamentiRoutes from './routes/appuntamenti.js';
 import provinceGestioneRoutes from './routes/province-gestione.js';
@@ -201,7 +200,6 @@ await fastify.register(async function adminScope(instance) {
   await instance.register(sistemaRoutes);
   await instance.register(newsletterRoutes, { prefix: '/newsletter' });
   await instance.register(bandiImportRoutes, { prefix: '/bandi-import' });
-  await instance.register(tasksManagerRoutes, { prefix: '/tasks' });
 }, { prefix: '/api/admin' });
 
 // Calendar/Agenda
