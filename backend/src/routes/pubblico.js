@@ -305,7 +305,7 @@ export default async function pubblicoRoutes(fastify, opts) {
         </div>
       `;
 
-      await sendEmail(email, 'EasyWin - Reset Password', htmlBody);
+      await sendEmail(email, 'EasyWin - Reset Password', htmlBody, { channel: 'password_reset' });
 
       return { message: 'Se l\'email è registrata, riceverai un link per il reset della password' };
     } catch (err) {
@@ -675,7 +675,7 @@ export default async function pubblicoRoutes(fastify, opts) {
         </div>
       `;
 
-      await sendEmail(adminEmail, `EasyWin - Contatto da ${nome}`, htmlBody);
+      await sendEmail(adminEmail, `EasyWin - Contatto da ${nome}`, htmlBody, { channel: 'contact_form' });
 
       return { message: 'Messaggio inviato con successo. Ti contatteremo a breve.' };
     } catch (err) {

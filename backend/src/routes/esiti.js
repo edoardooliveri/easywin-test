@@ -1423,7 +1423,8 @@ export default async function esitiRoutes(fastify) {
       const emailResult = await sendEmail(
         email,
         `EasyWin - Esito Gara #${id}: ${esito.Titolo?.substring(0, 60) || 'Comunicazione Esito'}`,
-        htmlBody
+        htmlBody,
+        { channel: 'civetta_esito' }
       );
 
       if (emailResult.status === 'failed') {
@@ -1514,7 +1515,8 @@ export default async function esitiRoutes(fastify) {
           const emailResult = await sendEmail(
             partecipante.Email,
             `EasyWin - Esito Gara: ${gara.Titolo?.substring(0, 80) || 'Comunicazione Esito'}`,
-            htmlEmail
+            htmlEmail,
+            { channel: 'civetta_esito' }
           );
 
           if (emailResult.status === 'sent') {

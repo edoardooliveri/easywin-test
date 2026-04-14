@@ -1,18 +1,4 @@
-import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-// Create transporter (SMTP config from .env)
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
+import { send as mailSend } from '../lib/mail-transport.js';
 
 /**
  * Send esito notification to all participating companies
@@ -102,19 +88,19 @@ export async function sendEsitoNotifications(garaId, options = {}) {
     htmlBody += `</div></div>`;
 
     try {
-      if (process.env.SMTP_USER) {
-        await transporter.sendMail({
-          from: process.env.SMTP_FROM || '"EasyWin" <noreply@easywin.it>',
-          to: email,
-          subject,
-          html: htmlBody
-        });
+      const result = await mailSend({
+        to: email,
+        subject,
+        html: htmlBody,
+        channel: 'civetta_esito',
+        meta: { gara_id: garaId, id_azienda: p.id_azienda }
+      });
+      if (result.status === 'sent' || result.status === 'dry_run') {
         results.sent++;
         results.details.push({ azienda: nome, email, status: 'sent' });
       } else {
-        // SMTP not configured - log only
-        results.skipped++;
-        results.details.push({ azienda: nome, email, status: 'skipped', reason: 'SMTP non configurato' });
+        results.failed++;
+        results.details.push({ azienda: nome, email, status: 'failed', error: result.error });
       }
     } catch (err) {
       results.failed++;
@@ -126,22 +112,20 @@ export async function sendEsitoNotifications(garaId, options = {}) {
 }
 
 /**
- * Send custom email
+ * Send custom email. Callers should pass options.channel for mail_log categorization.
  */
 export async function sendEmail(to, subject, htmlBody, options = {}) {
-  if (!process.env.SMTP_USER) {
-    return { status: 'skipped', reason: 'SMTP non configurato' };
-  }
+  const { channel = 'generic', ...mailOpts } = options;
 
   try {
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || '"EasyWin" <noreply@easywin.it>',
+    const result = await mailSend({
       to,
       subject,
       html: htmlBody,
-      ...options
+      channel,
+      meta: {}
     });
-    return { status: 'sent' };
+    return { status: result.status === 'failed' ? 'failed' : 'sent', error: result.error };
   } catch (err) {
     return { status: 'failed', error: err.message };
   }

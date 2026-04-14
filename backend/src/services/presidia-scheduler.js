@@ -156,7 +156,8 @@ async function sendFailureAlert(count, err) {
       `Presidia scheduler: ${count} run consecutivi falliti`,
       `<p>Presidia SOAP risulta irraggiungibile da ${count} run consecutivi.</p>
        <p><b>Ultimo errore:</b> ${err?.message || 'unknown'}</p>
-       <p>Verifica connessione a <code>${process.env.PRESIDIA_SOAP_URL || DEFAULT_ENDPOINT}</code></p>`
+       <p>Verifica connessione a <code>${process.env.PRESIDIA_SOAP_URL || DEFAULT_ENDPOINT}</code></p>`,
+      { channel: 'alert_import' }
     );
   } catch (e) {
     console.error('Invio alert admin fallito:', e.message);

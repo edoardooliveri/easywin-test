@@ -26,7 +26,7 @@ CREATE INDEX IF NOT EXISTS idx_mail_log_batch ON mail_log(batch_id) WHERE batch_
 -- Enum suggerito (non enforced a livello DB per flessibilità):
 -- newsletter_bandi, newsletter_esiti, newsletter_custom
 -- civetta_esito
--- alert_apertura, alert_sopralluogo, alert_scrittura, alert_import
+-- alert_apertura, alert_sopralluogo, alert_scrittura, alert_import, alert_esiti_pubblicazione
 -- reminder_scadenza_30, reminder_scadenza_7, reminder_scadenza_0
 -- evento_posticipo, evento_assegnazione, evento_cambio_incaricato
 -- password_reset, contact_form
