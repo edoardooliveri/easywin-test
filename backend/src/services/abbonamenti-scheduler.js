@@ -12,6 +12,7 @@
 
 import { query } from '../db/pool.js';
 import { send as mailSend } from '../lib/mail-transport.js';
+import { canRunToday, markTaskRun } from '../lib/scheduler-helpers.js';
 import { emailLayout, sectionTitle, infoRow, alertBox, ctaButton } from './email-templates.js';
 
 const SERVICES = [
@@ -24,7 +25,6 @@ const SERVICES = [
 ];
 
 let _schedulerInterval = null;
-let _lastRunDate = null;
 
 /**
  * Avvia lo scheduler abbonamenti.
@@ -40,14 +40,14 @@ export function startAbbonamentoScheduler(fastify) {
 
   _schedulerInterval = setInterval(async () => {
     const now = new Date();
-    const todayKey = now.toISOString().split('T')[0];
-
-    // Già eseguito oggi?
-    if (_lastRunDate === todayKey) return;
 
     // È l'ora giusta?
     if (now.getHours() < SEND_HOUR) return;
     if (now.getHours() === SEND_HOUR && now.getMinutes() < SEND_MINUTE) return;
+
+    // DB-backed idempotency: già eseguito oggi con successo?
+    const canRun = await canRunToday('abbonamenti_scheduler', SEND_HOUR);
+    if (!canRun) return;
 
     // Controlla se il task è attivo
     try {
@@ -62,7 +62,6 @@ export function startAbbonamentoScheduler(fastify) {
     }
 
     // Esegui scheduler
-    _lastRunDate = todayKey;
     console.log(`📋 [${now.toISOString()}] Avvio scheduler abbonamenti...`);
 
     try {
@@ -86,29 +85,12 @@ export function startAbbonamentoScheduler(fastify) {
 
       console.log(`📋 Scheduler completato:`, stats);
 
-      // Aggiorna task status
-      try {
-        await query(
-          `UPDATE tasks SET data_ultima_esecuzione = NOW(), stato_ultima_esecuzione = 'successo',
-           messaggio_ultima_esecuzione = $1, prossima_esecuzione = $2
-           WHERE tipo = 'abbonamenti_scheduler' AND attivo = true`,
-          [
-            JSON.stringify(stats),
-            getNextRunDate(SEND_HOUR, SEND_MINUTE).toISOString()
-          ]
-        );
-      } catch (e) { /* tasks table may not exist yet */ }
+      // Aggiorna task status (idempotent)
+      await markTaskRun('abbonamenti_scheduler', 'successo', JSON.stringify(stats), getNextRunDate(SEND_HOUR, SEND_MINUTE).toISOString());
 
     } catch (err) {
       console.error(`📋 Errore scheduler abbonamenti:`, err.message);
-      try {
-        await query(
-          `UPDATE tasks SET data_ultima_esecuzione = NOW(), stato_ultima_esecuzione = 'errore',
-           messaggio_ultima_esecuzione = $1
-           WHERE tipo = 'abbonamenti_scheduler' AND attivo = true`,
-          [err.message]
-        );
-      } catch (e) { /* ignore */ }
+      await markTaskRun('abbonamenti_scheduler', 'errore', err.message, null);
     }
   }, CHECK_INTERVAL);
 
