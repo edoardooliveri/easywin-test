@@ -472,9 +472,9 @@ export default async function adminDashboardRoutes(fastify, opts) {
 
       // Log to newsletter history
       await query(
-        `INSERT INTO newsletter_invii (tipo, data_invio, destinatari, inviati, falliti, oggetto)
-         VALUES ($1, NOW(), $2, $3, $4, $5)`,
-        ['bandi', recipients_result.rows.length, sent_count, failed_count, oggetto]
+        `INSERT INTO newsletter_invii (tipo, data_invio, destinatari, inviati, falliti, oggetto, username_invio)
+         VALUES ($1, NOW(), $2, $3, $4, $5, $6)`,
+        ['bandi', recipients_result.rows.length, sent_count, failed_count, oggetto, request.user?.username || 'admin']
       );
 
       return {
@@ -550,9 +550,9 @@ export default async function adminDashboardRoutes(fastify, opts) {
 
       // Log to newsletter history
       await query(
-        `INSERT INTO newsletter_invii (tipo, data_invio, destinatari, inviati, falliti, oggetto)
-         VALUES ($1, NOW(), $2, $3, $4, $5)`,
-        ['esiti', recipients_result.rows.length, sent_count, failed_count, oggetto]
+        `INSERT INTO newsletter_invii (tipo, data_invio, destinatari, inviati, falliti, oggetto, username_invio)
+         VALUES ($1, NOW(), $2, $3, $4, $5, $6)`,
+        ['esiti', recipients_result.rows.length, sent_count, failed_count, oggetto, request.user?.username || 'admin']
       );
 
       return {

@@ -521,10 +521,10 @@ export default async function newsletterRoutes(fastify, opts) {
 
       // Log newsletter sending
       const invioResult = await query(
-        `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+        `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio, username_invio)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9)
          RETURNING id`,
-        ['bandi', data_da, data_a, users.rows.length, sentCount, failedCount, oggetto, note_aggiuntive]
+        ['bandi', data_da, data_a, users.rows.length, sentCount, failedCount, oggetto, note_aggiuntive, request.user?.username || 'admin']
       );
 
       return {
@@ -613,10 +613,10 @@ export default async function newsletterRoutes(fastify, opts) {
 
       // Log newsletter sending
       const invioResult = await query(
-        `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+        `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio, username_invio)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9)
          RETURNING id`,
-        ['esiti', data_da, data_a, users.rows.length, sentCount, failedCount, oggetto, note_aggiuntive]
+        ['esiti', data_da, data_a, users.rows.length, sentCount, failedCount, oggetto, note_aggiuntive, request.user?.username || 'admin']
       );
 
       return {
@@ -1091,12 +1091,13 @@ export default async function newsletterRoutes(fastify, opts) {
         // Log invio
         if (log.bandi.sent > 0 || log.bandi.failed > 0) {
           await query(
-            `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+            `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio, username_invio)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9)`,
             ['bandi_auto', ieriStr, ieriStr,
              usersBandi.rows.length, log.bandi.sent, log.bandi.failed,
              `[AUTO] Newsletter Bandi ${dateRange.da}`,
-             `Invio automatico personalizzato. Totale bandi giorno: ${allBandi.rows.length}. Skipped (0 match): ${log.bandi.skipped}`]
+             `Invio automatico personalizzato. Totale bandi giorno: ${allBandi.rows.length}. Skipped (0 match): ${log.bandi.skipped}`,
+             request.user?.username || 'scheduler']
           );
         }
       }
@@ -1220,12 +1221,13 @@ export default async function newsletterRoutes(fastify, opts) {
 
         if (log.esiti.sent > 0 || log.esiti.failed > 0) {
           await query(
-            `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+            `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio, username_invio)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9)`,
             ['esiti_auto', ieriStr, ieriStr,
              usersEsiti.rows.length, log.esiti.sent, log.esiti.failed,
              `[AUTO] Newsletter Esiti ${dateRange.da}`,
-             `Invio automatico personalizzato. Totale esiti giorno: ${allEsiti.rows.length}. Skipped (0 match): ${log.esiti.skipped}`]
+             `Invio automatico personalizzato. Totale esiti giorno: ${allEsiti.rows.length}. Skipped (0 match): ${log.esiti.skipped}`,
+             request.user?.username || 'scheduler']
           );
         }
       }
