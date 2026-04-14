@@ -750,3 +750,140 @@ function getPartialGrad(graduatoria, currentPosition) {
   if (idx === -1) return graduatoria.slice(0, 1);
   return graduatoria.slice(Math.max(0, idx - 2), Math.min(graduatoria.length, idx + 3));
 }
+
+// ================================================================
+// NEWSLETTER PERSONALIZZATE (filtri utente)
+// ================================================================
+
+function fmtImportoEmail(v) {
+  if (v == null || v === 0) return '—';
+  return '\u20AC ' + Number(v).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function buildRegoleChips(regole) {
+  if (!regole || regole.length === 0) return '';
+  return regole.map(r => {
+    const parts = [];
+    if (r.soa_codice) parts.push(`SOA ${r.soa_codice}`);
+    if (r.province && r.province.length > 0) parts.push(r.province.map(p => p.sigla || p.nome || p).join(', '));
+    const mn = parseFloat(r.importo_min) || 0;
+    const mx = parseFloat(r.importo_max) || 0;
+    if (mn > 0 || mx > 0) parts.push(`${fmtImportoEmail(mn)} — ${mx > 0 ? fmtImportoEmail(mx) : 'illimitato'}`);
+    return `<span style="display:inline-block;background:${C.darkAlt};color:${C.gold};padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;margin:2px 4px 2px 0;border:1px solid rgba(245,197,24,0.2);">${parts.join(' &middot; ') || 'Tutti'}</span>`;
+  }).join('');
+}
+
+function bandoRow(b, idx) {
+  const bg = idx % 2 === 0 ? C.bg : C.dark;
+  return `<tr style="background:${bg};">
+    <td style="padding:14px 16px;border-bottom:1px solid ${C.darkAlt};">
+      <div style="font-family:'Comfortaa',Verdana,sans-serif;font-size:13px;font-weight:700;color:${C.white};margin-bottom:4px;">
+        <a href="${SITE_URL}/clienti/bando-dettaglio.html?id=${b.id || ''}" style="color:${C.gold};text-decoration:none;">${(b.titolo || '').substring(0, 100)}</a>
+      </div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:4px;">
+        <tr>
+          <td style="font-size:11px;color:${C.midGray};padding:2px 0;"><strong style="color:${C.lightGray};">Stazione:</strong> ${b.stazione || '—'}</td>
+          <td style="font-size:11px;color:${C.midGray};padding:2px 0;text-align:right;"><strong style="color:${C.lightGray};">Provincia:</strong> ${b.provincia || b.regione || '—'}</td>
+        </tr>
+        <tr>
+          <td style="font-size:11px;color:${C.midGray};padding:2px 0;"><strong style="color:${C.lightGray};">Importo:</strong> <span style="color:${C.green};font-weight:600;">${fmtImportoEmail(b.importo)}</span></td>
+          <td style="font-size:11px;color:${C.midGray};padding:2px 0;text-align:right;">${b.soa ? `<span style="background:${C.darkAlt};color:${C.orange};padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;">SOA ${b.soa}</span>` : ''}</td>
+        </tr>
+        <tr>
+          <td colspan="2" style="font-size:11px;color:${C.midGray};padding:2px 0;"><strong style="color:${C.lightGray};">Scadenza:</strong> ${b.data_offerta || b.data || '—'} ${b.cig ? ` &middot; CIG: ${b.cig}` : ''}</td>
+        </tr>
+      </table>
+    </td>
+  </tr>`;
+}
+
+/**
+ * Newsletter Bandi personalizzata per utente con filtri
+ */
+export function newsletterBandiPersonalizzata(user, bandi, regole) {
+  const nomeUtente = user.nome || user.username || 'Utente';
+  const nBandi = bandi.length;
+
+  const regoleHtml = regole && regole.length > 0
+    ? `${alertBox(`<strong>Risultati per i tuoi filtri:</strong><br>${buildRegoleChips(regole)}`, 'info')}`
+    : `${alertBox('Stai ricevendo tutti i bandi pubblicati. <a href="${SITE_URL}/clienti/profilo.html#filtri" style="color:${C.gold};font-weight:700;">Configura i tuoi filtri</a> per ricevere solo quelli di tuo interesse.', 'info')}`;
+
+  const bandiRows = bandi.map((b, i) => bandoRow(b, i)).join('');
+
+  const content = `
+    ${sectionTitle(`Ciao ${nomeUtente}`, `${nBandi} nuovi bandi corrispondono ai tuoi criteri`)}
+    ${regoleHtml}
+    <tr><td style="padding:0 16px 16px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-radius:8px;overflow:hidden;border:1px solid ${C.darkAlt};">
+        ${bandiRows}
+      </table>
+    </td></tr>
+    ${ctaButton('Vedi tutti i bandi', `${SITE_URL}/clienti/index.html#bandi`)}
+    ${textBlock(`<a href="${SITE_URL}/clienti/profilo.html#filtri" style="color:${C.midGray};text-decoration:underline;font-size:12px;">Modifica i tuoi filtri newsletter</a>`, { padding: '0 32px 16px', size: '12px' })}
+  `;
+
+  return emailLayout(content, {
+    preheader: `${nBandi} nuovi bandi per te — EasyWin`,
+    showUnsubscribe: true,
+    unsubscribeUrl: `${SITE_URL}/clienti/profilo.html#newsletter`,
+    footerExtra: 'Hai ricevuto questa email perch\u00E9 sei abbonato a EasyWin.'
+  });
+}
+
+function esitoRow(e, idx) {
+  const bg = idx % 2 === 0 ? C.bg : C.dark;
+  return `<tr style="background:${bg};">
+    <td style="padding:14px 16px;border-bottom:1px solid ${C.darkAlt};">
+      <div style="font-family:'Comfortaa',Verdana,sans-serif;font-size:13px;font-weight:700;color:${C.white};margin-bottom:4px;">
+        ${(e.titolo || '').substring(0, 100)}
+      </div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:4px;">
+        <tr>
+          <td style="font-size:11px;color:${C.midGray};padding:2px 0;"><strong style="color:${C.lightGray};">Stazione:</strong> ${e.stazione || '—'}</td>
+          <td style="font-size:11px;color:${C.midGray};padding:2px 0;text-align:right;"><strong style="color:${C.lightGray};">Data:</strong> ${e.data || '—'}</td>
+        </tr>
+        <tr>
+          <td style="font-size:11px;color:${C.midGray};padding:2px 0;"><strong style="color:${C.lightGray};">Importo:</strong> <span style="color:${C.green};font-weight:600;">${fmtImportoEmail(e.importo)}</span></td>
+          <td style="font-size:11px;color:${C.midGray};padding:2px 0;text-align:right;">${e.soa ? `<span style="background:${C.darkAlt};color:${C.orange};padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;">SOA ${e.soa}</span>` : ''}</td>
+        </tr>
+        <tr>
+          <td style="font-size:11px;color:${C.midGray};padding:2px 0;"><strong style="color:${C.lightGray};">Vincitore:</strong> <span style="color:${C.gold};font-weight:600;">${e.vincitore || '—'}</span></td>
+          <td style="font-size:11px;color:${C.midGray};padding:2px 0;text-align:right;"><strong style="color:${C.lightGray};">Ribasso:</strong> ${e.ribasso ? Number(e.ribasso).toFixed(3) + '%' : '—'} ${e.n_partecipanti ? `&middot; ${e.n_partecipanti} partec.` : ''}</td>
+        </tr>
+      </table>
+    </td>
+  </tr>`;
+}
+
+/**
+ * Newsletter Esiti personalizzata per utente con filtri
+ */
+export function newsletterEsitiPersonalizzata(user, esiti, regole) {
+  const nomeUtente = user.nome || user.username || 'Utente';
+  const nEsiti = esiti.length;
+
+  const regoleHtml = regole && regole.length > 0
+    ? `${alertBox(`<strong>Risultati per i tuoi filtri:</strong><br>${buildRegoleChips(regole)}`, 'info')}`
+    : `${alertBox('Stai ricevendo tutti gli esiti pubblicati. <a href="${SITE_URL}/clienti/profilo.html#filtri" style="color:${C.gold};font-weight:700;">Configura i tuoi filtri</a> per ricevere solo quelli di tuo interesse.', 'info')}`;
+
+  const esitiRows = esiti.map((e, i) => esitoRow(e, i)).join('');
+
+  const content = `
+    ${sectionTitle(`Ciao ${nomeUtente}`, `${nEsiti} nuovi esiti corrispondono ai tuoi criteri`)}
+    ${regoleHtml}
+    <tr><td style="padding:0 16px 16px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-radius:8px;overflow:hidden;border:1px solid ${C.darkAlt};">
+        ${esitiRows}
+      </table>
+    </td></tr>
+    ${ctaButton('Vedi tutti gli esiti', `${SITE_URL}/clienti/index.html#esiti`)}
+    ${textBlock(`<a href="${SITE_URL}/clienti/profilo.html#filtri" style="color:${C.midGray};text-decoration:underline;font-size:12px;">Modifica i tuoi filtri newsletter</a>`, { padding: '0 32px 16px', size: '12px' })}
+  `;
+
+  return emailLayout(content, {
+    preheader: `${nEsiti} nuovi esiti per te — EasyWin`,
+    showUnsubscribe: true,
+    unsubscribeUrl: `${SITE_URL}/clienti/profilo.html#newsletter`,
+    footerExtra: 'Hai ricevuto questa email perch\u00E9 sei abbonato a EasyWin.'
+  });
+}
