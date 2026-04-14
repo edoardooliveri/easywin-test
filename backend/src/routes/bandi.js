@@ -180,7 +180,13 @@ export default async function bandiRoutes(fastify, opts) {
         b.tipo_apertura_avviso AS tipo_apertura_avviso,
         b.note_avviso AS note_avviso,
         b.data_apertura_posticipata AS data_apertura_posticipata,
-        b.data_apertura_da_destinarsi AS data_apertura_da_destinarsi
+        b.data_apertura_da_destinarsi AS data_apertura_da_destinarsi,
+        b.created_at AS created_at,
+        b.updated_at AS updated_at,
+        b.data_modifica AS data_modifica,
+        b.modificato_da AS modificato_da,
+        CASE WHEN b.data_modifica IS NOT NULL OR b.modificato_da IS NOT NULL THEN true ELSE false END AS is_modificato,
+        (SELECT COUNT(*)::int FROM allegati_bando ab WHERE ab.id_bando = b.id) AS allegati_count
        FROM bandi b
        LEFT JOIN stazioni s ON b.id_stazione = s.id
        LEFT JOIN piattaforme pi ON b.id_piattaforma = pi.id
@@ -270,27 +276,52 @@ export default async function bandiRoutes(fastify, opts) {
   // POST /api/bandi - Crea nuovo bando
   // ============================================================
   fastify.post('/', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const data = request.body;
+    const data = request.body || {};
     const user = request.user;
 
+    // Same whitelist as PUT /:id so the create form can submit all fields in one call
+    const insertableFields = [
+      'titolo','id_stazione','stazione_nome','data_pubblicazione',
+      'codice_cig','codice_cup','id_soa','soa_val',
+      'categoria_presunta','categoria_sostitutiva',
+      'importo_soa_prevalente','importo_soa_sostitutiva',
+      'data_offerta','data_apertura','data_apertura_posticipata','data_apertura_da_destinarsi',
+      'importo_so','importo_co','importo_eco','importo_manodopera','oneri_progettazione',
+      'soglia_riferimento','id_piattaforma','id_tipologia','id_tipologia_bando','id_criterio',
+      'max_invitati_negoziate','n_decimali','limit_min_media','accorpa_ali','tipo_accorpa_ali',
+      'tipo_dati_esito','id_tipo_sopralluogo','note_per_sopralluogo',
+      'data_sop_start','data_sop_end','data_max_per_sopralluogo','data_max_per_prenotazione',
+      'sped_pec','sped_posta','sped_corriere','sped_mano','sped_telematica',
+      'indirizzo_pec','indirizzo_elaborati','comunicazione_diretta_data',
+      'indirizzo','cap','citta','regione','annullato','privato',
+      'external_code','fonte_dati','note',
+      'note_01','note_02','note_03','note_04','note_05',
+      'id_esito','link_bando',
+      'data_avviso','ora_avviso','username_avviso','tipo_apertura_avviso','note_avviso'
+    ];
+
+    const cols = [];
+    const placeholders = [];
+    const values = [];
+    let idx = 1;
+    for (const col of insertableFields) {
+      if (data[col] !== undefined) {
+        cols.push(col);
+        placeholders.push(`$${idx}`);
+        values.push(data[col]);
+        idx++;
+      }
+    }
+
+    // Always include created_by + timestamps
+    cols.push('created_by','created_at','updated_at');
+    placeholders.push(`$${idx}`, 'NOW()', 'NOW()');
+    values.push(user.username);
+
     const result = await transaction(async (client) => {
-      // Insert main bando
       const insertResult = await client.query(
-        `INSERT INTO bandi (
-          titolo, id_stazione, data_pubblicazione,
-          codice_cig, codice_cup, id_soa, data_offerta,
-          importo_so, importo_co, importo_eco, id_piattaforma,
-          note, created_at, updated_at, created_by
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7,
-          $8, $9, $10, $11, $12, NOW(), NOW(), $13
-        ) RETURNING id`,
-        [
-          data.titolo, data.id_stazione, data.data_pubblicazione,
-          data.codice_cig, data.codice_cup, data.id_soa, data.data_offerta,
-          data.importo_so, data.importo_co, data.importo_eco, data.id_piattaforma,
-          data.note, user.username
-        ]
+        `INSERT INTO bandi (${cols.join(', ')}) VALUES (${placeholders.join(', ')}) RETURNING id`,
+        values
       );
 
       const bandoId = insertResult.rows[0].id;
@@ -498,25 +529,27 @@ export default async function bandiRoutes(fastify, opts) {
             titolo, id_stazione, data_pubblicazione,
             codice_cig, codice_cup, id_soa, data_offerta,
             importo_so, importo_co, importo_eco, id_piattaforma,
-            note, created_at, updated_at, created_by
+            note, created_at, updated_at
           ) VALUES (
             $1, $2, $3, $4, $5, $6, $7,
-            $8, $9, $10, $11, $12, NOW(), NOW(), $13
+            $8, $9, $10, $11, $12, NOW(), NOW()
           ) RETURNING id
         `, [
           bando.titolo, bando.id_stazione, bando.data_pubblicazione,
           bando.codice_cig, bando.codice_cup, bando.id_soa, bando.data_offerta,
           bando.importo_so, bando.importo_co, bando.importo_eco, bando.id_piattaforma,
-          bando.note, user.username
+          bando.note
         ]);
 
         const newBandoId = cloneRes.rows[0].id;
 
         // Audit log
-        await client.query(
-          'INSERT INTO bandimodifiche (id_bando, user_name, modifiche, data) VALUES ($1, $2, $3, NOW())',
-          [newBandoId, user.username, `Clonato da bando ${id}`]
-        );
+        try {
+          await client.query(
+            'INSERT INTO bandimodifiche (id_bando, user_name, modifiche, data) VALUES ($1, $2, $3, NOW())',
+            [newBandoId, user.username, `Clonato da bando ${id}`]
+          );
+        } catch { /* table may not exist */ }
 
         return newBandoId;
       });
@@ -977,6 +1010,61 @@ export default async function bandiRoutes(fastify, opts) {
       };
     } catch (err) {
       fastify.log.error(err, 'Converti bando in esito error');
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  // ============================================================
+  // POST /api/bandi/:id/associa-esito — Associa un esito esistente al bando
+  // ============================================================
+  fastify.post('/:id/associa-esito', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { id } = request.params;
+    const { esito_id } = request.body;
+    const user = request.user;
+
+    if (!esito_id) {
+      return reply.status(400).send({ error: 'esito_id è obbligatorio' });
+    }
+
+    try {
+      // Verify esito exists
+      const esitoRes = await query('SELECT id, id_bando FROM gare WHERE id = $1', [esito_id]);
+      if (esitoRes.rows.length === 0) {
+        return reply.status(404).send({ error: 'Esito non trovato con ID ' + esito_id });
+      }
+      if (esitoRes.rows[0].id_bando && esitoRes.rows[0].id_bando !== id) {
+        return reply.status(409).send({ error: 'L\'esito è già associato a un altro bando (ID: ' + esitoRes.rows[0].id_bando + ')' });
+      }
+
+      // Verify bando exists
+      const bandoRes = await query('SELECT id FROM bandi WHERE id = $1', [id]);
+      if (bandoRes.rows.length === 0) {
+        return reply.status(404).send({ error: 'Bando non trovato' });
+      }
+
+      // Check no other esito is already linked
+      const existingEsito = await query('SELECT id FROM gare WHERE id_bando = $1 AND eliminata = false LIMIT 1', [id]);
+      if (existingEsito.rows.length > 0) {
+        return reply.status(409).send({
+          error: 'Esiste già un esito collegato a questo bando',
+          esito_id: existingEsito.rows[0].id
+        });
+      }
+
+      // Associate
+      await query('UPDATE gare SET id_bando = $1 WHERE id = $2', [id, esito_id]);
+
+      // Log
+      try {
+        await query(
+          'INSERT INTO bandimodifiche (id_bando, user_name, modifiche, data) VALUES ($1, $2, $3, NOW())',
+          [id, user.username, 'Associato Esito #' + esito_id]
+        );
+      } catch { /* table may not exist */ }
+
+      return { success: true, message: 'Esito associato al bando', esito_id: Number(esito_id) };
+    } catch (err) {
+      fastify.log.error(err, 'Associa esito error');
       return reply.status(500).send({ error: err.message });
     }
   });

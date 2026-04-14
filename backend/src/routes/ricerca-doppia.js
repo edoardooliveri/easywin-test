@@ -45,7 +45,7 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
       const bandoProvincia = paramIdx;
       const esitiProvincia = paramIdx + 1;
       bandiConditions.push(`EXISTS (SELECT 1 FROM bandi_province bp WHERE bp.id_bando = b.id AND bp.id_provincia = $${bandoProvincia})`);
-      esitiConditions.push(`EXISTS (SELECT 1 FROM esiti_province ep WHERE ep.id_esito = e.id AND ep.id_provincia = $${esitiProvincia})`);
+      esitiConditions.push(`EXISTS (SELECT 1 FROM gare_province ep WHERE ep.id_esito = e.id AND ep.id_provincia = $${esitiProvincia})`);
       params.push(id_provincia, id_provincia);
       paramIdx += 2;
     }
@@ -136,11 +136,11 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
         COALESCE(e.stazione, s.nome) AS stazione,
         e.regione AS provincia,
         e.data AS data,
-        (COALESCE(e.importo_so, 0) + COALESCE(e.importo_co, 0) + COALESCE(e.importo_eco, 0)) AS importo,
+        COALESCE(e.importo, 0) AS importo,
         e.codice_cig AS cig,
         tg.nome AS tipologia,
-        CASE WHEN e.data_offerta IS NOT NULL THEN 'concluso' ELSE 'pubblicato' END AS stato
-       FROM esiti e
+        CASE WHEN e.enabled = true THEN 'pubblicato' ELSE 'bozza' END AS stato
+       FROM gare e
        LEFT JOIN stazioni s ON e.id_stazione = s.id
        LEFT JOIN tipologia_gare tg ON e.id_tipologia = tg.id
        ${esitiWhere}
@@ -195,11 +195,11 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
         COALESCE(e.stazione, s.nome) AS stazione,
         e.regione AS provincia,
         e.data AS data,
-        (COALESCE(e.importo_so, 0) + COALESCE(e.importo_co, 0) + COALESCE(e.importo_eco, 0)) AS importo,
+        COALESCE(e.importo, 0) AS importo,
         e.codice_cig AS cig,
         tg.nome AS tipologia,
-        CASE WHEN e.data_offerta IS NOT NULL THEN 'concluso' ELSE 'pubblicato' END AS stato
-       FROM esiti e
+        CASE WHEN e.enabled = true THEN 'pubblicato' ELSE 'bozza' END AS stato
+       FROM gare e
        LEFT JOIN stazioni s ON e.id_stazione = s.id
        LEFT JOIN tipologia_gare tg ON e.id_tipologia = tg.id
        WHERE e.codice_cig = $1 AND e.annullato = false
@@ -282,11 +282,11 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
         s.nome AS stazione,
         e.regione AS provincia,
         e.data AS data,
-        (COALESCE(e.importo_so, 0) + COALESCE(e.importo_co, 0) + COALESCE(e.importo_eco, 0)) AS importo,
+        COALESCE(e.importo, 0) AS importo,
         e.codice_cig AS cig,
         tg.nome AS tipologia,
-        CASE WHEN e.data_offerta IS NOT NULL THEN 'concluso' ELSE 'pubblicato' END AS stato
-       FROM esiti e
+        CASE WHEN e.enabled = true THEN 'pubblicato' ELSE 'bozza' END AS stato
+       FROM gare e
        LEFT JOIN stazioni s ON e.id_stazione = s.id
        LEFT JOIN tipologia_gare tg ON e.id_tipologia = tg.id
        WHERE e.id_stazione = $1 AND e.annullato = false
@@ -359,7 +359,7 @@ export default async function ricercaDoppiaRoutes(fastify, opts) {
         (COALESCE(e.importo_so, 0) + COALESCE(e.importo_co, 0) + COALESCE(e.importo_eco, 0)) AS importo,
         COALESCE(e.stazione, s.nome) AS stazione,
         e.ragione_sociale_ditto_gagliardini AS aggiudicatario
-       FROM esiti e
+       FROM gare e
        LEFT JOIN stazioni s ON e.id_stazione = s.id
        WHERE e.codice_cig = $1 AND e.annullato = false`,
       [cig]

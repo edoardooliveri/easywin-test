@@ -20,6 +20,7 @@
     "@fontsource/comfortaa": "^5.2.8",
     "axios": "^1.6.5",
     "bcryptjs": "^2.4.3",
+    "cheerio": "^1.2.0",
     "csv-parse": "^5.5.3",
     "dotenv": "^16.4.1",
     "exceljs": "^4.4.0",
@@ -31,6 +32,7 @@
     "pdfkit": "^0.18.0",
     "pg": "^8.11.3",
     "sharp": "^0.33.2",
+    "soap": "^1.8.0",
     "uuid": "^9.0.0",
     "xml": "^1.0.1",
     "xml2js": "^0.6.2"

@@ -517,6 +517,10 @@ function renderResults(albi) {
             ? albo.soaCategorie.map(s => `<span class="albi-soa-tag">${s}</span>`).join('')
             : '';
 
+        const hasScadenza = !!albo.scadenza;
+        const hasUrl = !!albo.url_albo;
+        const nBandi = albo.n_bandi || 0;
+
         card.innerHTML = `
             <div class="albi-card-badge">${albo.tipo || 'Generico'}</div>
             <h3>${albo.stazioneNome || 'N/A'}</h3>
@@ -529,10 +533,20 @@ function renderResults(albi) {
                     <span class="albi-card-label">Provincia</span>
                     <span class="albi-card-value">${albo.provincia || 'N/A'}</span>
                 </div>
+                ${hasScadenza ? `
                 <div class="albi-card-row">
                     <span class="albi-card-label">Scadenza Iscrizione</span>
-                    <span class="albi-card-value">${albo.scadenza ? new Date(albo.scadenza).toLocaleDateString('it-IT') : 'N/A'}</span>
+                    <span class="albi-card-value">${new Date(albo.scadenza).toLocaleDateString('it-IT')}</span>
+                </div>` : ''}
+                <div class="albi-card-row">
+                    <span class="albi-card-label">Bandi Pubblicati</span>
+                    <span class="albi-card-value">${nBandi}</span>
                 </div>
+                ${hasUrl ? `
+                <div class="albi-card-row">
+                    <span class="albi-card-label">Portale Albo</span>
+                    <span class="albi-card-value"><i class="fas fa-link" style="color:var(--orange);"></i> Disponibile</span>
+                </div>` : ''}
                 ${soaDisplay ? `<div style="margin-top: 15px;"><strong style="color: #666; font-size: 12px;">Categorie SOA:</strong><div class="albi-card-soa">${soaDisplay}</div></div>` : ''}
             </div>
             <button class="albi-card-button" onclick="viewDetail('${albo.id}')">Visualizza Dettagli <i class="fas fa-arrow-right"></i></button>

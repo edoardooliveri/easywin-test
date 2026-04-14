@@ -29,6 +29,14 @@ pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
 });
 
+// Su ogni nuova connessione abbassa le soglie di pg_trgm così la
+// ricerca fuzzy (typo-tolerant) non deve fare SET LOCAL ad ogni query.
+// similarity_threshold: 0.25 (default 0.3) — cattura "crsta" vs "cresta"
+// word_similarity_threshold: 0.3 (default 0.6) — idem per multi-token
+pool.on('connect', (client) => {
+  client.query("SET pg_trgm.similarity_threshold = 0.25; SET pg_trgm.word_similarity_threshold = 0.3").catch(() => {});
+});
+
 // Helper: run a query with params
 export async function query(text, params) {
   const start = Date.now();

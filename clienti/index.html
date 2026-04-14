@@ -3636,19 +3636,81 @@ async function cercaRegistroBandi() {
       resultsDiv.innerHTML = '<p class="results-count">BANDI nel registro: <strong>0</strong></p><p style="font-size:13px;color:#94a3b8">Il tuo registro bandi è vuoto. Aggiungi bandi dalla pagina di dettaglio del bando.</p>';
       return;
     }
-    resultsDiv.innerHTML = `<p class="results-count">BANDI nel tuo REGISTRO PERSONALE: <strong>${data.total || rows.length}</strong></p>` +
-      '<table class="data-table"><thead><tr><th>DATA INSERIMENTO</th><th>CIG</th><th>TITOLO BANDO</th><th>DATA PUBBLICAZIONE</th><th>NOTE</th><th>AZIONI</th></tr></thead><tbody>' +
-      rows.map(r => `<tr>
-        <td>${formatDate(r.data_inserimento)}</td>
-        <td>${r.codice_cig || ''}</td>
-        <td style="cursor:pointer;color:#FF8C00" onclick="viewBando(${r.id_bando})">${truncate(r.titolo_bando || '', 120)}</td>
-        <td>${formatDate(r.data_pubblicazione)}</td>
-        <td><input type="text" value="${escC(r.note || '')}" id="reg-note-${r.id}" placeholder="Aggiungi note..." style="width:100%;padding:4px 8px;border:1px solid #d1d5db;border-radius:8px;font-size:11px;font-family:Comfortaa,cursive;background:#f8fafc;color:#1e293b;box-sizing:border-box;" onfocus="this.style.borderColor='#FF8C00'" onblur="this.style.borderColor='#d1d5db'"></td>
-        <td style="white-space:nowrap">
-          <button class="btn-action btn-yellow" style="padding:4px 10px;font-size:11px" onclick="salvaNotaRegistro(${r.id})"><i class="fas fa-save" style="margin-right:3px"></i>Salva</button>
-          <button class="btn-action btn-outline" style="padding:4px 10px;font-size:11px" onclick="rimuoviDalRegistro(${r.id})">Rimuovi</button>
-        </td>
-      </tr>`).join('') + '</tbody></table>';
+    // Stessa card dei "Bandi di Gara", con l'aggiunta di un riquadro Note
+    // editabile e azioni Salva/Rimuovi.
+    var cL = 'style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-right:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1);background:#1E2D3D"';
+    var cV = 'style="padding:8px 12px;font-weight:600;border-right:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1);color:#ffffff;background:#243749"';
+    var cLL = 'style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.1);background:#1E2D3D"';
+    var cVL = 'style="padding:8px 12px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.1);color:#ffffff;background:#243749"';
+    const esc = s => { if(s==null) return ''; const d=document.createElement('div'); d.textContent=String(s); return d.innerHTML; };
+    const fmtCur = v => (typeof formatCurrency==='function') ? formatCurrency(v) : (v||0);
+
+    let html = `<p class="results-count">BANDI nel tuo REGISTRO PERSONALE: <strong>${data.total || rows.length}</strong></p>`;
+    html += '<div style="display:flex;flex-direction:column;gap:16px;">';
+    rows.forEach((r, idx) => {
+      const b = {
+        id: r.id_bando,
+        titolo: r.titolo_bando,
+        codice_cig: r.codice_cig,
+        cig: r.codice_cig,
+        tipologia: r.tipologia,
+        criterio: r.criterio,
+        data_offerta: r.data_offerta || r.scadenza_offerta,
+        data_pubblicazione: r.data_pubblicazione,
+        provincia_nome: r.provincia_nome || r.citta,
+        stazione: r.stazione_nome || r.stazione,
+        piattaforma_nome: r.piattaforma_nome,
+        importo_totale: r.importo_totale || r.importo_so || r.importo_co || r.importo_eco || 0,
+        soa_categoria: r.soa_categoria || r.soa_codice || '',
+        soa_sostitutiva: r.soa_sostitutiva || ''
+      };
+      const scad = b.data_offerta ? new Date(b.data_offerta) : null;
+      const giorni = scad ? Math.ceil((scad - new Date()) / (1000*60*60*24)) : null;
+      const urgente = giorni !== null && giorni <= 7 && giorni >= 0;
+      const scaduto = giorni !== null && giorni < 0;
+      let badge = '';
+      if (scaduto) badge = '<span style="background:rgba(239,68,68,0.2);color:#f87171;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600">SCADUTO</span>';
+      else if (urgente) badge = '<span style="background:rgba(245,158,11,0.2);color:#fbbf24;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600">URGENTE ' + giorni + 'gg</span>';
+      else badge = '<span style="background:rgba(34,197,94,0.2);color:#4ade80;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600">IN REGISTRO</span>';
+
+      html += '<div style="background:#1E2D3D;border:1px solid rgba(255,255,255,0.08);border-radius:20px;overflow:hidden;box-shadow:0 2px 8px rgba(30,45,61,0.3)">'
+        + '<div style="display:flex;flex-direction:column;align-items:center;padding:14px 20px 10px;background:#162230;border-bottom:1px solid rgba(255,255,255,0.1)">'
+          + '<img src="logo-nuovo.png" alt="EasyWin" style="height:55px;mix-blend-mode:lighten;margin-bottom:8px">'
+          + '<div style="display:flex;align-items:center;justify-content:space-between;width:100%">'
+            + '<span style="font-size:0.95rem;font-weight:700;color:#ffffff;font-family:Comfortaa,cursive">Bando n\u00B0 ' + (idx+1) + '</span>'
+            + '<div style="display:flex;align-items:center;gap:10px"><span style="font-size:0.72rem;color:rgba(255,255,255,0.6);font-family:monospace;font-weight:600"><i class="fas fa-barcode" style="margin-right:3px;opacity:0.5"></i>CIG: ' + esc(b.codice_cig||'-') + '</span>' + badge + '</div>'
+          + '</div>'
+        + '</div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">'
+          + '<div ' + cL + '>Tipologia</div><div ' + cL + '>Criterio</div><div ' + cL + '>Scadenza</div><div ' + cLL + '>Pubblicazione</div>'
+          + '<div ' + cV + '><span style="color:rgba(255,255,255,0.8);font-size:0.85rem">' + esc(b.tipologia||'-') + '</span></div>'
+          + '<div ' + cV + '><span style="color:rgba(255,255,255,0.6);font-size:0.85rem">' + esc(b.criterio||'-') + '</span></div>'
+          + '<div ' + cV + '><span style="color:' + (scaduto?'#999':urgente?'#f87171':'#4ade80') + ';font-size:1rem;font-weight:600">' + formatDate(b.data_offerta) + '</span></div>'
+          + '<div ' + cVL + '><span style="color:rgba(255,255,255,0.8);font-size:0.9rem">' + formatDate(b.data_pubblicazione) + '</span></div>'
+        + '</div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">'
+          + '<div ' + cL + '>Provincia</div><div ' + cL + '>Importo</div><div ' + cL + '>CIG</div><div ' + cLL + '>Categoria SOA</div>'
+          + '<div ' + cV + '><span style="color:rgba(255,255,255,0.9);font-size:0.9rem">' + esc(b.provincia_nome||'-') + '</span></div>'
+          + '<div ' + cV + '><span style="color:#4ade80;font-size:1.05rem;font-weight:700">' + fmtCur(b.importo_totale) + '</span></div>'
+          + '<div ' + cV + '><span style="color:rgba(255,255,255,0.6);font-family:monospace;font-size:0.88rem">' + esc(b.codice_cig||'-') + '</span></div>'
+          + '<div ' + cVL + '><span style="color:#a78bfa;font-size:0.95rem;font-weight:700">' + esc(b.soa_categoria||'-') + (b.soa_sostitutiva ? ' <span style="font-size:0.75rem;color:rgba(255,255,255,0.5)">(' + esc(b.soa_sostitutiva) + ')</span>' : '') + '</span></div>'
+        + '</div>'
+        + '<div style="border-bottom:1px solid rgba(255,255,255,0.1)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Stazione appaltante</div><div style="padding:8px 12px;font-size:0.95rem;color:#ffffff;font-weight:700;background:#243749"><i class="fas fa-building" style="margin-right:6px;opacity:0.5"></i>' + esc(b.stazione||'-') + '</div></div>'
+        + '<div style="border-bottom:1px solid rgba(255,255,255,0.1)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Oggetto</div><div style="padding:10px 12px;font-size:0.88rem;color:rgba(255,255,255,0.85);font-weight:500;line-height:1.5;text-align:justify;cursor:pointer;background:#243749" onclick="viewBando(\'' + b.id + '\')">' + esc(b.titolo||'-') + '</div></div>'
+        + (b.piattaforma_nome ? '<div style="border-bottom:1px solid rgba(255,255,255,0.1)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D"><i class="fas fa-laptop" style="margin-right:4px"></i>Piattaforma</div><div style="padding:8px 12px;font-size:0.9rem;color:#F5C518;font-weight:600;background:#243749">' + esc(b.piattaforma_nome) + '</div></div>' : '')
+        + '<div style="border-bottom:1px solid rgba(255,255,255,0.1)">'
+          + '<div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D"><i class="fas fa-sticky-note" style="margin-right:4px"></i>Le tue note — storico richieste</div>'
+          + '<div style="padding:10px 12px;background:#243749"><textarea id="reg-note-' + r.id + '" rows="3" placeholder="Aggiungi note..." style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid rgba(255,255,255,0.15);border-radius:10px;font-family:Comfortaa,cursive;font-size:12px;background:#1E2D3D;color:#ffffff;resize:vertical;line-height:1.5" onfocus="this.style.borderColor=\'#FF8C00\'" onblur="this.style.borderColor=\'rgba(255,255,255,0.15)\'">' + esc(r.note || '') + '</textarea><div style="font-size:10px;color:rgba(255,255,255,0.45);margin-top:6px"><i class="fas fa-clock" style="margin-right:3px"></i>Inserito il ' + formatDate(r.data_inserimento) + '</div></div>'
+        + '</div>'
+        + '<div class="sopr-footer" style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:#1E2D3D;border-top:1px solid rgba(255,255,255,0.1);border-radius:0 0 20px 20px;flex-wrap:wrap">'
+          + '<button onclick="viewBando(\'' + b.id + '\')" class="btn-action-orange"><i class="fas fa-eye"></i> DETTAGLI</button>'
+          + '<button onclick="salvaNotaRegistro(' + r.id + ')" style="background:#f59e0b;color:#fff;border:none;padding:8px 16px;border-radius:50px;cursor:pointer;font-weight:600;font-size:0.78rem;font-family:Comfortaa,cursive;display:flex;align-items:center;gap:6px"><i class="fas fa-save"></i> SALVA NOTA</button>'
+          + '<button onclick="rimuoviDalRegistro(' + r.id + ')" style="background:transparent;color:rgba(255,255,255,0.8);border:1px solid rgba(239,68,68,0.4);padding:8px 16px;border-radius:50px;cursor:pointer;font-weight:600;font-size:0.78rem;font-family:Comfortaa,cursive;display:flex;align-items:center;gap:6px"><i class="fas fa-trash"></i> RIMUOVI</button>'
+        + '</div>'
+      + '</div>';
+    });
+    html += '</div>';
+    resultsDiv.innerHTML = html;
   } catch(err) {
     resultsDiv.innerHTML = '<p class="results-count">Errore nel caricamento del registro. Verifica di essere loggato.</p>';
     console.error('cercaRegistroBandi error:', err);

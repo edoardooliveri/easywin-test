@@ -243,7 +243,7 @@ export default async function adminDashboardRoutes(fastify, opts) {
           COALESCE(u.codice_agente, '-') AS agente,
           up.data_inizio,
           up.data_fine,
-          COALESCE(up.rinnovo_automatico, u.rinnovo_automatico, false) AS rinnovo_automatico,
+          COALESCE(u.rinnovo_automatico, false) AS rinnovo_automatico,
           COALESCE(up.tipo, 'standard') AS tipo,
           COALESCE(
             up.importo_bandi + up.importo_esiti + up.importo_esiti_light +
@@ -888,8 +888,37 @@ export default async function adminDashboardRoutes(fastify, opts) {
     }
   });
 
-  // Original /api/admin/dashboard endpoint (legacy, redirects to /stats)
+  // GET /api/admin/dashboard — returns full stats JSON (was redirecting to /stats)
   fastify.get('/dashboard', async (request, reply) => {
-    return reply.redirect('/api/admin/dashboard/stats');
+    try {
+      const stats = await Promise.all([
+        query(`SELECT COUNT(*) AS total FROM bandi`),
+        query(`SELECT COUNT(*) AS total FROM gare`),
+        query(`SELECT COUNT(*) AS total FROM aziende WHERE attivo = true`),
+        query(`SELECT COUNT(*) AS total FROM stazioni WHERE attivo = true`),
+        query(`SELECT COUNT(*) AS total FROM users`),
+        query(`SELECT COUNT(*) AS total FROM bandi WHERE EXTRACT(YEAR FROM created_at) = EXTRACT(YEAR FROM NOW()) AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM NOW())`),
+        query(`SELECT COUNT(*) AS total FROM gare WHERE EXTRACT(YEAR FROM created_at) = EXTRACT(YEAR FROM NOW()) AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM NOW())`),
+        query(`SELECT COUNT(*) AS total FROM gare WHERE annullato = true`),
+        query(`SELECT COUNT(*) AS total FROM aziende WHERE attivo = false`),
+        query(`SELECT COUNT(*) AS total FROM stazioni WHERE attivo = false`)
+      ]);
+
+      return {
+        bandi_totali: parseInt(stats[0].rows[0].total),
+        esiti_totali: parseInt(stats[1].rows[0].total),
+        aziende_totali: parseInt(stats[2].rows[0].total),
+        stazioni_totali: parseInt(stats[3].rows[0].total),
+        utenti_totali: parseInt(stats[4].rows[0].total),
+        bandi_questo_mese: parseInt(stats[5].rows[0].total),
+        esiti_questo_mese: parseInt(stats[6].rows[0].total),
+        esiti_da_cancellare: parseInt(stats[7].rows[0].total),
+        aziende_da_cancellare: parseInt(stats[8].rows[0].total),
+        stazioni_da_cancellare: parseInt(stats[9].rows[0].total)
+      };
+    } catch (err) {
+      fastify.log.error(err, 'Dashboard error');
+      return reply.status(500).send({ error: err.message });
+    }
   });
 }

@@ -1,4 +1,5 @@
 import { query, transaction } from '../db/pool.js';
+import { syncSingleFonte } from '../services/fonti-web-scheduler.js';
 
 export default async function fontiWebRoutes(fastify, opts) {
 
@@ -129,12 +130,14 @@ export default async function fontiWebRoutes(fastify, opts) {
     const result = await transaction(async (client) => {
       const insertResult = await client.query(
         `INSERT INTO fonti_web (
-          "nome", "url", "id_categoria", "id_tipologia", "attiva", "intervallo_minuti",
+          "nome", "url", "link", "id_categoria", "id_tipologia", "attiva", "attivo", "intervallo_minuti",
           "regex_titolo", "regex_data", "regex_importo", "regex_cig", "note"
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING "id"`,
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING "id"`,
         [
-          data.nome, data.url, data.id_categoria || null, data.id_tipologia || null,
-          data.attiva !== false, data.intervallo_minuti || 360,
+          data.nome, data.url, data.url, // link = url (legacy compat)
+          data.id_categoria || null, data.id_tipologia || null,
+          data.attiva !== false, data.attiva !== false, // attivo = attiva (legacy compat)
+          data.intervallo_minuti || 360,
           data.regex_titolo || null, data.regex_data || null, data.regex_importo || null,
           data.regex_cig || null, data.note || null
         ]
@@ -185,6 +188,17 @@ export default async function fontiWebRoutes(fastify, opts) {
         fields.push(`"${dbCol}" = $${idx}`);
         values.push(data[key]);
         idx++;
+        // Sync legacy columns
+        if (key === 'url') {
+          fields.push(`"link" = $${idx}`);
+          values.push(data[key]);
+          idx++;
+        }
+        if (key === 'attiva') {
+          fields.push(`"attivo" = $${idx}`);
+          values.push(data[key]);
+          idx++;
+        }
       }
     }
 
@@ -193,11 +207,11 @@ export default async function fontiWebRoutes(fastify, opts) {
     }
 
     values.push(id);
-    idx++;
+    const idIdx = idx;
 
     await transaction(async (client) => {
       await client.query(
-        `UPDATE fonti_web SET ${fields.join(', ')} WHERE "id" = $${idx}`,
+        `UPDATE fonti_web SET ${fields.join(', ')} WHERE "id" = $${idIdx}`,
         values
       );
 
@@ -250,9 +264,12 @@ export default async function fontiWebRoutes(fastify, opts) {
   fastify.post('/:id/controlla', { preHandler: [fastify.authenticate, fastify.requireAdmin] }, async (request, reply) => {
     const { id } = request.params;
 
-    // Get source info
+    // Get full source info including regex
     const fonteResult = await query(
-      'SELECT "id", "url", "regex_titolo", "regex_data", "regex_importo", "regex_cig" FROM fonti_web WHERE "id" = $1',
+      `SELECT "id", "nome", "url", "intervallo_minuti",
+              "ultimo_controllo", "ultimo_errore",
+              "regex_titolo", "regex_data", "regex_importo", "regex_cig"
+       FROM fonti_web WHERE "id" = $1`,
       [id]
     );
 
@@ -260,27 +277,26 @@ export default async function fontiWebRoutes(fastify, opts) {
       return reply.status(404).send({ error: 'Fonte web non trovata' });
     }
 
-    // Here would go actual scraping logic
-    // For now return mock response
-    const nuoviBandi = 0;
-    const aggiornati = 0;
+    const fonte = fonteResult.rows[0];
 
-    await query(
-      `INSERT INTO fonti_web_sync_check ("id_fonte", "timestamp", "nuovi_bandi", "aggiornati", "errore")
-       VALUES ($1, NOW(), $2, $3, NULL)`,
-      [id, nuoviBandi, aggiornati]
-    );
+    try {
+      const result = await syncSingleFonte(fonte);
 
-    await query(
-      `UPDATE fonti_web SET "ultimo_controllo" = NOW() WHERE "id" = $1`,
-      [id]
-    );
-
-    return {
-      nuovi_bandi: nuoviBandi,
-      aggiornati: aggiornati,
-      timestamp: new Date().toISOString()
-    };
+      return {
+        nuovi_bandi: result.nuoviBandi,
+        aggiornati: result.aggiornati,
+        status: result.status,
+        duration_ms: result.durationMs,
+        error: result.errorMessage || null,
+        timestamp: new Date().toISOString()
+      };
+    } catch (err) {
+      return reply.status(500).send({
+        error: `Errore durante il controllo: ${err.message}`,
+        nuovi_bandi: 0,
+        aggiornati: 0
+      });
+    }
   });
 
   // ============================================================

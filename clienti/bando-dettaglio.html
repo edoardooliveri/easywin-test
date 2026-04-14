@@ -805,6 +805,7 @@ a{text-decoration:none;color:inherit}
       <button class="btn-action btn-yellow" id="btn-register">Aggiungi a Registro Bandi</button>
       <button class="btn-action btn-yellow" id="btn-simula">Simula Esito</button>
       <button class="btn-action btn-yellow" id="btn-servizi">Richiedi Servizi</button>
+      <button class="btn-action btn-outline" id="btn-annulla-richiesta" style="border-color:#ef4444;color:#ef4444">Annulla Richiesta</button>
     </div>
   </div>
 
@@ -1130,6 +1131,36 @@ function renderBando(bando) {
   // Action Button: RICHIEDI SERVIZI
   document.getElementById('btn-servizi').addEventListener('click', function() {
     openServiziModal(bando);
+  });
+
+  // Action Button: ANNULLA RICHIESTA
+  document.getElementById('btn-annulla-richiesta').addEventListener('click', async function() {
+    if (!confirm('Sei sicuro di voler annullare la richiesta di servizio per questo bando?\nLa compilazione verrà annullata su EasyWin.')) return;
+    var token = localStorage.getItem('auth_token') || localStorage.getItem('easywin_token');
+    if (!token) { showToast('Devi effettuare il login.','warning'); return; }
+    try {
+      var res = await fetch(API_BASE + '/clienti/bandi/' + bando.id + '/annulla-richiesta', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      if (!res.ok) {
+        var e = await res.json().catch(function(){return{}});
+        throw new Error(e.error || e.detail || 'Errore annullamento');
+      }
+      var data = await res.json();
+      var msg = 'Richiesta annullata';
+      if (data.removed) {
+        var parts = [];
+        if (data.removed.sopralluogo) parts.push(data.removed.sopralluogo + ' sopralluogo/i');
+        if (data.removed.scrittura)   parts.push(data.removed.scrittura + ' scrittura/e');
+        if (data.removed.apertura)    parts.push(data.removed.apertura + ' apertura/e');
+        if (parts.length) msg += ' (' + parts.join(', ') + ' rimosse)';
+      }
+      showToast(msg, 'success');
+    } catch(e) {
+      showToast('Errore: ' + e.message, 'error');
+    }
   });
 }
 

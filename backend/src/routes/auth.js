@@ -132,6 +132,12 @@ export default async function authRoutes(fastify, opts) {
         permissions.operatore = true;
       }
 
+      // Publisher gets bandi CRUD access (no admin panels)
+      if (user.ruolo === 'publisher') {
+        permissions.bandi = true;
+        permissions.publisher = true;
+      }
+
       const token = fastify.jwt.sign({
         userId: user.user_id,
         username: user.username,
@@ -145,6 +151,32 @@ export default async function authRoutes(fastify, opts) {
         isExpired: user._isExpired || false,
         data_scadenza: user.data_scadenza || null
       }, { expiresIn: '24h' });
+
+      // Doppie-login tracking: detect concurrent sessions from different IPs
+      try {
+        const clientIp = request.ip || request.headers['x-forwarded-for'] || 'unknown';
+        const userAgent = request.headers['user-agent'] || '';
+
+        // Insert login record
+        await query(
+          `INSERT INTO doppie_login (user_id, ip_address, user_agent, login_at, session_token)
+           VALUES ($1, $2, $3, NOW(), $4)`,
+          [user.user_id, clientIp, userAgent, token.substring(token.length - 20)]
+        );
+
+        // Cleanup old records (keep last 30 days)
+        await query(
+          `DELETE FROM doppie_login WHERE login_at < NOW() - INTERVAL '30 days'`
+        );
+      } catch (dlErr) {
+        // doppie_login table may not exist yet — non-blocking
+        fastify.log.debug({ err: dlErr.message }, 'doppie_login tracking skipped');
+      }
+
+      // Update ultimo_accesso
+      try {
+        await query(`UPDATE users SET ultimo_accesso = NOW() WHERE id = $1`, [user.user_id]);
+      } catch (e) { /* non-blocking */ }
 
       return {
         token,
@@ -171,6 +203,43 @@ export default async function authRoutes(fastify, opts) {
   // POST /api/auth/dev-login — Dev-only login bypass (only in development)
   if (process.env.NODE_ENV !== 'production') {
     fastify.post('/dev-login', async (request, reply) => {
+      // Assicura che l'utente admin-dev esista davvero in `users` in modo che
+      // tutte le FK (es. registro_gare_clienti_username_fkey) siano soddisfatte.
+      try {
+        // password_hash è NOT NULL — usiamo un bcrypt di "dev" (placeholder, dev-login non valida comunque password)
+        await query(
+          `INSERT INTO users (username, email, nome, cognome, ruolo, attivo, password_hash)
+           VALUES ('admin-dev', 'admin@easywin.it', 'Admin', 'Dev', 'superadmin', true, '$2a$10$DEVPLACEHOLDERHASHNOTUSEDFORLOGINXXXXXXXXXXXXXXXXXXXXXX')
+           ON CONFLICT (username) DO UPDATE SET attivo = true, ruolo = 'superadmin'`
+        );
+        // Se admin-dev non ha id_azienda assegniamo la prima azienda disponibile,
+        // così i fan-out verso sopralluoghi/apertura/scrittura (Agenda Mensile)
+        // hanno un id_azienda valido e non vengono silenziosamente saltati.
+        try {
+          const adminRow = await query(`SELECT id_azienda FROM users WHERE username = 'admin-dev' LIMIT 1`);
+          const hasAzienda = adminRow.rows[0]?.id_azienda != null;
+          if (!hasAzienda) {
+            let az = null;
+            try {
+              const r = await query(`SELECT id FROM aziende ORDER BY id LIMIT 1`);
+              az = r.rows[0]?.id ?? null;
+            } catch (_) {
+              try {
+                const r = await query(`SELECT id_azienda AS id FROM aziende ORDER BY id_azienda LIMIT 1`);
+                az = r.rows[0]?.id ?? null;
+              } catch (_) {}
+            }
+            if (az != null) {
+              await query(`UPDATE users SET id_azienda = $1 WHERE username = 'admin-dev'`, [az]);
+              fastify.log.info({ az }, 'dev-login: admin-dev id_azienda assegnato');
+            }
+          }
+        } catch (e) {
+          fastify.log.warn({ err: e.message }, 'dev-login: assegnazione id_azienda fallita (non-bloccante)');
+        }
+      } catch (e) {
+        fastify.log.warn({ err: e.message }, 'dev-login upsert users fallita (non-bloccante)');
+      }
       const token = fastify.jwt.sign({
         userId: 'dev-admin-001',
         username: 'admin-dev',
@@ -219,7 +288,8 @@ export default async function authRoutes(fastify, opts) {
         gestionale: isAdmin || u.ruolo === 'agente' || u.ruolo === 'incaricato' || u.ruolo === 'operatore',
         agente: u.ruolo === 'agente',
         incaricato: u.ruolo === 'incaricato',
-        operatore: u.ruolo === 'operatore'
+        operatore: u.ruolo === 'operatore',
+        publisher: u.ruolo === 'publisher'
       };
 
       return {
