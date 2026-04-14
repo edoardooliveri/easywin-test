@@ -25748,44 +25748,6 @@ async function risolviDuplicato(id) {
   }
 }
 
-// ════════════════ MAIL FUNCTIONS ════════════════
-
-async function inviaMailUtenti() {
-  const params = new URLSearchParams();
-  // Collect current search filters from utenti form
-  const nome = document.getElementById('search-utente-nome')?.value;
-  const email = document.getElementById('search-utente-email')?.value;
-  const agente = document.getElementById('search-utente-agente')?.value;
-  if (nome) params.set('nome', nome);
-  if (email) params.set('email', email);
-  if (agente) params.set('agente', agente);
-
-  const oggetto = prompt('Oggetto della mail da inviare agli utenti filtrati:');
-  if (!oggetto) return;
-  const corpo = prompt('Testo della mail:');
-  if (!corpo) return;
-
-  try {
-    const res = await fetch(`${API_BASE}/admin/newsletter/invia-utenti`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify({
-        oggetto: oggetto,
-        messaggio: corpo,
-        filtri: Object.fromEntries(params)
-      })
-    });
-    if (res.ok) {
-      alert('Mail inviata con successo agli utenti filtrati');
-    } else {
-      const err = await res.json();
-      alert('Errore: ' + (err.message || 'Invio fallito'));
-    }
-  } catch(e) {
-    alert('Errore: ' + e.message);
-  }
-}
-
 // ════════════════ SOPRALLUOGHI SECTION FUNCTIONS ════════════════
 
 async function loadSoprDashboard() {
