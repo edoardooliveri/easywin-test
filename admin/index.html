@@ -3254,7 +3254,6 @@ button:not(.bn-act):not(.bix-act-btn):not(.ute-iconbtn):not(.ew-btn):not(.flatpi
           <div class="search-actions">
             <button class="btn-search btn-search-primary" onclick="searchAziende()"><i class="fas fa-search"></i> CERCA AZIENDE</button>
             <button class="btn-search btn-search-secondary" onclick="resetAziendeSearch()"><i class="fas fa-times"></i> ANNULLA</button>
-            <button class="btn-search btn-search-icon" onclick="inviaMailAziende()"><i class="fas fa-envelope"></i></button>
           </div>
         </div>
 
@@ -25750,42 +25749,6 @@ async function risolviDuplicato(id) {
 }
 
 // ════════════════ MAIL FUNCTIONS ════════════════
-
-async function inviaMailAziende() {
-  const params = new URLSearchParams();
-  // Collect current search filters from aziende form
-  const ragSoc = document.getElementById('search-azienda-ragione')?.value;
-  const piva = document.getElementById('search-azienda-piva')?.value;
-  const prov = document.getElementById('search-azienda-provincia')?.value;
-  if (ragSoc) params.set('ragione_sociale', ragSoc);
-  if (piva) params.set('partita_iva', piva);
-  if (prov) params.set('provincia', prov);
-
-  const destinatari = prompt('Oggetto della mail da inviare alle aziende filtrate:');
-  if (!destinatari) return;
-  const corpo = prompt('Testo della mail:');
-  if (!corpo) return;
-
-  try {
-    const res = await fetch(`${API_BASE}/admin/newsletter/invia-aziende`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify({
-        oggetto: destinatari,
-        messaggio: corpo,
-        filtri: Object.fromEntries(params)
-      })
-    });
-    if (res.ok) {
-      alert('Mail inviata con successo alle aziende filtrate');
-    } else {
-      const err = await res.json();
-      alert('Errore: ' + (err.message || 'Invio fallito'));
-    }
-  } catch(e) {
-    alert('Errore: ' + e.message);
-  }
-}
 
 async function inviaMailUtenti() {
   const params = new URLSearchParams();
