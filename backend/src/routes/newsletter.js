@@ -1,36 +1,7 @@
 import { query } from '../db/pool.js';
-import nodemailer from 'nodemailer';
+import { send as mailSend } from '../lib/mail-transport.js';
+import { getSecondaryEmails } from '../lib/mail-helpers.js';
 import crypto from 'crypto';
-
-// Configure email transporter
-let mailTransporter;
-async function getMailTransporter() {
-  if (mailTransporter) return mailTransporter;
-
-  // Try to use pool if available from environment
-  if (process.env.SMTP_POOL) {
-    try {
-      mailTransporter = nodemailer.createTransport(JSON.parse(process.env.SMTP_POOL));
-    } catch (err) {
-      console.warn('Failed to parse SMTP_POOL, falling back to SMTP vars');
-    }
-  }
-
-  // Fall back to individual SMTP environment variables
-  if (!mailTransporter) {
-    mailTransporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'localhost',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
-    });
-  }
-
-  return mailTransporter;
-}
 
 // Build email-safe HTML template
 function buildNewsletterHtml(type, items, dateRange, noteAggiuntive = '') {
@@ -524,7 +495,6 @@ export default async function newsletterRoutes(fastify, opts) {
       };
 
       const { html } = buildNewsletterHtml('bandi', items, dateRange, note_aggiuntive);
-      const transporter = await getMailTransporter();
 
       let sentCount = 0;
       let failedCount = 0;
@@ -532,12 +502,15 @@ export default async function newsletterRoutes(fastify, opts) {
 
       for (const user of users.rows) {
         try {
-          await transporter.sendMail({
-            from: process.env.SMTP_FROM || 'newsletter@easywin.it',
+          const cc = await getSecondaryEmails(user.id);
+          await mailSend({
             to: user.email,
+            cc,
             subject: oggetto,
             html,
-            text: `Newsletter Bandi - ${dateRange.da} al ${dateRange.a}`
+            text: `Newsletter Bandi - ${dateRange.da} al ${dateRange.a}`,
+            channel: 'newsletter_bandi',
+            meta: { user_id: user.id }
           });
           sentCount++;
         } catch (err) {
@@ -548,10 +521,10 @@ export default async function newsletterRoutes(fastify, opts) {
 
       // Log newsletter sending
       const invioResult = await query(
-        `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+        `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio, username_invio)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9)
          RETURNING id`,
-        ['bandi', data_da, data_a, users.rows.length, sentCount, failedCount, oggetto, note_aggiuntive]
+        ['bandi', data_da, data_a, users.rows.length, sentCount, failedCount, oggetto, note_aggiuntive, request.user?.username || 'admin']
       );
 
       return {
@@ -614,7 +587,6 @@ export default async function newsletterRoutes(fastify, opts) {
       };
 
       const { html } = buildNewsletterHtml('esiti', items, dateRange, note_aggiuntive);
-      const transporter = await getMailTransporter();
 
       let sentCount = 0;
       let failedCount = 0;
@@ -622,12 +594,15 @@ export default async function newsletterRoutes(fastify, opts) {
 
       for (const user of users.rows) {
         try {
-          await transporter.sendMail({
-            from: process.env.SMTP_FROM || 'newsletter@easywin.it',
+          const cc = await getSecondaryEmails(user.id);
+          await mailSend({
             to: user.email,
+            cc,
             subject: oggetto,
             html,
-            text: `Newsletter Esiti - ${dateRange.da} al ${dateRange.a}`
+            text: `Newsletter Esiti - ${dateRange.da} al ${dateRange.a}`,
+            channel: 'newsletter_esiti',
+            meta: { user_id: user.id }
           });
           sentCount++;
         } catch (err) {
@@ -638,10 +613,10 @@ export default async function newsletterRoutes(fastify, opts) {
 
       // Log newsletter sending
       const invioResult = await query(
-        `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+        `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio, username_invio)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9)
          RETURNING id`,
-        ['esiti', data_da, data_a, users.rows.length, sentCount, failedCount, oggetto, note_aggiuntive]
+        ['esiti', data_da, data_a, users.rows.length, sentCount, failedCount, oggetto, note_aggiuntive, request.user?.username || 'admin']
       );
 
       return {
@@ -697,14 +672,14 @@ export default async function newsletterRoutes(fastify, opts) {
       };
 
       const { html } = buildNewsletterHtml('bandi', items, dateRange);
-      const transporter = await getMailTransporter();
 
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM || 'newsletter@easywin.it',
+      await mailSend({
         to: email,
         subject: '[TEST] Newsletter Bandi EasyWin',
         html,
-        text: `Test Newsletter Bandi - ${dateRange.da} al ${dateRange.a}`
+        text: `Test Newsletter Bandi - ${dateRange.da} al ${dateRange.a}`,
+        channel: 'newsletter_bandi',
+        meta: {}
       });
 
       return { success: true, message: `Test email sent to ${email}` };
@@ -753,14 +728,14 @@ export default async function newsletterRoutes(fastify, opts) {
       };
 
       const { html } = buildNewsletterHtml('esiti', items, dateRange);
-      const transporter = await getMailTransporter();
 
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM || 'newsletter@easywin.it',
+      await mailSend({
         to: email,
         subject: '[TEST] Newsletter Esiti EasyWin',
         html,
-        text: `Test Newsletter Esiti - ${dateRange.da} al ${dateRange.a}`
+        text: `Test Newsletter Esiti - ${dateRange.da} al ${dateRange.a}`,
+        channel: 'newsletter_esiti',
+        meta: {}
       });
 
       return { success: true, message: `Test email sent to ${email}` };
@@ -904,7 +879,6 @@ export default async function newsletterRoutes(fastify, opts) {
     }
 
     try {
-      const transporter = await getMailTransporter();
       const subjectPrefix = tipo === 'bandi' ? '[EasyWin Bandi]' : '[EasyWin Esiti]';
       const subject = `${subjectPrefix} ${oggetto.trim()}`;
       const htmlBody = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
@@ -932,11 +906,12 @@ export default async function newsletterRoutes(fastify, opts) {
 
       for (const r of recipients) {
         try {
-          await transporter.sendMail({
-            from: process.env.SMTP_FROM || 'newsletter@easywin.it',
+          await mailSend({
             to: r.email,
             subject,
-            html: htmlBody
+            html: htmlBody,
+            channel: 'newsletter_custom',
+            meta: {}
           });
           sent_count++;
         } catch (err) {
@@ -985,8 +960,6 @@ export default async function newsletterRoutes(fastify, opts) {
     const log = { bandi: { sent: 0, failed: 0, skipped: 0, errors: [] }, esiti: { sent: 0, failed: 0, skipped: 0, errors: [] } };
 
     try {
-      const transporter = await getMailTransporter();
-
       // ─── NEWSLETTER BANDI ───
       if (tipo === 'both' || tipo === 'bandi') {
         // 1. Tutti i bandi del giorno precedente
@@ -1098,12 +1071,15 @@ export default async function newsletterRoutes(fastify, opts) {
               filtri.length > 0 ? `Bandi selezionati in base ai tuoi ${filtri.length} filtri personalizzati.` : ''
             );
 
-            await transporter.sendMail({
-              from: process.env.SMTP_FROM || 'newsletter@easywin.it',
+            const cc = await getSecondaryEmails(user.id);
+            await mailSend({
               to: user.email,
+              cc,
               subject: `Newsletter Bandi EasyWin — ${dateRange.da} (${items.length} bandi)`,
               html,
-              text: `Newsletter Bandi ${dateRange.da} — ${items.length} bandi per te`
+              text: `Newsletter Bandi ${dateRange.da} — ${items.length} bandi per te`,
+              channel: 'newsletter_bandi',
+              meta: { user_id: user.id }
             });
             log.bandi.sent++;
           } catch (err) {
@@ -1115,12 +1091,13 @@ export default async function newsletterRoutes(fastify, opts) {
         // Log invio
         if (log.bandi.sent > 0 || log.bandi.failed > 0) {
           await query(
-            `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+            `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio, username_invio)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9)`,
             ['bandi_auto', ieriStr, ieriStr,
              usersBandi.rows.length, log.bandi.sent, log.bandi.failed,
              `[AUTO] Newsletter Bandi ${dateRange.da}`,
-             `Invio automatico personalizzato. Totale bandi giorno: ${allBandi.rows.length}. Skipped (0 match): ${log.bandi.skipped}`]
+             `Invio automatico personalizzato. Totale bandi giorno: ${allBandi.rows.length}. Skipped (0 match): ${log.bandi.skipped}`,
+             request.user?.username || 'scheduler']
           );
         }
       }
@@ -1225,12 +1202,15 @@ export default async function newsletterRoutes(fastify, opts) {
               filtri.length > 0 ? `Esiti selezionati in base ai tuoi ${filtri.length} filtri personalizzati.` : ''
             );
 
-            await transporter.sendMail({
-              from: process.env.SMTP_FROM || 'newsletter@easywin.it',
+            const cc = await getSecondaryEmails(user.id);
+            await mailSend({
               to: user.email,
+              cc,
               subject: `Newsletter Esiti EasyWin — ${dateRange.da} (${items.length} esiti)`,
               html,
-              text: `Newsletter Esiti ${dateRange.da} — ${items.length} esiti per te`
+              text: `Newsletter Esiti ${dateRange.da} — ${items.length} esiti per te`,
+              channel: 'newsletter_esiti',
+              meta: { user_id: user.id }
             });
             log.esiti.sent++;
           } catch (err) {
@@ -1241,12 +1221,13 @@ export default async function newsletterRoutes(fastify, opts) {
 
         if (log.esiti.sent > 0 || log.esiti.failed > 0) {
           await query(
-            `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+            `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio, username_invio)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9)`,
             ['esiti_auto', ieriStr, ieriStr,
              usersEsiti.rows.length, log.esiti.sent, log.esiti.failed,
              `[AUTO] Newsletter Esiti ${dateRange.da}`,
-             `Invio automatico personalizzato. Totale esiti giorno: ${allEsiti.rows.length}. Skipped (0 match): ${log.esiti.skipped}`]
+             `Invio automatico personalizzato. Totale esiti giorno: ${allEsiti.rows.length}. Skipped (0 match): ${log.esiti.skipped}`,
+             request.user?.username || 'scheduler']
           );
         }
       }
@@ -1334,13 +1315,13 @@ export default async function newsletterRoutes(fastify, opts) {
       // Se override_email presente, invia l'anteprima a quell'indirizzo
       if (request.body.override_email) {
         try {
-          const transporter = await getMailTransporter();
-          await transporter.sendMail({
-            from: process.env.SMTP_FROM || 'newsletter@easywin.it',
+          await mailSend({
             to: request.body.override_email,
             subject: `[ANTEPRIMA] Newsletter ${tipo} per ${username} — ${dateRange.da}`,
             html,
-            text: `Anteprima newsletter ${tipo} per ${username} — ${items.length} risultati`
+            text: `Anteprima newsletter ${tipo} per ${username} — ${items.length} risultati`,
+            channel: tipo === 'esiti' ? 'newsletter_esiti' : 'newsletter_bandi',
+            meta: {}
           });
           return { html, items_count: items.length, filtri_count: filtri.length, data: ieri, email_sent_to: request.body.override_email };
         } catch (mailErr) {

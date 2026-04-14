@@ -10,19 +10,8 @@
  */
 
 import { query } from '../db/pool.js';
-import nodemailer from 'nodemailer';
+import { send as mailSend } from '../lib/mail-transport.js';
 import { emailLayout, sectionTitle, infoRow, alertBox, ctaButton, spacer } from './email-templates.js';
-
-// Initialize mail transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://easywin.it';
 
@@ -206,24 +195,20 @@ function buildEsitiAlertEmail(gara) {
 }
 
 /**
- * Send alert email to user
+ * Send alert email to user via unified mail-transport
  */
-async function sendAlertEmail(user, email) {
+async function sendAlertEmail(user, email, channel, meta = {}) {
   try {
-    if (!process.env.SMTP_USER) {
-      console.log(`🔔 SMTP non configurato, skipping email per ${user.email}`);
-      return { status: 'skipped', reason: 'SMTP non configurato' };
-    }
-
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || '"EasyWin" <noreply@easywin.it>',
+    const result = await mailSend({
       to: user.email,
       subject: email.subject,
-      html: email.html
+      html: email.html,
+      channel,
+      meta: { user_id: user.id, ...meta }
     });
 
-    console.log(`🔔 Alert inviato a ${user.email} - ${email.subject}`);
-    return { status: 'sent' };
+    console.log(`🔔 Alert inviato a ${user.email} - ${email.subject} (${result.status})`);
+    return { status: result.status === 'failed' ? 'failed' : 'sent', error: result.error };
   } catch (err) {
     console.error(`🔔 Errore invio alert a ${user.email}:`, err.message);
     return { status: 'failed', error: err.message };
@@ -262,7 +247,7 @@ export async function runAperturaAlerts() {
 
       for (const user of matchedUsers) {
         const emailData = buildAlertEmail(bando, 'apertura', daysUntil);
-        const result = await sendAlertEmail(user, emailData);
+        const result = await sendAlertEmail(user, emailData, 'alert_apertura', { bando_id: bando.id });
 
         if (result.status === 'sent') {
           stats.sent++;
@@ -321,7 +306,7 @@ export async function runSopralluoghiAlerts() {
 
       for (const user of matchedUsers) {
         const emailData = buildAlertEmail(bando, 'sopralluogo', daysUntil);
-        const result = await sendAlertEmail(user, emailData);
+        const result = await sendAlertEmail(user, emailData, 'alert_sopralluogo', { bando_id: bando.id });
 
         if (result.status === 'sent') {
           stats.sent++;
@@ -387,7 +372,7 @@ export async function runEsitiAlerts() {
 
       for (const user of users) {
         const emailData = buildEsitiAlertEmail(gara);
-        const result = await sendAlertEmail(user, emailData);
+        const result = await sendAlertEmail(user, emailData, 'alert_esiti_pubblicazione', { gara_id: gara.id });
 
         if (result.status === 'sent') {
           stats.sent++;

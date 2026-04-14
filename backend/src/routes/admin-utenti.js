@@ -2298,4 +2298,84 @@ export default async function adminUtentiRoutes(fastify, opts) {
       return reply.status(500).send({ error: err.message });
     }
   });
+
+  // ============================================
+  // EMAIL SECONDARIE CRUD
+  // ============================================
+
+  // GET /api/admin/utenti/:id/email-secondarie
+  fastify.get('/utenti/:id/email-secondarie', { preHandler: [fastify.authenticate, adminOnly] }, async (request, reply) => {
+    try {
+      const { rows } = await query(
+        `SELECT id, email, etichetta, attiva, created_at FROM users_email_secondarie
+         WHERE user_id = $1 ORDER BY created_at`,
+        [request.params.id]
+      );
+      return { emails: rows };
+    } catch (err) {
+      if (err.code === '42P01') return { emails: [] }; // table not yet created
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  // POST /api/admin/utenti/:id/email-secondarie
+  fastify.post('/utenti/:id/email-secondarie', { preHandler: [fastify.authenticate, adminOnly] }, async (request, reply) => {
+    try {
+      const { email, etichetta } = request.body || {};
+      if (!email) return reply.status(400).send({ error: 'email è obbligatoria' });
+
+      const { rows } = await query(
+        `INSERT INTO users_email_secondarie (user_id, email, etichetta)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (user_id, email) DO UPDATE SET etichetta = EXCLUDED.etichetta, attiva = true, updated_at = NOW()
+         RETURNING id, email, etichetta, attiva`,
+        [request.params.id, email.trim().toLowerCase(), etichetta || null]
+      );
+      return reply.status(201).send(rows[0]);
+    } catch (err) {
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  // PUT /api/admin/utenti/:id/email-secondarie/:emailId
+  fastify.put('/utenti/:id/email-secondarie/:emailId', { preHandler: [fastify.authenticate, adminOnly] }, async (request, reply) => {
+    try {
+      const { email, etichetta, attiva } = request.body || {};
+      const sets = [];
+      const vals = [];
+      let idx = 1;
+
+      if (email !== undefined) { sets.push(`email = $${idx++}`); vals.push(email.trim().toLowerCase()); }
+      if (etichetta !== undefined) { sets.push(`etichetta = $${idx++}`); vals.push(etichetta); }
+      if (attiva !== undefined) { sets.push(`attiva = $${idx++}`); vals.push(attiva); }
+
+      if (sets.length === 0) return reply.status(400).send({ error: 'Nessun campo da aggiornare' });
+
+      sets.push(`updated_at = NOW()`);
+      vals.push(request.params.emailId, request.params.id);
+
+      const { rows } = await query(
+        `UPDATE users_email_secondarie SET ${sets.join(', ')} WHERE id = $${idx++} AND user_id = $${idx} RETURNING *`,
+        vals
+      );
+      if (rows.length === 0) return reply.status(404).send({ error: 'Email non trovata' });
+      return rows[0];
+    } catch (err) {
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  // DELETE /api/admin/utenti/:id/email-secondarie/:emailId
+  fastify.delete('/utenti/:id/email-secondarie/:emailId', { preHandler: [fastify.authenticate, adminOnly] }, async (request, reply) => {
+    try {
+      const { rowCount } = await query(
+        `DELETE FROM users_email_secondarie WHERE id = $1 AND user_id = $2`,
+        [request.params.emailId, request.params.id]
+      );
+      if (rowCount === 0) return reply.status(404).send({ error: 'Email non trovata' });
+      return { deleted: true };
+    } catch (err) {
+      return reply.status(500).send({ error: err.message });
+    }
+  });
 }

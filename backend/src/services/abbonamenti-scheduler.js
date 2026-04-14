@@ -11,7 +11,8 @@
  */
 
 import { query } from '../db/pool.js';
-import nodemailer from 'nodemailer';
+import { send as mailSend } from '../lib/mail-transport.js';
+import { canRunToday, markTaskRun } from '../lib/scheduler-helpers.js';
 import { emailLayout, sectionTitle, infoRow, alertBox, ctaButton } from './email-templates.js';
 
 const SERVICES = [
@@ -24,29 +25,6 @@ const SERVICES = [
 ];
 
 let _schedulerInterval = null;
-let _lastRunDate = null;
-let _mailer = null;
-
-/**
- * Inizializza il mailer per l'invio email
- */
-function initMailer() {
-  if (_mailer) return _mailer;
-
-  const user = process.env.SMTP_USER || 'notifications@easywin.it';
-  const pass = process.env.SMTP_PASS || '';
-  const host = process.env.SMTP_HOST || 'smtp.easywin.it';
-  const port = parseInt(process.env.SMTP_PORT || '587');
-
-  _mailer = nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass },
-  });
-
-  return _mailer;
-}
 
 /**
  * Avvia lo scheduler abbonamenti.
@@ -62,14 +40,14 @@ export function startAbbonamentoScheduler(fastify) {
 
   _schedulerInterval = setInterval(async () => {
     const now = new Date();
-    const todayKey = now.toISOString().split('T')[0];
-
-    // Già eseguito oggi?
-    if (_lastRunDate === todayKey) return;
 
     // È l'ora giusta?
     if (now.getHours() < SEND_HOUR) return;
     if (now.getHours() === SEND_HOUR && now.getMinutes() < SEND_MINUTE) return;
+
+    // DB-backed idempotency: già eseguito oggi con successo?
+    const canRun = await canRunToday('abbonamenti_scheduler', SEND_HOUR);
+    if (!canRun) return;
 
     // Controlla se il task è attivo
     try {
@@ -84,7 +62,6 @@ export function startAbbonamentoScheduler(fastify) {
     }
 
     // Esegui scheduler
-    _lastRunDate = todayKey;
     console.log(`📋 [${now.toISOString()}] Avvio scheduler abbonamenti...`);
 
     try {
@@ -108,29 +85,12 @@ export function startAbbonamentoScheduler(fastify) {
 
       console.log(`📋 Scheduler completato:`, stats);
 
-      // Aggiorna task status
-      try {
-        await query(
-          `UPDATE tasks SET data_ultima_esecuzione = NOW(), stato_ultima_esecuzione = 'successo',
-           messaggio_ultima_esecuzione = $1, prossima_esecuzione = $2
-           WHERE tipo = 'abbonamenti_scheduler' AND attivo = true`,
-          [
-            JSON.stringify(stats),
-            getNextRunDate(SEND_HOUR, SEND_MINUTE).toISOString()
-          ]
-        );
-      } catch (e) { /* tasks table may not exist yet */ }
+      // Aggiorna task status (idempotent)
+      await markTaskRun('abbonamenti_scheduler', 'successo', JSON.stringify(stats), getNextRunDate(SEND_HOUR, SEND_MINUTE).toISOString());
 
     } catch (err) {
       console.error(`📋 Errore scheduler abbonamenti:`, err.message);
-      try {
-        await query(
-          `UPDATE tasks SET data_ultima_esecuzione = NOW(), stato_ultima_esecuzione = 'errore',
-           messaggio_ultima_esecuzione = $1
-           WHERE tipo = 'abbonamenti_scheduler' AND attivo = true`,
-          [err.message]
-        );
-      } catch (e) { /* ignore */ }
+      await markTaskRun('abbonamenti_scheduler', 'errore', err.message, null);
     }
   }, CHECK_INTERVAL);
 
@@ -152,7 +112,6 @@ export function stopAbbonamentoScheduler() {
  * 1. Invia email di reminder per scadenze a 30 e 7 giorni
  */
 async function sendReminderEmails(now) {
-  const mailer = initMailer();
   let count = 0;
 
   try {
@@ -185,7 +144,7 @@ async function sendReminderEmails(now) {
       if (reminderServices.length === 0) continue;
 
       // Invia reminder
-      const sent = await sendReminderEmail(user, reminderServices, mailer);
+      const sent = await sendReminderEmail(user, reminderServices);
       if (sent) count++;
     }
 
@@ -200,7 +159,7 @@ async function sendReminderEmails(now) {
 /**
  * Invia email di reminder a client + agent + admin
  */
-async function sendReminderEmail(user, services, mailer) {
+async function sendReminderEmail(user, services) {
   try {
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@easywin.it';
 
@@ -218,9 +177,9 @@ async function sendReminderEmail(user, services, mailer) {
       } catch (e) { /* ignore */ }
     }
 
-    const recipients = [user.email];
-    if (agentEmail && agentEmail !== user.email) recipients.push(agentEmail);
-    if (!recipients.includes(adminEmail)) recipients.push(adminEmail);
+    const ccRecipients = [];
+    if (agentEmail && agentEmail !== user.email) ccRecipients.push(agentEmail);
+    if (adminEmail && adminEmail !== user.email && !ccRecipients.includes(adminEmail)) ccRecipients.push(adminEmail);
 
     const servicesList = services
       .map(s => `${s.service}: scade tra ${s.daysLeft} giorni (${s.scadenza})`)
@@ -239,14 +198,19 @@ async function sendReminderEmail(user, services, mailer) {
       { subject: `Avviso Scadenza Abbonamento - ${user.username}` }
     );
 
-    await mailer.sendMail({
-      from: process.env.SMTP_FROM || 'notifications@easywin.it',
-      to: recipients.join(', '),
+    const minDays = Math.min(...services.map(s => s.daysLeft));
+    const channel = minDays <= 7 ? 'reminder_scadenza_7' : 'reminder_scadenza_30';
+
+    await mailSend({
+      to: user.email,
+      cc: ccRecipients.length > 0 ? ccRecipients : undefined,
       subject: `[EasyWin] Avviso Scadenza Abbonamento - ${user.username}`,
       html,
+      channel,
+      meta: { user_id: user.id, services: services.map(s => s.service) }
     });
 
-    console.log(`📋 Reminder email inviata: ${user.email} (cc: ${recipients.length - 1} destinatari)`);
+    console.log(`📋 Reminder email inviata: ${user.email} (cc: ${ccRecipients.length} destinatari)`);
     return true;
   } catch (err) {
     console.error(`📋 Errore invio reminder per utente ${user.id}:`, err.message);

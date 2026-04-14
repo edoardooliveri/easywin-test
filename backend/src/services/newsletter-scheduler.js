@@ -13,9 +13,9 @@
 
 import { query } from '../db/pool.js';
 import { runAllAlerts } from './bandi-alerts.js';
+import { canRunToday, markTaskRun } from '../lib/scheduler-helpers.js';
 
 let _schedulerInterval = null;
-let _lastRunDate = null;
 
 /**
  * Avvia lo scheduler.
@@ -31,14 +31,14 @@ export function startNewsletterScheduler(fastify) {
 
   _schedulerInterval = setInterval(async () => {
     const now = new Date();
-    const todayKey = now.toISOString().split('T')[0];
-
-    // Già eseguito oggi?
-    if (_lastRunDate === todayKey) return;
 
     // È l'ora giusta?
     if (now.getHours() < SEND_HOUR) return;
     if (now.getHours() === SEND_HOUR && now.getMinutes() < SEND_MINUTE) return;
+
+    // DB-backed idempotency: già eseguito oggi con successo?
+    const canRun = await canRunToday('newsletter_auto', SEND_HOUR);
+    if (!canRun) return;
 
     // Controlla se ci sono task newsletter_auto attivi nel DB
     try {
@@ -55,7 +55,6 @@ export function startNewsletterScheduler(fastify) {
     }
 
     // Esegui invio
-    _lastRunDate = todayKey;
     console.log(`📧 [${now.toISOString()}] Avvio invio automatico newsletter...`);
 
     try {
@@ -83,29 +82,12 @@ export function startNewsletterScheduler(fastify) {
         console.error(`🔔 Errore alert bandi:`, alertErr.message);
       }
 
-      // Aggiorna task status nel DB
-      try {
-        await query(
-          `UPDATE tasks SET data_ultima_esecuzione = NOW(), stato_ultima_esecuzione = 'successo',
-           messaggio_ultima_esecuzione = $1, prossima_esecuzione = $2
-           WHERE tipo = 'newsletter_auto' AND attivo = true`,
-          [
-            data.message || 'OK',
-            getNextRunDate(SEND_HOUR, SEND_MINUTE).toISOString()
-          ]
-        );
-      } catch (e) { /* tasks table may not exist yet */ }
+      // Aggiorna task status nel DB (idempotent)
+      await markTaskRun('newsletter_auto', 'successo', data.message || 'OK', getNextRunDate(SEND_HOUR, SEND_MINUTE).toISOString());
 
     } catch (err) {
       console.error(`📧 Errore invio automatico newsletter:`, err.message);
-      try {
-        await query(
-          `UPDATE tasks SET data_ultima_esecuzione = NOW(), stato_ultima_esecuzione = 'errore',
-           messaggio_ultima_esecuzione = $1
-           WHERE tipo = 'newsletter_auto' AND attivo = true`,
-          [err.message]
-        );
-      } catch (e) { /* ignore */ }
+      await markTaskRun('newsletter_auto', 'errore', err.message, null);
     }
   }, CHECK_INTERVAL);
 
