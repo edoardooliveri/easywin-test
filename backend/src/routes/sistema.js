@@ -5,6 +5,116 @@ import ExcelJS from 'exceljs';
 export default async function sistemaRoutes(fastify, opts) {
 
   // ============================================================
+  // DB CLEANUP (one-shot) — libera spazio su Neon eliminando
+  // esiti/bandi meno rilevanti. Operazione esplicitamente richiesta.
+  // ============================================================
+  fastify.post('/db-cleanup', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    try {
+      const keepBandi = parseInt(request.body?.keep_bandi || 80);
+      const keepDettaglio = parseInt(request.body?.keep_dettaglio || 500);
+
+      const steps = [];
+      const countAll = async () => {
+        const tables = ['bandi','dettaglio_gara','richieste_servizi','sopralluoghi','apertura_bandi','scrittura_bandi','registro_gare_clienti'];
+        const out = {};
+        for (const t of tables) {
+          try {
+            const r = await query(`SELECT COUNT(*)::int AS n FROM ${t}`);
+            out[t] = r.rows[0].n;
+          } catch (e) { out[t] = null; }
+        }
+        return out;
+      };
+      steps.push({ before: await countAll() });
+
+      const runSafe = async (label, sql, params = []) => {
+        try {
+          const r = await query(sql, params);
+          steps.push({ step: label, deleted: r.rowCount ?? 0 });
+        } catch (e) {
+          steps.push({ step: label, error: e.message });
+        }
+      };
+
+      // 1) Pulizia richieste_servizi già gestite (test precedenti)
+      await runSafe('richieste_servizi gestite', `DELETE FROM richieste_servizi WHERE COALESCE(gestito,false) = true`);
+
+      // 2) dettaglio_gara — asciuga a keepDettaglio righe usando ctid
+      await runSafe('dettaglio_gara excess', `
+        DELETE FROM dettaglio_gara
+         WHERE ctid IN (
+           SELECT ctid FROM dettaglio_gara
+           ORDER BY ctid
+           OFFSET ${keepDettaglio}
+         )
+      `);
+
+      // 3) Prima rimuovo i fan-out sulle tabelle di appuntamento per bandi che verranno eliminati
+      //    (in modo da evitare violazioni di FK). Usiamo NOT IN su un sample che teniamo.
+      // 4) Elenchiamo gli ID bandi da tenere (primi keepBandi per data_offerta più recente)
+      await runSafe('sopralluoghi (bandi non più in whitelist)', `
+        DELETE FROM sopralluoghi WHERE id_bando NOT IN (
+          SELECT id FROM bandi
+          ORDER BY COALESCE(data_offerta, '1900-01-01'::timestamptz) DESC
+          LIMIT ${keepBandi}
+        )
+      `);
+      await runSafe('apertura_bandi (bandi non più in whitelist)', `
+        DELETE FROM apertura_bandi WHERE id_bando NOT IN (
+          SELECT id FROM bandi
+          ORDER BY COALESCE(data_offerta, '1900-01-01'::timestamptz) DESC
+          LIMIT ${keepBandi}
+        )
+      `);
+      await runSafe('scrittura_bandi (bandi non più in whitelist)', `
+        DELETE FROM scrittura_bandi WHERE id_bando NOT IN (
+          SELECT id FROM bandi
+          ORDER BY COALESCE(data_offerta, '1900-01-01'::timestamptz) DESC
+          LIMIT ${keepBandi}
+        )
+      `);
+      await runSafe('registro_gare_clienti (bandi non più in whitelist)', `
+        DELETE FROM registro_gare_clienti WHERE id_bando NOT IN (
+          SELECT id FROM bandi
+          ORDER BY COALESCE(data_offerta, '1900-01-01'::timestamptz) DESC
+          LIMIT ${keepBandi}
+        )
+      `);
+      await runSafe('richieste_servizi (bandi non più in whitelist)', `
+        DELETE FROM richieste_servizi WHERE id_bando NOT IN (
+          SELECT id FROM bandi
+          ORDER BY COALESCE(data_offerta, '1900-01-01'::timestamptz) DESC
+          LIMIT ${keepBandi}
+        )
+      `);
+
+      // 5) Ora elimina i bandi in eccesso
+      await runSafe(`bandi: tieni ultimi ${keepBandi}`, `
+        DELETE FROM bandi
+         WHERE id NOT IN (
+           SELECT id FROM bandi
+           ORDER BY COALESCE(data_offerta, '1900-01-01'::timestamptz) DESC
+           LIMIT ${keepBandi}
+         )
+      `);
+
+      // 6) VACUUM (non FULL — semplice, riusa spazio per nuovi INSERT senza richiedere spazio extra)
+      await runSafe('vacuum dettaglio_gara', 'VACUUM dettaglio_gara');
+      await runSafe('vacuum bandi', 'VACUUM bandi');
+      await runSafe('vacuum richieste_servizi', 'VACUUM richieste_servizi');
+      await runSafe('vacuum sopralluoghi', 'VACUUM sopralluoghi');
+      await runSafe('vacuum apertura_bandi', 'VACUUM apertura_bandi');
+      await runSafe('vacuum scrittura_bandi', 'VACUUM scrittura_bandi');
+
+      steps.push({ after: await countAll() });
+      return { success: true, keep_bandi: keepBandi, keep_dettaglio: keepDettaglio, steps };
+    } catch (err) {
+      fastify.log.error({ err: err.message, stack: err.stack }, 'db-cleanup failed');
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  // ============================================================
   // ERROR LOGGING (ELMAH-like)
   // ============================================================
 
@@ -614,6 +724,69 @@ export default async function sistemaRoutes(fastify, opts) {
     } catch (err) {
       fastify.log.error({ err: err.message }, 'System info error');
       return reply.status(500).send({ error: 'Errore nel caricamento delle informazioni di sistema' });
+    }
+  });
+
+  // ============================================================
+  // TASKS MANAGEMENT (newsletter scheduler, etc.)
+  // ============================================================
+
+  // GET /api/admin/sistema/tasks — Lista tutti i task schedulati
+  fastify.get('/sistema/tasks', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    try {
+      const result = await query(`SELECT * FROM tasks ORDER BY tipo`);
+      return { tasks: result.rows };
+    } catch (err) {
+      // Table may not exist yet
+      return { tasks: [], error: 'Tabella tasks non disponibile' };
+    }
+  });
+
+  // GET /api/admin/sistema/tasks/:tipo — Dettaglio task
+  fastify.get('/sistema/tasks/:tipo', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    try {
+      const result = await query(`SELECT * FROM tasks WHERE tipo = $1`, [request.params.tipo]);
+      if (result.rows.length === 0) return reply.status(404).send({ error: 'Task non trovato' });
+      return result.rows[0];
+    } catch (err) {
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  // PUT /api/admin/sistema/tasks/:tipo — Aggiorna task (attivo, ora_invio)
+  fastify.put('/sistema/tasks/:tipo', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { tipo } = request.params;
+    const { attivo, ora_invio } = request.body;
+    try {
+      const sets = [];
+      const params = [];
+      let idx = 1;
+
+      if (attivo !== undefined) { sets.push(`attivo = $${idx++}`); params.push(attivo); }
+      if (ora_invio) { sets.push(`ora_invio = $${idx++}`); params.push(ora_invio); }
+      sets.push(`updated_at = NOW()`);
+
+      if (sets.length <= 1) return reply.status(400).send({ error: 'Nessun campo da aggiornare' });
+
+      params.push(tipo);
+      const result = await query(
+        `UPDATE tasks SET ${sets.join(', ')} WHERE tipo = $${idx} RETURNING *`,
+        params
+      );
+
+      if (result.rows.length === 0) {
+        // Crea se non esiste
+        const ins = await query(
+          `INSERT INTO tasks (tipo, nome, attivo, ora_invio) VALUES ($1, $2, $3, $4) RETURNING *`,
+          [tipo, tipo, attivo !== false, ora_invio || '04:00']
+        );
+        return { success: true, task: ins.rows[0], message: 'Task creato e configurato' };
+      }
+
+      return { success: true, task: result.rows[0], message: 'Task aggiornato' };
+    } catch (err) {
+      fastify.log.error(err, 'Update task error');
+      return reply.status(500).send({ error: err.message });
     }
   });
 
