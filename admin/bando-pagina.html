@@ -229,6 +229,19 @@
   .bp-tab:hover { color: #1E2D3D; }
   .bp-tab-panel { display: none; }
   .bp-tab-panel.active { display: block; }
+
+  /* Checkbox fields */
+  .bp-field.check-field { flex-direction: row; align-items: center; gap: 8px; }
+  .bp-field.check-field input[type="checkbox"] { width: 18px; height: 18px; accent-color: #FF8C00; flex-shrink: 0; }
+  .bp-field.check-field label { margin: 0; cursor: pointer; }
+
+  /* Autocomplete */
+  .bp-autocomplete { position: relative; }
+  .bp-ac-list { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1.5px solid #d4dbe5; border-top: none; border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; z-index: 10; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .bp-ac-list.show { display: block; }
+  .bp-ac-item { padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+  .bp-ac-item:hover { background: #fef3e2; }
+  .bp-ac-item .piva { font-size: 11px; color: #94a3b8; }
 </style>
 </head>
 <body>
@@ -326,6 +339,26 @@ function toast(msg, kind) {
   t.className = 'bp-toast ' + (kind || '');
   t.style.display = 'block';
   setTimeout(() => { t.style.display = 'none'; }, 4000);
+}
+
+// ── Lookups cache ────────────────────────────────────────────
+let LOOKUPS = {};
+async function loadLookups() {
+  const endpoints = [
+    ['tipoSopralluogo', '/lookups/tipo-sopralluogo'],
+    ['piattaforme', '/lookups/piattaforme'],
+    ['tipologieGare', '/lookups/tipologie-gare'],
+    ['tipologieBandi', '/lookups/tipologie-bandi'],
+    ['criteri', '/lookups/criteri'],
+    ['tipiDatiGara', '/lookups/tipi-dati-gara'],
+    ['soa', '/lookups/soa'],
+  ];
+  await Promise.all(endpoints.map(async ([key, path]) => {
+    try {
+      const res = await fetch(API_BASE + path, { headers: authHeaders() });
+      if (res.ok) LOOKUPS[key] = await res.json();
+    } catch(e) { console.warn('Lookup fail:', key); }
+  }));
 }
 
 // ── Modal helpers ───────────────────────────────────────────
@@ -693,6 +726,7 @@ async function loadBando() {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const b = await r.json();
     window.__bando = b;
+    if (IS_EDIT) await loadLookups();
     render(b);
     renderActions();
     if (IS_EDIT && Array.isArray(b.allegati) && b.allegati.length) {
@@ -709,6 +743,15 @@ function field(label, value, opts) {
   if (IS_EDIT && opts.name) {
     const type = opts.type || 'text';
     const v = value == null ? '' : value;
+    if (type === 'checkbox') {
+      return '<div class="bp-field check-field ' + span + '"><input type="checkbox" name="' + esc(opts.name) + '"' + (v ? ' checked' : '') + ' id="f-' + esc(opts.name) + '"><label for="f-' + esc(opts.name) + '">' + esc(label) + '</label></div>';
+    }
+    if (type === 'select') {
+      const options = (opts.options || []).map(o =>
+        '<option value="' + esc(o.value) + '"' + (String(o.value) === String(v) ? ' selected' : '') + '>' + esc(o.label) + '</option>'
+      ).join('');
+      return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><select name="' + esc(opts.name) + '"><option value="">—</option>' + options + '</select></div>';
+    }
     if (type === 'textarea') {
       return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><textarea name="' + esc(opts.name) + '">' + esc(v) + '</textarea></div>';
     }
@@ -717,6 +760,20 @@ function field(label, value, opts) {
     }
     return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><input type="' + esc(type) + '" name="' + esc(opts.name) + '" value="' + esc(v) + '"></div>';
   }
+  // View mode
+  if (opts.type === 'checkbox') {
+    return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><div class="val">' + (value ? 'Si' : 'No') + '</div></div>';
+  }
+  if (opts.type === 'url' && value) {
+    return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><div class="val"><a href="' + esc(value) + '" target="_blank" style="color:#2196F3;word-break:break-all">' + esc(value) + '</a></div></div>';
+  }
+  if (opts.type === 'select') {
+    if (opts.viewValue != null) {
+      return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><div class="val">' + esc(opts.viewValue || '—') + '</div></div>';
+    }
+    const sel = (opts.options || []).find(o => String(o.value) === String(value));
+    return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><div class="val">' + esc(sel ? sel.label : (value != null ? String(value) : '—')) + '</div></div>';
+  }
   return '<div class="bp-field ' + span + '"><label>' + esc(label) + '</label><div class="val">' + (opts.html ? value : esc(value ?? '—')) + '</div></div>';
 }
 
@@ -724,62 +781,142 @@ function render(b) {
   document.getElementById('bp-title').textContent = (b.titolo || 'Bando senza titolo').substring(0, 100);
   document.title = 'Bando: ' + (b.titolo || b.id || '').substring(0, 80);
 
+  // Lookup option arrays
+  const soaOpts = (LOOKUPS.soa || []).map(s => ({ value: s.id, label: s.codice + ' — ' + (s.descrizione || '').substring(0, 60) }));
+  const piattOpts = (LOOKUPS.piattaforme || []).map(p => ({ value: p.id, label: p.nome }));
+  const tipGareOpts = (LOOKUPS.tipologieGare || []).map(t => ({ value: t.id, label: t.nome }));
+  const tipBandiOpts = (LOOKUPS.tipologieBandi || []).map(t => ({ value: t.id, label: t.nome }));
+  const criteriOpts = (LOOKUPS.criteri || []).map(c => ({ value: c.id, label: c.nome }));
+  const tipiDatiOpts = (LOOKUPS.tipiDatiGara || []).map(t => ({ value: t.id, label: t.nome }));
+  const sopralOpts = (LOOKUPS.tipoSopralluogo || []).map(s => ({ value: s.id, label: s.nome }));
+
   let chips = '';
   if (b.annullato) chips += '<span class="bp-chip" style="background:#fee2e2;color:#dc2626">ANNULLATO</span>';
   if (b.privato) chips += '<span class="bp-chip" style="background:#dbeafe;color:#2563eb">PRIVATO</span>';
+  if (b.rettificato) chips += '<span class="bp-chip" style="background:#fef9c3;color:#a16207">RETTIFICATO</span>';
   if (b.soa_categoria) chips += '<span class="bp-chip">SOA ' + esc(b.soa_categoria) + '</span>';
 
   let html = '';
 
-  // Anagrafica
+  // ── Card 1: Anagrafica ────────────────────────────
   html += '<div class="bp-card"><h2><i class="fas fa-info-circle"></i> Anagrafica bando</h2>';
   html += chips ? '<div style="margin-bottom:12px">' + chips + '</div>' : '';
   html += '<div class="bp-grid">';
   html += field('Titolo / Oggetto', b.titolo, { name: 'titolo', span: 'full', type: 'textarea' });
   html += field('Stazione Appaltante', b.stazione_nome || '—');
-  html += field('Città stazione', b.stazione_citta || b.citta || '—');
+  html += field('Città stazione', b.stazione_citta || '—');
   html += field('Regione', b.regione_nome || b.regione || '—');
   html += field('Provincia', b.provincia_nome || '—');
   html += field('Codice CIG', b.codice_cig, { name: 'codice_cig' });
   html += field('Codice CUP', b.codice_cup, { name: 'codice_cup' });
-  html += field('SOA categoria', b.soa_categoria ? (b.soa_categoria + (b.soa_descrizione ? ' — ' + b.soa_descrizione : '')) : '—');
+  html += field('Tipologia bando', b.id_tipologia_bando, { name: 'id_tipologia_bando', type: 'select', options: tipBandiOpts });
+  html += field('Visibilità', b.privato, { name: 'privato', type: 'select',
+    options: [{value: 0, label: 'Pubblico'}, {value: 1, label: 'Privato'}] });
+  html += field('Annullato', b.annullato, { name: 'annullato', type: 'checkbox' });
+  html += field('Rettificato', b.rettificato, { name: 'rettificato', type: 'checkbox' });
+  html += '</div>';
+  // Azienda dedicata — autocomplete
+  if (IS_EDIT) {
+    html += '<div class="bp-grid" style="margin-top:16px"><div class="bp-field span-2 bp-autocomplete">' +
+      '<label>AZIENDA DEDICATA</label>' +
+      '<input type="text" id="ac-azienda-search" placeholder="Cerca azienda per nome..." autocomplete="off">' +
+      '<input type="hidden" name="id_azienda_dedicata" id="ac-azienda-id" value="' + esc(b.id_azienda_dedicata != null ? b.id_azienda_dedicata : '') + '">' +
+      '<div class="bp-ac-list" id="ac-azienda-list"></div>' +
+      '<div id="ac-azienda-info" style="font-size:11px;color:#94a3b8;margin-top:4px"></div>' +
+      '</div></div>';
+  } else if (b.id_azienda_dedicata) {
+    html += '<div class="bp-grid" style="margin-top:16px">' +
+      field('Azienda dedicata', 'ID: ' + b.id_azienda_dedicata) + '</div>';
+  }
+  html += '</div>';
+
+  // ── Card 2: SOA e Requisiti ────────────────────────
+  html += '<div class="bp-card"><h2><i class="fas fa-medal"></i> SOA e Requisiti</h2><div class="bp-grid">';
+  html += field('SOA Prevalente', b.id_soa, { name: 'id_soa', type: 'select', options: soaOpts,
+    viewValue: b.soa_categoria ? (b.soa_categoria + (b.soa_descrizione ? ' — ' + b.soa_descrizione : '')) : null });
+  html += field('Attestazione (classifica)', b.soa_val, { name: 'soa_val', type: 'number' });
+  html += field('Importo SOA prevalente', IS_EDIT ? b.importo_soa_prevalente : fmtImporto(b.importo_soa_prevalente), { name: 'importo_soa_prevalente', type: 'number' });
+  html += field('Importo SOA sostitutiva', IS_EDIT ? b.importo_soa_sostitutiva : fmtImporto(b.importo_soa_sostitutiva), { name: 'importo_soa_sostitutiva', type: 'number' });
+  html += field('Categoria presunta', b.categoria_presunta, { name: 'categoria_presunta', type: 'checkbox' });
+  html += field('Categoria sostitutiva', b.categoria_sostitutiva, { name: 'categoria_sostitutiva', type: 'number' });
   html += '</div></div>';
 
-  // Date e scadenze
+  // ── Card 3: Date e scadenze ────────────────────────
   html += '<div class="bp-card"><h2><i class="fas fa-calendar-alt"></i> Date e scadenze</h2><div class="bp-grid">';
   html += field('Data pubblicazione', IS_EDIT ? b.data_pubblicazione : fmtDate(b.data_pubblicazione), { name: 'data_pubblicazione', type: 'date' });
   html += field('Scadenza offerta', IS_EDIT ? b.data_offerta : fmtDate(b.data_offerta), { name: 'data_offerta', type: 'date' });
   html += field('Data apertura', IS_EDIT ? b.data_apertura : fmtDate(b.data_apertura), { name: 'data_apertura', type: 'date' });
   html += field('Apertura posticipata', IS_EDIT ? b.data_apertura_posticipata : fmtDate(b.data_apertura_posticipata), { name: 'data_apertura_posticipata', type: 'date' });
+  html += field('Apertura da destinarsi', b.data_apertura_da_destinarsi, { name: 'data_apertura_da_destinarsi', type: 'checkbox' });
   html += '</div></div>';
 
-  // Importi
-  html += '<div class="bp-card"><h2><i class="fas fa-euro-sign"></i> Importi</h2><div class="bp-grid">';
+  // ── Card 4: Importi e parametri ────────────────────
+  html += '<div class="bp-card"><h2><i class="fas fa-euro-sign"></i> Importi e parametri</h2><div class="bp-grid">';
   html += field('Importo S.O.', IS_EDIT ? b.importo_so : fmtImporto(b.importo_so), { name: 'importo_so', type: 'number' });
   html += field('Importo C.O.', IS_EDIT ? b.importo_co : fmtImporto(b.importo_co), { name: 'importo_co', type: 'number' });
   html += field('Importo Eco', IS_EDIT ? b.importo_eco : fmtImporto(b.importo_eco), { name: 'importo_eco', type: 'number' });
   html += field('Manodopera', IS_EDIT ? b.importo_manodopera : fmtImporto(b.importo_manodopera), { name: 'importo_manodopera', type: 'number' });
   html += field('Oneri progettazione', IS_EDIT ? b.oneri_progettazione : fmtImporto(b.oneri_progettazione), { name: 'oneri_progettazione', type: 'number' });
   html += field('Soglia riferimento', IS_EDIT ? b.soglia_riferimento : fmtImporto(b.soglia_riferimento), { name: 'soglia_riferimento', type: 'number' });
+  html += field('Max invitati (negoziate)', b.max_invitati_negoziate, { name: 'max_invitati_negoziate', type: 'number' });
+  html += field('N. decimali', b.n_decimali, { name: 'n_decimali', type: 'number' });
+  html += field('Limite esclusione', b.limit_min_media, { name: 'limit_min_media', type: 'number' });
   html += '</div></div>';
 
-  // Piattaforma / tipologia
-  html += '<div class="bp-card"><h2><i class="fas fa-laptop-code"></i> Piattaforma e tipologia</h2><div class="bp-grid">';
-  html += field('Piattaforma', b.piattaforma_nome || '—');
-  html += field('URL piattaforma', b.piattaforma_url ? '<a href="' + esc(b.piattaforma_url) + '" target="_blank">' + esc(b.piattaforma_url) + '</a>' : '—', { html: true });
-  html += field('Tipologia gara', b.tipologia_gare_nome || '—');
-  html += field('Criterio aggiudicazione', b.criterio_nome || '—');
-  html += field('Link bando', b.link_bando ? '<a href="' + esc(b.link_bando) + '" target="_blank">' + esc(b.link_bando) + '</a>' : '—', { html: true, name: 'link_bando' });
+  // ── Card 5: Gara e aggiudicazione ──────────────────
+  html += '<div class="bp-card"><h2><i class="fas fa-gavel"></i> Gara e aggiudicazione</h2><div class="bp-grid">';
+  html += field('Tipologia gara', b.id_tipologia, { name: 'id_tipologia', type: 'select', options: tipGareOpts, viewValue: b.tipologia_gare_nome });
+  html += field('Criterio aggiudicazione', b.id_criterio, { name: 'id_criterio', type: 'select', options: criteriOpts, viewValue: b.criterio_nome });
+  html += field('Tipo dati esito', b.tipo_dati_esito, { name: 'tipo_dati_esito', type: 'select', options: tipiDatiOpts });
+  html += field('Accorpa ali', b.accorpa_ali, { name: 'accorpa_ali', type: 'checkbox' });
+  html += field('Tipo accorpa ali', b.tipo_accorpa_ali, { name: 'tipo_accorpa_ali', type: 'number' });
   html += '</div></div>';
 
-  // Note
+  // ── Card 6: Piattaforma e telematica ───────────────
+  html += '<div class="bp-card"><h2><i class="fas fa-laptop-code"></i> Piattaforma e telematica</h2><div class="bp-grid">';
+  html += field('Piattaforma', b.id_piattaforma, { name: 'id_piattaforma', type: 'select', options: piattOpts, viewValue: b.piattaforma_nome });
+  if (!IS_EDIT && b.piattaforma_url) {
+    html += field('URL piattaforma', '<a href="' + esc(b.piattaforma_url) + '" target="_blank">' + esc(b.piattaforma_url) + '</a>', { html: true });
+  }
+  html += field('Link bando', b.link_bando, { name: 'link_bando', type: 'url' });
+  html += field('Telematica', b.sped_telematica, { name: 'sped_telematica', type: 'checkbox' });
+  html += field('Indirizzo elaborati', b.indirizzo_elaborati, { name: 'indirizzo_elaborati', type: 'textarea' });
+  html += '</div></div>';
+
+  // ── Card 7: Sopralluogo ────────────────────────────
+  html += '<div class="bp-card"><h2><i class="fas fa-map-marker-alt"></i> Sopralluogo</h2><div class="bp-grid">';
+  html += field('Tipo sopralluogo', b.id_tipo_sopralluogo, { name: 'id_tipo_sopralluogo', type: 'select', options: sopralOpts });
+  html += field('Note sopralluogo', b.note_per_sopralluogo, { name: 'note_per_sopralluogo', type: 'textarea', span: 'full' });
+  html += field('Inizio sopralluogo', IS_EDIT ? b.data_sop_start : fmtDate(b.data_sop_start), { name: 'data_sop_start', type: 'date' });
+  html += field('Fine sopralluogo', IS_EDIT ? b.data_sop_end : fmtDate(b.data_sop_end), { name: 'data_sop_end', type: 'date' });
+  html += field('Termine sopralluogo', IS_EDIT ? b.data_max_per_sopralluogo : fmtDate(b.data_max_per_sopralluogo), { name: 'data_max_per_sopralluogo', type: 'date' });
+  html += field('Termine prenotazione', IS_EDIT ? b.data_max_per_prenotazione : fmtDate(b.data_max_per_prenotazione), { name: 'data_max_per_prenotazione', type: 'date' });
+  html += '</div></div>';
+
+  // ── Card 8: Contatti e spedizione ──────────────────
+  html += '<div class="bp-card"><h2><i class="fas fa-envelope"></i> Contatti e spedizione</h2><div class="bp-grid">';
+  html += field('Indirizzo PEC', b.indirizzo_pec, { name: 'indirizzo_pec' });
+  html += field('Indirizzo', b.indirizzo, { name: 'indirizzo' });
+  html += field('CAP', b.cap, { name: 'cap' });
+  html += field('Città', b.citta, { name: 'citta' });
+  html += field('Comunicazione diretta', b.comunicazione_diretta_data, { name: 'comunicazione_diretta_data', type: 'checkbox' });
+  html += field('Spedizione PEC', b.sped_pec, { name: 'sped_pec', type: 'checkbox' });
+  html += field('Spedizione Posta', b.sped_posta, { name: 'sped_posta', type: 'checkbox' });
+  html += field('Spedizione Corriere', b.sped_corriere, { name: 'sped_corriere', type: 'checkbox' });
+  html += field('Spedizione a mano', b.sped_mano, { name: 'sped_mano', type: 'checkbox' });
+  html += '</div></div>';
+
+  // ── Card 9: Note ───────────────────────────────────
   html += '<div class="bp-card"><h2><i class="fas fa-sticky-note"></i> Note</h2><div class="bp-grid">';
   html += field('Note principali', b.note || '', { name: 'note', type: 'textarea', span: 'full' });
   if (b.note_01 || IS_EDIT) html += field('Nota 01', b.note_01 || '', { name: 'note_01', type: 'textarea', span: 2 });
   if (b.note_02 || IS_EDIT) html += field('Nota 02', b.note_02 || '', { name: 'note_02', type: 'textarea', span: 2 });
+  if (b.note_03 || IS_EDIT) html += field('Nota 03', b.note_03 || '', { name: 'note_03', type: 'textarea', span: 2 });
+  if (b.note_04 || IS_EDIT) html += field('Nota 04', b.note_04 || '', { name: 'note_04', type: 'textarea', span: 2 });
+  if (b.note_05 || IS_EDIT) html += field('Nota 05', b.note_05 || '', { name: 'note_05', type: 'textarea', span: 2 });
   html += '</div></div>';
 
-  // Allegati
+  // ── Card 10: Allegati ──────────────────────────────
   const allegati = Array.isArray(b.allegati) ? b.allegati : [];
   html += '<div class="bp-card"><h2><i class="fas fa-paperclip"></i> Allegati (' + allegati.length + ')';
   if (!IS_EDIT) html += '<button class="bp-abtn blue" style="margin-left:auto;font-size:10px;padding:5px 10px" onclick="uploadAllegati()"><i class="fas fa-upload"></i> Carica</button>';
@@ -802,7 +939,7 @@ function render(b) {
   }
   html += '</div>';
 
-  // Metadata
+  // ── Card 11: Metadata ─────────────────────────────
   html += '<div class="bp-card"><h2><i class="fas fa-fingerprint"></i> Metadata</h2><div class="bp-grid">';
   html += field('ID bando', b.id);
   html += field('External code', b.external_code || '—');
@@ -812,6 +949,12 @@ function render(b) {
   html += '</div></div>';
 
   document.getElementById('bp-content').innerHTML = IS_EDIT ? '<form id="bp-form" onsubmit="event.preventDefault();saveBando()">' + html + '</form>' : html;
+
+  // Init azienda autocomplete after DOM render
+  if (IS_EDIT) {
+    initAziendaAutocomplete();
+    if (b.id_azienda_dedicata) loadAziendaNome(b.id_azienda_dedicata);
+  }
 }
 
 async function downloadAllAttachments(allegati) {
@@ -836,7 +979,9 @@ async function saveBando() {
   Array.from(form.elements).forEach(el => {
     if (!el.name) return;
     let v = el.value;
+    if (el.type === 'checkbox') { payload[el.name] = el.checked; return; }
     if (el.type === 'number') v = v === '' ? null : Number(v);
+    if (el.tagName === 'SELECT' && v !== '' && /^\-?\d+$/.test(v)) v = Number(v);
     if (v === '') v = null;
     payload[el.name] = v;
   });
@@ -855,6 +1000,81 @@ async function saveBando() {
   } catch (e) {
     toast('Errore salvataggio: ' + e.message, 'err');
   }
+}
+
+// ── Azienda autocomplete ─────────────────────────────────────
+let _acTimeout = null;
+function initAziendaAutocomplete() {
+  const search = document.getElementById('ac-azienda-search');
+  if (!search) return;
+  search.addEventListener('input', function() {
+    clearTimeout(_acTimeout);
+    const q = this.value.trim();
+    if (q.length < 2) { hideAcList(); return; }
+    _acTimeout = setTimeout(() => searchAziende(q), 300);
+  });
+  search.addEventListener('blur', () => setTimeout(hideAcList, 200));
+}
+
+async function searchAziende(q) {
+  try {
+    const res = await fetch(API_BASE + '/admin/aziende/search?q=' + encodeURIComponent(q) + '&limit=10', { headers: authHeaders() });
+    if (!res.ok) return;
+    const data = await res.json();
+    const items = data.risultati || data;
+    const list = document.getElementById('ac-azienda-list');
+    if (!items.length) {
+      list.innerHTML = '<div class="bp-ac-item" style="color:#94a3b8">Nessun risultato</div>';
+      list.classList.add('show');
+      return;
+    }
+    list.innerHTML = items.map(a =>
+      '<div class="bp-ac-item" data-id="' + esc(a.id) + '" data-nome="' + esc(a.ragione_sociale) + '">' +
+      esc(a.ragione_sociale) +
+      (a.partita_iva ? '<div class="piva">P.IVA: ' + esc(a.partita_iva) + '</div>' : '') +
+      '</div>'
+    ).join('');
+    list.querySelectorAll('.bp-ac-item[data-id]').forEach(item => {
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        selectAzienda(Number(item.dataset.id), item.dataset.nome);
+      });
+    });
+    list.classList.add('show');
+  } catch(e) { console.warn('aziende search error', e); }
+}
+
+function selectAzienda(id, nome) {
+  document.getElementById('ac-azienda-id').value = id;
+  document.getElementById('ac-azienda-search').value = nome;
+  document.getElementById('ac-azienda-info').innerHTML = 'ID: ' + id + ' <a href="#" onclick="clearAzienda();return false" style="color:#dc2626">rimuovi</a>';
+  hideAcList();
+}
+
+function clearAzienda() {
+  document.getElementById('ac-azienda-id').value = '';
+  document.getElementById('ac-azienda-search').value = '';
+  document.getElementById('ac-azienda-info').innerHTML = '';
+}
+
+function hideAcList() {
+  const list = document.getElementById('ac-azienda-list');
+  if (list) list.classList.remove('show');
+}
+
+async function loadAziendaNome(id) {
+  try {
+    const res = await fetch(API_BASE + '/admin/aziende/' + id, { headers: authHeaders() });
+    if (!res.ok) return;
+    const data = await res.json();
+    const nome = data.azienda ? data.azienda.ragione_sociale : '';
+    if (nome) {
+      const search = document.getElementById('ac-azienda-search');
+      if (search) search.value = nome;
+      const info = document.getElementById('ac-azienda-info');
+      if (info) info.innerHTML = 'ID: ' + id + ' <a href="#" onclick="clearAzienda();return false" style="color:#dc2626">rimuovi</a>';
+    }
+  } catch(e) { /* ignore */ }
 }
 
 loadBando();
