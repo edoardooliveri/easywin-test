@@ -1,18 +1,7 @@
-import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import { mailProvider } from './mail/index.js';
 
 dotenv.config();
-
-// Create transporter (SMTP config from .env)
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
 
 /**
  * Send esito notification to all participating companies
@@ -102,13 +91,9 @@ export async function sendEsitoNotifications(garaId, options = {}) {
     htmlBody += `</div></div>`;
 
     try {
+      // TODO: spostare guard nel provider (per supportare SES senza SMTP_USER)
       if (process.env.SMTP_USER) {
-        await transporter.sendMail({
-          from: process.env.SMTP_FROM || '"EasyWin" <noreply@easywin.it>',
-          to: email,
-          subject,
-          html: htmlBody
-        });
+        await mailProvider.send({ to: email, subject, html: htmlBody });
         results.sent++;
         results.details.push({ azienda: nome, email, status: 'sent' });
       } else {
@@ -129,17 +114,19 @@ export async function sendEsitoNotifications(garaId, options = {}) {
  * Send custom email
  */
 export async function sendEmail(to, subject, htmlBody, options = {}) {
+  // TODO: spostare guard nel provider (per supportare SES senza SMTP_USER)
   if (!process.env.SMTP_USER) {
     return { status: 'skipped', reason: 'SMTP non configurato' };
   }
 
   try {
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || '"EasyWin" <noreply@easywin.it>',
+    await mailProvider.send({
       to,
       subject,
       html: htmlBody,
-      ...options
+      ...(options.cc && { cc: options.cc }),
+      ...(options.bcc && { bcc: options.bcc }),
+      ...(options.replyTo && { replyTo: options.replyTo }),
     });
     return { status: 'sent' };
   } catch (err) {
