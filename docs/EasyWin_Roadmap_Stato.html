@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyWin — Roadmap Funzionalità</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f4f6fa; color: #1E2D3D; line-height: 1.5; }
+
+  .hero { background: linear-gradient(135deg, #1E2D3D, #2A3F55); color: #fff; padding: 40px 32px 32px; border-bottom: 5px solid #F5C518; }
+  .hero h1 { font-family: 'Comfortaa', sans-serif; font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+  .hero h1 span { color: #F5C518; }
+  .hero p { font-size: 13px; color: rgba(255,255,255,.7); }
+  .hero-stats { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px; }
+  .hero-stat { background: rgba(255,255,255,.08); border-radius: 10px; padding: 12px 20px; text-align: center; min-width: 110px; }
+  .hero-stat .val { font-family: 'Comfortaa', sans-serif; font-size: 26px; font-weight: 700; }
+  .hero-stat .lbl { font-size: 10px; text-transform: uppercase; color: rgba(255,255,255,.6); margin-top: 2px; }
+  .hero-stat.green .val { color: #6ee7b7; }
+  .hero-stat.yellow .val { color: #F5C518; }
+  .hero-stat.red .val { color: #fca5a5; }
+  .hero-stat.blue .val { color: #93c5fd; }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
+
+  .section { margin-bottom: 28px; }
+  .section-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+  .section-hdr h2 { font-family: 'Comfortaa', sans-serif; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .section-hdr h2 i { font-size: 20px; }
+  .section-prog { display: flex; align-items: center; gap: 8px; }
+  .prog-bar { width: 120px; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+  .prog-fill { height: 100%; border-radius: 4px; transition: width .3s; }
+  .prog-fill.green { background: linear-gradient(90deg, #10b981, #34d399); }
+  .prog-text { font-size: 12px; font-weight: 700; color: #64748b; }
+
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  th { background: #1E2D3D; color: #fff; padding: 10px 14px; text-align: left; font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: .5px; }
+  td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; font-size: 12px; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fefce8; }
+
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .badge-completo { background: #d1fae5; color: #065f46; }
+  .badge-parziale { background: #fef3c7; color: #92400e; }
+  .badge-mancante { background: #fee2e2; color: #991b1b; }
+  .badge-fatto { background: #c7d2fe; color: #3730a3; }
+  .badge-verificare { background: #e2e8f0; color: #475569; }
+
+  .prio { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 700; }
+  .prio-critica { color: #dc2626; }
+  .prio-alta { color: #f59e0b; }
+  .prio-media { color: #3b82f6; }
+  .prio-bassa { color: #94a3b8; }
+
+  .note { font-size: 10px; color: #64748b; font-style: italic; max-width: 220px; }
+
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; padding: 16px 0; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #475569; }
+
+  .updated { text-align: center; padding: 20px; font-size: 11px; color: #94a3b8; }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<div class="hero">
+  <h1><span>EasyWin</span> — Roadmap Funzionalità</h1>
+  <p>Analisi comparativa vecchio vs nuovo sito — stato aggiornato al 12 aprile 2026 (sera)</p>
+  <div class="hero-stats">
+    <div class="hero-stat green"><div class="val">37</div><div class="lbl">Completate</div></div>
+    <div class="hero-stat blue"><div class="val">23</div><div class="lbl">Fatte oggi</div></div>
+    <div class="hero-stat yellow"><div class="val">0</div><div class="lbl">Parziali</div></div>
+    <div class="hero-stat red"><div class="val">0</div><div class="lbl">Mancanti</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+<div class="legend">
+  <div class="legend-item"><span class="badge badge-completo">COMPLETO</span> Era nel report originale</div>
+  <div class="legend-item"><span class="badge badge-fatto">✓ FATTO 12/04</span> Implementato oggi</div>
+  <div class="legend-item"><span class="badge badge-parziale">PARZIALE</span> Presente ma incompleto</div>
+  <div class="legend-item"><span class="badge badge-mancante">MANCANTE</span> Da implementare</div>
+  <div class="legend-item"><span class="badge badge-verificare">DA VERIFICARE</span> Potrebbe funzionare</div>
+</div>
+
+<!-- ═══════ 6.1 IMPORT E INTEGRAZIONE ═══════ -->
+<div class="section">
+  <div class="section-hdr">
+    <h2><i class="fas fa-cloud-download-alt" style="color:#3b82f6"></i> 6.1 Import e Integrazione Dati</h2>
+    <div class="section-prog"><div class="prog-bar"><div class="prog-fill green" style="width:100%"></div></div><span class="prog-text">7/7</span></div>
+  </div>
+  <table>
+    <thead><tr><th>Funzionalità</th><th>Vecchio sito</th><th>Nuovo sito</th><th>Stato</th><th>Priorità</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Import SOAP Presidia</strong></td>
+        <td>Client WCF completo 20 operazioni</td>
+        <td>presidia-soap.js con PresidiaClient, 22 metodi SOAP</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-critica"><i class="fas fa-fire"></i> CRITICA</span></td>
+        <td class="note">SOA mapping 100+ codici, CIG/CUP extraction, allegati download</td>
+      </tr>
+      <tr>
+        <td><strong>Import manuale Presidia</strong></td>
+        <td>UI admin ricerca + selezione bandi</td>
+        <td>Pagina completa con ricerca avanzata, filtri, tabella risultati</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-critica"><i class="fas fa-fire"></i> CRITICA</span></td>
+        <td class="note">Hero + Azioni rapide + Import date + Ricerca avanzata + Import singolo/batch</td>
+      </tr>
+      <tr>
+        <td><strong>Filtri bandi per utente</strong></td>
+        <td>Credenziali Presidia per smistamento</td>
+        <td>utenti_filtri_bandi: regole SOA/province/importi per utente</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-alta"><i class="fas fa-exclamation-triangle"></i> ALTA</span></td>
+        <td class="note">N regole per utente, OR tra regole, UI gestione nella tab Presidia</td>
+      </tr>
+      <tr>
+        <td><strong>Download allegati auto</strong></td>
+        <td>Da ricercappalti.it con retry</td>
+        <td>downloadAllegato() con 3 retry, integrato nell'import</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-alta"><i class="fas fa-exclamation-triangle"></i> ALTA</span></td>
+        <td class="note">Download background non bloccante + salvataggio in allegati_bando</td>
+      </tr>
+      <tr>
+        <td><strong>Sync fonti web</strong></td>
+        <td>SyncUrlJob multi-thread (40 thread)</td>
+        <td>fonti-web-scheduler.js: sync ogni 10min, log in fonti_web_sync_log</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-media"><i class="fas fa-minus-circle"></i> MEDIA</span></td>
+        <td class="note">3 strategie parsing (regex/table/link), testi_chiave filter, CIG dedup, batch 5 parallelo</td>
+      </tr>
+      <tr>
+        <td><strong>Import CSV/Bulk</strong></td>
+        <td>Non presente</td>
+        <td>Route /csv e /bulk implementate</td>
+        <td><span class="badge badge-completo">COMPLETO</span></td>
+        <td><span class="prio prio-bassa"><i class="fas fa-minus"></i> BASSA</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><strong>Import Maggioli</strong></td>
+        <td>Non presente</td>
+        <td>Route /maggioli presente</td>
+        <td><span class="badge badge-completo">COMPLETO</span></td>
+        <td><span class="prio prio-bassa"><i class="fas fa-minus"></i> BASSA</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════ 6.2 COMUNICAZIONE GESTIONALE-PORTALE ═══════ -->
+<div class="section">
+  <div class="section-hdr">
+    <h2><i class="fas fa-exchange-alt" style="color:#8b5cf6"></i> 6.2 Comunicazione Gestionale — Portale</h2>
+    <div class="section-prog"><div class="prog-bar"><div class="prog-fill green" style="width:100%"></div></div><span class="prog-text">10/10</span></div>
+  </div>
+  <table>
+    <thead><tr><th>Funzionalità</th><th>Vecchio sito</th><th>Nuovo sito</th><th>Stato</th><th>Priorità</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Portale clienti</strong></td>
+        <td>Area Abbonamenti 8 controller</td>
+        <td>clienti/ con 9 pagine HTML</td>
+        <td><span class="badge badge-completo">COMPLETO</span></td>
+        <td><span class="prio prio-critica"><i class="fas fa-fire"></i> CRITICA</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><strong>API filtrata per abilitazioni</strong></td>
+        <td>Filtro regioni/SOA/province + visibilità</td>
+        <td>clienti.js: dual-path filtering (new rules + legacy fallback) + privato exclusion</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-critica"><i class="fas fa-fire"></i> CRITICA</span></td>
+        <td class="note">utenti_filtri_bandi OR → legacy users_regioni/soa fallback</td>
+      </tr>
+      <tr>
+        <td><strong>Flag Privato bandi</strong></td>
+        <td>3 livelli: pubblico, privato org, privato utente</td>
+        <td>Migrazione 017: privato INTEGER (0/1/2) + privato_username su bandi e gare</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-alta"><i class="fas fa-exclamation-triangle"></i> ALTA</span></td>
+        <td class="note">0=pubblico, 1=privato org, 2=privato utente specifico</td>
+      </tr>
+      <tr>
+        <td><strong>Newsletter digest giornaliero</strong></td>
+        <td>Job con template HTML, rate limiting 5000/gg</td>
+        <td>Invio auto personalizzato con filtri, scheduler 4AM</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-alta"><i class="fas fa-exclamation-triangle"></i> ALTA</span></td>
+        <td class="note">newsletter-scheduler.js + endpoint /newsletter/auto + filtri per utente</td>
+      </tr>
+      <tr>
+        <td><strong>Email alert bandi</strong></td>
+        <td>BandiAlertJob soglia 250/20min</td>
+        <td>bandi-alerts.js: runAllAlerts() integrato nel newsletter scheduler</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-alta"><i class="fas fa-exclamation-triangle"></i> ALTA</span></td>
+        <td class="note">Matching utenti tramite utenti_filtri_bandi, email con template dark</td>
+      </tr>
+      <tr>
+        <td><strong>Email alert apertura</strong></td>
+        <td>BandiAperturaAlertJob</td>
+        <td>runAperturaAlerts(): alert 3gg e 1gg prima apertura buste</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-media"><i class="fas fa-minus-circle"></i> MEDIA</span></td>
+        <td class="note">Matching filtri utente, email warning/info</td>
+      </tr>
+      <tr>
+        <td><strong>Email alert sopralluoghi</strong></td>
+        <td>BandiSopralluogoAlertJob</td>
+        <td>runSopralluoghiAlerts(): alert 3gg e 1gg prima sopralluogo</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-media"><i class="fas fa-minus-circle"></i> MEDIA</span></td>
+        <td class="note">Matching filtri utente, email warning/info</td>
+      </tr>
+      <tr>
+        <td><strong>Email pubbl. esiti</strong></td>
+        <td>SendEsitoJob + PubblicazioneEsitiAlert</td>
+        <td>runEsitiAlerts(): notifica per esiti pubblicati oggi</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-media"><i class="fas fa-minus-circle"></i> MEDIA</span></td>
+        <td class="note">A tutti gli utenti con newsletter_esiti=true</td>
+      </tr>
+      <tr>
+        <td><strong>Servizio OData/WCF</strong></td>
+        <td>WCF Data Service cache 60s</td>
+        <td>Non applicabile (REST API)</td>
+        <td><span class="badge badge-verificare">NON APPLICABILE</span></td>
+        <td><span class="prio prio-bassa"><i class="fas fa-minus"></i> BASSA</span></td>
+        <td class="note">REST API sostituisce WCF/OData</td>
+      </tr>
+      <tr>
+        <td><strong>Feed RSS</strong></td>
+        <td>Formatter per bandi e esiti</td>
+        <td>rss.js: /api/rss/bandi e /api/rss/esiti — RSS 2.0 con atom:link</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-bassa"><i class="fas fa-minus"></i> BASSA</span></td>
+        <td class="note">Public, no auth, ultimi 50 items ciascuno</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════ 6.3 GESTIONE UTENTI ═══════ -->
+<div class="section">
+  <div class="section-hdr">
+    <h2><i class="fas fa-users-cog" style="color:#f59e0b"></i> 6.3 Gestione Utenti e Abbonamenti</h2>
+    <div class="section-prog"><div class="prog-bar"><div class="prog-fill green" style="width:100%"></div></div><span class="prog-text">12/12</span></div>
+  </div>
+  <table>
+    <thead><tr><th>Funzionalità</th><th>Vecchio sito</th><th>Nuovo sito</th><th>Stato</th><th>Priorità</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td><strong>CRUD utenti base</strong></td><td>UtentiController completo</td><td>pageUtenti + API admin-utenti</td><td><span class="badge badge-completo">COMPLETO</span></td><td><span class="prio prio-critica"><i class="fas fa-fire"></i> CRITICA</span></td><td></td></tr>
+      <tr><td><strong>6 tipi abbonamento</strong></td><td>Bandi/Esiti/EsitiLight/NewsEsiti/NewsBandi/Presidia</td><td>Struttura DB + UI matrice completa</td><td><span class="badge badge-completo">COMPLETO</span></td><td><span class="prio prio-critica"><i class="fas fa-fire"></i> CRITICA</span></td><td></td></tr>
+      <tr><td><strong>Abilitazioni SOA/Regioni/Province</strong></td><td>Tabelle junction separate</td><td>users_soa/regioni/province</td><td><span class="badge badge-completo">COMPLETO</span></td><td><span class="prio prio-critica"><i class="fas fa-fire"></i> CRITICA</span></td><td></td></tr>
+      <tr><td><strong>Sistema agenti 3 livelli</strong></td><td>Agente + SubAgente1 + SubAgente2</td><td>Campi presenti nel modello users</td><td><span class="badge badge-completo">COMPLETO</span></td><td><span class="prio prio-alta"><i class="fas fa-exclamation-triangle"></i> ALTA</span></td><td></td></tr>
+      <tr>
+        <td><strong>Job gestione abbonamenti</strong></td>
+        <td>Reminder -30/-7gg, rinnovo auto, disattivazione</td>
+        <td>abbonamenti-scheduler.js: 3 task (reminder, renewal, deactivation) alle 6AM</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-critica"><i class="fas fa-fire"></i> CRITICA</span></td>
+        <td class="note">6 servizi, check ogni 5min, integrato in server.js</td>
+      </tr>
+      <tr>
+        <td><strong>Email scadenza abbonamento</strong></td>
+        <td>Email diversificate admin/agenti/clienti</td>
+        <td>sendReminderEmails(): -30gg e -7gg, invio a cliente+agente+admin</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-critica"><i class="fas fa-fire"></i> CRITICA</span></td>
+        <td class="note">Template dark theme con alertBox warning + CTA</td>
+      </tr>
+      <tr>
+        <td><strong>Rinnovo automatico</strong></td>
+        <td>Flag Renew + RenewMonths</td>
+        <td>processAutoRenewal(): rinnova scaduti con rinnovo_*=true, mesi_rinnovo configurabile</td>
+        <td><span class="badge badge-fatto">✓ FATTO 12/04</span></td>
+        <td><span class="prio prio-alta"><i class="fas fa-exclamation-triangle"></i> ALTA</span></td>
+        <td class="note">processDeactivation() disattiva newsletter se tutti scaduti</td>
+      </tr>
+      <tr><td><strong>Abbonamento temporaneo</strong></td><td>Temporaneo + DataInizio/Fine</td><td>Migrazione 014: temporaneo, data_inizio/fine_temporaneo su users</td><td><span class="badge badge-fatto">✓ FATTO 12/04</span></td><td><span class="prio prio-media"><i class="fas fa-minus-circle"></i> MEDIA</span></td><td class="note">Campi DB + supporto in admin-utenti.js</td></tr>
+      <tr><td><strong>Gestione documenti utente</strong></td><td>Delega/Identita/SOA/CCIAA</td><td>Migrazione 018: tabella user_documents + CRUD API</td><td><span class="badge badge-fatto">✓ FATTO 12/04</span></td><td><span class="prio prio-media"><i class="fas fa-minus-circle"></i> MEDIA</span></td><td class="note">GET/POST/DELETE /api/admin/utenti/:id/documenti</td></tr>
+      <tr><td><strong>Email multiple per utente</strong></td><td>UserEmails per newsletter</td><td>email_newsletter_bandi_servizi + email_newsletter_esiti con fallback</td><td><span class="badge badge-fatto">✓ FATTO 12/04</span></td><td><span class="prio prio-media"><i class="fas fa-minus-circle"></i> MEDIA</span></td><td class="note">newsletter.js aggiornato con fallback a users.email</td></tr>
+      <tr><td><strong>Ruolo BandiPublisher</strong></td><td>Publisher specializzato</td><td>Ruolo publisher in auth.js + middleware isPublisher + accesso limitato</td><td><span class="badge badge-fatto">✓ FATTO 12/04</span></td><td><span class="prio prio-bassa"><i class="fas fa-minus"></i> BASSA</span></td><td class="note">Publisher: CRUD bandi OK, admin utenti/aziende/dashboard bloccati</td></tr>
+      <tr><td><strong>DoppieLogin tracking</strong></td><td>Tabella dedicata</td><td>Migrazione 018: tabella doppie_login + tracking in auth + API storico</td><td><span class="badge badge-fatto">✓ FATTO 12/04</span></td><td><span class="prio prio-bassa"><i class="fas fa-minus"></i> BASSA</span></td><td class="note">IP, user_agent, session_token, auto-cleanup 30gg</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════ 6.4 ALTRE ═══════ -->
+<div class="section">
+  <div class="section-hdr">
+    <h2><i class="fas fa-puzzle-piece" style="color:#059669"></i> 6.4 Altre Funzionalità</h2>
+    <div class="section-prog"><div class="prog-bar"><div class="prog-fill green" style="width:100%"></div></div><span class="prog-text">9/9</span></div>
+  </div>
+  <table>
+    <thead><tr><th>Funzionalità</th><th>Vecchio sito</th><th>Nuovo sito</th><th>Stato</th><th>Priorità</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Simulazioni gara</strong></td><td>SimulazioniController</td><td>simulazioni + engine (51 tipologie)</td><td><span class="badge badge-completo">COMPLETO</span></td><td><span class="prio prio-alta"><i class="fas fa-exclamation-triangle"></i> ALTA</span></td><td></td></tr>
+      <tr><td><strong>Analisi AI bandi/esiti</strong></td><td>Non presente</td><td>bandi-ai + esiti-ai</td><td><span class="badge badge-completo">COMPLETO</span></td><td><span class="prio prio-alta"><i class="fas fa-exclamation-triangle"></i> ALTA</span></td><td class="note">Feature nuova, non esisteva nel vecchio</td></tr>
+      <tr><td><strong>Albi fornitori</strong></td><td>Non presente</td><td>Sistema completo albi/iscrizioni/richieste</td><td><span class="badge badge-completo">COMPLETO</span></td><td><span class="prio prio-alta"><i class="fas fa-exclamation-triangle"></i> ALTA</span></td><td class="note">Feature nuova</td></tr>
+      <tr><td><strong>Sopralluoghi mappa</strong></td><td>Gestione base</td><td>Mappa avanzata + pagamenti + richieste</td><td><span class="badge badge-completo">COMPLETO</span></td><td><span class="prio prio-alta"><i class="fas fa-exclamation-triangle"></i> ALTA</span></td><td></td></tr>
+      <tr><td><strong>Export PDF</strong></td><td>PdfViewController custom</td><td>esiti-export.js (591KB) + bandi-export.js (589KB) — PDF completi</td><td><span class="badge badge-fatto">✓ FATTO 12/04</span></td><td><span class="prio prio-media"><i class="fas fa-minus-circle"></i> MEDIA</span></td><td class="note">Esiti: graduatoria + dati gara. Bandi: dettagli + SOA + scadenze</td></tr>
+      <tr><td><strong>Export Excel</strong></td><td>PreparaExcel</td><td>esiti-export.js (8.4KB) + bandi-export.js (7.7KB) — XLSX con exceljs</td><td><span class="badge badge-fatto">✓ FATTO 12/04</span></td><td><span class="prio prio-media"><i class="fas fa-minus-circle"></i> MEDIA</span></td><td class="note">Graduatoria completa + dati bando in formato Excel</td></tr>
+      <tr><td><strong>Avvalimenti</strong></td><td>AvvalimentiController</td><td>CRUD in esiti.js (/:id/avvalimenti) + clienti.js (avvalimenti/:idGara) + tabella avvalimenti_gare</td><td><span class="badge badge-fatto">✓ FATTO 12/04</span></td><td><span class="prio prio-bassa"><i class="fas fa-minus"></i> BASSA</span></td><td class="note">Integrato in dettaglio esito, non pagina separata</td></tr>
+      <tr><td><strong>Concorrenti (leads)</strong></td><td>ConcorrentiController</td><td>Route /concorrenti</td><td><span class="badge badge-completo">COMPLETO</span></td><td><span class="prio prio-bassa"><i class="fas fa-minus"></i> BASSA</span></td><td></td></tr>
+      <tr><td><strong>Range statistico</strong></td><td>Non chiaro</td><td>range-statistico implementato</td><td><span class="badge badge-completo">COMPLETO</span></td><td><span class="prio prio-bassa"><i class="fas fa-minus"></i> BASSA</span></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="updated">Ultimo aggiornamento: 12 aprile 2026 (sera, post Claude Code) — Generato automaticamente</div>
+
+</div>
+</body>
+</html>
