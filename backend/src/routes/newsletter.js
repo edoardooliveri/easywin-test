@@ -887,6 +887,78 @@ export default async function newsletterRoutes(fastify, opts) {
     }
   });
 
+  // ==================== INVIO MANUALE CUSTOM ====================
+  // POST /api/admin/newsletter/invia — invio custom con oggetto/messaggio libero
+  fastify.post('/invia', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { oggetto, messaggio, tipo, test } = request.body || {};
+
+    // Validation
+    if (!oggetto || !oggetto.trim()) {
+      return reply.status(400).send({ error: 'validation_failed', details: 'oggetto richiesto' });
+    }
+    if (!messaggio || !messaggio.trim()) {
+      return reply.status(400).send({ error: 'validation_failed', details: 'messaggio richiesto' });
+    }
+    if (!tipo || !['bandi', 'esiti'].includes(tipo)) {
+      return reply.status(400).send({ error: 'validation_failed', details: 'tipo deve essere bandi o esiti' });
+    }
+
+    try {
+      const transporter = await getMailTransporter();
+      const subjectPrefix = tipo === 'bandi' ? '[EasyWin Bandi]' : '[EasyWin Esiti]';
+      const subject = `${subjectPrefix} ${oggetto.trim()}`;
+      const htmlBody = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+        <h2 style="color:#004b87;">${subject}</h2>
+        <div style="white-space:pre-wrap;line-height:1.6;">${messaggio.trim().replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+        <hr style="margin-top:30px;border:none;border-top:1px solid #ddd;">
+        <p style="font-size:11px;color:#999;">EasyWin Newsletter — <a href="https://www.easywin.it">www.easywin.it</a></p>
+      </div>`;
+
+      let recipients;
+      if (test) {
+        // Test mode: invia solo all'admin loggato
+        const adminEmail = request.user.email || request.user.username;
+        recipients = [{ email: adminEmail }];
+      } else {
+        // Broadcast: tutti gli utenti attivi con email
+        const result = await query(
+          `SELECT DISTINCT email FROM users WHERE attivo = true AND email IS NOT NULL AND email != ''`
+        );
+        recipients = result.rows;
+      }
+
+      let sent_count = 0;
+      let skipped_count = 0;
+
+      for (const r of recipients) {
+        try {
+          await transporter.sendMail({
+            from: process.env.SMTP_FROM || 'newsletter@easywin.it',
+            to: r.email,
+            subject,
+            html: htmlBody
+          });
+          sent_count++;
+        } catch (err) {
+          fastify.log.error({ err: err.message, to: r.email }, 'Newsletter invia: failed recipient');
+          skipped_count++;
+        }
+      }
+
+      console.log(`Newsletter /invia: ${sent_count} sent, ${skipped_count} skipped, mode=${test ? 'test' : 'broadcast'}`);
+
+      return {
+        success: true,
+        sent_count,
+        skipped_count,
+        mode: test ? 'test' : 'broadcast'
+      };
+    } catch (err) {
+      fastify.log.error(err, 'Newsletter invia error');
+      return reply.status(500).send({ error: 'smtp_failed', message: err.message });
+    }
+  });
+
   // ==================== NEWSLETTER AUTOMATICA PERSONALIZZATA ====================
   // Questo endpoint viene chiamato dal cron job alle 4:00 di mattina.
   // Per ogni utente con newsletter attiva + filtri configurati:
