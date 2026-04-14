@@ -573,24 +573,6 @@ export default async function adminDashboardRoutes(fastify, opts) {
     }
   });
 
-  // GET /api/admin/newsletter/storico - Newsletter send history
-  fastify.get('/newsletter/storico', async (request, reply) => {
-    try {
-      const result = await query(`
-        SELECT * FROM newsletter_storico
-        ORDER BY data_invio DESC
-        LIMIT 100
-      `);
-
-      return {
-        storico: result.rows
-      };
-    } catch (err) {
-      fastify.log.error(err, 'Newsletter storico error');
-      return reply.status(500).send({ error: err.message });
-    }
-  });
-
   // GET /api/admin/newsletter/destinatari - Count potential recipients
   fastify.get('/newsletter/destinatari', async (request, reply) => {
     try {

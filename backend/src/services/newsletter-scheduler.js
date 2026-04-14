@@ -63,7 +63,7 @@ export function startNewsletterScheduler(fastify) {
       // con un token admin interno
       const result = await fastify.inject({
         method: 'POST',
-        url: '/api/admin/newsletter/newsletter/auto',
+        url: '/api/admin/newsletter/auto',
         payload: { tipo: 'both' },
         headers: {
           'content-type': 'application/json',

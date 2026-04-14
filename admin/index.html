@@ -9576,7 +9576,7 @@ async function searchAdminNewsletter() {
   const container = document.getElementById('adminNewsletterResults');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Ricerca in corso...</p></div>';
   try {
-    const res = await fetch(`${API_BASE}/admin/newsletter/newsletter/storico?stato=${document.getElementById('admin-nl-stato')?.value || ''}&tipo=${document.getElementById('admin-nl-tipo')?.value || ''}`, { headers: authHeaders() });
+    const res = await fetch(`${API_BASE}/admin/newsletter/storico?stato=${document.getElementById('admin-nl-stato')?.value || ''}&tipo=${document.getElementById('admin-nl-tipo')?.value || ''}`, { headers: authHeaders() });
     if (!res.ok) throw new Error('API non disponibile');
     const data = await res.json();
     container.innerHTML = '<div class="empty-state"><i class="fas fa-envelope"></i><p>Gestione newsletter in sviluppo</p></div>';

@@ -232,7 +232,7 @@ export default async function newsletterRoutes(fastify, opts) {
   // ==================== NEWSLETTER GENERATION ====================
 
   // POST /api/admin/newsletter/bandi/genera
-  fastify.post('/newsletter/bandi/genera', async (request, reply) => {
+  fastify.post('/bandi/genera', async (request, reply) => {
     try {
       const { data_da, data_a } = request.body;
 
@@ -302,7 +302,7 @@ export default async function newsletterRoutes(fastify, opts) {
   });
 
   // POST /api/admin/newsletter/esiti/genera
-  fastify.post('/newsletter/esiti/genera', async (request, reply) => {
+  fastify.post('/esiti/genera', async (request, reply) => {
     try {
       const { data_da, data_a } = request.body;
 
@@ -377,7 +377,7 @@ export default async function newsletterRoutes(fastify, opts) {
   });
 
   // GET /api/admin/newsletter/bandi/anteprima
-  fastify.get('/newsletter/bandi/anteprima', async (request, reply) => {
+  fastify.get('/bandi/anteprima', async (request, reply) => {
     try {
       const { data_da, data_a } = request.query;
 
@@ -427,7 +427,7 @@ export default async function newsletterRoutes(fastify, opts) {
   });
 
   // GET /api/admin/newsletter/esiti/anteprima
-  fastify.get('/newsletter/esiti/anteprima', async (request, reply) => {
+  fastify.get('/esiti/anteprima', async (request, reply) => {
     try {
       const { data_da, data_a } = request.query;
 
@@ -479,7 +479,7 @@ export default async function newsletterRoutes(fastify, opts) {
   // ==================== NEWSLETTER SENDING ====================
 
   // POST /api/admin/newsletter/bandi/invia
-  fastify.post('/newsletter/bandi/invia', async (request, reply) => {
+  fastify.post('/bandi/invia', async (request, reply) => {
     try {
       const { data_da, data_a, oggetto, note_aggiuntive } = request.body;
 
@@ -569,7 +569,7 @@ export default async function newsletterRoutes(fastify, opts) {
   });
 
   // POST /api/admin/newsletter/esiti/invia
-  fastify.post('/newsletter/esiti/invia', async (request, reply) => {
+  fastify.post('/esiti/invia', async (request, reply) => {
     try {
       const { data_da, data_a, oggetto, note_aggiuntive } = request.body;
 
@@ -659,7 +659,7 @@ export default async function newsletterRoutes(fastify, opts) {
   });
 
   // POST /api/admin/newsletter/bandi/invia-test
-  fastify.post('/newsletter/bandi/invia-test', async (request, reply) => {
+  fastify.post('/bandi/invia-test', async (request, reply) => {
     try {
       const { email, data_da, data_a } = request.body;
 
@@ -715,7 +715,7 @@ export default async function newsletterRoutes(fastify, opts) {
   });
 
   // POST /api/admin/newsletter/esiti/invia-test
-  fastify.post('/newsletter/esiti/invia-test', async (request, reply) => {
+  fastify.post('/esiti/invia-test', async (request, reply) => {
     try {
       const { email, data_da, data_a } = request.body;
 
@@ -773,7 +773,7 @@ export default async function newsletterRoutes(fastify, opts) {
   // ==================== NEWSLETTER HISTORY ====================
 
   // GET /api/admin/newsletter/storico
-  fastify.get('/newsletter/storico', async (request, reply) => {
+  fastify.get('/storico', async (request, reply) => {
     try {
       const result = await query(
         `SELECT id, tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, data_invio
@@ -801,7 +801,7 @@ export default async function newsletterRoutes(fastify, opts) {
   });
 
   // GET /api/admin/newsletter/storico/:id
-  fastify.get('/newsletter/storico/:id', async (request, reply) => {
+  fastify.get('/storico/:id', async (request, reply) => {
     try {
       const { id } = request.params;
 
@@ -834,7 +834,7 @@ export default async function newsletterRoutes(fastify, opts) {
   // ==================== USER NEWSLETTER CONFIG ====================
 
   // GET /api/admin/newsletter/utenti
-  fastify.get('/newsletter/utenti', async (request, reply) => {
+  fastify.get('/utenti', async (request, reply) => {
     try {
       const result = await query(
         `SELECT id, "username", email, "newsletter_bandi", "newsletter_esiti", "created_at"
@@ -859,7 +859,7 @@ export default async function newsletterRoutes(fastify, opts) {
   });
 
   // PUT /api/admin/newsletter/utenti/:id
-  fastify.put('/newsletter/utenti/:id', async (request, reply) => {
+  fastify.put('/utenti/:id', async (request, reply) => {
     try {
       const { id } = request.params;
       const { newsletter_bandi, newsletter_esiti } = request.body;
