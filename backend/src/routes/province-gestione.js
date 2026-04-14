@@ -1,6 +1,5 @@
 import { query } from '../db/pool.js';
 import fs from 'fs';
-import path from 'path';
 
 export default async function provinceGestioneRoutes(fastify, opts) {
 

@@ -1,7 +1,6 @@
 import { query } from '../db/pool.js';
 import axios from 'axios';
 import { parse } from 'csv-parse/sync';
-import { readFileSync } from 'fs';
 import crypto from 'crypto';
 
 // Helper: Compute hash for duplicate detection

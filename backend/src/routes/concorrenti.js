@@ -1,4 +1,4 @@
-import { query, transaction } from '../db/pool.js';
+import { query } from '../db/pool.js';
 
 export default async function concorrentiRoutes(fastify) {
 

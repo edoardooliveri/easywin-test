@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { query, transaction } from '../db/pool.js';
-import { processAllegatoWithAI, updateBandoFromAiEnrichment } from '../services/ai-enrichment.js';
+import { processAllegatoWithAI } from '../services/ai-enrichment.js';
 import dotenv from 'dotenv';
 
 dotenv.config();

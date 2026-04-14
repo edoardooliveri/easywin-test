@@ -1,6 +1,69 @@
-import { query, transaction } from '../db/pool.js';
+import { query } from '../db/pool.js';
+
+// ============================================================
+// BRIDGE GESTIONALE → PORTALE CLIENTI
+// Quando l'admin crea un servizio (sopralluogo/scrittura/apertura)
+// per un'azienda specifica, il bando deve apparire nel registro
+// bandi dei clienti di quell'azienda nel portale.
+// ============================================================
+async function bridgeServizioToPortale({ fastify, idBando, idAzienda, tipoLabel }) {
+  if (!idBando || !idAzienda) return;
+  try {
+    // Recupera tutti gli utenti dell'azienda (colonna id_azienda o IDAzienda)
+    let users = [];
+    try {
+      const u = await query(
+        `SELECT username FROM users WHERE id_azienda = $1`,
+        [idAzienda]
+      );
+      users = u.rows.map(r => r.username).filter(Boolean);
+    } catch (_) {
+      try {
+        const u = await query(
+          `SELECT username FROM users WHERE "IDAzienda" = $1`,
+          [idAzienda]
+        );
+        users = u.rows.map(r => r.username).filter(Boolean);
+      } catch (_) {}
+    }
+    if (!users.length) return;
+
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const dataStr = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}`;
+    const oraStr  = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    const line = `EasyWin ha registrato ${tipoLabel} per la tua azienda il ${dataStr} alle ${oraStr}`;
+
+    for (const username of users) {
+      const rg = await query(
+        `SELECT id, note_registro FROM registro_gare_clienti WHERE id_bando = $1 AND username = $2 LIMIT 1`,
+        [idBando, username]
+      );
+      if (rg.rows.length === 0) {
+        await query(
+          `INSERT INTO registro_gare_clienti (id_bando, username, note_registro, data_inserimento)
+           VALUES ($1, $2, $3, NOW())`,
+          [idBando, username, line]
+        );
+      } else {
+        const prev = rg.rows[0].note_registro ? String(rg.rows[0].note_registro) + '\n' : '';
+        await query(
+          `UPDATE registro_gare_clienti SET note_registro = $1 WHERE id = $2`,
+          [prev + line, rg.rows[0].id]
+        );
+      }
+    }
+  } catch (e) {
+    fastify.log.warn({ err: e.message }, 'bridgeServizioToPortale failed (non-bloccante)');
+  }
+}
 
 export default async function bandiServiziRoutes(fastify, opts) {
+
+  // Decode JWT if present (routes check request.user individually)
+  fastify.addHook('onRequest', async (request, reply) => {
+    try { await request.jwtVerify(); } catch { /* optional auth */ }
+  });
 
   // ============================================================
   // APERTURE (TENDER OPENINGS)
@@ -91,6 +154,7 @@ export default async function bandiServiziRoutes(fastify, opts) {
          username, tipo, stato || 'in_sospeso', note]
       );
 
+      await bridgeServizioToPortale({ fastify, idBando: id, idAzienda: id_azienda, tipoLabel: "un'APERTURA" });
       return reply.code(201).send(result.rows[0]);
     } catch (error) {
       fastify.log.error(error);
@@ -372,6 +436,7 @@ export default async function bandiServiziRoutes(fastify, opts) {
          username, tipo, stato || 'in_sospeso', note]
       );
 
+      await bridgeServizioToPortale({ fastify, idBando: id, idAzienda: id_azienda, tipoLabel: 'una SCRITTURA' });
       return reply.code(201).send(result.rows[0]);
     } catch (error) {
       fastify.log.error(error);
@@ -705,6 +770,7 @@ export default async function bandiServiziRoutes(fastify, opts) {
          username, tipo, stato || 'in_sospeso', note]
       );
 
+      await bridgeServizioToPortale({ fastify, idBando: id, idAzienda: id_azienda, tipoLabel: 'un SOPRALLUOGO' });
       return reply.code(201).send(result.rows[0]);
     } catch (error) {
       fastify.log.error(error);
@@ -1419,22 +1485,22 @@ export default async function bandiServiziRoutes(fastify, opts) {
     try {
       const result = await query(
         `SELECT
-          a.id, a.id_bando, a.data, a.ora, a.tipo, a.stato, 'apertura' as servizio
+          a.id::text, a.id_bando, a.data, a.ora, a.tipo, a.stato, 'apertura' as servizio
          FROM aperture a
          WHERE a.data BETWEEN $1 AND $2
          UNION ALL
          SELECT
-          s.id, s.id_bando, s.data, s.ora, s.tipo, s.stato, 'scrittura' as servizio
+          s.id::text, s.id_bando, s.data, s.ora, s.tipo, s.stato, 'scrittura' as servizio
          FROM scritture s
          WHERE s.data BETWEEN $1 AND $2
          UNION ALL
          SELECT
-          sp.id, sp.id_bando, sp.data, sp.ora, sp.tipo, sp.stato, 'sopralluogo' as servizio
+          sp.id::text, sp.id_bando, sp.data, sp.ora, sp.tipo, sp.stato, 'sopralluogo' as servizio
          FROM sopralluoghi sp
          WHERE sp.data BETWEEN $1 AND $2
          UNION ALL
          SELECT
-          e.id, e.id_bando, e.data, e.ora, e.tipo, e.stato, 'elaborato' as servizio
+          e.id::text, e.id_bando, e.data, e.ora, e.tipo, e.stato, 'elaborato' as servizio
          FROM elaborati e
          WHERE e.data BETWEEN $1 AND $2
          ORDER BY data ASC, ora ASC`,
@@ -1508,22 +1574,22 @@ export default async function bandiServiziRoutes(fastify, opts) {
     try {
       const result = await query(
         `SELECT
-          a.id, a.id_bando, a.data, a.ora, a.tipo, a.stato, 'apertura' as servizio
+          a.id::text, a.id_bando, a.data, a.ora, a.tipo, a.stato, 'apertura' as servizio
          FROM aperture a
          WHERE a.id_bando = $1
          UNION ALL
          SELECT
-          s.id, s.id_bando, s.data, s.ora, s.tipo, s.stato, 'scrittura' as servizio
+          s.id::text, s.id_bando, s.data, s.ora, s.tipo, s.stato, 'scrittura' as servizio
          FROM scritture s
          WHERE s.id_bando = $1
          UNION ALL
          SELECT
-          sp.id, sp.id_bando, sp.data, sp.ora, sp.tipo, sp.stato, 'sopralluogo' as servizio
+          sp.id::text, sp.id_bando, sp.data, sp.ora, sp.tipo, sp.stato, 'sopralluogo' as servizio
          FROM sopralluoghi sp
          WHERE sp.id_bando = $1
          UNION ALL
          SELECT
-          e.id, e.id_bando, e.data, e.ora, e.tipo, e.stato, 'elaborato' as servizio
+          e.id::text, e.id_bando, e.data, e.ora, e.tipo, e.stato, 'elaborato' as servizio
          FROM elaborati e
          WHERE e.id_bando = $1
          ORDER BY data ASC, ora ASC`,

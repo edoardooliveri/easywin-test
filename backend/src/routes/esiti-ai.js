@@ -1,6 +1,5 @@
 import { query, transaction } from '../db/pool.js';
 import Anthropic from '@anthropic-ai/sdk';
-import { readFile } from 'fs/promises';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -345,6 +344,221 @@ export default async function esitiAiRoutes(fastify) {
     }
 
     return { success: true, id_bando: bandoId };
+  });
+
+  // ============================================================
+  // POST /api/esiti-ai/analyze-graduatoria/:id
+  // Accetta un file (PDF/Excel/immagine) e ne estrae una graduatoria
+  // candidata per un esito esistente. Non scrive nel DB: ritorna preview
+  // con match delle aziende (P.IVA / nome / SOA+provincia) per conferma.
+  // ============================================================
+  fastify.post('/analyze-graduatoria/:id', async (request, reply) => {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return reply.status(500).send({ error: 'ANTHROPIC_API_KEY non configurata' });
+    }
+
+    const esitoId = Number(request.params.id);
+    if (!esitoId) return reply.status(400).send({ error: 'id esito non valido' });
+
+    // Recupera contesto gara (provincia / SOA) per aiutare il match
+    let garaCtx = {};
+    try {
+      const g = await query(
+        `SELECT g."id", g."id_stazione", g."cig",
+                s."provincia" AS stazione_provincia,
+                s."id_provincia" AS stazione_id_provincia
+           FROM gare g
+           LEFT JOIN stazioni s ON s."id" = g."id_stazione"
+          WHERE g."id" = $1`,
+        [esitoId]
+      );
+      if (g.rows.length) {
+        garaCtx = {
+          provincia: g.rows[0].stazione_provincia || null,
+          id_provincia: g.rows[0].stazione_id_provincia || null
+        };
+      }
+    } catch (_) { /* continua comunque */ }
+
+    const data = await request.file();
+    if (!data) return reply.status(400).send({ error: 'Nessun file caricato' });
+
+    const buffer = await data.toBuffer();
+    const base64 = buffer.toString('base64');
+    let mimeType = data.mimetype || 'application/pdf';
+    const fn = (data.filename || '').toLowerCase();
+    if (fn.endsWith('.xlsx') || fn.endsWith('.xls') ||
+        mimeType === 'application/vnd.ms-excel' ||
+        mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+      mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    } else if (fn.endsWith('.png')) mimeType = 'image/png';
+    else if (fn.endsWith('.jpg') || fn.endsWith('.jpeg')) mimeType = 'image/jpeg';
+    else if (fn.endsWith('.pdf')) mimeType = 'application/pdf';
+
+    const isImage = mimeType.startsWith('image/');
+
+    const PROMPT = `Sei un esperto di appalti pubblici italiani. Da questo documento estrai SOLO la graduatoria dei partecipanti alla gara.
+
+Restituisci JSON con questa forma:
+{
+  "graduatoria": [
+    {
+      "posizione": 1,
+      "ragione_sociale": "...",
+      "partita_iva": "01234567890" | null,
+      "codice_fiscale": "..." | null,
+      "ribasso": 25.432,
+      "importo_offerta": 123456.78 | null,
+      "vincitrice": true | false,
+      "anomala": true | false,
+      "esclusa": true | false,
+      "ammessa": true,
+      "taglio_ali": true | false,
+      "citta": "..." | null,
+      "provincia": "..." | null,
+      "note": null
+    }
+  ]
+}
+
+REGOLE:
+- Estrai TUTTE le imprese trovate, non solo il vincitore.
+- Ribassi: normalizza a numero percentuale (es. 25.432 NON 0.25432 NON "25,432%").
+- Usa il punto come separatore decimale.
+- Se è un RTI/ATI, usa il nome della mandataria come ragione_sociale.
+- Se il documento indica "ESCLUSA" / "ANOMALA" / "VINCITRICE" / "TAGLIO ALI" imposta i flag corrispondenti.
+- Campi non trovati → null. Rispondi SOLO con il JSON.`;
+
+    try {
+      const userContent = [];
+      if (isImage) {
+        userContent.push({ type: 'image', source: { type: 'base64', media_type: mimeType, data: base64 } });
+      } else {
+        userContent.push({ type: 'document', source: { type: 'base64', media_type: mimeType, data: base64 } });
+      }
+      userContent.push({ type: 'text', text: PROMPT });
+
+      const message = await anthropic.messages.create({
+        model: process.env.AI_MODEL_INTERACTIVE || 'claude-sonnet-4-20250514',
+        max_tokens: 8000,
+        messages: [{ role: 'user', content: userContent }]
+      });
+
+      const responseText = message.content[0]?.text || '';
+      let extracted;
+      try {
+        const m = responseText.match(/\{[\s\S]*\}/);
+        extracted = JSON.parse(m ? m[0] : responseText);
+      } catch {
+        return reply.status(422).send({
+          error: 'Risposta AI non interpretabile',
+          raw_response: responseText.substring(0, 2000)
+        });
+      }
+
+      const rows = Array.isArray(extracted?.graduatoria) ? extracted.graduatoria : [];
+
+      // Match aziende nel DB
+      for (const r of rows) {
+        const match = await matchAzienda(
+          r.ragione_sociale,
+          r.partita_iva,
+          r.codice_fiscale,
+          { provincia: r.provincia || garaCtx.provincia, id_provincia: garaCtx.id_provincia }
+        );
+        r._db_match = match;
+      }
+
+      const matched = rows.filter(r => r._db_match?.found).length;
+      const suggested = rows.filter(r => !r._db_match?.found && r._db_match?.suggestions?.length).length;
+      const unmatched = rows.length - matched - suggested;
+
+      return {
+        success: true,
+        esito_id: esitoId,
+        filename: data.filename,
+        total: rows.length,
+        matched,
+        suggested,
+        unmatched,
+        rows
+      };
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send({ error: 'Errore analisi AI', details: err.message });
+    }
+  });
+
+  // ============================================================
+  // POST /api/esiti-ai/commit-graduatoria/:id
+  // Scrive in dettaglio_gara le righe confermate dall'utente.
+  // Body: { rows:[{id_azienda, posizione, ribasso, taglio_ali,
+  //               vincitrice, anomala, esclusa, ammessa, note}],
+  //         replace: boolean }
+  // ============================================================
+  fastify.post('/commit-graduatoria/:id', async (request, reply) => {
+    const esitoId = Number(request.params.id);
+    if (!esitoId) return reply.status(400).send({ error: 'id esito non valido' });
+
+    const { rows, replace } = request.body || {};
+    if (!Array.isArray(rows) || !rows.length) {
+      return reply.status(400).send({ error: 'Nessuna riga da salvare' });
+    }
+
+    const toBool = (v) => v === true || v === 1 || v === '1' || v === 'true' || v === 'on';
+    let inserted = 0, skipped = 0;
+
+    try {
+      await transaction(async (client) => {
+        if (replace) {
+          await client.query('DELETE FROM dettaglio_gara WHERE "id_gara" = $1', [esitoId]);
+        }
+
+        for (const r of rows) {
+          const idAz = Number(r.id_azienda);
+          if (!idAz) { skipped++; continue; }
+
+          const esclusa = toBool(r.esclusa);
+          const ammessa = (r.ammessa !== undefined) ? toBool(r.ammessa) : !esclusa;
+          const ribasso = (r.ribasso === '' || r.ribasso == null) ? null : Number(String(r.ribasso).replace(',', '.'));
+
+          await client.query(
+            `INSERT INTO dettaglio_gara (
+               "id_gara","id_azienda","posizione","ribasso","importo_offerta",
+               "taglio_ali","m_media_arit","anomala","vincitrice","ammessa",
+               "ammessa_riserva","esclusa","da_verificare",
+               "ragione_sociale","partita_iva","note","ati","ati_avv","inserimento"
+             ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)`,
+            [
+              esitoId, idAz,
+              r.posizione || null,
+              ribasso,
+              r.importo_offerta || null,
+              toBool(r.taglio_ali),
+              toBool(r.m_media_arit),
+              toBool(r.anomala),
+              toBool(r.vincitrice),
+              ammessa,
+              toBool(r.ammessa_riserva),
+              esclusa,
+              toBool(r.da_verificare),
+              r.ragione_sociale || null,
+              r.partita_iva || null,
+              r.note || null,
+              toBool(r.ati),
+              r.ati_avv || null,
+              r.inserimento ?? r.posizione ?? null
+            ]
+          );
+          inserted++;
+        }
+      });
+
+      return reply.status(201).send({ success: true, inserted, skipped, replaced: !!replace });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send({ error: 'Errore salvataggio graduatoria', details: err.message });
+    }
   });
 }
 

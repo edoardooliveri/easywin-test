@@ -1,4 +1,4 @@
-import { query, transaction } from '../db/pool.js';
+import { query } from '../db/pool.js';
 
 export default async function adminAziendeRoutes(fastify, opts) {
   // Middleware: require authentication (JWT)

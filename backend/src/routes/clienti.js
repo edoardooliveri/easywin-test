@@ -1,4 +1,4 @@
-import { query, transaction } from '../db/pool.js';
+import { query } from '../db/pool.js';
 import bcrypt from 'bcryptjs';
 
 export default async function clientiRoutes(fastify, opts) {
@@ -7,84 +7,156 @@ export default async function clientiRoutes(fastify, opts) {
   // CLIENT HOME - Dashboard
   // ============================================================
   // GET /api/clienti/home
-  // Returns latest 50 bandi + 50 esiti filtered by user's regions/provinces/SOA
+  // Returns latest 50 bandi + 50 esiti filtered by user's rules or legacy regions/SOA
   fastify.get('/home', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     try {
       const username = request.user.username;
 
-      // Get user's region/province/SOA assignments
-      const userRegioni = await query(
-        `SELECT DISTINCT id_regione FROM users_regioni WHERE username = $1`,
-        [username]
-      );
+      // Get user ID
+      const userIdRes = await query('SELECT id FROM users WHERE username = $1', [username]);
+      if (userIdRes.rows.length === 0) return reply.status(404).send({ error: 'Utente non trovato' });
+      const userId = userIdRes.rows[0].id;
 
-      const userSoa = await query(
-        `SELECT DISTINCT id_soa FROM users_soa WHERE username = $1`,
-        [username]
-      );
-
-      const regioniList = userRegioni.rows.map(r => r.id_regione);
-      const soaList = userSoa.rows.map(s => s.id_soa);
-
-      if (regioniList.length === 0 && soaList.length === 0) {
-        return {
-          bandi_recent: [],
-          esiti_recent: [],
-          total_bandi: 0,
-          total_esiti: 0
-        };
+      // Check if user has NEW filtri rules (utenti_filtri_bandi)
+      // Table may not exist if migration 016 was not executed (DB space constraints)
+      let filtriRes = { rows: [] };
+      try {
+        filtriRes = await query(
+          'SELECT id, id_soa, province_ids, importo_min, importo_max FROM utenti_filtri_bandi WHERE id_utente = $1 AND attivo = true',
+          [userId]
+        );
+      } catch (filtriErr) {
+        // Table doesn't exist — fall through to legacy filtering
+        fastify.log.debug({ err: filtriErr.message }, 'utenti_filtri_bandi not available, using legacy filters');
       }
+      const hasNewFilters = filtriRes.rows.length > 0;
 
-      // Build filter condition - user sees bandi if they're subscribed to the region OR the SOA
-      const filterCondition = regioniList.length > 0
-        ? `(b.regione = ANY($1) OR b.id_soa = ANY($2))`
-        : `b.id_soa = ANY($2)`;
+      let bandiResult, esitiResult;
 
-      // Get recent 50 bandi
-      const bandiResult = await query(
-        `SELECT
-          b.id AS id,
-          b.titolo AS titolo,
-          b.codice_cig AS codice_cig,
-          b.codice_cup AS codice_cup,
-          b.data_pubblicazione AS data_pubblicazione,
-          b.data_offerta AS data_offerta,
-          b.importo_so AS importo_so,
-          b.regione AS regione,
-          b.provincia AS provincia,
-          b.id_soa AS id_soa,
-          b.stazione_nome AS stazione,
-          b.annullato AS annullato
-         FROM bandi b
-         WHERE ${filterCondition}
-           AND b.annullato = false
-         ORDER BY b.data_pubblicazione DESC
-         LIMIT 50`,
-        [regioniList.length > 0 ? regioniList : [], soaList.length > 0 ? soaList : []]
-      );
+      if (hasNewFilters) {
+        // ─── NEW FILTERING: utenti_filtri_bandi rules (OR between rules) ───
+        // Build dynamic WHERE from rules
+        const conditions = [];
+        const params = [];
+        let pIdx = 1;
 
-      // Get recent 50 esiti
-      const esitiResult = await query(
-        `SELECT
-          e.id_gara AS id,
-          e.numero_gara AS numero_gara,
-          e.data_pubblicazione AS data_pubblicazione,
-          e.regione AS regione,
-          e.provincia AS provincia,
-          e.id_soa AS id_soa,
-          e.stazione AS stazione
-         FROM gare e
-         WHERE ${filterCondition}
-         ORDER BY e.data_pubblicazione DESC
-         LIMIT 50`,
-        [regioniList.length > 0 ? regioniList : [], soaList.length > 0 ? soaList : []]
-      );
+        for (const f of filtriRes.rows) {
+          const parts = [];
+          if (f.id_soa) { parts.push(`b."id_soa" = $${pIdx}`); params.push(f.id_soa); pIdx++; }
+          const provIds = f.province_ids || [];
+          if (provIds.length > 0) { parts.push(`EXISTS (SELECT 1 FROM bandi_province bp WHERE bp.id_bando = b.id AND bp.id_provincia = ANY($${pIdx}))`); params.push(provIds); pIdx++; }
+          const minI = parseFloat(f.importo_min) || 0;
+          if (minI > 0) { parts.push(`COALESCE(b."importo_so", b."importo_co", 0) >= $${pIdx}`); params.push(minI); pIdx++; }
+          const maxI = parseFloat(f.importo_max) || 0;
+          if (maxI > 0) { parts.push(`COALESCE(b."importo_so", b."importo_co", 0) <= $${pIdx}`); params.push(maxI); pIdx++; }
+          if (parts.length > 0) conditions.push('(' + parts.join(' AND ') + ')');
+        }
+
+        const filterWhere = conditions.length > 0 ? conditions.join(' OR ') : 'TRUE';
+
+        bandiResult = await query(
+          `SELECT b.id, b.titolo, b.codice_cig, b.codice_cup,
+                  b.data_pubblicazione, b.data_offerta, b.importo_so,
+                  b.regione, b.id_soa,
+                  b.stazione_nome AS stazione, b.annullato
+           FROM bandi b
+           WHERE (${filterWhere})
+             AND b.annullato IS NOT TRUE
+             AND (COALESCE(b.privato, 0) = 0 OR b.privato_username = $${pIdx})
+           ORDER BY b.data_pubblicazione DESC
+           LIMIT 50`,
+          [...params, username]
+        );
+
+        // For esiti, use SOA-based matching from the same rules
+        const soaIds = filtriRes.rows.map(f => f.id_soa).filter(Boolean);
+        if (soaIds.length > 0) {
+          esitiResult = await query(
+            `SELECT e.id, e.titolo, e.data,
+                    e.regione, e.id_soa, e.stazione
+             FROM gare e
+             WHERE e.id_soa = ANY($1)
+               AND e.annullato IS NOT TRUE
+               AND (COALESCE(e.privato, 0) = 0 OR e.privato_username = $2)
+             ORDER BY e.data DESC
+             LIMIT 50`,
+            [soaIds, username]
+          );
+        } else {
+          esitiResult = { rows: [] };
+        }
+
+      } else {
+        // ─── LEGACY FILTERING: users_regioni / users_soa junction tables ───
+        let regioniList = [], soaList = [];
+        try {
+          const userRegioni = await query('SELECT DISTINCT id_regione FROM users_regioni WHERE username = $1', [username]);
+          regioniList = userRegioni.rows.map(r => r.id_regione);
+        } catch (e) { /* table may not exist */ }
+        try {
+          const userSoa = await query('SELECT DISTINCT id_soa FROM users_soa WHERE username = $1', [username]);
+          soaList = userSoa.rows.map(s => s.id_soa);
+        } catch (e) { /* table may not exist */ }
+
+        if (regioniList.length === 0 && soaList.length === 0) {
+          // No filters at all — return latest bandi/esiti unfiltered
+          bandiResult = await query(
+            `SELECT b.id, b.titolo, b.codice_cig, b.codice_cup,
+                    b.data_pubblicazione, b.data_offerta, b.importo_so,
+                    b.regione, b.id_soa,
+                    b.stazione_nome AS stazione, b.annullato
+             FROM bandi b
+             WHERE b.annullato IS NOT TRUE
+             ORDER BY b.data_pubblicazione DESC
+             LIMIT 50`
+          );
+          esitiResult = await query(
+            `SELECT e.id, e.titolo, e.data,
+                    e.regione, e.id_soa, e.stazione
+             FROM gare e
+             WHERE e.annullato IS NOT TRUE
+             ORDER BY e.data DESC
+             LIMIT 50`
+          );
+        } else {
+          const filterCondition = regioniList.length > 0
+            ? `(b.regione = ANY($1) OR b.id_soa = ANY($2))`
+            : `b.id_soa = ANY($2)`;
+
+          bandiResult = await query(
+            `SELECT b.id, b.titolo, b.codice_cig, b.codice_cup,
+                    b.data_pubblicazione, b.data_offerta, b.importo_so,
+                    b.regione, b.id_soa,
+                    b.stazione_nome AS stazione, b.annullato
+             FROM bandi b
+             WHERE ${filterCondition}
+               AND b.annullato IS NOT TRUE
+               AND (COALESCE(b.privato, 0) = 0 OR b.privato_username = $3)
+             ORDER BY b.data_pubblicazione DESC
+             LIMIT 50`,
+            [regioniList.length > 0 ? regioniList : [], soaList.length > 0 ? soaList : [], username]
+          );
+
+          esitiResult = await query(
+            `SELECT e.id, e.titolo, e.data,
+                    e.regione, e.id_soa, e.stazione
+             FROM gare e
+             WHERE ${filterCondition}
+               AND e.annullato IS NOT TRUE
+               AND (COALESCE(e.privato, 0) = 0 OR e.privato_username = $3)
+             ORDER BY e.data DESC
+             LIMIT 50`,
+            [regioniList.length > 0 ? regioniList : [], soaList.length > 0 ? soaList : [], username]
+          );
+        }
+      }
 
       return {
         bandi_recent: bandiResult.rows,
         esiti_recent: esitiResult.rows,
         total_bandi: bandiResult.rows.length,
-        total_esiti: esitiResult.rows.length
+        total_esiti: esitiResult.rows.length,
+        filter_type: hasNewFilters ? 'filtri_personalizzati' : 'legacy_regioni_soa'
       };
     } catch (err) {
       fastify.log.error({ err: err.message }, 'GET /home error');
@@ -326,8 +398,7 @@ export default async function clientiRoutes(fastify, opts) {
           b.data_offerta AS data_offerta,
           b.importo_so AS importo_so,
           b.regione AS regione,
-          b.provincia AS provincia,
-          b.stazione_nome AS stazione
+                    b.stazione_nome AS stazione
          FROM bandi b
          ${whereClause}
          ORDER BY ${sortCol} ${sortOrder}
@@ -380,8 +451,7 @@ export default async function clientiRoutes(fastify, opts) {
           b.data_apertura AS data_apertura,
           b.importo_so AS importo_so,
           b.regione AS regione,
-          b.provincia AS provincia,
-          b.id_soa AS id_soa,
+                    b.id_soa AS id_soa,
           b.stazione_nome AS stazione,
           b.id_tipologia AS id_tipologia,
           b.id_criterio AS id_criterio,
@@ -442,7 +512,8 @@ export default async function clientiRoutes(fastify, opts) {
   });
 
   // POST /api/clienti/bandi/:id/richiedi-servizi
-  // Request other services
+  // Request other services — also fans out into sopralluoghi/apertura_bandi/scrittura_bandi
+  // so that the requested appointments show up in Admin → Agenda Mensile.
   fastify.post('/bandi/:id/richiedi-servizi', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     try {
       const { id } = request.params;
@@ -462,21 +533,341 @@ export default async function clientiRoutes(fastify, opts) {
         return reply.status(404).send({ error: 'Bando non trovato' });
       }
 
-      const result = await query(
-        `INSERT INTO richieste_servizi (
-          id_bando, username, tipo_servizio, data_richiesta, note, stato
-         ) VALUES ($1, $2, $3, NOW(), $4, $5)
-         RETURNING *`,
-        [id, username, tipo_servizio, note || null, 'PENDING']
-      );
+      // Log generico della richiesta: schema reale del DB usa
+      // (id UUID, id_bando UUID, username, richiesta TEXT, note, gestito, data_inserimento)
+      let result = { rows: [{ id: null, note: 'log not persisted' }] };
+      try {
+        result = await query(
+          `INSERT INTO richieste_servizi (id_bando, username, richiesta, note, gestito, data_inserimento)
+           VALUES ($1, $2, $3, $4, false, NOW()) RETURNING *`,
+          [id, username, tipo_servizio, note || null]
+        );
+      } catch (e) {
+        fastify.log.warn({ err: e.message }, 'richieste_servizi insert failed (non-bloccante)');
+      }
+
+      // Recupera id_azienda dell'utente (necessario per inserire nelle tabelle di dominio)
+      // La colonna può chiamarsi id_azienda o IDAzienda a seconda dello schema.
+      let idAzienda = null;
+      try {
+        const uRes = await query(
+          `SELECT * FROM users WHERE username = $1 LIMIT 1`,
+          [username]
+        );
+        const u = uRes.rows[0] || {};
+        idAzienda = u.id_azienda ?? u.IDAzienda ?? u.idazienda ?? null;
+      } catch (_) {}
+
+      // Se non abbiamo un id_azienda, prendiamo il primo disponibile dalle aziende
+      // (scenario: utente demo o account sysadmin che richiede servizi per test)
+      if (!idAzienda) {
+        try {
+          const az = await query(
+            `SELECT id FROM aziende ORDER BY id LIMIT 1`
+          );
+          idAzienda = az.rows[0]?.id || null;
+        } catch (e) {
+          try {
+            const az = await query(
+              `SELECT id_azienda AS id FROM aziende ORDER BY id_azienda LIMIT 1`
+            );
+            idAzienda = az.rows[0]?.id || null;
+          } catch (_) {}
+        }
+      }
+
+      // Helper: fetch actual column names of a table from information_schema.
+      // Returns a Set of lowercase names (without quotes).
+      const getCols = async (tbl) => {
+        try {
+          const r = await query(
+            `SELECT column_name FROM information_schema.columns
+             WHERE table_schema = 'public' AND table_name = $1`,
+            [tbl]
+          );
+          return new Set(r.rows.map(x => String(x.column_name).toLowerCase()));
+        } catch (_) { return new Set(); }
+      };
+
+      // Helper: pick first column name that exists (case-insensitive).
+      // Returns the EXACT name as found in information_schema, quoted for SQL.
+      const pickCol = async (tbl, candidates) => {
+        try {
+          const r = await query(
+            `SELECT column_name FROM information_schema.columns
+             WHERE table_schema = 'public' AND table_name = $1`,
+            [tbl]
+          );
+          const exact = new Map(r.rows.map(x => [String(x.column_name).toLowerCase(), x.column_name]));
+          for (const c of candidates) {
+            const lc = c.toLowerCase();
+            if (exact.has(lc)) return '"' + exact.get(lc) + '"';
+          }
+        } catch (_) {}
+        return null;
+      };
+
+      // Build a schema-agnostic INSERT for a given table using a field map
+      // { logicalName: { candidates: [...], value: X, required: bool } }
+      const smartInsert = async (tbl, fields) => {
+        const cols = [];
+        const placeholders = [];
+        const args = [];
+        for (const key of Object.keys(fields)) {
+          const f = fields[key];
+          const col = await pickCol(tbl, f.candidates);
+          if (col) {
+            args.push(f.value);
+            cols.push(col);
+            placeholders.push('$' + args.length);
+          } else if (f.required) {
+            throw new Error(`Nessuna colonna trovata in ${tbl} per ${key} (candidati: ${f.candidates.join(', ')})`);
+          }
+        }
+        const sql = `INSERT INTO ${tbl} (${cols.join(', ')}) VALUES (${placeholders.join(', ')})`;
+        await query(sql, args);
+      };
+
+      // Fan-out nelle tabelle di dominio in base ai servizi selezionati
+      // Il frontend manda `tipo_servizio` come lista separata da virgole con i label visibili.
+      const tipo = String(tipo_servizio).toLowerCase();
+      const created = { sopralluogo: null, scrittura: null, apertura: null };
+      const fanoutErrors = {};
+
+      // Fan-out eseguito comunque: se idAzienda è null proviamo un INSERT con
+      // id_azienda=NULL e lasciamo che sia il DB a rifiutare. In questo modo
+      // errori reali (FK, NOT NULL, colonna mancante) finiscono dentro
+      // `fanout_errors` invece di essere silenziosamente saltati.
+      if (true) {
+        // SOPRALLUOGO
+        if (/sopralluogo/.test(tipo)) {
+          try {
+            await smartInsert('sopralluoghi', {
+              id_bando:       { candidates: ['id_bando'],                 value: id,          required: true },
+              id_azienda:     { candidates: ['id_azienda', 'IDAzienda'],  value: idAzienda,   required: true },
+              username:       { candidates: ['username', 'Username'],     value: username,    required: false },
+              data_richiesta: { candidates: ['data_richiesta', 'DataRichiesta'], value: new Date(), required: false },
+              note:           { candidates: ['note', 'Note'],             value: note || null, required: false },
+              inserito_da:    { candidates: ['inserito_da', 'InseritoDa'], value: username,    required: false }
+            });
+            created.sopralluogo = true;
+          } catch (e) {
+            fanoutErrors.sopralluogo = e.message;
+            fastify.log.error({ err: e.message }, 'fan-out sopralluoghi failed');
+          }
+        }
+
+        // SCRITTURA GARA
+        if (/scrittura\s*gara/.test(tipo)) {
+          try {
+            await smartInsert('scrittura_bandi', {
+              id_bando:    { candidates: ['id_bando'],                 value: id,          required: true },
+              id_azienda:  { candidates: ['id_azienda', 'IDAzienda'],  value: idAzienda,   required: true },
+              username:    { candidates: ['username', 'Username'],     value: username,    required: false },
+              note:        { candidates: ['note', 'Note'],             value: note || null, required: false },
+              inserito_da: { candidates: ['inserito_da', 'InseritoDa'], value: username,    required: false }
+            });
+            created.scrittura = true;
+          } catch (e) {
+            fanoutErrors.scrittura = e.message;
+            fastify.log.error({ err: e.message }, 'fan-out scrittura_bandi failed');
+          }
+        }
+
+        // APERTURA — usa data_offerta del bando come data iniziale
+        if (/apertura/.test(tipo)) {
+          try {
+            const b = await query(`SELECT data_offerta FROM bandi WHERE id = $1`, [id]);
+            const dataApertura = b.rows[0]?.data_offerta || new Date();
+            await smartInsert('apertura_bandi', {
+              id_bando:    { candidates: ['id_bando'],                 value: id,          required: true },
+              id_azienda:  { candidates: ['id_azienda', 'IDAzienda'],  value: idAzienda,   required: false },
+              data:        { candidates: ['data', 'Data'],             value: dataApertura, required: true },
+              username:    { candidates: ['username', 'Username'],     value: username,    required: false },
+              note:        { candidates: ['note', 'Note'],             value: note || null, required: false },
+              inserito_da: { candidates: ['inserito_da', 'InseritoDa'], value: username,    required: false }
+            });
+            created.apertura = true;
+          } catch (e) {
+            fanoutErrors.apertura = e.message;
+            fastify.log.error({ err: e.message }, 'fan-out apertura_bandi failed');
+          }
+        }
+      }
+      if (!idAzienda) {
+        fanoutErrors.global = 'Nessun id_azienda disponibile: fan-out tentato comunque con NULL';
+      }
+
+      // ------------------------------------------------------------
+      // PORTAL ↔ GESTIONALE — BRIDGE 1
+      // Aggiungiamo/aggiorniamo il registro bandi del cliente con una
+      // nota descrittiva del servizio richiesto (richiesto dall'utente).
+      // ------------------------------------------------------------
+      try {
+        const labels = [];
+        if (created.sopralluogo) labels.push('SOPRALLUOGO');
+        if (created.scrittura)   labels.push('SCRITTURA');
+        if (created.apertura)    labels.push('APERTURA');
+        const servizioLabel = labels.length ? labels.join(' + ') : String(tipo_servizio || '').toUpperCase();
+
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        const dataStr = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}`;
+        const oraStr  = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        const regLine = `Hai richiesto ${servizioLabel} ad EasyWin il ${dataStr} alle ${oraStr}`;
+
+        const rg = await query(
+          `SELECT id, note_registro FROM registro_gare_clienti WHERE id_bando = $1 AND username = $2 LIMIT 1`,
+          [id, username]
+        );
+        if (rg.rows.length === 0) {
+          await query(
+            `INSERT INTO registro_gare_clienti (id_bando, username, note_registro, data_inserimento)
+             VALUES ($1, $2, $3, NOW())`,
+            [id, username, regLine]
+          );
+        } else {
+          const prev = rg.rows[0].note_registro ? String(rg.rows[0].note_registro) + '\n' : '';
+          await query(
+            `UPDATE registro_gare_clienti SET note_registro = $1 WHERE id = $2`,
+            [prev + regLine, rg.rows[0].id]
+          );
+        }
+      } catch (e) {
+        fastify.log.warn({ err: e.message }, 'registro_gare_clienti upsert (richiedi-servizi) failed');
+      }
 
       return {
         message: 'Richiesta di servizio creata con successo',
-        richiesta: result.rows[0]
+        richiesta: result.rows[0],
+        creati: created,
+        id_azienda_utente: idAzienda,
+        fanout_errors: Object.keys(fanoutErrors).length ? fanoutErrors : undefined
       };
     } catch (err) {
-      fastify.log.error({ err: err.message }, 'POST /bandi/:id/richiedi-servizi error');
-      return reply.status(500).send({ error: 'Errore nella creazione della richiesta' });
+      fastify.log.error({ err: err.message, stack: err.stack }, 'POST /bandi/:id/richiedi-servizi error');
+      return reply.status(500).send({
+        error: 'Errore nella creazione della richiesta',
+        detail: err.message,
+        code: err.code || null
+      });
+    }
+  });
+
+  // POST /api/clienti/bandi/:id/annulla-richiesta
+  // Client cancels a previously requested service.
+  // - Marks richieste_servizi row(s) as gestito/annullato
+  // - Removes pending fan-out rows in sopralluoghi/apertura_bandi/scrittura_bandi
+  //   for that bando + username (solo se non ancora eseguiti)
+  // - Appends a note to bandi.note so l'admin lo vede nel gestionale
+  fastify.post('/bandi/:id/annulla-richiesta', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    try {
+      const { id } = request.params;
+      const username = request.user.username;
+      const { tipo } = request.body || {}; // optional: 'sopralluogo'|'scrittura'|'apertura'|undefined=tutti
+
+      // Sanity check: bando esiste
+      const b = await query(`SELECT id, note FROM bandi WHERE id = $1 LIMIT 1`, [id]);
+      if (b.rows.length === 0) return reply.status(404).send({ error: 'Bando non trovato' });
+
+      const removed = { sopralluogo: 0, scrittura: 0, apertura: 0 };
+      const errs = {};
+
+      // --- SOPRALLUOGHI (solo non eseguiti) ---
+      if (!tipo || /sopralluogo/i.test(tipo)) {
+        try {
+          const r = await query(
+            `DELETE FROM sopralluoghi
+             WHERE id_bando = $1 AND username = $2
+               AND COALESCE(eseguito,false) = false
+               AND COALESCE(annullato,false) = false`,
+            [id, username]
+          );
+          removed.sopralluogo = r.rowCount || 0;
+        } catch (e) { errs.sopralluogo = e.message; }
+      }
+
+      // --- SCRITTURA_BANDI (solo non eseguite) ---
+      if (!tipo || /scrittura/i.test(tipo)) {
+        try {
+          const r = await query(
+            `DELETE FROM scrittura_bandi
+             WHERE id_bando = $1 AND username = $2
+               AND COALESCE(eseguito,false) = false`,
+            [id, username]
+          );
+          removed.scrittura = r.rowCount || 0;
+        } catch (e) { errs.scrittura = e.message; }
+      }
+
+      // --- APERTURA_BANDI (solo non eseguite) ---
+      if (!tipo || /apertura/i.test(tipo)) {
+        try {
+          const r = await query(
+            `DELETE FROM apertura_bandi
+             WHERE id_bando = $1 AND username = $2
+               AND COALESCE(eseguito,false) = false`,
+            [id, username]
+          );
+          removed.apertura = r.rowCount || 0;
+        } catch (e) { errs.apertura = e.message; }
+      }
+
+      // --- Marca la richiesta di servizio come gestita/annullata ---
+      try {
+        await query(
+          `UPDATE richieste_servizi
+             SET gestito = true,
+                 note = COALESCE(note,'') || ' [ANNULLATA DAL CLIENTE]'
+           WHERE id_bando = $1 AND username = $2 AND COALESCE(gestito,false) = false`,
+          [id, username]
+        );
+      } catch (e) {
+        fastify.log.warn({ err: e.message }, 'update richieste_servizi (annullamento) failed');
+      }
+
+      // --- Scrivi nota sul bando per l'admin del gestionale ---
+      try {
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        const dataStr = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}`;
+        const oraStr  = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        const line = `Compilazione annullata da cliente (${username}) il ${dataStr} alle ${oraStr}`;
+        const prev = b.rows[0].note ? String(b.rows[0].note) + '\n' : '';
+        await query(`UPDATE bandi SET note = $1 WHERE id = $2`, [prev + line, id]);
+      } catch (e) {
+        fastify.log.warn({ err: e.message }, 'update bandi.note (annullamento) failed');
+      }
+
+      // --- Aggiorna anche il registro del cliente ---
+      try {
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        const dataStr = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}`;
+        const oraStr  = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        const regLine = `Hai annullato la richiesta di servizio il ${dataStr} alle ${oraStr}`;
+        const rg = await query(
+          `SELECT id, note_registro FROM registro_gare_clienti WHERE id_bando = $1 AND username = $2 LIMIT 1`,
+          [id, username]
+        );
+        if (rg.rows.length > 0) {
+          const prev = rg.rows[0].note_registro ? String(rg.rows[0].note_registro) + '\n' : '';
+          await query(`UPDATE registro_gare_clienti SET note_registro = $1 WHERE id = $2`,
+            [prev + regLine, rg.rows[0].id]);
+        }
+      } catch (e) {
+        fastify.log.warn({ err: e.message }, 'update registro_gare_clienti (annullamento) failed');
+      }
+
+      return {
+        success: true,
+        message: 'Richiesta annullata',
+        removed,
+        errors: Object.keys(errs).length ? errs : undefined
+      };
+    } catch (err) {
+      fastify.log.error({ err: err.message, stack: err.stack }, 'POST /bandi/:id/annulla-richiesta error');
+      return reply.status(500).send({ error: 'Errore annullamento richiesta', detail: err.message });
     }
   });
 
@@ -495,23 +886,73 @@ export default async function clientiRoutes(fastify, opts) {
       );
       const total = parseInt(countResult.rows[0].total);
 
-      const result = await query(
-        `SELECT
-          r.id AS id,
-          r.id_bando AS id_bando,
-          r.username AS username,
-          r.note AS note,
-          r.data_inserimento AS data_inserimento,
-          b.titolo AS titolo_bando,
-          b.codice_cig AS codice_cig,
-          b.data_pubblicazione AS data_pubblicazione
-         FROM registro_gare_clienti r
-         JOIN bandi b ON r.id_bando = b.id
-         WHERE r.username = $1
-         ORDER BY r.data_inserimento DESC
-         LIMIT $2 OFFSET $3`,
-        [username, limit, offset]
-      );
+      // Stesso JOIN usato da /api/bandi, così la card del Registro Bandi
+      // è identica a quella di "Bandi di Gara". Con fallback al JOIN
+      // minimale se lo schema non ha alcune tabelle/colonne.
+      let result;
+      try {
+        result = await query(
+          `SELECT
+            r.id,
+            r.id_bando,
+            r.username,
+            r.note_registro AS note,
+            r.data_inserimento,
+            b.titolo AS titolo_bando,
+            b.codice_cig AS codice_cig,
+            b.data_offerta AS data_offerta,
+            b.data_pubblicazione AS data_pubblicazione,
+            b.importo_so AS importo_so,
+            b.importo_co AS importo_co,
+            b.importo_eco AS importo_eco,
+            s.nome AS stazione,
+            s.nome AS stazione_nome,
+            s.citta AS stazione_citta,
+            s.sito_web AS stazione_sito_web,
+            pi.nome AS piattaforma_nome,
+            p.nome AS provincia_nome,
+            COALESCE(soa.codice, '')      AS soa_categoria,
+            COALESCE(soa_sost.codice, '') AS soa_sostitutiva,
+            COALESCE(tg.nome, '')         AS tipologia,
+            COALESCE(c.nome, '')          AS criterio
+           FROM registro_gare_clienti r
+           LEFT JOIN bandi b          ON r.id_bando = b.id
+           LEFT JOIN stazioni s       ON b.id_stazione = s.id
+           LEFT JOIN piattaforme pi   ON b.id_piattaforma = pi.id
+           LEFT JOIN soa              ON b.id_soa = soa.id
+           LEFT JOIN soa soa_sost     ON b.categoria_sostitutiva = soa_sost.id
+           LEFT JOIN tipologia_gare tg ON b.id_tipologia = tg.id
+           LEFT JOIN criteri c        ON b.id_criterio = c.id
+           LEFT JOIN province p       ON s.id_provincia = p.id
+           WHERE r.username = $1
+           ORDER BY r.data_inserimento DESC NULLS LAST
+           LIMIT $2 OFFSET $3`,
+          [username, limit, offset]
+        );
+      } catch (eJoin) {
+        fastify.log.warn({ err: eJoin.message }, 'registro join esteso fallito, fallback al minimale');
+        result = await query(
+          `SELECT
+            r.id,
+            r.id_bando,
+            r.username,
+            r.note_registro AS note,
+            r.data_inserimento,
+            b.titolo AS titolo_bando,
+            b.codice_cig,
+            b.data_offerta,
+            b.data_pubblicazione,
+            b.importo_so,
+            b.importo_co,
+            b.importo_eco
+           FROM registro_gare_clienti r
+           LEFT JOIN bandi b ON r.id_bando = b.id
+           WHERE r.username = $1
+           ORDER BY r.data_inserimento DESC NULLS LAST
+           LIMIT $2 OFFSET $3`,
+          [username, limit, offset]
+        );
+      }
 
       return {
         registro: result.rows,
@@ -521,8 +962,8 @@ export default async function clientiRoutes(fastify, opts) {
         pages: Math.ceil(total / parseInt(limit))
       };
     } catch (err) {
-      fastify.log.error({ err: err.message }, 'GET /bandi/registro error');
-      return reply.status(500).send({ error: 'Errore nel caricamento registro' });
+      fastify.log.error({ err: err.message, stack: err.stack }, 'GET /bandi/registro error');
+      return reply.status(500).send({ error: 'Errore nel caricamento registro', detail: err.message });
     }
   });
 
@@ -545,7 +986,7 @@ export default async function clientiRoutes(fastify, opts) {
       }
 
       const result = await query(
-        `INSERT INTO registro_gare_clienti (id_bando, username, note, data_inserimento)
+        `INSERT INTO registro_gare_clienti (id_bando, username, note_registro, data_inserimento)
          VALUES ($1, $2, $3, NOW())
          RETURNING *`,
         [id, username, note || null]
@@ -570,7 +1011,7 @@ export default async function clientiRoutes(fastify, opts) {
       const { note } = request.body || {};
 
       const result = await query(
-        `UPDATE registro_gare_clienti SET note = $1 WHERE id = $2 AND username = $3
+        `UPDATE registro_gare_clienti SET note_registro = $1 WHERE id = $2 AND username = $3
          RETURNING *`,
         [note || null, id, username]
       );
@@ -622,18 +1063,17 @@ export default async function clientiRoutes(fastify, opts) {
         `SELECT
           r.id AS id,
           r.id_bando AS id_bando,
-          r.note AS note,
+          r.note_registro AS note,
           r.data_inserimento AS data_inserimento,
           b.titolo AS titolo_bando,
           b.codice_cig AS codice_cig,
-          b.data_pubblicazione AS data_pubblicazione,
-          b.regione AS regione,
-          b.provincia AS provincia,
+          b.data_offerta AS data_offerta,
+          b.citta AS citta,
           b.importo_so AS importo_so
          FROM registro_gare_clienti r
-         JOIN bandi b ON r.id_bando = b.id
+         LEFT JOIN bandi b ON r.id_bando = b.id
          WHERE r.username = $1
-         ORDER BY r.data_inserimento DESC`,
+         ORDER BY r.data_inserimento DESC NULLS LAST`,
         [username]
       );
 
@@ -1689,8 +2129,7 @@ export default async function clientiRoutes(fastify, opts) {
           b.data_pubblicazione AS data_pubblicazione,
           b.latitudine AS latitudine,
           b.longitudine AS longitudine,
-          b.provincia AS provincia,
-          b.regione AS regione
+                    b.regione AS regione
          FROM bandi b
          WHERE b.latitudine IS NOT NULL
            AND b.longitudine IS NOT NULL
