@@ -613,6 +613,9 @@ BEGIN
     IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name='users' AND column_name='simulazioni_enabled') THEN
         ALTER TABLE users ADD COLUMN simulazioni_enabled BOOLEAN DEFAULT false;
     END IF;
+    IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name='users' AND column_name='albo_fornitori_enabled') THEN
+        ALTER TABLE users ADD COLUMN albo_fornitori_enabled BOOLEAN DEFAULT false;
+    END IF;
 
     -- Add subscription dates
     IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name='users' AND column_name='data_scadenza') THEN
