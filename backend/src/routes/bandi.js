@@ -1,4 +1,5 @@
 import { query, transaction } from '../db/pool.js';
+import { validateBandoPayload } from './_helpers/bando-validator.js';
 
 export default async function bandiRoutes(fastify, opts) {
 
@@ -23,14 +24,62 @@ export default async function bandiRoutes(fastify, opts) {
       filtra_data_modifica,
       provenienza,
       importo_min, importo_max,
+      annullato,
+      rettificato,
+      privato: privatoFilter,
+      id_tipologia_bando,
       sort = 'data_pubblicazione',
       order = 'DESC'
     } = request.query;
 
     const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
-    const conditions = ['b.annullato = false'];
+    const conditions = [];
+    const filtersApplied = {};
+
+    // annullato filter: default = solo non-annullati (backward compatible)
+    if (annullato === 'true' || annullato === '1') {
+      conditions.push('b.annullato = true');
+      filtersApplied.annullato = true;
+    } else if (annullato === 'all' || annullato === 'tutti') {
+      // no filter — show all
+      filtersApplied.annullato = 'all';
+    } else {
+      // default: hide annullati (backward compatible)
+      conditions.push('b.annullato = false');
+    }
+
+    // rettificato filter
+    if (rettificato === 'true' || rettificato === '1') {
+      conditions.push('b.rettificato = true');
+      filtersApplied.rettificato = true;
+    } else if (rettificato === 'false' || rettificato === '0') {
+      conditions.push('b.rettificato = false');
+      filtersApplied.rettificato = false;
+    }
+
+    // privato filter (0=Pubblico, 1=Privato, 2=Azienda) — deferred to parameterized section
+
     const params = [];
     let paramIdx = 1;
+
+    // privato filter (0=Pubblico, 1=Privato, 2=Azienda)
+    if (privatoFilter !== undefined && privatoFilter !== '' && privatoFilter !== 'all') {
+      const pVal = parseInt(privatoFilter);
+      if ([0, 1, 2].includes(pVal)) {
+        conditions.push(`b.privato = $${paramIdx}`);
+        params.push(pVal);
+        filtersApplied.privato = pVal;
+        paramIdx++;
+      }
+    }
+
+    // id_tipologia_bando filter
+    if (id_tipologia_bando) {
+      conditions.push(`b.id_tipologia_bando = $${paramIdx}`);
+      params.push(parseInt(id_tipologia_bando));
+      filtersApplied.id_tipologia_bando = parseInt(id_tipologia_bando);
+      paramIdx++;
+    }
 
     if (search) {
       conditions.push(`(b.titolo ILIKE $${paramIdx} OR b.codice_cig ILIKE $${paramIdx} OR b.codice_cup ILIKE $${paramIdx} OR COALESCE(s.nome, '') ILIKE $${paramIdx})`);
@@ -186,6 +235,9 @@ export default async function bandiRoutes(fastify, opts) {
         b.data_modifica AS data_modifica,
         b.modificato_da AS modificato_da,
         CASE WHEN b.data_modifica IS NOT NULL OR b.modificato_da IS NOT NULL THEN true ELSE false END AS is_modificato,
+        b.annullato AS annullato,
+        b.rettificato AS rettificato,
+        b.privato AS privato,
         (SELECT COUNT(*)::int FROM allegati_bando ab WHERE ab.id_bando = b.id) AS allegati_count
        FROM bandi b
        LEFT JOIN stazioni s ON b.id_stazione = s.id
@@ -209,7 +261,8 @@ export default async function bandiRoutes(fastify, opts) {
         page: parseInt(page),
         limit: parseInt(limit),
         totalPages: Math.ceil(total / parseInt(limit))
-      }
+      },
+      filters_applied: filtersApplied
     };
   });
 
@@ -293,12 +346,18 @@ export default async function bandiRoutes(fastify, opts) {
       'data_sop_start','data_sop_end','data_max_per_sopralluogo','data_max_per_prenotazione',
       'sped_pec','sped_posta','sped_corriere','sped_mano','sped_telematica',
       'indirizzo_pec','indirizzo_elaborati','comunicazione_diretta_data',
-      'indirizzo','cap','citta','regione','annullato','privato',
+      'indirizzo','cap','citta','regione','annullato','rettificato','privato',
       'external_code','fonte_dati','note',
       'note_01','note_02','note_03','note_04','note_05',
       'link_bando','id_azienda_dedicata',
       'data_avviso','ora_avviso','username_avviso','tipo_apertura_avviso','note_avviso'
     ];
+
+    // Validate & coerce
+    const validation = await validateBandoPayload(data, query);
+    if (!validation.ok) {
+      return reply.status(400).send({ error: 'Validazione fallita', details: validation.errors });
+    }
 
     const cols = [];
     const placeholders = [];
@@ -345,6 +404,12 @@ export default async function bandiRoutes(fastify, opts) {
     const { id } = request.params;
     const data = request.body;
     const user = request.user;
+
+    // Validate & coerce
+    const validation = await validateBandoPayload(data, query);
+    if (!validation.ok) {
+      return reply.status(400).send({ error: 'Validazione fallita', details: validation.errors });
+    }
 
     // Build dynamic UPDATE query
     const fields = [];
@@ -403,6 +468,7 @@ export default async function bandiRoutes(fastify, opts) {
       'citta': 'citta',
       'regione': 'regione',
       'annullato': 'annullato',
+      'rettificato': 'rettificato',
       'privato': 'privato',
       'external_code': 'external_code',
       'fonte_dati': 'fonte_dati',

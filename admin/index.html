@@ -4027,6 +4027,27 @@ button:not(.bn-act):not(.bix-act-btn):not(.ute-iconbtn):not(.ew-btn):not(.flatpi
                   </div>
                 </div>
 
+                <!-- Rettificato / Visibilità -->
+                <div class="bn-frow g2">
+                  <div class="bn-fcol">
+                    <label class="lbl">Rettificato</label>
+                    <div class="bn-radio-group">
+                      <label><input type="radio" name="bandi-rettificato" value="" checked> Tutti</label>
+                      <label><input type="radio" name="bandi-rettificato" value="si"> Rettificati</label>
+                      <label><input type="radio" name="bandi-rettificato" value="no"> Non rettificati</label>
+                    </div>
+                  </div>
+                  <div class="bn-fcol">
+                    <label class="lbl">Visibilit&agrave;</label>
+                    <select id="bandi-privato-filter" style="width:100%;padding:6px 8px;border:1px solid #d4dbe5;border-radius:6px;font-size:13px">
+                      <option value="all">Tutti</option>
+                      <option value="0">Pubblico</option>
+                      <option value="1">Privato</option>
+                      <option value="2">Azienda</option>
+                    </select>
+                  </div>
+                </div>
+
                 <!-- Inseriti da / Codice Presidia -->
                 <div class="bn-frow g2">
                   <div class="bn-fcol">
@@ -9417,6 +9438,18 @@ async function searchBandi(page = 1) {
         max: maxR > 0 ? String(maxR) : ''
       });
     } catch(e) {}
+    // Annullati radio filter
+    const annullatoVal = document.querySelector('input[name="bandi-annullati"]:checked')?.value;
+    if (annullatoVal === 'annullati') params.set('annullato', 'true');
+    else if (annullatoVal === 'non-annullati') { /* default backend behaviour */ }
+    else if (annullatoVal === '') params.set('annullato', 'all');
+    // Rettificato filter
+    const rettificatoVal = document.querySelector('input[name="bandi-rettificato"]:checked')?.value;
+    if (rettificatoVal === 'si') params.set('rettificato', 'true');
+    else if (rettificatoVal === 'no') params.set('rettificato', 'false');
+    // Visibilità/privato filter
+    const privatoVal = document.getElementById('bandi-privato-filter')?.value;
+    if (privatoVal && privatoVal !== 'all') params.set('privato', privatoVal);
     const limit = maxR > 0 ? Math.min(maxR, PAGE_SIZE) : PAGE_SIZE;
     params.set('page', page);
     params.set('limit', limit);
@@ -9503,8 +9536,9 @@ async function searchBandi(page = 1) {
       flagHtml += isMod
         ? '<div class="bn-flag-mod ok" title="Modificato"><i class="fas fa-check"></i></div>'
         : '<div class="bn-flag-mod no" title="Non ancora modificato"><i class="fas fa-times"></i></div>';
+      if (r.annullato === true) flagHtml += '<span class="bn-mini-badge" style="background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff">ANN</span>';
       if (r.is_doppiato || r.doppiato) flagHtml += '<span class="bn-mini-badge dopp">DOPP</span>';
-      if (r.is_rettifica || r.rettifica) flagHtml += '<span class="bn-mini-badge rett">RETT</span>';
+      if (r.rettificato === true || r.is_rettifica || r.rettifica) flagHtml += '<span class="bn-mini-badge" style="background:linear-gradient(135deg,#d97706,#fbbf24);color:#fff">RETT</span>';
       if ((r.allegati_count||0) > 0) flagHtml += '<span class="bn-mini-badge all">ALL '+r.allegati_count+'</span>';
       flagHtml += '</div>';
       // PROVINCIA (prefer sigla, fallback nome)
@@ -9587,7 +9621,8 @@ function resetBandiSearch() {
   const ord = document.getElementById('bandi-ordinamento'); if (ord) ord.value = 'data-pubblicazione-desc';
   const maxR = document.getElementById('bandi-max-risultati'); if (maxR) maxR.value = '100';
   const modRange = document.getElementById('bandi-modifica-range'); if (modRange) modRange.style.display = 'none';
-  ['bandi-provenienza','bandi-annullati','bandi-inseriti-da','bandi-stato-link','bandi-gm-stato'].forEach(name => {
+  const privatoFlt = document.getElementById('bandi-privato-filter'); if (privatoFlt) privatoFlt.value = 'all';
+  ['bandi-provenienza','bandi-annullati','bandi-rettificato','bandi-inseriti-da','bandi-stato-link','bandi-gm-stato'].forEach(name => {
     const radios = document.querySelectorAll('input[name="'+name+'"]');
     radios.forEach(r => { r.checked = (r.value === ''); });
   });
