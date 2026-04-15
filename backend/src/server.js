@@ -48,6 +48,7 @@ import sistemaRoutes from './routes/sistema.js';
 import newsletterRoutes from './routes/newsletter.js';
 import bandiImportRoutes from './routes/bandi-import.js';
 import bandiAllegatiRoutes from './routes/bandi-allegati.js';
+import bandiScorporabiliRoutes from './routes/bandi-scorporabili.js';
 import bandiExportRoutes from './routes/bandi-export.js';
 import calendarioRoutes from './routes/calendario.js';
 import appuntamentiRoutes from './routes/appuntamenti.js';
@@ -140,6 +141,9 @@ await fastify.register(bandiServiziRoutes, { prefix: '/api/bandi' });
 
 // Bandi Allegati (upload, download, delete, list)
 await fastify.register(bandiAllegatiRoutes, { prefix: '/api/bandi' });
+
+// Bandi Scorporabili (CRUD SOA secondarie / scorporabili)
+await fastify.register(bandiScorporabiliRoutes, { prefix: '/api/bandi' });
 
 // Bandi Export (PDF, XLSX)
 await fastify.register(bandiExportRoutes, { prefix: '/api/bandi' });
@@ -282,6 +286,7 @@ const AUTO_MIGRATIONS = [
   '027_bandi_link_bando.sql',
   '028_bandi_id_azienda_dedicata.sql',
   '029_bandi_sped_to_boolean.sql',
+  '030_bandi_soa_sec_scorporabili.sql',
 ];
 
 async function runAutoMigrations() {
