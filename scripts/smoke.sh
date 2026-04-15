@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # ──────────────────────────────────────────────────────────────
-# scripts/smoke.sh — 15-endpoint baseline smoke test
+# scripts/smoke.sh — 19-endpoint baseline smoke test
 #
 # Baseline attesa:
-#   Con JWT admin:  9/15 PASS (endpoint 1-4,6-10 → 200)
-#   Senza JWT:      4/15 PASS (endpoint 1,2,9,10 → 200)
+#   Con JWT admin:  13/19 PASS (endpoint 1-4,6-10 + 16-19 → 200/201/204)
+#   Senza JWT:       4/19 PASS (endpoint 1,2,9,10 → 200)
 #
 # 6 FAIL noti pre-esistenti (non regressioni):
 #   #5  /api/admin/sistema/info   → 500  (tabella errors)
@@ -15,8 +15,8 @@
 #   #15 /api/pubblico/stats       → 404  (route mancante)
 #
 # Uso:
-#   bash scripts/smoke.sh                                     # senza JWT (4/15)
-#   SMOKE_ADMIN_PASSWORD=xxx bash scripts/smoke.sh             # con JWT (9/15)
+#   bash scripts/smoke.sh                                     # senza JWT (4/19)
+#   SMOKE_ADMIN_PASSWORD=xxx bash scripts/smoke.sh             # con JWT (13/19)
 #   SMOKE_ADMIN_EMAIL=user@x.it SMOKE_ADMIN_PASSWORD=xxx bash scripts/smoke.sh
 #   SMOKE_BASE_URL=http://localhost:3000 bash scripts/smoke.sh
 # ──────────────────────────────────────────────────────────────
@@ -49,7 +49,7 @@ if [ -n "$ADMIN_PASS" ]; then
 
   if [ -n "$JWT" ]; then
     echo "LOGIN  OK — JWT ottenuto per $ADMIN_USER"
-    EXPECTED_BASELINE=9
+    EXPECTED_BASELINE=13
   else
     echo "LOGIN  FAIL — proseguo senza JWT (baseline ridotta)"
     EXPECTED_BASELINE=4
@@ -120,11 +120,98 @@ check 13 "/api/bandi/recenti"                 ""    "*"
 check 14 "/api/presidia/stato"                ""    "*"
 check 15 "/api/pubblico/stats"                ""    "*"
 
+# ── Scorporabili CRUD (JWT required) ──────────────────────────
+TOTAL=19
+
+if [ -n "$JWT" ]; then
+  # Get first bando id for testing
+  TEST_BANDO_ID=$(curl -sf -m 10 -H "Authorization: Bearer $JWT" \
+    "$BASE/api/bandi?page=1&limit=1" 2>/dev/null \
+    | jq -r '.data[0].id // empty' 2>/dev/null) || TEST_BANDO_ID=""
+
+  if [ -n "$TEST_BANDO_ID" ]; then
+    # 16: GET scorporabili (expect 200)
+    check 16 "/api/bandi/$TEST_BANDO_ID/scorporabili" auth
+
+    # 17: POST scorporabile
+    # Need a valid SOA id — get from soa lookup
+    FIRST_SOA=$(curl -sf -m 10 "$BASE/api/lookups/soa" 2>/dev/null \
+      | jq -r '.[0].id // empty' 2>/dev/null) || FIRST_SOA=""
+
+    if [ -n "$FIRST_SOA" ]; then
+      POST_RESP=$(curl -sf -m 10 -X POST "$BASE/api/bandi/$TEST_BANDO_ID/scorporabili" \
+        -H "Authorization: Bearer $JWT" \
+        -H "Content-Type: application/json" \
+        -d "{\"id_soa\":$FIRST_SOA,\"soa_val\":3,\"importo\":50000}" 2>/dev/null) || POST_RESP=""
+      SCORP_ID=$(echo "$POST_RESP" | jq -r '.id // empty' 2>/dev/null) || SCORP_ID=""
+
+      if [ -n "$SCORP_ID" ]; then
+        printf "%-3s  %-45s  %-4s  %-6s\n" "17" "POST scorporabile (id=$SCORP_ID)" "201" "PASS"
+        PASS_COUNT=$((PASS_COUNT + 1))
+
+        # 18: PUT scorporabile
+        PUT_CODE=$(curl -s -o /dev/null -w "%{http_code}" -m 10 -X PUT \
+          "$BASE/api/bandi/$TEST_BANDO_ID/scorporabili/$SCORP_ID" \
+          -H "Authorization: Bearer $JWT" \
+          -H "Content-Type: application/json" \
+          -d '{"importo":75000,"subappaltabile":true,"percentuale_subappalto":30}' 2>/dev/null) || PUT_CODE="000"
+        if [ "$PUT_CODE" = "200" ]; then
+          printf "%-3s  %-45s  %-4s  %-6s\n" "18" "PUT scorporabile $SCORP_ID" "$PUT_CODE" "PASS"
+          PASS_COUNT=$((PASS_COUNT + 1))
+        else
+          printf "%-3s  %-45s  %-4s  %-6s\n" "18" "PUT scorporabile $SCORP_ID" "$PUT_CODE" "FAIL"
+          FAIL_COUNT=$((FAIL_COUNT + 1))
+        fi
+
+        # 19: DELETE scorporabile
+        DEL_CODE=$(curl -s -o /dev/null -w "%{http_code}" -m 10 -X DELETE \
+          "$BASE/api/bandi/$TEST_BANDO_ID/scorporabili/$SCORP_ID" \
+          -H "Authorization: Bearer $JWT" 2>/dev/null) || DEL_CODE="000"
+        if [ "$DEL_CODE" = "200" ] || [ "$DEL_CODE" = "204" ]; then
+          printf "%-3s  %-45s  %-4s  %-6s\n" "19" "DELETE scorporabile $SCORP_ID" "$DEL_CODE" "PASS"
+          PASS_COUNT=$((PASS_COUNT + 1))
+        else
+          printf "%-3s  %-45s  %-4s  %-6s\n" "19" "DELETE scorporabile $SCORP_ID" "$DEL_CODE" "FAIL"
+          FAIL_COUNT=$((FAIL_COUNT + 1))
+        fi
+      else
+        printf "%-3s  %-45s  %-4s  %-6s\n" "17" "POST scorporabile" "ERR" "FAIL"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        printf "%-3s  %-45s  %-4s  %-6s\n" "18" "PUT scorporabile (skip)" "---" "FAIL"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        printf "%-3s  %-45s  %-4s  %-6s\n" "19" "DELETE scorporabile (skip)" "---" "FAIL"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+      fi
+    else
+      printf "%-3s  %-45s  %-4s  %-6s\n" "17" "POST scorp (no SOA lookup)" "---" "FAIL"
+      FAIL_COUNT=$((FAIL_COUNT + 1))
+      printf "%-3s  %-45s  %-4s  %-6s\n" "18" "PUT scorp (skip)" "---" "FAIL"
+      FAIL_COUNT=$((FAIL_COUNT + 1))
+      printf "%-3s  %-45s  %-4s  %-6s\n" "19" "DELETE scorp (skip)" "---" "FAIL"
+      FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+  else
+    printf "%-3s  %-45s  %-4s  %-6s\n" "16" "GET scorp (no test bando)" "---" "FAIL"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+    printf "%-3s  %-45s  %-4s  %-6s\n" "17" "POST scorp (skip)" "---" "FAIL"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+    printf "%-3s  %-45s  %-4s  %-6s\n" "18" "PUT scorp (skip)" "---" "FAIL"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+    printf "%-3s  %-45s  %-4s  %-6s\n" "19" "DELETE scorp (skip)" "---" "FAIL"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+  fi
+else
+  printf "%-3s  %-45s  %-4s  %-6s\n" "16" "GET scorporabili (no JWT)" "---" "SKIP"
+  printf "%-3s  %-45s  %-4s  %-6s\n" "17" "POST scorporabile (no JWT)" "---" "SKIP"
+  printf "%-3s  %-45s  %-4s  %-6s\n" "18" "PUT scorporabile (no JWT)" "---" "SKIP"
+  printf "%-3s  %-45s  %-4s  %-6s\n" "19" "DELETE scorporabile (no JWT)" "---" "SKIP"
+fi
+
 # ── Risultati ────────────────────────────────────────────────
 echo ""
 echo "--------------------------------------------------------------"
-echo "Pass (200): $PASS_COUNT / 15 | Fail: $FAIL_COUNT (di cui $KNOWN_FAIL noti *)"
-echo "Baseline attesa: $EXPECTED_BASELINE / 15"
+echo "Pass (200): $PASS_COUNT / $TOTAL | Fail: $FAIL_COUNT (di cui $KNOWN_FAIL noti *)"
+echo "Baseline attesa: $EXPECTED_BASELINE / $TOTAL"
 
 DELTA=$((PASS_COUNT - EXPECTED_BASELINE))
 if [ "$DELTA" -eq 0 ]; then

@@ -311,7 +311,7 @@ function authHeaders() {
   return t ? { 'Authorization': 'Bearer ' + t } : {};
 }
 function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]);
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]));
 }
 function fmtDate(d) {
   if (!d) return '—';
@@ -841,6 +841,12 @@ function render(b) {
   html += field('Categoria sostitutiva', b.categoria_sostitutiva, { name: 'categoria_sostitutiva', type: 'number' });
   html += '</div></div>';
 
+  // ── Card 2b: SOA Scorporabili (card ripetibili) ────
+  html += '<div class="bp-card"><h2><i class="fas fa-layer-group"></i> SOA Scorporabili</h2>';
+  html += '<div id="scorporabili-list"><div style="padding:16px;color:#94a3b8;font-style:italic;text-align:center"><i class="fas fa-spinner fa-spin"></i> Caricamento scorporabili...</div></div>';
+  if (IS_EDIT) html += '<div style="padding:12px 0"><button type="button" class="bp-btn primary" onclick="addScorporabile()"><i class="fas fa-plus"></i> Aggiungi scorporabile</button></div>';
+  html += '</div>';
+
   // ── Card 3: Date e scadenze ────────────────────────
   html += '<div class="bp-card"><h2><i class="fas fa-calendar-alt"></i> Date e scadenze</h2><div class="bp-grid">';
   html += field('Data pubblicazione', IS_EDIT ? b.data_pubblicazione : fmtDate(b.data_pubblicazione), { name: 'data_pubblicazione', type: 'date' });
@@ -955,6 +961,9 @@ function render(b) {
     initAziendaAutocomplete();
     if (b.id_azienda_dedicata) loadAziendaNome(b.id_azienda_dedicata);
   }
+
+  // Load scorporabili after DOM is ready
+  loadScorporabili();
 }
 
 async function downloadAllAttachments(allegati) {
@@ -970,6 +979,165 @@ async function downloadAllAttachments(allegati) {
       await new Promise(r => setTimeout(r, 500));
     } catch (e) { console.warn('download fail', e); }
   }
+}
+
+// ── SOA Scorporabili — CRUD card ripetibili ────────────────
+const CLASSIFICA_LABELS = ['','I','II','III','III bis','IV','IV bis','V','VIII'];
+
+function classificaOpts(sel) {
+  return [1,2,3,4,5,6,7,8].map(v => `<option value="${v}"${v===sel?' selected':''}>${CLASSIFICA_LABELS[v] || v}</option>`).join('');
+}
+
+async function loadScorporabili() {
+  const container = document.getElementById('scorporabili-list');
+  if (!container || !BANDO_ID) { if (container) container.innerHTML = ''; return; }
+  try {
+    const res = await fetch(API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID) + '/scorporabili', { headers: authHeaders() });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    if (!rows.length) {
+      container.innerHTML = '<div style="padding:16px;color:#94a3b8;font-style:italic;text-align:center">Nessuno scorporabile. ' + (IS_EDIT ? 'Clicca "+ Aggiungi" per inserirne uno.' : '') + '</div>';
+      return;
+    }
+    container.innerHTML = '';
+    rows.forEach((r, i) => container.appendChild(buildScorporabileCard(r, i)));
+  } catch(e) {
+    container.innerHTML = '<div style="padding:12px;color:#dc2626"><i class="fas fa-exclamation-triangle"></i> Errore: ' + esc(e.message) + '</div>';
+  }
+}
+
+function buildScorporabileCard(r, idx) {
+  const soaOpts = (LOOKUPS.soa || []).map(s =>
+    `<option value="${s.id}"${s.id===r.id_soa?' selected':''}>${esc(s.codice)} — ${esc((s.descrizione||'').substring(0,50))}</option>`
+  ).join('');
+
+  const card = document.createElement('div');
+  card.className = 'bp-scorp-card';
+  card.dataset.id = r.id;
+  card.draggable = IS_EDIT;
+  card.style.cssText = 'background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px 20px;margin-bottom:12px;position:relative;transition:box-shadow .15s;';
+
+  if (IS_EDIT) {
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-weight:700;font-size:12px;color:#64748b;text-transform:uppercase"><i class="fas fa-grip-vertical" style="cursor:grab;margin-right:6px;color:#cbd5e1"></i>Scorporabile #${idx+1}</span>
+        <button type="button" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer" onclick="deleteScorporabile(${r.id})"><i class="fas fa-trash"></i> Elimina</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div><label style="font-size:11px;font-weight:600;color:#475569">Categoria SOA</label>
+          <select data-field="id_soa" onchange="saveScorporabileField(${r.id},this)" style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:inherit">
+            <option value="">—</option>${soaOpts}
+          </select></div>
+        <div><label style="font-size:11px;font-weight:600;color:#475569">Classifica</label>
+          <select data-field="soa_val" onchange="saveScorporabileField(${r.id},this)" style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:inherit">
+            <option value="">—</option>${classificaOpts(r.soa_val)}
+          </select></div>
+        <div><label style="font-size:11px;font-weight:600;color:#475569">Importo</label>
+          <input type="number" step="0.01" min="0" data-field="importo" value="${r.importo!=null?r.importo:''}" onchange="saveScorporabileField(${r.id},this)" style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:inherit"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:auto 1fr 2fr;gap:10px;margin-top:8px;align-items:end">
+        <div><label style="font-size:11px;font-weight:600;color:#475569;display:flex;align-items:center;gap:4px">
+          <input type="checkbox" data-field="subappaltabile" ${r.subappaltabile?'checked':''} onchange="saveScorporabileField(${r.id},this)"> Subappaltabile</label></div>
+        <div><label style="font-size:11px;font-weight:600;color:#475569">% Subappalto</label>
+          <input type="number" min="0" max="100" data-field="percentuale_subappalto" value="${r.percentuale_subappalto!=null?r.percentuale_subappalto:''}" onchange="saveScorporabileField(${r.id},this)" style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:inherit"></div>
+        <div><label style="font-size:11px;font-weight:600;color:#475569">Note</label>
+          <input type="text" data-field="note" value="${esc(r.note||'')}" onchange="saveScorporabileField(${r.id},this)" style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:inherit"></div>
+      </div>`;
+  } else {
+    const classLabel = r.soa_val ? (CLASSIFICA_LABELS[r.soa_val] || r.soa_val) : '—';
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-weight:700;color:#1E2D3D">${esc(r.soa_codice || '')}</span>
+        <span style="color:#64748b;font-size:12px;flex:1;min-width:120px">${esc((r.soa_descrizione||'').substring(0,60))}</span>
+        <span style="font-size:12px;color:#475569">Class. <strong>${classLabel}</strong></span>
+        ${r.importo!=null ? '<span style="font-size:12px;color:#475569">'+Number(r.importo).toLocaleString('it-IT',{minimumFractionDigits:2})+' &euro;</span>' : ''}
+        ${r.subappaltabile ? '<span style="background:#dbeafe;color:#2563eb;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600">Subappaltabile '+(r.percentuale_subappalto!=null?r.percentuale_subappalto+'%':'')+'</span>' : ''}
+      </div>
+      ${r.note ? '<div style="margin-top:6px;font-size:12px;color:#64748b"><i class="fas fa-sticky-note"></i> '+esc(r.note)+'</div>' : ''}`;
+  }
+
+  // Drag events
+  if (IS_EDIT) {
+    card.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', r.id); card.style.opacity = '0.5'; });
+    card.addEventListener('dragend', () => { card.style.opacity = '1'; });
+    card.addEventListener('dragover', e => { e.preventDefault(); card.style.boxShadow = '0 0 0 2px #FF8C00'; });
+    card.addEventListener('dragleave', () => { card.style.boxShadow = ''; });
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      card.style.boxShadow = '';
+      reorderScorporabili(card);
+    });
+  }
+
+  return card;
+}
+
+async function saveScorporabileField(sid, el) {
+  const field = el.dataset.field;
+  let value = el.type === 'checkbox' ? el.checked : el.value;
+  if (el.type === 'number' && value !== '') value = Number(value);
+  if (el.type === 'number' && value === '') value = null;
+  if (el.tagName === 'SELECT' && value !== '' && /^\d+$/.test(value)) value = Number(value);
+  if (el.tagName === 'SELECT' && value === '') value = null;
+
+  try {
+    const res = await fetch(API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID) + '/scorporabili/' + sid, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ [field]: value })
+    });
+    if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + res.status); }
+    el.style.borderColor = '#10b981';
+    setTimeout(() => { el.style.borderColor = '#d1d5db'; }, 1000);
+  } catch(e) {
+    el.style.borderColor = '#dc2626';
+    toast('Errore salvataggio: ' + e.message, 'err');
+  }
+}
+
+async function addScorporabile() {
+  if (!BANDO_ID) return;
+  try {
+    const soa = LOOKUPS.soa;
+    if (!soa || !soa.length) { toast('Elenco SOA non caricato', 'err'); return; }
+    const res = await fetch(API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID) + '/scorporabili', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ id_soa: soa[0].id })
+    });
+    if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + res.status); }
+    toast('Scorporabile aggiunto', 'ok');
+    loadScorporabili();
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function deleteScorporabile(sid) {
+  if (!confirm('Eliminare questo scorporabile?')) return;
+  try {
+    const res = await fetch(API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID) + '/scorporabili/' + sid, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (!res.ok && res.status !== 204) { const j = await res.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + res.status); }
+    toast('Scorporabile eliminato', 'ok');
+    loadScorporabili();
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function reorderScorporabili(dropTarget) {
+  const container = document.getElementById('scorporabili-list');
+  if (!container) return;
+  const cards = Array.from(container.querySelectorAll('.bp-scorp-card'));
+  const order = cards.map(c => Number(c.dataset.id));
+  try {
+    const res = await fetch(API_BASE + '/bandi/' + encodeURIComponent(BANDO_ID) + '/scorporabili/reorder', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ order })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    loadScorporabili();
+  } catch(e) { toast('Errore riordino: ' + e.message, 'err'); }
 }
 
 async function saveBando() {
