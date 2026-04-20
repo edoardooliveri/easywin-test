@@ -338,9 +338,10 @@ export async function updateBandoFromAiEnrichment(bandoId, aiData) {
 
   // SOA principale — lookup only, never create
   if (aiData.categoria_soa_principale?.codice) {
+    const soaCodice = aiData.categoria_soa_principale.codice.replace(/^([A-Z]+)0*(\d+)$/, '$1$2');
     const soaRes = await query(
       `SELECT "id" FROM soa WHERE "codice" = $1`,
-      [aiData.categoria_soa_principale.codice]
+      [soaCodice]
     );
     if (soaRes.rows.length > 0) {
       forceUpdate('id_soa', soaRes.rows[0].id, 'soa_principale');

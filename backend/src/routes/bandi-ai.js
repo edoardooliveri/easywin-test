@@ -563,9 +563,10 @@ async function updateBandoFromAi(bandoId, data, username) {
 
     // Set SOA principale — lookup only, never create
     if (data.categoria_soa_principale?.codice) {
+      const soaCodice = data.categoria_soa_principale.codice.replace(/^([A-Z]+)0*(\d+)$/, '$1$2');
       const soaRes = await client.query(
         'SELECT "id" FROM soa WHERE "codice" = $1',
-        [data.categoria_soa_principale.codice]
+        [soaCodice]
       );
       if (soaRes.rows.length > 0) {
         updates.push(`"id_soa" = $${idx}`);
@@ -625,7 +626,8 @@ async function createBandoFromAiData(data, fileBuffer, fileName, username) {
     // Find SOA — lookup only, never create
     let id_soa = null;
     if (data.categoria_soa_principale?.codice) {
-      const soaRes = await client.query('SELECT "id" FROM soa WHERE "codice" = $1', [data.categoria_soa_principale.codice]);
+      const soaCodice = data.categoria_soa_principale.codice.replace(/^([A-Z]+)0*(\d+)$/, '$1$2');
+      const soaRes = await client.query('SELECT "id" FROM soa WHERE "codice" = $1', [soaCodice]);
       if (soaRes.rows.length > 0) {
         id_soa = soaRes.rows[0].id;
       } else {
