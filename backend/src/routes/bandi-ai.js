@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { query, transaction } from '../db/pool.js';
-import { processAllegatoWithAI } from '../services/ai-enrichment.js';
+import { processAllegatoWithAI, getRelevantAllegati } from '../services/ai-enrichment.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -158,7 +158,7 @@ REGOLE:
         });
       }
 
-      // Call Claude API
+      // Call Claude API (interactive = Sonnet for manual analysis)
       const response = await anthropic.messages.create({
         model: process.env.AI_MODEL_INTERACTIVE || 'claude-sonnet-4-20250514',
         max_tokens: 4096,
@@ -299,7 +299,7 @@ REGOLE:
 
     // Bandi da compilare (Presidia, non AI-processed, che hanno allegati PDF)
     const pendingWithPdf = await query(`
-      SELECT b."id", b."oggetto", b."cig", b."stazione",
+      SELECT b."id", b."titolo", b."codice_cig", b."stazione_nome",
              b."data_pubblicazione", b."importo_so",
              COUNT(a."id") AS n_allegati_pdf
       FROM bandi b
@@ -314,7 +314,7 @@ REGOLE:
 
     // Bandi da compilare SENZA allegati PDF (non processabili automaticamente)
     const pendingNoPdf = await query(`
-      SELECT b."id", b."oggetto", b."cig", b."stazione", b."data_pubblicazione"
+      SELECT b."id", b."titolo", b."codice_cig", b."stazione_nome", b."data_pubblicazione"
       FROM bandi b
       LEFT JOIN allegati_bando a ON a."id_bando" = b."id" AND a."nome_file" ILIKE '%.pdf'
       WHERE b."provenienza" = 'Presidia'
@@ -327,7 +327,7 @@ REGOLE:
 
     // Ultimi bandi compilati dall'AI
     const recentlyProcessed = await query(`
-      SELECT b."id", b."oggetto", b."cig", b."stazione",
+      SELECT b."id", b."titolo", b."codice_cig", b."stazione_nome",
              b."data_pubblicazione", b."importo_so", b."importo_co",
              b."ai_confidence", b."ai_processed_at",
              b."ai_extracted_data"
@@ -352,31 +352,24 @@ REGOLE:
     const { id } = request.params;
 
     // Get bando
-    const bandoRes = await query('SELECT "id", "oggetto" FROM bandi WHERE "id" = $1', [id]);
+    const bandoRes = await query('SELECT "id", "titolo" FROM bandi WHERE "id" = $1', [id]);
     if (bandoRes.rows.length === 0) return reply.status(404).send({ error: 'Bando non trovato' });
 
-    // Get PDF allegati
-    const allegatiRes = await query(
-      `SELECT "nome_file", "documento" FROM allegati_bando
-       WHERE "id_bando" = $1 AND "nome_file" ILIKE '%.pdf'
-       ORDER BY "updated_at" DESC LIMIT 3`,
-      [id]
-    );
+    // Get relevant PDF allegati (smart filter)
+    const allegati = await getRelevantAllegati(id);
 
-    if (allegatiRes.rows.length === 0) {
+    if (allegati.length === 0) {
       return reply.status(404).send({ error: 'Nessun PDF allegato per questo bando' });
     }
 
     try {
-      const { processAllegatoWithAI } = await import('../services/ai-enrichment.js');
-
-      for (const pdf of allegatiRes.rows) {
-        await processAllegatoWithAI(id, pdf.Documento, pdf.NomeFile, fastify);
+      for (const pdf of allegati) {
+        await processAllegatoWithAI(id, pdf.documento, pdf.nome_file, fastify);
       }
 
       // Reload bando for response
       const updated = await query(
-        `SELECT "oggetto", "ai_processed", "ai_confidence", "ai_extracted_data", "ai_processed_at"
+        `SELECT "titolo", "ai_processed", "ai_confidence", "ai_extracted_data", "ai_processed_at"
          FROM bandi WHERE "id" = $1`,
         [id]
       );
@@ -384,7 +377,7 @@ REGOLE:
       return {
         success: true,
         bando_id: id,
-        files_processed: allegatiRes.rows.map(r => r.NomeFile),
+        files_processed: allegati.map(r => r.nome_file),
         ai_confidence: updated.rows[0]?.ai_confidence,
         corrections: updated.rows[0]?.ai_extracted_data?.ai_corrections || []
       };
@@ -401,21 +394,16 @@ REGOLE:
     const { bando_id } = request.body;
     if (!bando_id) return reply.status(400).send({ error: 'bando_id richiesto' });
 
-    // Get PDF allegati for this bando
-    const allegatiRes = await query(
-      `SELECT "nome_file", "documento" FROM allegati_bando
-       WHERE "id_bando" = $1 AND "nome_file" ILIKE '%.pdf'
-       ORDER BY "updated_at" DESC LIMIT 3`,
-      [bando_id]
-    );
+    // Get relevant PDF allegati (smart filter)
+    const allegati = await getRelevantAllegati(bando_id);
 
-    if (allegatiRes.rows.length === 0) {
+    if (allegati.length === 0) {
       return reply.status(404).send({ error: 'Nessun PDF allegato trovato per questo bando' });
     }
 
     // Get current bando data for comparison
     const bandoRes = await query(
-      `SELECT "oggetto", "cig", "importo_so", "importo_co", "stazione", "data_scadenza",
+      `SELECT "titolo", "codice_cig", "importo_so", "importo_co", "stazione_nome", "data_offerta",
               "indirizzo", "citta", "regione", "id_soa", "id_criterio", "ai_extracted_data"
        FROM bandi WHERE "id" = $1`,
       [bando_id]
@@ -428,13 +416,13 @@ REGOLE:
     const bandoBefore = bandoRes.rows[0];
 
     try {
-      // Process the first PDF (usually the disciplinare)
-      const pdf = allegatiRes.rows[0];
-      await processAllegatoWithAI(bando_id, pdf.Documento, pdf.NomeFile, fastify);
+      // Process the first PDF (usually the disciplinare, thanks to smart filter)
+      const pdf = allegati[0];
+      await processAllegatoWithAI(bando_id, pdf.documento, pdf.nome_file, fastify);
 
       // Get updated bando
       const bandoAfter = await query(
-        `SELECT "oggetto", "cig", "importo_so", "importo_co", "stazione", "data_scadenza",
+        `SELECT "titolo", "codice_cig", "importo_so", "importo_co", "stazione_nome", "data_offerta",
                 "indirizzo", "citta", "regione", "id_soa", "id_criterio", "ai_extracted_data",
                 "ai_confidence", "ai_processed"
          FROM bandi WHERE "id" = $1`,
@@ -444,7 +432,7 @@ REGOLE:
       return {
         success: true,
         bando_id,
-        files_analyzed: allegatiRes.rows.map(r => r.NomeFile),
+        files_analyzed: allegati.map(r => r.nome_file),
         before: bandoBefore,
         after: bandoAfter.rows[0],
         corrections: bandoAfter.rows[0].ai_extracted_data?.ai_corrections || []
@@ -466,7 +454,7 @@ REGOLE:
 
     // Find Presidia bandi not yet AI-processed that have PDF allegati
     const bandiRes = await query(
-      `SELECT DISTINCT b."id", b."oggetto", b."cig"
+      `SELECT DISTINCT b."id", b."titolo", b."codice_cig", b."data_pubblicazione"
        FROM bandi b
        INNER JOIN allegati_bando a ON a."id_bando" = b."id" AND a."nome_file" ILIKE '%.pdf'
        WHERE b."provenienza" = 'Presidia' AND (b."ai_processed" IS NULL OR b."ai_processed" = false)
@@ -479,21 +467,17 @@ REGOLE:
 
     for (const bando of bandiRes.rows) {
       try {
-        // Get PDF
-        const pdfRes = await query(
-          `SELECT "nome_file", "documento" FROM allegati_bando
-           WHERE "id_bando" = $1 AND "nome_file" ILIKE '%.pdf' LIMIT 1`,
-          [bando.id]
-        );
+        // Get relevant PDFs (smart filter)
+        const allegati = await getRelevantAllegati(bando.id);
 
-        if (pdfRes.rows.length > 0) {
-          await processAllegatoWithAI(bando.id, pdfRes.rows[0].documento, pdfRes.rows[0].nome_file, fastify);
+        if (allegati.length > 0) {
+          await processAllegatoWithAI(bando.id, allegati[0].documento, allegati[0].nome_file, fastify);
           results.processed++;
-          results.details.push({ id: bando.id, titolo: bando.oggetto, status: 'ok' });
+          results.details.push({ id: bando.id, titolo: bando.titolo, status: 'ok' });
         }
       } catch (err) {
         results.errors++;
-        results.details.push({ id: bando.id, titolo: bando.oggetto, status: 'error', error: err.message });
+        results.details.push({ id: bando.id, titolo: bando.titolo, status: 'error', error: err.message });
       }
     }
 
@@ -504,21 +488,22 @@ REGOLE:
 // ============================================================
 // HELPER: Update bando from AI extracted data
 // ============================================================
-async function updateBandoFromAi(bandoId, data, username, confirmed = false) {
+async function updateBandoFromAi(bandoId, data, username) {
   await transaction(async (client) => {
     const updates = [];
     const values = [];
     let idx = 1;
+    const unmatchedEntities = {};
 
     // Map AI fields to DB fields
     const mapping = {
-      "oggetto": data.titolo,
-      "cig": data.codice_cig,
+      "titolo": data.titolo,
+      "codice_cig": data.codice_cig,
       "importo_so": parseNumber(data.importo_lavori),
       "importo_co": parseNumber(data.importo_sicurezza),
       "oneri_progettazione": parseNumber(data.oneri_progettazione),
       "importo_manodopera": parseNumber(data.importo_manodopera),
-      "data_scadenza": data.data_scadenza_offerta || null,
+      "data_offerta": data.data_scadenza_offerta || null,
       "indirizzo": data.luogo_esecuzione?.indirizzo,
       "citta": data.luogo_esecuzione?.citta,
       "regione": data.luogo_esecuzione?.regione,
@@ -536,23 +521,32 @@ async function updateBandoFromAi(bandoId, data, username, confirmed = false) {
 
     // Set stazione if extracted
     if (data.stazione_appaltante) {
-      updates.push(`"stazione" = $${idx}`);
+      updates.push(`"stazione_nome" = $${idx}`);
       values.push(data.stazione_appaltante);
       idx++;
 
       // Try to match stazione in DB
       const staz = await client.query(
-        `SELECT "id" FROM stazioni WHERE "denominazione" ILIKE $1 LIMIT 1`,
+        `SELECT "id" FROM stazioni WHERE "nome" ILIKE $1 LIMIT 1`,
         [`%${data.stazione_appaltante}%`]
       );
       if (staz.rows.length > 0) {
         updates.push(`"id_stazione" = $${idx}`);
         values.push(staz.rows[0].id);
         idx++;
+      } else {
+        // Create new stazione (new enti appear continuously)
+        const newStaz = await client.query(
+          `INSERT INTO stazioni ("nome") VALUES ($1) RETURNING "id"`,
+          [data.stazione_appaltante]
+        );
+        updates.push(`"id_stazione" = $${idx}`);
+        values.push(newStaz.rows[0].id);
+        idx++;
       }
     }
 
-    // Set criterio if extracted
+    // Set criterio if extracted — lookup only, never create
     if (data.criterio_aggiudicazione) {
       const crit = await client.query(
         `SELECT "id" FROM criteri WHERE "nome" ILIKE $1 LIMIT 1`,
@@ -562,20 +556,34 @@ async function updateBandoFromAi(bandoId, data, username, confirmed = false) {
         updates.push(`"id_criterio" = $${idx}`);
         values.push(crit.rows[0].id);
         idx++;
+      } else {
+        unmatchedEntities.criterio_non_trovato = data.criterio_aggiudicazione;
       }
     }
 
-    // Set SOA principale
+    // Set SOA principale — lookup only, never create
     if (data.categoria_soa_principale?.codice) {
       const soaRes = await client.query(
-        'SELECT "id" FROM soa WHERE "cod" = $1',
+        'SELECT "id" FROM soa WHERE "codice" = $1',
         [data.categoria_soa_principale.codice]
       );
       if (soaRes.rows.length > 0) {
         updates.push(`"id_soa" = $${idx}`);
         values.push(soaRes.rows[0].id);
         idx++;
+      } else {
+        unmatchedEntities.categoria_soa_non_trovata = data.categoria_soa_principale;
       }
+    }
+
+    // Save unmatched entities in ai_extracted_data for manual review
+    if (Object.keys(unmatchedEntities).length > 0) {
+      const currentAi = await client.query('SELECT "ai_extracted_data" FROM bandi WHERE "id" = $1', [bandoId]);
+      const existing = currentAi.rows[0]?.ai_extracted_data || {};
+      const merged = { ...existing, ...unmatchedEntities };
+      updates.push(`"ai_extracted_data" = $${idx}`);
+      values.push(JSON.stringify(merged));
+      idx++;
     }
 
     if (updates.length > 0) {
@@ -593,49 +601,65 @@ async function updateBandoFromAi(bandoId, data, username, confirmed = false) {
 // ============================================================
 async function createBandoFromAiData(data, fileBuffer, fileName, username) {
   return await transaction(async (client) => {
+    const unmatchedEntities = {};
+
     // Find/create stazione
     let id_stazione = null;
     if (data.stazione_appaltante) {
       const staz = await client.query(
-        `SELECT "id" FROM stazioni WHERE "denominazione" ILIKE $1 LIMIT 1`,
+        `SELECT "id" FROM stazioni WHERE "nome" ILIKE $1 LIMIT 1`,
         [`%${data.stazione_appaltante}%`]
       );
       if (staz.rows.length > 0) {
         id_stazione = staz.rows[0].id;
       } else {
+        // Create new stazione
         const newStaz = await client.query(
-          `INSERT INTO stazioni ("denominazione") VALUES ($1) RETURNING "id"`,
+          `INSERT INTO stazioni ("nome") VALUES ($1) RETURNING "id"`,
           [data.stazione_appaltante]
         );
         id_stazione = newStaz.rows[0].id;
       }
     }
 
-    // Find SOA
+    // Find SOA — lookup only, never create
     let id_soa = null;
     if (data.categoria_soa_principale?.codice) {
-      const soaRes = await client.query('SELECT "id" FROM soa WHERE "cod" = $1', [data.categoria_soa_principale.codice]);
-      if (soaRes.rows.length > 0) id_soa = soaRes.rows[0].id;
+      const soaRes = await client.query('SELECT "id" FROM soa WHERE "codice" = $1', [data.categoria_soa_principale.codice]);
+      if (soaRes.rows.length > 0) {
+        id_soa = soaRes.rows[0].id;
+      } else {
+        unmatchedEntities.categoria_soa_non_trovata = data.categoria_soa_principale;
+      }
     }
 
-    // Find criterio
+    // Find criterio — lookup only, never create
     let id_criterio = null;
     if (data.criterio_aggiudicazione) {
       const crit = await client.query(`SELECT "id" FROM criteri WHERE "nome" ILIKE $1 LIMIT 1`, [`%${data.criterio_aggiudicazione}%`]);
-      if (crit.rows.length > 0) id_criterio = crit.rows[0].id;
+      if (crit.rows.length > 0) {
+        id_criterio = crit.rows[0].id;
+      } else {
+        unmatchedEntities.criterio_non_trovato = data.criterio_aggiudicazione;
+      }
     }
+
+    // Build ai_extracted_data with unmatched entities
+    const aiExtractedData = Object.keys(unmatchedEntities).length > 0
+      ? JSON.stringify(unmatchedEntities)
+      : null;
 
     // Insert bando
     const bandoResult = await client.query(
       `INSERT INTO bandi (
-        "id", "oggetto", "id_stazione", "stazione", "data_pubblicazione",
-        "cig", "id_soa", "id_criterio",
+        "id", "titolo", "id_stazione", "stazione_nome", "data_pubblicazione",
+        "codice_cig", "id_soa", "id_criterio",
         "importo_so", "importo_co", "oneri_progettazione", "importo_manodopera",
-        "data_scadenza",
+        "data_offerta",
         "indirizzo", "citta", "regione", "cap",
         "n_decimali", "provenienza",
-        "created_by"
-      ) VALUES (uuid_generate_v4(),$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
+        "inserito_da", "ai_extracted_data"
+      ) VALUES (uuid_generate_v4(),$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
       RETURNING "id"`,
       [
         data.titolo || 'Bando da analisi AI',
@@ -649,7 +673,7 @@ async function createBandoFromAiData(data, fileBuffer, fileName, username) {
         data.luogo_esecuzione?.regione, data.luogo_esecuzione?.cap,
         data.decimali_ribasso ? parseInt(data.decimali_ribasso) : 3,
         'AI',
-        username
+        username, aiExtractedData
       ]
     );
 
