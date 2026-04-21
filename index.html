@@ -127,87 +127,103 @@
 
 <!-- DASHBOARD SERVIZI ANIMATA -->
 <section class="services-marquee-section" id="services-carousel">
-    <div class="carousel-viewport" id="carouselViewport">
-        <!-- Cards renderizzate via JS -->
-    </div>
+    <div class="carousel-viewport" id="carouselViewport"></div>
     <div class="carousel-dots" id="carouselDots"></div>
 </section>
 <script>
 (function(){
-  var services = [
-    {icon:'fa-search', title:'Banca Dati Bandi', desc:'Migliaia di bandi di gara aggiornati quotidianamente da tutta Italia.'},
-    {icon:'fa-store', title:'Bandi MEPA', desc:'Segnalazione bandi sul Mercato Elettronico della Pubblica Amministrazione.'},
-    {icon:'fa-list-check', title:'Albi Fornitori', desc:'Iscrizione e gestione degli albi fornitori delle stazioni appaltanti.'},
-    {icon:'fa-laptop', title:'Piattaforme Digitali', desc:'Supporto completo per operare sulle piattaforme telematiche di gara.'},
-    {icon:'fa-trophy', title:'Esiti di Gara', desc:"L'archivio di aggiudicazioni integrali di lavori pubblici più completo d'Italia."},
-    {icon:'fa-bolt', title:'Aggiudicazioni Tempo Reale', desc:'Risultati delle gare disponibili in tempo reale appena pubblicati.'},
-    {icon:'fa-chart-line', title:'Simulatore Statistico', desc:'Calcola il range di massima probabilità per la tua offerta di gara.'},
-    {icon:'fa-chart-bar', title:'Studio Statistico', desc:'Analisi approfondita dei dati storici per strategie di gara vincenti.'},
-    {icon:'fa-hard-hat', title:'Sopralluoghi', desc:'Effettuiamo sopralluoghi e prese visioni in tutta Italia per la tua azienda.'},
-    {icon:'fa-file-contract', title:'Compilazione Gare', desc:'Preparazione completa della documentazione per partecipare alle gare.'},
-    {icon:'fa-file-signature', title:'Offerte Tecniche', desc:'Redazione professionale delle offerte tecniche con i migliori professionisti.'},
-    {icon:'fa-users', title:'Presenza Sedute', desc:'Rappresentanza della tua azienda nelle sedute pubbliche di gara.'},
-    {icon:'fa-handshake', title:'Avvalimenti', desc:'Supporto nella ricerca di imprese ausiliarie per i requisiti di gara.'},
-    {icon:'fa-gavel', title:'Consulenza Legale', desc:'Assistenza legale specializzata in appalti pubblici e contenziosi.'},
-    {icon:'fa-folder-open', title:'Accesso Atti', desc:'Richiesta e gestione dell\'accesso agli atti delle procedure di gara.'},
-    {icon:'fa-shield-halved', title:'Cauzioni', desc:'Polizze fideiussorie e cauzioni provvisorie e definitive per le gare.'},
-    {icon:'fa-certificate', title:'Certificazioni SOA', desc:'Assistenza per l\'ottenimento e il rinnovo delle attestazioni SOA.'},
-    {icon:'fa-award', title:'Certificazioni ISO', desc:'Supporto per ottenere le certificazioni ISO richieste nei bandi.'},
-    {icon:'fa-graduation-cap', title:'Formazione', desc:'Corsi e workshop specializzati nel mondo degli appalti pubblici.'},
-    {icon:'fa-address-book', title:'Gestione Albi Fornitori', desc:'Gestione completa delle iscrizioni agli albi fornitori in Italia.'},
-    {icon:'fa-calculator', title:'Verifica Conteggi', desc:'Controllo e verifica dei conteggi nelle procedure di aggiudicazione.'},
-    {icon:'fa-magnifying-glass-chart', title:'Analisi Concorrenti', desc:'Studio del comportamento dei concorrenti per strategie competitive.'},
-    {icon:'fa-database', title:'Digitalizzazione', desc:'Digitalizzazione completa dei verbali e delle aggiudicazioni di gara.'},
-    {icon:'fa-truck', title:'Servizi e Forniture', desc:'Bandi e aggiudicazioni per servizi e forniture della PA.'}
+  var S = [
+    {i:'fa-search',t:'Banca Dati Bandi',d:'Migliaia di bandi di gara aggiornati quotidianamente da tutta Italia.'},
+    {i:'fa-store',t:'Bandi MEPA',d:'Segnalazione bandi sul Mercato Elettronico della Pubblica Amministrazione.'},
+    {i:'fa-list-check',t:'Albi Fornitori',d:'Iscrizione e gestione degli albi fornitori delle stazioni appaltanti.'},
+    {i:'fa-laptop',t:'Piattaforme Digitali',d:'Supporto completo per operare sulle piattaforme telematiche di gara.'},
+    {i:'fa-trophy',t:'Esiti di Gara',d:"L'archivio di aggiudicazioni integrali di lavori pubblici più completo d'Italia."},
+    {i:'fa-bolt',t:'Aggiudicazioni Tempo Reale',d:'Risultati delle gare disponibili in tempo reale appena pubblicati.'},
+    {i:'fa-chart-line',t:'Simulatore Statistico',d:'Calcola il range di massima probabilità per la tua offerta di gara.'},
+    {i:'fa-chart-bar',t:'Studio Statistico',d:'Analisi approfondita dei dati storici per strategie di gara vincenti.'},
+    {i:'fa-hard-hat',t:'Sopralluoghi',d:'Effettuiamo sopralluoghi e prese visioni in tutta Italia per la tua azienda.'},
+    {i:'fa-file-contract',t:'Compilazione Gare',d:'Preparazione completa della documentazione per partecipare alle gare.'},
+    {i:'fa-file-signature',t:'Offerte Tecniche',d:'Redazione professionale delle offerte tecniche con i migliori professionisti.'},
+    {i:'fa-users',t:'Presenza Sedute',d:'Rappresentanza della tua azienda nelle sedute pubbliche di gara.'},
+    {i:'fa-handshake',t:'Avvalimenti',d:'Supporto nella ricerca di imprese ausiliarie per i requisiti di gara.'},
+    {i:'fa-gavel',t:'Consulenza Legale',d:'Assistenza legale specializzata in appalti pubblici e contenziosi.'},
+    {i:'fa-folder-open',t:'Accesso Atti',d:'Richiesta e gestione dell\'accesso agli atti delle procedure di gara.'},
+    {i:'fa-shield-halved',t:'Cauzioni',d:'Polizze fideiussorie e cauzioni provvisorie e definitive per le gare.'},
+    {i:'fa-certificate',t:'Certificazioni SOA',d:'Assistenza per l\'ottenimento e il rinnovo delle attestazioni SOA.'},
+    {i:'fa-award',t:'Certificazioni ISO',d:'Supporto per ottenere le certificazioni ISO richieste nei bandi.'},
+    {i:'fa-graduation-cap',t:'Formazione',d:'Corsi e workshop specializzati nel mondo degli appalti pubblici.'},
+    {i:'fa-address-book',t:'Gestione Albi Fornitori',d:'Gestione completa delle iscrizioni agli albi fornitori in Italia.'},
+    {i:'fa-calculator',t:'Verifica Conteggi',d:'Controllo e verifica dei conteggi nelle procedure di aggiudicazione.'},
+    {i:'fa-magnifying-glass-chart',t:'Analisi Concorrenti',d:'Studio del comportamento dei concorrenti per strategie competitive.'},
+    {i:'fa-database',t:'Digitalizzazione',d:'Digitalizzazione completa dei verbali e delle aggiudicazioni di gara.'},
+    {i:'fa-truck',t:'Servizi e Forniture',d:'Bandi e aggiudicazioni per servizi e forniture della PA.'}
   ];
-  var current = 0, total = services.length, autoTimer = null;
+  var N = S.length, cur = 0, timer = null;
   var vp = document.getElementById('carouselViewport');
   var dots = document.getElementById('carouselDots');
 
-  function render() {
-    var cards = '';
-    for (var offset = -1; offset <= 1; offset++) {
-      var idx = (current + offset + total) % total;
-      var s = services[idx];
-      var cls = offset === 0 ? ' active' : '';
-      cards += '<div class="carousel-card' + cls + '">'
-        + '<div class="carousel-card-icon"><i class="fas ' + s.icon + '"></i></div>'
-        + '<h4>' + s.title + '</h4>'
-        + '<p>' + s.desc + '</p></div>';
-    }
-    vp.innerHTML = cards;
-    // dots
-    var dh = '';
-    for (var i = 0; i < total; i++) {
-      dh += '<button class="carousel-dot' + (i === current ? ' active' : '') + '" data-i="' + i + '"></button>';
-    }
-    dots.innerHTML = dh;
-  }
-
-  function goTo(idx) { current = ((idx % total) + total) % total; render(); }
-  function next() { goTo(current + 1); }
-
-  function startAuto() { stopAuto(); autoTimer = setInterval(next, 3000); }
-  function stopAuto() { if (autoTimer) { clearInterval(autoTimer); autoTimer = null; } }
-
-  dots.addEventListener('click', function(e) {
-    var btn = e.target.closest('.carousel-dot');
-    if (btn) { goTo(parseInt(btn.dataset.i)); startAuto(); }
+  // Build all cards once, update classes for animation
+  var cards = [];
+  S.forEach(function(s, idx) {
+    var el = document.createElement('div');
+    el.className = 'carousel-card';
+    el.innerHTML = '<div class="carousel-card-icon"><i class="fas ' + s.i + '"></i></div><h4>' + s.t + '</h4><p>' + s.d + '</p>';
+    vp.appendChild(el);
+    cards.push(el);
   });
 
+  // Build dots
+  for (var di = 0; di < N; di++) {
+    var db = document.createElement('button');
+    db.className = 'carousel-dot';
+    db.dataset.i = di;
+    dots.appendChild(db);
+  }
+  var dotBtns = dots.querySelectorAll('.carousel-dot');
+
+  function update() {
+    cards.forEach(function(el, idx) {
+      var diff = idx - cur;
+      // Wrap around for circular
+      if (diff > N/2) diff -= N;
+      if (diff < -N/2) diff += N;
+      // Position: center=0, left=-1, right=+1, far=-2/+2, hidden=rest
+      var abs = Math.abs(diff);
+      if (abs <= 2) {
+        el.style.display = '';
+        el.style.transform = 'translateX(' + (diff * 110) + '%) scale(' + (diff === 0 ? 1.08 : abs === 1 ? 0.88 : 0.72) + ')';
+        el.style.opacity = diff === 0 ? '1' : abs === 1 ? '0.7' : '0.4';
+        el.style.zIndex = diff === 0 ? '3' : abs === 1 ? '2' : '1';
+        el.style.filter = diff === 0 ? 'none' : 'brightness(0.7)';
+        el.classList.toggle('active', diff === 0);
+      } else {
+        el.style.display = 'none';
+        el.classList.remove('active');
+      }
+    });
+    dotBtns.forEach(function(d, idx) { d.classList.toggle('active', idx === cur); });
+  }
+
+  function goTo(idx) { cur = ((idx % N) + N) % N; update(); }
+  function next() { goTo(cur + 1); }
+  function startAuto() { stopAuto(); timer = setInterval(next, 3500); }
+  function stopAuto() { if (timer) { clearInterval(timer); timer = null; } }
+
+  dots.addEventListener('click', function(e) {
+    var b = e.target.closest('.carousel-dot');
+    if (b) { goTo(+b.dataset.i); startAuto(); }
+  });
   vp.addEventListener('mouseenter', stopAuto);
   vp.addEventListener('mouseleave', startAuto);
-
-  // Swipe support
   var sx = 0;
   vp.addEventListener('touchstart', function(e) { sx = e.touches[0].clientX; stopAuto(); }, {passive:true});
   vp.addEventListener('touchend', function(e) {
     var dx = e.changedTouches[0].clientX - sx;
-    if (Math.abs(dx) > 40) { dx < 0 ? next() : goTo(current - 1); }
+    if (Math.abs(dx) > 40) { dx < 0 ? next() : goTo(cur - 1); }
     startAuto();
   }, {passive:true});
 
-  render();
+  update();
   startAuto();
 })();
 </script>
@@ -808,9 +824,10 @@ async function loadUltimiBandi() {
             else badge = '<span style="background:rgba(34,197,94,0.15);color:#22c55e;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600">ATTIVO</span>';
 
             return '<div style="background:#1E2D3D;border:1px solid rgba(255,255,255,0.08);border-radius:20px;overflow:hidden;transition:all 0.2s ease;box-shadow:0 2px 8px rgba(30,45,61,0.3)" onmouseover="this.style.boxShadow=\'0 6px 24px rgba(30,45,61,0.4)\'" onmouseout="this.style.boxShadow=\'0 2px 8px rgba(30,45,61,0.3)\'">'
-              + '<div style="display:flex;flex-direction:column;align-items:center;padding:14px 20px;background:#162230;border-bottom:1px solid rgba(255,255,255,0.1);gap:6px">'
-                + '<img src="logo.png" alt="EasyWin" style="height:36px;filter:drop-shadow(0 0 1px rgba(245,197,24,0.5))">'
-                + '<div style="display:flex;align-items:center;justify-content:space-between;width:100%"><span style="font-size:0.85rem;font-weight:700;color:#ffffff;font-family:Comfortaa,cursive">Bando n° ' + (i+1) + '</span>' + badge + '</div>'
+              + '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#162230;border-bottom:1px solid rgba(255,255,255,0.1)">'
+                + '<span style="font-size:0.85rem;font-weight:700;color:#ffffff;font-family:Comfortaa,cursive">Bando n° ' + (i+1) + '</span>'
+                + '<span style="font-family:Comfortaa,cursive;font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#F5C518,#FF8C00,#8B6914);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">easyWin</span>'
+                + badge
               + '</div>'
               + '<div class="home-grid4" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">'
                 + '<div ' + cL + '>Tipologia</div><div ' + cL + '>Criterio</div><div ' + cL + '>Scadenza</div><div ' + cLL + '>Pubblicazione</div>'
@@ -827,7 +844,7 @@ async function loadUltimiBandi() {
                 + '<div ' + cVL + '><span style="color:#a78bfa;font-size:0.95rem;font-weight:700">' + _esc(b.soa_categoria || '-') + '</span></div>'
               + '</div>'
               + '<div style="border-bottom:1px solid rgba(255,255,255,0.08)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Stazione appaltante</div><div style="padding:8px 12px;font-size:0.95rem;color:#ffffff;font-weight:700;background:#243749"><i class="fas fa-building" style="margin-right:6px;opacity:0.5"></i>' + _esc(b.stazione || '-') + '</div></div>'
-              + '<div style="border-bottom:1px solid rgba(255,255,255,0.08)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Oggetto</div><div style="padding:10px 12px;font-size:0.88rem;color:rgba(255,255,255,0.85);font-weight:500;line-height:1.5;text-align:justify;cursor:pointer;background:#243749" onclick="document.getElementById(\'area-riservata\').scrollIntoView({behavior:\'smooth\'})">' + _esc(b.titolo || '-') + '</div></div>'
+              + '<div style="border-bottom:1px solid rgba(255,255,255,0.08)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Oggetto</div><div style="padding:10px 12px;font-size:0.88rem;color:rgba(255,255,255,0.85);font-weight:500;line-height:1.5;text-align:justify;cursor:pointer;background:#243749;max-height:72px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical" onclick="document.getElementById(\'area-riservata\').scrollIntoView({behavior:\'smooth\'})">' + _esc(b.titolo || '-') + '</div></div>'
               + '<div class="home-footer" style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:#162230;border-top:1px solid rgba(255,255,255,0.1);border-radius:0 0 20px 20px;flex-wrap:wrap">'
                 + '<button onclick="document.getElementById(\'area-riservata\').scrollIntoView({behavior:\'smooth\'})" style="background-image:linear-gradient(to right,#F5C518 0%,#FF8C00 51%,#F5C518 100%);background-size:200% auto;background-position:right center;color:#fff;border:none;padding:8px 20px;border-radius:50px;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:Comfortaa,cursive;transition:all 0.3s;display:flex;align-items:center;gap:6px;text-shadow:0 1px 2px rgba(0,0,0,0.15)" onmouseover="this.style.backgroundPosition=\'left center\'" onmouseout="this.style.backgroundPosition=\'right center\'"><i class="fas fa-eye"></i> VISUALIZZA</button>'
               + '</div>'
@@ -858,9 +875,10 @@ async function loadUltimiEsiti() {
             var partec = e.n_partecipanti || '-';
 
             return '<div style="background:#1E2D3D;border:1px solid rgba(255,255,255,0.08);border-radius:20px;overflow:hidden;transition:all 0.2s ease;box-shadow:0 2px 8px rgba(30,45,61,0.3)" onmouseover="this.style.boxShadow=\'0 6px 24px rgba(30,45,61,0.4)\'" onmouseout="this.style.boxShadow=\'0 2px 8px rgba(30,45,61,0.3)\'">'
-              + '<div style="display:flex;flex-direction:column;align-items:center;padding:14px 20px;background:#162230;border-bottom:1px solid rgba(255,255,255,0.1);gap:6px">'
-                + '<img src="logo.png" alt="EasyWin" style="height:36px;filter:drop-shadow(0 0 1px rgba(245,197,24,0.5))">'
-                + '<div style="display:flex;align-items:center;justify-content:space-between;width:100%"><span style="font-size:0.85rem;font-weight:700;color:#ffffff;font-family:Comfortaa,cursive">Esito n° ' + (i+1) + '</span><span style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8);padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600"><i class="far fa-calendar" style="margin-right:4px"></i>' + _fmtDate(e.data) + '</span></div>'
+              + '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#162230;border-bottom:1px solid rgba(255,255,255,0.1)">'
+                + '<span style="font-size:0.85rem;font-weight:700;color:#ffffff;font-family:Comfortaa,cursive">Esito n° ' + (i+1) + '</span>'
+                + '<span style="font-family:Comfortaa,cursive;font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#F5C518,#FF8C00,#8B6914);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">easyWin</span>'
+                + '<span style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8);padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600"><i class="far fa-calendar" style="margin-right:4px"></i>' + _fmtDate(e.data) + '</span>'
               + '</div>'
               + '<div class="home-grid4" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">'
                 + '<div ' + cL + '>Provincia</div><div ' + cL + '>Importo</div><div ' + cL + '>Ribasso</div><div ' + cLL + '>Partecipanti</div>'
@@ -877,7 +895,7 @@ async function loadUltimiEsiti() {
                 + '<div ' + cVL + '><span style="color:rgba(255,255,255,0.8);font-size:0.85rem">' + _esc(e.criterio || '-') + '</span></div>'
               + '</div>'
               + '<div style="border-bottom:1px solid rgba(255,255,255,0.08)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Stazione appaltante</div><div style="padding:8px 12px;font-size:0.95rem;color:#ffffff;font-weight:700;background:#243749"><i class="fas fa-building" style="margin-right:6px;opacity:0.5"></i>' + _esc(e.stazione_nome || '-') + '</div></div>'
-              + '<div style="border-bottom:1px solid rgba(255,255,255,0.08)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Oggetto</div><div style="padding:10px 12px;font-size:0.88rem;color:rgba(255,255,255,0.85);font-weight:500;line-height:1.5;text-align:justify;background:#243749">' + _esc(e.titolo || '-') + '</div></div>'
+              + '<div style="border-bottom:1px solid rgba(255,255,255,0.08)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Oggetto</div><div style="padding:10px 12px;font-size:0.88rem;color:rgba(255,255,255,0.85);font-weight:500;line-height:1.5;text-align:justify;background:#243749;max-height:72px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical">' + _esc(e.titolo || '-') + '</div></div>'
               + (e.vincitore_nome ? '<div style="border-bottom:1px solid rgba(255,255,255,0.08)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D"><i class="fas fa-trophy" style="color:#FF8C00;margin-right:4px"></i>Vincitore</div><div style="padding:8px 12px;font-size:0.95rem;color:#ffffff;font-weight:700;background:#243749">' + _esc(e.vincitore_nome) + '</div></div>' : '')
               + '<div class="home-footer" style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:#162230;border-top:1px solid rgba(255,255,255,0.1);border-radius:0 0 20px 20px;flex-wrap:wrap">'
                 + (e.id_bando ? '<button onclick="document.getElementById(\'area-riservata\').scrollIntoView({behavior:\'smooth\'})" style="background:#243749;color:#FF8C00;border:1px solid #FF8C00;padding:8px 20px;border-radius:50px;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:Comfortaa,cursive;transition:all 0.2s;display:flex;align-items:center;gap:6px" onmouseover="this.style.background=\'#2d4a5e\'" onmouseout="this.style.background=\'#243749\'"><i class="fas fa-eye"></i> VISUALIZZA BANDO</button>' : '')
