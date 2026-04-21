@@ -1272,6 +1272,7 @@ h1, h2 {
 .testimonials-section {
     position: relative;
     overflow: hidden;
+    padding-bottom: 40px;
 }
 
 .testimonials-bg {
