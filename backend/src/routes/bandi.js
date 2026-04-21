@@ -28,6 +28,7 @@ export default async function bandiRoutes(fastify, opts) {
       rettificato,
       privato: privatoFilter,
       id_tipologia_bando,
+      homepage,
       sort = 'data_pubblicazione',
       order = 'DESC'
     } = request.query;
@@ -174,6 +175,13 @@ export default async function bandiRoutes(fastify, opts) {
       conditions.push(`b.importo_so <= $${paramIdx}`);
       params.push(parseFloat(importo_max));
       paramIdx++;
+    }
+
+    // Filtro homepage: esclude bandi corrotti (senza stazione, senza tipologia, titoli numerici)
+    if (homepage === '1' || homepage === 'true') {
+      conditions.push('b.id_stazione IS NOT NULL');
+      conditions.push('b.id_tipologia IS NOT NULL');
+      conditions.push("b.titolo !~ '^[0-9.,\\s]+'");
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';

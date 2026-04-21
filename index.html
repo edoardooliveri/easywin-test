@@ -948,7 +948,7 @@ function _fmtImporto(n) { return n ? new Intl.NumberFormat('it-IT', {style:'curr
 async function loadUltimiBandi() {
     var container = document.getElementById('home-bandi-list');
     try {
-        var res = await fetch(API_BASE + '/api/bandi/?limit=6&sort=data_pubblicazione&order=desc&importo_min=1');
+        var res = await fetch(API_BASE + '/api/bandi/?limit=6&sort=data_pubblicazione&order=desc&homepage=1');
         var result = await res.json();
         var bandi = result.data || [];
         if (!bandi.length) { container.innerHTML = '<p style="text-align:center;padding:40px;color:#94a3b8;">Nessun bando disponibile</p>'; return; }

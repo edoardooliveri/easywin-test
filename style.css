@@ -109,12 +109,12 @@ h1, h2 {
 }
 
 .navbar .logo-img {
-    height: 48px;
+    height: 60px;
     transition: var(--transition);
 }
 
 .navbar.scrolled .logo-img {
-    height: 38px;
+    height: 45px;
 }
 
 .nav-links {
@@ -368,7 +368,7 @@ h1, h2 {
     line-height: 1.1;
     letter-spacing: -0.5px;
     margin-bottom: 18px;
-    text-shadow: 0 2px 20px rgba(0,0,0,0.9), 0 0 40px rgba(0,0,0,0.7), 0 4px 60px rgba(0,0,0,0.5);
+    filter: drop-shadow(0 2px 12px rgba(0,0,0,0.9)) drop-shadow(0 4px 30px rgba(0,0,0,0.6));
     opacity: 0;
     transform: translateY(30px);
     transition: opacity 0.7s ease 0.3s, transform 0.7s ease 0.3s;
@@ -1001,7 +1001,8 @@ h1, h2 {
 .marquee-track {
     display: flex;
     width: max-content;
-    animation: marqueeScroll 120s linear infinite;
+    animation: marqueeScroll 80s linear infinite;
+    will-change: transform;
 }
 
 .marquee-track:hover {
@@ -1010,8 +1011,9 @@ h1, h2 {
 
 .marquee-content {
     display: flex;
-    gap: 18px;
-    padding-right: 18px;
+    gap: 24px;
+    padding-right: 24px;
+    flex-shrink: 0;
 }
 
 .marquee-card {
@@ -1119,7 +1121,7 @@ h1, h2 {
     padding: 48px;
     border-radius: var(--radius-sm);
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 32px;
     max-width: 1180px;
     margin: 0 auto;
@@ -1133,14 +1135,14 @@ h1, h2 {
     font-family: 'Comfortaa', cursive;
     font-size: 48px;
     font-weight: 700;
-    color: #ffffff;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .stat-lbl {
     font-size: 12px;
     font-weight: 700;
-    color: rgba(255,255,255,0.85);
+    color: rgba(255,255,255,0.85) !important;
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-top: 4px;
@@ -1794,7 +1796,7 @@ footer {
 }
 
 .footer-brand .footer-logo {
-    height: 36px;
+    height: 80px;
     margin-bottom: 12px;
 }
 
