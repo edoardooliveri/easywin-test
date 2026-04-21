@@ -21,6 +21,11 @@ const CONCURRENCY = 5;
 // ── Public API ──────────────────────────────────────────────
 
 export function startFontiWebScheduler(fastify) {
+  if (process.env.FONTI_WEB_AUTO !== 'true') {
+    console.log('🌐 Fonti Web scheduler disabilitato (set FONTI_WEB_AUTO=true per attivare)');
+    return;
+  }
+
   const CHECK_INTERVAL = 10 * 60 * 1000; // 10 minuti
 
   console.log('🌐 Fonti Web scheduler avviato — controllo ogni 10 minuti');

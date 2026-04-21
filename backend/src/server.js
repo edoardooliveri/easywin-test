@@ -319,13 +319,14 @@ const start = async () => {
     startPresidiaScheduler(fastify);       // Import automatico Presidia (13 slot/giorno + riepilogo 04:00)
 
     const presidiaStatus = process.env.PRESIDIA_AUTO === 'true' ? 'attivo (13 slot+riepilogo)' : 'disabilitato';
+    const fontiWebStatus = process.env.FONTI_WEB_AUTO === 'true' ? 'attivo (10min)' : 'disabilitato';
     console.log(`
   ╔══════════════════════════════════════════════╗
   ║     easyWin API Server v3.0.0               ║
   ║     Running on ${host}:${port}                 ║
   ║     Newsletter scheduler: attivo (4:30)     ║
   ║     Abbonamenti scheduler: attivo (6:00)    ║
-  ║     Fonti Web scheduler: attivo (10min)     ║
+  ║     Fonti Web scheduler: ${fontiWebStatus.padEnd(20)}║
   ║     Presidia scheduler: ${presidiaStatus.padEnd(20)}║
   ║     RSS feeds: /api/rss/bandi & esiti       ║
   ╚══════════════════════════════════════════════╝
