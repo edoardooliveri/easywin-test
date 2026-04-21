@@ -210,7 +210,7 @@ export default async function bandiRoutes(fastify, opts) {
         b.importo_manodopera AS importo_manodopera,
         b.note AS note,
         b.indirizzo_elaborati AS indirizzo_elaborati,
-        s.nome AS stazione,
+        COALESCE(s.nome, b.stazione_nome) AS stazione,
         s.citta AS stazione_citta,
         s.sito_web AS stazione_sito_web,
         pi.nome AS piattaforma_nome,
@@ -274,7 +274,7 @@ export default async function bandiRoutes(fastify, opts) {
 
     const bando = await query(
       `SELECT b.*,
-        s.nome AS stazione_nome, s.citta AS stazione_citta,
+        COALESCE(s.nome, b.stazione_nome) AS stazione_nome, s.citta AS stazione_citta,
         s.sito_web AS stazione_sito_web, s.email AS stazione_email, s.telefono AS stazione_tel,
         pi.nome AS piattaforma_nome, pi.url AS piattaforma_url,
         soa.codice AS soa_categoria, soa.descrizione AS soa_descrizione,
@@ -973,7 +973,7 @@ export default async function bandiRoutes(fastify, opts) {
       // 1. Fetch bando with joined data
       const bandoRes = await query(
         `SELECT b.*,
-          s.nome AS stazione_nome, s.id AS stazione_id,
+          COALESCE(s.nome, b.stazione_nome) AS stazione_nome, s.id AS stazione_id,
           soa.id AS soa_id, soa.codice AS soa_codice,
           p.id AS provincia_id
          FROM bandi b
@@ -1248,7 +1248,7 @@ export default async function bandiRoutes(fastify, opts) {
     try {
       // Get bando info
       const bando = await query(
-        `SELECT b.titolo, b.codice_cig, s.nome AS stazione, b.data_offerta
+        `SELECT b.titolo, b.codice_cig, COALESCE(s.nome, b.stazione_nome) AS stazione, b.data_offerta
          FROM bandi b LEFT JOIN stazioni s ON b.id_stazione = s.id
          WHERE b.id = $1`, [id]
       );
@@ -1377,7 +1377,7 @@ export default async function bandiRoutes(fastify, opts) {
     const user = request.user;
     try {
       const bando = await query(
-        `SELECT b.titolo, b.codice_cig, s.nome AS stazione, b.data_offerta, b.importo_so
+        `SELECT b.titolo, b.codice_cig, COALESCE(s.nome, b.stazione_nome) AS stazione, b.data_offerta, b.importo_so
          FROM bandi b LEFT JOIN stazioni s ON b.id_stazione = s.id
          WHERE b.id = $1`, [id]
       );
