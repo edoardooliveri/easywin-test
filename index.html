@@ -12,7 +12,7 @@
 
 <!-- NAVBAR -->
 <nav class="navbar">
-    <a href="index.html"><img src="logo.png" alt="easyWin" class="logo-img"></a>
+    <a href="index.html"><img src="logo.jpg" alt="easyWin" class="logo-img"></a>
     <div class="nav-links">
         <a href="#azienda">Azienda</a>
         <div class="nav-item">
@@ -427,14 +427,15 @@
     <div class="container">
         <h2 class="table-title fade-up">Ultimi Bandi di Gara Pubblicati</h2>
         <style>
-            #home-bandi-list > div, #home-esiti-list > div { margin-bottom: 20px; }
+            #home-bandi-list, #home-esiti-list { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
             @media (max-width: 768px) {
+                #home-bandi-list, #home-esiti-list { grid-template-columns: 1fr; }
                 #home-bandi-list .home-grid4, #home-esiti-list .home-grid4 { grid-template-columns: 1fr 1fr !important; }
                 #home-bandi-list .home-footer, #home-esiti-list .home-footer { flex-direction: column; }
                 #home-bandi-list .home-footer button, #home-esiti-list .home-footer button { justify-content: center; width: 100%; }
             }
         </style>
-        <div id="home-bandi-list" class="fade-up" style="display:flex;flex-direction:column;gap:0;">
+        <div id="home-bandi-list" class="fade-up">
             <div style="text-align:center;padding:60px 20px;"><i class="fas fa-spinner fa-spin" style="font-size:2em;color:#FF8C00;"></i><p style="margin-top:12px;color:#94a3b8;">Caricamento bandi...</p></div>
         </div>
         <div class="table-section-footer fade-up">
@@ -447,7 +448,7 @@
 <section id="aggiudicazioni" class="section section-alt">
     <div class="container">
         <h2 class="table-title fade-up">Ultime Aggiudicazioni di Gara</h2>
-        <div id="home-esiti-list" class="fade-up" style="display:flex;flex-direction:column;gap:0;">
+        <div id="home-esiti-list" class="fade-up">
             <div style="text-align:center;padding:60px 20px;"><i class="fas fa-spinner fa-spin" style="font-size:2em;color:#FF8C00;"></i><p style="margin-top:12px;color:#94a3b8;">Caricamento esiti...</p></div>
         </div>
         <div class="table-section-footer fade-up">
@@ -576,7 +577,7 @@
 <footer>
     <div class="footer-inner">
         <div class="footer-brand">
-            <img src="logo.png" alt="easyWin" class="footer-logo">
+            <img src="logo.jpg" alt="easyWin" class="footer-logo">
             <p><strong>easyWin......</strong></p>
             <p>Facile Vincere</p>
             <div class="footer-socials">
@@ -965,19 +966,19 @@ function _esc(s) { if (!s) return ''; var d = document.createElement('div'); d.t
 function _fmtDate(d) { return d ? new Date(d).toLocaleDateString('it-IT') : '-'; }
 function _fmtImporto(n) { return n ? new Intl.NumberFormat('it-IT', {style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n) : '-'; }
 
-// ===== ULTIMI 10 BANDI =====
+// ===== ULTIMI 6 BANDI =====
 async function loadUltimiBandi() {
     var container = document.getElementById('home-bandi-list');
     try {
-        var res = await fetch(API_BASE + '/api/bandi/?limit=10&sort=data_pubblicazione&order=desc');
+        var res = await fetch(API_BASE + '/api/bandi/?limit=6&sort=data_pubblicazione&order=desc&importo_min=1');
         var result = await res.json();
         var bandi = result.data || [];
         if (!bandi.length) { container.innerHTML = '<p style="text-align:center;padding:40px;color:#94a3b8;">Nessun bando disponibile</p>'; return; }
 
-        var cL = 'style="padding:6px 12px;font-size:0.7rem;color:#8B6914;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-right:1px solid #e8dcc8;border-bottom:1px solid #e8dcc8;background:#f8f6f0"';
-        var cV = 'style="padding:8px 12px;font-weight:600;border-right:1px solid #e8dcc8;border-bottom:1px solid #e8dcc8;color:#1a1a1a"';
-        var cLL = 'style="padding:6px 12px;font-size:0.7rem;color:#8B6914;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid #e8dcc8;background:#f8f6f0"';
-        var cVL = 'style="padding:8px 12px;font-weight:600;border-bottom:1px solid #e8dcc8;color:#1a1a1a"';
+        var cL = 'style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-right:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1);background:#1E2D3D"';
+        var cV = 'style="padding:8px 12px;font-weight:600;border-right:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1);color:#ffffff;background:#243749"';
+        var cLL = 'style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.1);background:#1E2D3D"';
+        var cVL = 'style="padding:8px 12px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.1);color:#ffffff;background:#243749"';
 
         container.innerHTML = bandi.map(function(b, i) {
             var scad = b.data_offerta ? new Date(b.data_offerta) : null;
@@ -986,33 +987,33 @@ async function loadUltimiBandi() {
             var urgente = giorni !== null && giorni <= 7 && giorni >= 0;
             var importoF = _fmtImporto(b.importo_so);
             var badge = '';
-            if (scaduto) badge = '<span style="background:rgba(239,68,68,0.15);color:#ef4444;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600;border:1px solid rgba(239,68,68,0.2)">SCADUTO</span>';
-            else if (urgente) badge = '<span style="background:rgba(245,158,11,0.15);color:#f59e0b;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600;border:1px solid rgba(245,158,11,0.2)">URGENTE ' + giorni + 'gg</span>';
-            else badge = '<span style="background:rgba(34,197,94,0.15);color:#22c55e;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600;border:1px solid rgba(34,197,94,0.2)">ATTIVO</span>';
+            if (scaduto) badge = '<span style="background:rgba(239,68,68,0.15);color:#ef4444;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600">SCADUTO</span>';
+            else if (urgente) badge = '<span style="background:rgba(245,158,11,0.15);color:#f59e0b;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600">URGENTE ' + giorni + 'gg</span>';
+            else badge = '<span style="background:rgba(34,197,94,0.15);color:#22c55e;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600">ATTIVO</span>';
 
-            return '<div style="background:#fff;border:1px solid #e8dcc8;border-radius:20px;overflow:hidden;transition:all 0.2s ease;box-shadow:0 1px 3px rgba(0,0,0,0.04)" onmouseover="this.style.boxShadow=\'0 4px 20px rgba(245,197,24,0.15)\'" onmouseout="this.style.boxShadow=\'0 1px 3px rgba(0,0,0,0.04)\'">'
-              + '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:linear-gradient(135deg,#1a1a1a,#2d1f00);border-bottom:1px solid #e8dcc8">'
-                + '<div style="display:flex;align-items:center;gap:12px"><span style="font-size:0.95rem;font-weight:700;color:#F5C518;font-family:Comfortaa,cursive">Bando n° ' + (i+1) + '</span><img src="logo.png" alt="EasyWin" style="height:32px"></div>'
+            return '<div style="background:#1E2D3D;border:1px solid rgba(255,255,255,0.08);border-radius:20px;overflow:hidden;transition:all 0.2s ease;box-shadow:0 2px 8px rgba(30,45,61,0.3)" onmouseover="this.style.boxShadow=\'0 6px 24px rgba(30,45,61,0.4)\'" onmouseout="this.style.boxShadow=\'0 2px 8px rgba(30,45,61,0.3)\'">'
+              + '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#162230;border-bottom:1px solid rgba(255,255,255,0.1)">'
+                + '<div style="display:flex;align-items:center;gap:12px"><span style="font-size:0.95rem;font-weight:700;color:#ffffff;font-family:Comfortaa,cursive">Bando n° ' + (i+1) + '</span><img src="logo.jpg" alt="EasyWin" style="height:28px;filter:brightness(10)"></div>'
                 + '<div style="display:flex;align-items:center;gap:10px">' + badge + '</div>'
               + '</div>'
               + '<div class="home-grid4" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">'
                 + '<div ' + cL + '>Tipologia</div><div ' + cL + '>Criterio</div><div ' + cL + '>Scadenza</div><div ' + cLL + '>Pubblicazione</div>'
-                + '<div ' + cV + '><span style="color:#1a1a1a;font-size:0.85rem">' + _esc(b.tipologia || '-') + '</span></div>'
-                + '<div ' + cV + '><span style="color:#1a1a1a;font-size:0.85rem">' + _esc(b.criterio || '-') + '</span></div>'
-                + '<div ' + cV + '><span style="color:' + (scaduto?'#666':urgente?'#ef4444':'#22c55e') + ';font-size:1rem;font-weight:600">' + _fmtDate(b.data_offerta) + '</span></div>'
-                + '<div ' + cVL + '><span style="color:#1a1a1a;font-size:0.9rem">' + _fmtDate(b.data_pubblicazione) + '</span></div>'
+                + '<div ' + cV + '><span style="color:rgba(255,255,255,0.9);font-size:0.85rem">' + _esc(b.tipologia || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:rgba(255,255,255,0.8);font-size:0.85rem">' + _esc(b.criterio || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:' + (scaduto?'rgba(255,255,255,0.5)':urgente?'#ef4444':'#4ade80') + ';font-size:1rem;font-weight:600">' + _fmtDate(b.data_offerta) + '</span></div>'
+                + '<div ' + cVL + '><span style="color:rgba(255,255,255,0.9);font-size:0.9rem">' + _fmtDate(b.data_pubblicazione) + '</span></div>'
               + '</div>'
               + '<div class="home-grid4" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">'
                 + '<div ' + cL + '>Provincia</div><div ' + cL + '>Importo</div><div ' + cL + '>CIG</div><div ' + cLL + '>Categoria SOA</div>'
-                + '<div ' + cV + '><span style="color:#1a1a1a;font-size:0.9rem">' + _esc(b.provincia_nome || '-') + '</span></div>'
-                + '<div ' + cV + '><span style="color:#FF8C00;font-size:1.05rem;font-weight:700">' + importoF + '</span></div>'
-                + '<div ' + cV + '><span style="color:#8B6914;font-family:monospace;font-size:0.88rem">' + _esc(b.codice_cig || '-') + '</span></div>'
-                + '<div ' + cVL + '><span style="color:#F5C518;font-size:0.95rem;font-weight:700">' + _esc(b.soa_categoria || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:rgba(255,255,255,0.9);font-size:0.9rem">' + _esc(b.provincia_nome || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:#4ade80;font-size:1.05rem;font-weight:700">' + importoF + '</span></div>'
+                + '<div ' + cV + '><span style="color:rgba(255,255,255,0.6);font-family:monospace;font-size:0.88rem">' + _esc(b.codice_cig || '-') + '</span></div>'
+                + '<div ' + cVL + '><span style="color:#a78bfa;font-size:0.95rem;font-weight:700">' + _esc(b.soa_categoria || '-') + '</span></div>'
               + '</div>'
-              + '<div style="border-bottom:1px solid #e8dcc8"><div style="padding:6px 12px;font-size:0.7rem;color:#8B6914;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid #e8dcc8;background:#f8f6f0">Stazione appaltante</div><div style="padding:8px 12px;font-size:0.95rem;color:#1a1a1a;font-weight:700"><i class="fas fa-building" style="margin-right:6px;color:#FF8C00"></i>' + _esc(b.stazione || '-') + '</div></div>'
-              + '<div style="border-bottom:1px solid #e8dcc8"><div style="padding:6px 12px;font-size:0.7rem;color:#8B6914;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid #e8dcc8;background:#f8f6f0">Oggetto</div><div style="padding:10px 12px;font-size:0.88rem;color:#333;font-weight:500;line-height:1.5;text-align:justify;cursor:pointer" onclick="window.open(\'bando-dettaglio.html?id=' + b.id + '\',\'_blank\')">' + _esc(b.titolo || '-') + '</div></div>'
-              + '<div class="home-footer" style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:#f8f6f0;border-top:1px solid #e8dcc8;border-radius:0 0 20px 20px;flex-wrap:wrap">'
-                + '<button onclick="window.open(\'bando-dettaglio.html?id=' + b.id + '\',\'_blank\')" style="background:linear-gradient(135deg,#F5C518,#FF8C00);color:#1a1a1a;border:none;padding:8px 20px;border-radius:50px;cursor:pointer;font-weight:800;font-size:0.78rem;font-family:Comfortaa,cursive;transition:all 0.2s;display:flex;align-items:center;gap:6px" onmouseover="this.style.opacity=\'0.85\'" onmouseout="this.style.opacity=\'1\'"><i class="fas fa-eye"></i> VISUALIZZA</button>'
+              + '<div style="border-bottom:1px solid rgba(255,255,255,0.08)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Stazione appaltante</div><div style="padding:8px 12px;font-size:0.95rem;color:#ffffff;font-weight:700;background:#243749"><i class="fas fa-building" style="margin-right:6px;opacity:0.5"></i>' + _esc(b.stazione || '-') + '</div></div>'
+              + '<div style="border-bottom:1px solid rgba(255,255,255,0.08)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Oggetto</div><div style="padding:10px 12px;font-size:0.88rem;color:rgba(255,255,255,0.85);font-weight:500;line-height:1.5;text-align:justify;cursor:pointer;background:#243749" onclick="window.open(\'bando-dettaglio.html?id=' + b.id + '\',\'_blank\')">' + _esc(b.titolo || '-') + '</div></div>'
+              + '<div class="home-footer" style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:#162230;border-top:1px solid rgba(255,255,255,0.1);border-radius:0 0 20px 20px;flex-wrap:wrap">'
+                + '<button onclick="window.open(\'bando-dettaglio.html?id=' + b.id + '\',\'_blank\')" style="background-image:linear-gradient(to right,#F5C518 0%,#FF8C00 51%,#F5C518 100%);background-size:200% auto;background-position:right center;color:#fff;border:none;padding:8px 20px;border-radius:50px;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:Comfortaa,cursive;transition:all 0.3s;display:flex;align-items:center;gap:6px;text-shadow:0 1px 2px rgba(0,0,0,0.15)" onmouseover="this.style.backgroundPosition=\'left center\'" onmouseout="this.style.backgroundPosition=\'right center\'"><i class="fas fa-eye"></i> VISUALIZZA</button>'
               + '</div>'
             + '</div>';
         }).join('');
@@ -1021,50 +1022,50 @@ async function loadUltimiBandi() {
     }
 }
 
-// ===== ULTIMI 10 ESITI =====
+// ===== ULTIMI 6 ESITI =====
 async function loadUltimiEsiti() {
     var container = document.getElementById('home-esiti-list');
     try {
-        var res = await fetch(API_BASE + '/api/esiti/?limit=10&sort=data&order=desc');
+        var res = await fetch(API_BASE + '/api/esiti/?limit=6&sort=data&order=desc');
         var result = await res.json();
         var esiti = result.data || [];
         if (!esiti.length) { container.innerHTML = '<p style="text-align:center;padding:40px;color:#94a3b8;">Nessun esito disponibile</p>'; return; }
 
-        var cL = 'style="padding:6px 12px;font-size:0.7rem;color:#8B6914;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-right:1px solid #e8dcc8;border-bottom:1px solid #e8dcc8;background:#f8f6f0"';
-        var cV = 'style="padding:8px 12px;font-weight:600;border-right:1px solid #e8dcc8;border-bottom:1px solid #e8dcc8;color:#1a1a1a"';
-        var cLL = 'style="padding:6px 12px;font-size:0.7rem;color:#8B6914;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid #e8dcc8;background:#f8f6f0"';
-        var cVL = 'style="padding:8px 12px;font-weight:600;border-bottom:1px solid #e8dcc8;color:#1a1a1a"';
+        var cL = 'style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-right:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1);background:#1E2D3D"';
+        var cV = 'style="padding:8px 12px;font-weight:600;border-right:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1);color:#ffffff;background:#243749"';
+        var cLL = 'style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.1);background:#1E2D3D"';
+        var cVL = 'style="padding:8px 12px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.1);color:#ffffff;background:#243749"';
 
         container.innerHTML = esiti.map(function(e, i) {
             var importoF = _fmtImporto(e.importo);
             var ribasso = e.ribasso ? parseFloat(e.ribasso).toFixed(2) + '%' : '-';
             var partec = e.n_partecipanti || '-';
 
-            return '<div style="background:#fff;border:1px solid #e8dcc8;border-radius:20px;overflow:hidden;transition:all 0.2s ease;box-shadow:0 1px 3px rgba(0,0,0,0.04)" onmouseover="this.style.boxShadow=\'0 4px 20px rgba(245,197,24,0.15)\'" onmouseout="this.style.boxShadow=\'0 1px 3px rgba(0,0,0,0.04)\'">'
-              + '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:linear-gradient(135deg,#1a1a1a,#2d1f00);border-bottom:1px solid #e8dcc8">'
-                + '<div style="display:flex;align-items:center;gap:12px"><span style="font-size:0.95rem;font-weight:700;color:#F5C518;font-family:Comfortaa,cursive">Esito n° ' + (i+1) + '</span><img src="logo.png" alt="EasyWin" style="height:32px"></div>'
-                + '<div style="display:flex;align-items:center;gap:10px"><span style="background:rgba(245,197,24,0.15);color:#F5C518;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600"><i class="far fa-calendar" style="margin-right:4px"></i>' + _fmtDate(e.data) + '</span></div>'
+            return '<div style="background:#1E2D3D;border:1px solid rgba(255,255,255,0.08);border-radius:20px;overflow:hidden;transition:all 0.2s ease;box-shadow:0 2px 8px rgba(30,45,61,0.3)" onmouseover="this.style.boxShadow=\'0 6px 24px rgba(30,45,61,0.4)\'" onmouseout="this.style.boxShadow=\'0 2px 8px rgba(30,45,61,0.3)\'">'
+              + '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#162230;border-bottom:1px solid rgba(255,255,255,0.1)">'
+                + '<div style="display:flex;align-items:center;gap:12px"><span style="font-size:0.95rem;font-weight:700;color:#ffffff;font-family:Comfortaa,cursive">Esito n° ' + (i+1) + '</span><img src="logo.jpg" alt="EasyWin" style="height:28px;filter:brightness(10)"></div>'
+                + '<div style="display:flex;align-items:center;gap:10px"><span style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8);padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600"><i class="far fa-calendar" style="margin-right:4px"></i>' + _fmtDate(e.data) + '</span></div>'
               + '</div>'
               + '<div class="home-grid4" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">'
                 + '<div ' + cL + '>Provincia</div><div ' + cL + '>Importo</div><div ' + cL + '>Ribasso</div><div ' + cLL + '>Partecipanti</div>'
-                + '<div ' + cV + '><span style="color:#1a1a1a;font-size:0.9rem">' + _esc(e.provincia_nome || '-') + '</span></div>'
-                + '<div ' + cV + '><span style="color:#FF8C00;font-size:1.05rem;font-weight:700">' + importoF + '</span></div>'
+                + '<div ' + cV + '><span style="color:rgba(255,255,255,0.9);font-size:0.9rem">' + _esc(e.provincia_nome || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:#4ade80;font-size:1.05rem;font-weight:700">' + importoF + '</span></div>'
                 + '<div ' + cV + '><span style="color:#FF8C00;font-size:1rem;font-weight:700">' + ribasso + '</span></div>'
-                + '<div ' + cVL + '><span style="color:#1a1a1a;font-size:0.95rem;font-weight:600">' + partec + '</span></div>'
+                + '<div ' + cVL + '><span style="color:rgba(255,255,255,0.9);font-size:0.95rem;font-weight:600">' + partec + '</span></div>'
               + '</div>'
               + '<div class="home-grid4" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">'
                 + '<div ' + cL + '>CIG</div><div ' + cL + '>Categoria SOA</div><div ' + cL + '>Tipologia</div><div ' + cLL + '>Criterio</div>'
-                + '<div ' + cV + '><span style="color:#8B6914;font-family:monospace;font-size:0.88rem">' + _esc(e.codice_cig || '-') + '</span></div>'
-                + '<div ' + cV + '><span style="color:#F5C518;font-size:0.95rem;font-weight:700">' + _esc(e.soa_categoria || '-') + '</span></div>'
-                + '<div ' + cV + '><span style="color:#1a1a1a;font-size:0.85rem">' + _esc(e.tipologia || '-') + '</span></div>'
-                + '<div ' + cVL + '><span style="color:#1a1a1a;font-size:0.85rem">' + _esc(e.criterio || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:rgba(255,255,255,0.6);font-family:monospace;font-size:0.88rem">' + _esc(e.codice_cig || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:#a78bfa;font-size:0.95rem;font-weight:700">' + _esc(e.soa_categoria || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:rgba(255,255,255,0.9);font-size:0.85rem">' + _esc(e.tipologia || '-') + '</span></div>'
+                + '<div ' + cVL + '><span style="color:rgba(255,255,255,0.8);font-size:0.85rem">' + _esc(e.criterio || '-') + '</span></div>'
               + '</div>'
-              + '<div style="border-bottom:1px solid #e8dcc8"><div style="padding:6px 12px;font-size:0.7rem;color:#8B6914;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid #e8dcc8;background:#f8f6f0">Stazione appaltante</div><div style="padding:8px 12px;font-size:0.95rem;color:#1a1a1a;font-weight:700"><i class="fas fa-building" style="margin-right:6px;color:#FF8C00"></i>' + _esc(e.stazione_nome || '-') + '</div></div>'
-              + '<div style="border-bottom:1px solid #e8dcc8"><div style="padding:6px 12px;font-size:0.7rem;color:#8B6914;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid #e8dcc8;background:#f8f6f0">Oggetto</div><div style="padding:10px 12px;font-size:0.88rem;color:#333;font-weight:500;line-height:1.5;text-align:justify">' + _esc(e.titolo || '-') + '</div></div>'
-              + (e.vincitore_nome ? '<div style="border-bottom:1px solid #e8dcc8"><div style="padding:6px 12px;font-size:0.7rem;color:#8B6914;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid #e8dcc8;background:#f8f6f0"><i class="fas fa-trophy" style="color:#F5C518;margin-right:4px"></i>Vincitore</div><div style="padding:8px 12px;font-size:0.95rem;color:#1a1a1a;font-weight:700">' + _esc(e.vincitore_nome) + '</div></div>' : '')
-              + '<div class="home-footer" style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:#f8f6f0;border-top:1px solid #e8dcc8;border-radius:0 0 20px 20px;flex-wrap:wrap">'
-                + (e.id_bando ? '<button onclick="window.open(\'bando-dettaglio.html?id=' + e.id_bando + '\',\'_blank\')" style="background:#1a1a1a;color:#F5C518;border:none;padding:8px 20px;border-radius:50px;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:Comfortaa,cursive;transition:all 0.2s;display:flex;align-items:center;gap:6px" onmouseover="this.style.opacity=\'0.85\'" onmouseout="this.style.opacity=\'1\'"><i class="fas fa-eye"></i> VISUALIZZA BANDO</button>' : '')
-                + '<button onclick="window.open(\'aggiudicazione-dettaglio.html?id=' + e.id + '\',\'_blank\')" style="background:linear-gradient(135deg,#F5C518,#FF8C00);color:#1a1a1a;border:none;padding:8px 20px;border-radius:50px;cursor:pointer;font-weight:800;font-size:0.78rem;font-family:Comfortaa,cursive;transition:all 0.2s;display:flex;align-items:center;gap:6px" onmouseover="this.style.opacity=\'0.85\'" onmouseout="this.style.opacity=\'1\'"><i class="fas fa-chart-bar"></i> DETTAGLIO ESITO</button>'
+              + '<div style="border-bottom:1px solid rgba(255,255,255,0.08)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Stazione appaltante</div><div style="padding:8px 12px;font-size:0.95rem;color:#ffffff;font-weight:700;background:#243749"><i class="fas fa-building" style="margin-right:6px;opacity:0.5"></i>' + _esc(e.stazione_nome || '-') + '</div></div>'
+              + '<div style="border-bottom:1px solid rgba(255,255,255,0.08)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Oggetto</div><div style="padding:10px 12px;font-size:0.88rem;color:rgba(255,255,255,0.85);font-weight:500;line-height:1.5;text-align:justify;background:#243749">' + _esc(e.titolo || '-') + '</div></div>'
+              + (e.vincitore_nome ? '<div style="border-bottom:1px solid rgba(255,255,255,0.08)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D"><i class="fas fa-trophy" style="color:#FF8C00;margin-right:4px"></i>Vincitore</div><div style="padding:8px 12px;font-size:0.95rem;color:#ffffff;font-weight:700;background:#243749">' + _esc(e.vincitore_nome) + '</div></div>' : '')
+              + '<div class="home-footer" style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:#162230;border-top:1px solid rgba(255,255,255,0.1);border-radius:0 0 20px 20px;flex-wrap:wrap">'
+                + (e.id_bando ? '<button onclick="window.open(\'bando-dettaglio.html?id=' + e.id_bando + '\',\'_blank\')" style="background:#243749;color:#FF8C00;border:1px solid #FF8C00;padding:8px 20px;border-radius:50px;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:Comfortaa,cursive;transition:all 0.2s;display:flex;align-items:center;gap:6px" onmouseover="this.style.background=\'#2d4a5e\'" onmouseout="this.style.background=\'#243749\'"><i class="fas fa-eye"></i> VISUALIZZA BANDO</button>' : '')
+                + '<button onclick="window.open(\'aggiudicazione-dettaglio.html?id=' + e.id + '\',\'_blank\')" style="background-image:linear-gradient(to right,#F5C518 0%,#FF8C00 51%,#F5C518 100%);background-size:200% auto;background-position:right center;color:#fff;border:none;padding:8px 20px;border-radius:50px;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:Comfortaa,cursive;transition:all 0.3s;display:flex;align-items:center;gap:6px;text-shadow:0 1px 2px rgba(0,0,0,0.15)" onmouseover="this.style.backgroundPosition=\'left center\'" onmouseout="this.style.backgroundPosition=\'right center\'"><i class="fas fa-chart-bar"></i> DETTAGLIO ESITO</button>'
               + '</div>'
             + '</div>';
         }).join('');
