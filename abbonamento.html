@@ -53,8 +53,15 @@
         .serv-icon { font-size: 30px; color: var(--orange); margin-bottom: 14px; }
         .serv-name { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 10px; font-family: 'Comfortaa', cursive; }
         .serv-desc { font-size: 13px; color: var(--text-light); line-height: 1.6; flex-grow: 1; margin-bottom: 18px; }
-        .serv-link { color: var(--orange); font-weight: 600; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 6px; }
+        .serv-link { color: var(--orange); font-weight: 600; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 6px; margin-bottom: 14px; }
         .serv-link:hover { text-decoration: underline; }
+        .serv-cta {
+            display: block; width: 100%; padding: 11px 20px; border-radius: 10px;
+            border: 2px solid var(--orange); color: var(--orange); background: transparent;
+            font-weight: 700; font-size: 13px; text-decoration: none; text-align: center;
+            transition: all 0.3s ease; font-family: 'Comfortaa', cursive;
+        }
+        .serv-cta:hover { background: var(--orange); color: #fff; }
 
         /* FORMAZIONE */
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; margin-top: 40px; }
@@ -167,14 +174,15 @@
             <div class="pack-card">
                 <div class="pack-icon"><i class="fas fa-search"></i></div>
                 <div class="pack-name">Solo Bandi</div>
-                <p class="pack-desc">Monitora tutti i bandi di gara pubblici italiani</p>
+                <p class="pack-desc">Accedi alla pi&ugrave; completa banca dati di bandi di gara pubblici italiani. Ricevi ogni giorno via email solo i bandi che ti interessano, filtrati per regione, importo, categoria SOA e parole chiave. Non perderai mai pi&ugrave; una scadenza.</p>
                 <ul class="pack-features">
-                    <li><i class="fas fa-check"></i> Banca dati bandi completa</li>
-                    <li><i class="fas fa-check"></i> Mailing personalizzato bandi</li>
-                    <li><i class="fas fa-check"></i> Filtri avanzati per regione, importo, SOA</li>
-                    <li><i class="fas fa-check"></i> Monitoraggio bandi MEPA</li>
-                    <li><i class="fas fa-check"></i> Reminder scadenze automatici</li>
-                    <li><i class="fas fa-check"></i> Accesso archivio storico</li>
+                    <li><i class="fas fa-check"></i> Banca dati bandi di lavori, servizi e forniture</li>
+                    <li><i class="fas fa-check"></i> Mailing giornaliero personalizzato con i tuoi filtri</li>
+                    <li><i class="fas fa-check"></i> Filtri per regione, provincia, importo, categoria SOA</li>
+                    <li><i class="fas fa-check"></i> Monitoraggio bandi MEPA in tempo reale</li>
+                    <li><i class="fas fa-check"></i> Reminder automatici per scadenze imminenti</li>
+                    <li><i class="fas fa-check"></i> Archivio storico completo consultabile</li>
+                    <li><i class="fas fa-check"></i> Scaricamento bandi e allegati in PDF</li>
                 </ul>
                 <a href="contattaci.html" class="pack-cta pack-cta-outline">Richiedi Preventivo</a>
             </div>
@@ -183,14 +191,15 @@
             <div class="pack-card">
                 <div class="pack-icon"><i class="fas fa-trophy"></i></div>
                 <div class="pack-name">Solo Esiti</div>
-                <p class="pack-desc">Analizza le aggiudicazioni e studia i ribassi vincenti</p>
+                <p class="pack-desc">Consulta oltre 25 anni di aggiudicazioni integrali di gare pubbliche italiane. Analizza i ribassi vincenti, studia le tendenze per zona e categoria, e usa il simulatore statistico per calcolare il range ottimale di offerta.</p>
                 <ul class="pack-features">
-                    <li><i class="fas fa-check"></i> Banca dati esiti completa</li>
-                    <li><i class="fas fa-check"></i> Mailing personalizzato esiti</li>
-                    <li><i class="fas fa-check"></i> Aggiudicazioni in tempo reale</li>
-                    <li><i class="fas fa-check"></i> Simulatore statistico</li>
-                    <li><i class="fas fa-check"></i> Analisi ribassi per zona e SOA</li>
-                    <li><i class="fas fa-check"></i> 25+ anni di dati storici</li>
+                    <li><i class="fas fa-check"></i> Banca dati esiti con aggiudicazioni integrali</li>
+                    <li><i class="fas fa-check"></i> Mailing personalizzato esiti per i tuoi settori</li>
+                    <li><i class="fas fa-check"></i> Notifiche aggiudicazioni in tempo reale</li>
+                    <li><i class="fas fa-check"></i> Simulatore statistico per calcolo ribasso ottimale</li>
+                    <li><i class="fas fa-check"></i> Analisi ribassi vincenti per zona, SOA e importo</li>
+                    <li><i class="fas fa-check"></i> Oltre 25 anni di dati storici consultabili</li>
+                    <li><i class="fas fa-check"></i> Esportazione dati per analisi personalizzate</li>
                 </ul>
                 <a href="contattaci.html" class="pack-cta pack-cta-outline">Richiedi Preventivo</a>
             </div>
@@ -199,14 +208,15 @@
             <div class="pack-card featured">
                 <div class="pack-icon"><i class="fas fa-star"></i></div>
                 <div class="pack-name">Bandi + Esiti</div>
-                <p class="pack-desc">La combinazione vincente per competere al meglio</p>
+                <p class="pack-desc">La combinazione vincente: monitora i bandi in uscita e analizza gli esiti delle gare precedenti per presentare offerte pi&ugrave; competitive. Include lo Studio Statistico con Intelligenza Artificiale e l'analisi dei concorrenti.</p>
                 <ul class="pack-features">
-                    <li><i class="fas fa-check"></i> Tutto di Solo Bandi</li>
-                    <li><i class="fas fa-check"></i> Tutto di Solo Esiti</li>
-                    <li><i class="fas fa-check"></i> Studio Statistico con AI</li>
-                    <li><i class="fas fa-check"></i> Analisi concorrenti</li>
-                    <li><i class="fas fa-check"></i> Verifica conteggi graduatorie</li>
-                    <li><i class="fas fa-check"></i> Report personalizzati</li>
+                    <li><i class="fas fa-check"></i> Tutto il pacchetto Solo Bandi</li>
+                    <li><i class="fas fa-check"></i> Tutto il pacchetto Solo Esiti</li>
+                    <li><i class="fas fa-check"></i> Studio Statistico con AI personalizzato</li>
+                    <li><i class="fas fa-check"></i> Analisi approfondita dei concorrenti</li>
+                    <li><i class="fas fa-check"></i> Verifica correttezza conteggi graduatorie</li>
+                    <li><i class="fas fa-check"></i> Report incrociati bandi-esiti per settore</li>
+                    <li><i class="fas fa-check"></i> Supporto tecnico dedicato</li>
                 </ul>
                 <a href="contattaci.html" class="pack-cta pack-cta-fill">Richiedi Preventivo</a>
             </div>
@@ -214,15 +224,16 @@
             <!-- BANDI + ESITI + ALBO -->
             <div class="pack-card">
                 <div class="pack-icon"><i class="fas fa-rocket"></i></div>
-                <div class="pack-name">Completo + Albo</div>
-                <p class="pack-desc">Il pacchetto completo con gestione albi fornitori</p>
+                <div class="pack-name">Completo + Albo Fornitori</div>
+                <p class="pack-desc">Il pacchetto pi&ugrave; completo per le aziende che vogliono massimizzare le opportunit&agrave;. Oltre a bandi ed esiti, gestiamo per te le iscrizioni agli albi fornitori e alle piattaforme digitali di e-procurement in tutta Italia.</p>
                 <ul class="pack-features">
-                    <li><i class="fas fa-check"></i> Tutto di Bandi + Esiti</li>
-                    <li><i class="fas fa-check"></i> Gestione albi fornitori</li>
-                    <li><i class="fas fa-check"></i> Iscrizione piattaforme digitali</li>
-                    <li><i class="fas fa-check"></i> Monitoraggio scadenze albi</li>
-                    <li><i class="fas fa-check"></i> Supporto dedicato prioritario</li>
-                    <li><i class="fas fa-check"></i> Digitalizzazione aggiudicazioni</li>
+                    <li><i class="fas fa-check"></i> Tutto il pacchetto Bandi + Esiti</li>
+                    <li><i class="fas fa-check"></i> Gestione completa albi fornitori</li>
+                    <li><i class="fas fa-check"></i> Iscrizione a tutte le piattaforme digitali</li>
+                    <li><i class="fas fa-check"></i> Monitoraggio scadenze e rinnovi albi</li>
+                    <li><i class="fas fa-check"></i> Aggiornamento automatico documentazione</li>
+                    <li><i class="fas fa-check"></i> Digitalizzazione verbali di aggiudicazione</li>
+                    <li><i class="fas fa-check"></i> Supporto prioritario con referente dedicato</li>
                 </ul>
                 <a href="contattaci.html" class="pack-cta pack-cta-outline">Richiedi Preventivo</a>
             </div>
@@ -244,6 +255,7 @@
                 <div class="serv-name">Sopralluoghi</div>
                 <p class="serv-desc">Effettuiamo sopralluoghi tecnici presso i siti di gara con personale qualificato, documentando tutto con foto e relazioni dettagliate.</p>
                 <a href="sopralluoghi.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+                <a href="contattaci.html" class="serv-cta">Richiedi Preventivo</a>
             </div>
 
             <div class="serv-card">
@@ -251,6 +263,7 @@
                 <div class="serv-name">Avvalimenti</div>
                 <p class="serv-desc">Ti aiutiamo a trovare aziende disponibili a prestare i requisiti necessari per partecipare alle gare tramite l'istituto dell'avvalimento.</p>
                 <a href="avvalimenti.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+                <a href="contattaci.html" class="serv-cta">Richiedi Preventivo</a>
             </div>
 
             <div class="serv-card">
@@ -258,6 +271,7 @@
                 <div class="serv-name">Compilazione Gare</div>
                 <p class="serv-desc">Compilazione completa della documentazione di gara: buste amministrative, tecniche ed economiche, con verifica finale di conformit&agrave;.</p>
                 <a href="compilazione-gare.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+                <a href="contattaci.html" class="serv-cta">Richiedi Preventivo</a>
             </div>
 
             <div class="serv-card">
@@ -265,6 +279,7 @@
                 <div class="serv-name">Offerte Vantaggiose</div>
                 <p class="serv-desc">Strategie di ribasso basate su analisi statistica dei dati storici per massimizzare le probabilit&agrave; di aggiudicazione.</p>
                 <a href="offerte-vantaggiose.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+                <a href="contattaci.html" class="serv-cta">Richiedi Preventivo</a>
             </div>
 
             <div class="serv-card">
@@ -272,6 +287,7 @@
                 <div class="serv-name">Presenza Sedute</div>
                 <p class="serv-desc">Inviamo nostri rappresentanti qualificati alle sedute pubbliche di apertura buste in tutta Italia, con report immediato.</p>
                 <a href="presenza-sedute.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+                <a href="contattaci.html" class="serv-cta">Richiedi Preventivo</a>
             </div>
 
             <div class="serv-card">
@@ -279,6 +295,7 @@
                 <div class="serv-name">Consulenza Legale</div>
                 <p class="serv-desc">Supporto legale specializzato in appalti pubblici: ricorsi al TAR, accesso agli atti, pareri su bandi e disciplinari.</p>
                 <a href="consulenza-legale.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+                <a href="contattaci.html" class="serv-cta">Richiedi Preventivo</a>
             </div>
 
             <div class="serv-card">
@@ -286,6 +303,7 @@
                 <div class="serv-name">Accesso Atti</div>
                 <p class="serv-desc">Gestione completa delle richieste di accesso agli atti di gara presso le stazioni appaltanti, con follow-up fino all'ottenimento.</p>
                 <a href="accesso-atti.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+                <a href="contattaci.html" class="serv-cta">Richiedi Preventivo</a>
             </div>
 
             <div class="serv-card">
@@ -293,6 +311,7 @@
                 <div class="serv-name">Cauzioni</div>
                 <p class="serv-desc">Assistenza nell'ottenimento di cauzioni provvisorie e definitive a condizioni competitive tramite i nostri partner assicurativi.</p>
                 <a href="cauzioni.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+                <a href="contattaci.html" class="serv-cta">Richiedi Preventivo</a>
             </div>
 
             <div class="serv-card">
@@ -300,6 +319,7 @@
                 <div class="serv-name">Certificazioni SOA</div>
                 <p class="serv-desc">Supporto completo per l'ottenimento e il rinnovo delle attestazioni SOA necessarie per partecipare ai lavori pubblici.</p>
                 <a href="certificazioni-soa.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+                <a href="contattaci.html" class="serv-cta">Richiedi Preventivo</a>
             </div>
 
             <div class="serv-card">
@@ -307,6 +327,7 @@
                 <div class="serv-name">Certificazioni ISO</div>
                 <p class="serv-desc">Accompagnamento all'ottenimento delle certificazioni ISO (9001, 14001, 45001) sempre pi&ugrave; richieste nei bandi di gara.</p>
                 <a href="certificazioni-iso.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+                <a href="contattaci.html" class="serv-cta">Richiedi Preventivo</a>
             </div>
 
             <div class="serv-card">
@@ -314,6 +335,7 @@
                 <div class="serv-name">Servizi e Forniture</div>
                 <p class="serv-desc">Consulenza specializzata per la partecipazione a gare di servizi e forniture, con analisi dei capitolati e supporto tecnico.</p>
                 <a href="servizi-forniture.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+                <a href="contattaci.html" class="serv-cta">Richiedi Preventivo</a>
             </div>
 
             <div class="serv-card">
@@ -321,12 +343,9 @@
                 <div class="serv-name">Digitalizzazione</div>
                 <p class="serv-desc">Digitalizzazione e catalogazione dei verbali di gara cartacei, con conversione in formato digitale ricercabile e analizzabile.</p>
                 <a href="digitalizzazione-aggiudicazioni.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+                <a href="contattaci.html" class="serv-cta">Richiedi Preventivo</a>
             </div>
 
-        </div>
-
-        <div style="text-align:center; margin-top:40px;">
-            <a href="contattaci.html" class="btn btn-primary" style="font-size:16px; padding:16px 40px;">Richiedi Preventivo Servizi <i class="fas fa-arrow-right"></i></a>
         </div>
     </div>
 </section>
