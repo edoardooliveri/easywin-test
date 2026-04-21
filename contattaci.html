@@ -215,6 +215,52 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.01, rootMargin: '0px 0px 50px 0px' });
 document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 </script>
+<script>
+document.getElementById('contact-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = this.querySelector('button[type="submit"]');
+    const msg = document.getElementById('contact-message');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Invio in corso...';
+    msg.style.display = 'none';
+
+    const nomeVal = document.getElementById('contact-nome').value;
+    const aziendaVal = document.getElementById('contact-azienda').value;
+    const data = {
+        nome: aziendaVal ? nomeVal + ' (' + aziendaVal + ')' : nomeVal,
+        email: document.getElementById('contact-email').value,
+        telefono: document.getElementById('contact-telefono').value,
+        oggetto: 'Richiesta informazioni dal sito',
+        messaggio: document.getElementById('contact-messaggio').value,
+        newsletter: false
+    };
+
+    try {
+        const res = await fetch('/api/pubblico/contatti', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (res.ok) {
+            msg.style.display = 'block';
+            msg.style.color = '#28a745';
+            msg.innerHTML = '<i class="fas fa-check-circle"></i> Messaggio inviato con successo! Ti contatteremo a breve.';
+            this.reset();
+        } else {
+            throw new Error(result.error || 'Errore');
+        }
+    } catch (err) {
+        msg.style.display = 'block';
+        msg.style.color = '#dc3545';
+        msg.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + (err.message || 'Errore nell\'invio. Riprova.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+</script>
 <script>window.addEventListener("scroll",function(){document.querySelector(".navbar").classList.toggle("scrolled",window.scrollY>50)});</script>
 </body>
 </html>

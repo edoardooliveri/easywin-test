@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anteprima Email - Nuovo Contatto EasyWin</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  * { box-sizing: border-box; }
+  body { background: #e8ecf0; margin: 0; padding: 40px 20px; font-family: 'Comfortaa', cursive; }
+  .preview-label { text-align: center; color: #888; font-size: 13px; margin-bottom: 16px; font-family: 'Comfortaa', cursive; }
+  .email-wrapper { max-width: 620px; margin: 0 auto; background: #fff; border-radius: 28px; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.12); }
+
+  /* HEADER */
+  .email-header {
+    background: url('email-header-bg.png') center/cover no-repeat;
+    position: relative;
+    padding: 0;
+    border-radius: 28px 28px 0 0;
+    overflow: hidden;
+  }
+  .email-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(30,45,61,0.80), rgba(30,45,61,0.55));
+  }
+  .header-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 32px 32px;
+  }
+  .email-header img.logo { height: 56px; filter: brightness(1.1); flex-shrink: 0; }
+  .header-badge {
+    background: linear-gradient(135deg, #F5C518, #FF8C00);
+    color: #1E2D3D;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 8px 20px;
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'Comfortaa', cursive;
+  }
+
+  /* BODY */
+  .email-body { padding: 32px; }
+  .email-title {
+    font-family: 'Comfortaa', cursive;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1E2D3D;
+    margin: 0 0 6px;
+  }
+  .email-subtitle {
+    font-family: 'Comfortaa', cursive;
+    font-size: 13px;
+    color: #999;
+    margin: 0 0 28px;
+  }
+
+  /* DATA TABLE — arrotondata */
+  .data-card {
+    background: #F5F7FA;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table tr:not(:last-child) td { border-bottom: 1px solid #e8ecf0; }
+  .data-table td { padding: 16px 20px; }
+  .data-label {
+    width: 110px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    vertical-align: middle;
+    font-family: 'Comfortaa', cursive;
+  }
+  .data-value {
+    font-size: 15px;
+    color: #333;
+    line-height: 1.5;
+    font-family: 'Comfortaa', cursive;
+  }
+  .data-value a { color: #FF8C00; text-decoration: none; font-weight: 600; }
+
+  /* MESSAGE BOX — arrotondato */
+  .msg-label {
+    font-family: 'Comfortaa', cursive;
+    font-size: 11px;
+    font-weight: 700;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 12px;
+  }
+  .msg-box {
+    background: #F5F7FA;
+    border-left: 4px solid #FF8C00;
+    border-radius: 0 20px 20px 0;
+    padding: 22px 24px;
+    font-size: 14px;
+    color: #444;
+    line-height: 1.8;
+    font-family: 'Comfortaa', cursive;
+  }
+
+  /* CTA — pill button */
+  .cta-row { text-align: center; margin-top: 28px; }
+  .cta-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #F5C518, #FF8C00);
+    color: #1E2D3D;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 14px 36px;
+    border-radius: 50px;
+    text-decoration: none;
+    letter-spacing: 0.3px;
+    font-family: 'Comfortaa', cursive;
+    box-shadow: 0 4px 16px rgba(255,140,0,0.3);
+  }
+
+  /* FOOTER — arrotondato */
+  .email-footer {
+    background: #1E2D3D;
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 0 0 28px 28px;
+  }
+  .footer-left { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.6; font-family: 'Comfortaa', cursive; }
+  .footer-left strong { color: rgba(255,255,255,0.85); }
+  .footer-right { display: flex; gap: 10px; }
+  .footer-icon {
+    width: 32px; height: 32px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #F5C518;
+    font-size: 13px;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .footer-icon:hover { background: rgba(255,255,255,0.2); }
+</style>
+</head>
+<body>
+
+<p class="preview-label">ANTEPRIMA — Questa è la mail che riceverete su info@easywin.it e paolo@easywin.it</p>
+
+<!-- ===== EMAIL START ===== -->
+<div class="email-wrapper">
+
+  <!-- HEADER -->
+  <div class="email-header">
+    <div class="header-inner">
+      <img src="logo.png" alt="easyWin" class="logo">
+      <div class="header-badge">Nuovo Contatto</div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="email-body">
+    <h1 class="email-title">Hai ricevuto un nuovo messaggio</h1>
+    <p class="email-subtitle">Dal form di contatto su easywin.it — 20 Aprile 2026, ore 15:42</p>
+
+    <!-- Tabella dati arrotondata -->
+    <div class="data-card">
+      <table class="data-table">
+        <tr>
+          <td class="data-label">Nome</td>
+          <td class="data-value">Marco Bianchi</td>
+        </tr>
+        <tr>
+          <td class="data-label">Azienda</td>
+          <td class="data-value">Costruzioni Bianchi S.r.l.</td>
+        </tr>
+        <tr>
+          <td class="data-label">Email</td>
+          <td class="data-value"><a href="mailto:m.bianchi@costruzionibianchi.it">m.bianchi@costruzionibianchi.it</a></td>
+        </tr>
+        <tr>
+          <td class="data-label">Telefono</td>
+          <td class="data-value">+39 333 1234567</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Messaggio arrotondato -->
+    <div class="msg-label">Messaggio</div>
+    <div class="msg-box">
+      Buongiorno, siamo un'impresa edile di Genova e vorremmo informazioni sul pacchetto Bandi + Esiti. In particolare ci interessa sapere quanti bandi della Liguria monitorate e se è possibile attivare una prova gratuita per valutare il servizio.<br><br>
+      Grazie mille, restiamo in attesa di un vostro riscontro.
+    </div>
+
+    <!-- Bottone rispondi pill -->
+    <div class="cta-row">
+      <a href="mailto:m.bianchi@costruzionibianchi.it" class="cta-btn">
+        <i class="fas fa-reply" style="margin-right:8px;"></i>Rispondi a Marco
+      </a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="email-footer">
+    <div class="footer-left">
+      <strong>Edra Servizi s.r.l.</strong><br>
+      Via Malta 5/9, 16121 Genova<br>
+      Tel. 010.0982610
+    </div>
+    <div class="footer-right">
+      <a href="https://www.facebook.com/EasyWinAppalti" class="footer-icon"><i class="fab fa-facebook-f"></i></a>
+      <a href="https://www.linkedin.com/company/easywin-appalti" class="footer-icon"><i class="fab fa-linkedin-in"></i></a>
+      <a href="https://www.instagram.com/easywin_appalti/" class="footer-icon"><i class="fab fa-instagram"></i></a>
+    </div>
+  </div>
+
+</div>
+<!-- ===== EMAIL END ===== -->
+
+</body>
+</html>

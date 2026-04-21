@@ -653,29 +653,84 @@ export default async function pubblicoRoutes(fastify, opts) {
         );
       }
 
-      // Send notification email to admin
-      const adminEmail = process.env.ADMIN_EMAIL || 'admin@easywin.it';
+      // Send notification email to info + paolo
+      const contactRecipients = (process.env.CONTACT_EMAILS || 'info@easywin.it,paolo@easywin.it').split(',').map(e => e.trim());
+      const siteUrl = process.env.SITE_URL || 'https://easywin.it';
+      const now = new Date();
+      const dataOra = now.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }) + ', ore ' + now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+
       const htmlBody = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: #333; padding: 20px; text-align: center;">
-            <h1 style="color: #F5C518; font-family: 'Brush Script MT', cursive; margin: 0;">EasyWin</h1>
+        <div style="font-family: 'Comfortaa', Arial, sans-serif; max-width: 620px; margin: 0 auto; background: #fff; border-radius: 28px; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.12);">
+
+          <!-- HEADER con immagine sfondo -->
+          <div style="background: url('${siteUrl}/email-header-bg.png') center/cover no-repeat; border-radius: 28px 28px 0 0; overflow: hidden;">
+            <div style="background: linear-gradient(135deg, rgba(30,45,61,0.80), rgba(30,45,61,0.55)); padding: 32px; display: flex; align-items: center; justify-content: space-between;">
+              <img src="${siteUrl}/logo.png" alt="easyWin" style="height: 56px; flex-shrink: 0;" />
+              <span style="background: linear-gradient(135deg, #F5C518, #FF8C00); color: #1E2D3D; font-size: 11px; font-weight: 700; padding: 8px 20px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Comfortaa', Arial, sans-serif;">Nuovo Contatto</span>
+            </div>
           </div>
-          <div style="padding: 24px; background: #fff;">
-            <p><strong>Nuovo messaggio di contatto:</strong></p>
-            <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
-              <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold; width: 100px;">Nome</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${nome}</td></tr>
-              <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Email</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${email}</td></tr>
-              <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Telefono</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${telefono || '-'}</td></tr>
-              <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Oggetto</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${oggetto}</td></tr>
-              <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Newsletter</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${newsletter ? 'Sì' : 'No'}</td></tr>
+
+          <!-- BODY -->
+          <div style="padding: 32px;">
+            <h1 style="font-family: 'Comfortaa', Arial, sans-serif; font-size: 22px; font-weight: 700; color: #1E2D3D; margin: 0 0 6px;">Hai ricevuto un nuovo messaggio</h1>
+            <p style="font-family: 'Comfortaa', Arial, sans-serif; font-size: 13px; color: #999; margin: 0 0 28px;">Dal form di contatto su easywin.it — ${dataOra}</p>
+
+            <!-- Tabella dati arrotondata -->
+            <div style="background: #F5F7FA; border-radius: 20px; overflow: hidden; margin-bottom: 28px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 16px 20px; border-bottom: 1px solid #e8ecf0; width: 110px; font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.6px; font-family: 'Comfortaa', Arial, sans-serif; vertical-align: middle;">Nome</td>
+                  <td style="padding: 16px 20px; border-bottom: 1px solid #e8ecf0; font-size: 15px; color: #333; font-family: 'Comfortaa', Arial, sans-serif;">${nome}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 16px 20px; border-bottom: 1px solid #e8ecf0; font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.6px; font-family: 'Comfortaa', Arial, sans-serif; vertical-align: middle;">Email</td>
+                  <td style="padding: 16px 20px; border-bottom: 1px solid #e8ecf0; font-size: 15px; font-family: 'Comfortaa', Arial, sans-serif;"><a href="mailto:${email}" style="color: #FF8C00; text-decoration: none; font-weight: 600;">${email}</a></td>
+                </tr>
+                <tr>
+                  <td style="padding: 16px 20px; border-bottom: 1px solid #e8ecf0; font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.6px; font-family: 'Comfortaa', Arial, sans-serif; vertical-align: middle;">Telefono</td>
+                  <td style="padding: 16px 20px; border-bottom: 1px solid #e8ecf0; font-size: 15px; color: #333; font-family: 'Comfortaa', Arial, sans-serif;">${telefono || '-'}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 16px 20px; font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.6px; font-family: 'Comfortaa', Arial, sans-serif; vertical-align: middle;">Newsletter</td>
+                  <td style="padding: 16px 20px; font-size: 15px; color: #333; font-family: 'Comfortaa', Arial, sans-serif;">${newsletter ? '✅ Sì' : 'No'}</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Messaggio -->
+            <div style="font-family: 'Comfortaa', Arial, sans-serif; font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 12px;">Messaggio</div>
+            <div style="background: #F5F7FA; border-left: 4px solid #FF8C00; border-radius: 0 20px 20px 0; padding: 22px 24px; font-size: 14px; color: #444; line-height: 1.8; font-family: 'Comfortaa', Arial, sans-serif;">${messaggio.replace(/\n/g, '<br>')}</div>
+
+            <!-- Bottone Rispondi -->
+            <div style="text-align: center; margin-top: 28px;">
+              <a href="mailto:${email}" style="display: inline-block; background: linear-gradient(135deg, #F5C518, #FF8C00); color: #1E2D3D; font-size: 14px; font-weight: 700; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-family: 'Comfortaa', Arial, sans-serif; box-shadow: 0 4px 16px rgba(255,140,0,0.3);">↩ Rispondi a ${nome.split(' ')[0].split('(')[0].trim()}</a>
+            </div>
+          </div>
+
+          <!-- FOOTER -->
+          <div style="background: #1E2D3D; padding: 24px 32px; border-radius: 0 0 28px 28px;">
+            <table style="width: 100%;">
+              <tr>
+                <td style="font-family: 'Comfortaa', Arial, sans-serif; font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.6;">
+                  <strong style="color: rgba(255,255,255,0.85);">Edra Servizi s.r.l.</strong><br>
+                  Via Malta 5/9, 16121 Genova<br>
+                  Tel. 010.0982610
+                </td>
+                <td style="text-align: right; vertical-align: middle;">
+                  <a href="https://www.facebook.com/EasyWinAppalti" style="display: inline-block; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 50%; text-align: center; line-height: 32px; color: #F5C518; text-decoration: none; font-size: 14px; margin-left: 6px;">f</a>
+                  <a href="https://www.linkedin.com/company/easywin-appalti" style="display: inline-block; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 50%; text-align: center; line-height: 32px; color: #F5C518; text-decoration: none; font-size: 14px; margin-left: 6px;">in</a>
+                </td>
+              </tr>
             </table>
-            <p><strong>Messaggio:</strong></p>
-            <p style="background: #f5f5f5; padding: 12px; border-radius: 4px;">${messaggio.replace(/\n/g, '<br>')}</p>
           </div>
+
         </div>
       `;
 
-      await sendEmail(adminEmail, `EasyWin - Contatto da ${nome}`, htmlBody);
+      // Send to all configured recipients
+      for (const recipient of contactRecipients) {
+        await sendEmail(recipient, `EasyWin - Contatto da ${nome}: ${oggetto}`, htmlBody, { replyTo: email });
+      }
 
       return { message: 'Messaggio inviato con successo. Ti contatteremo a breve.' };
     } catch (err) {
