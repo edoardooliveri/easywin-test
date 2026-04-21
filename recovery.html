@@ -10,7 +10,7 @@
 </head>
 <body>
 
-<nav class="navbar scrolled">
+<nav class="navbar">
     <a href="index.html"><img src="logo.png" alt="easyWin" class="logo-img"></a>
     <div class="nav-links">
         <a href="index.html#azienda">Azienda</a>
@@ -249,5 +249,6 @@ document.querySelectorAll('.nav-item > a').forEach(link => {
     });
 });
 </script>
+<script>window.addEventListener("scroll",function(){document.querySelector(".navbar").classList.toggle("scrolled",window.scrollY>50)});</script>
 </body>
 </html>

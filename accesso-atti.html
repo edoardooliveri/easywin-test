@@ -16,7 +16,7 @@
 </head>
 <body>
 
-<nav class="navbar scrolled">
+<nav class="navbar">
     <a href="index.html"><img src="logo.png" alt="easyWin" class="logo-img"></a>
     <div class="nav-links">
         <a href="index.html#azienda">Azienda</a>
@@ -240,5 +240,6 @@ const obs = new IntersectionObserver(entries => {
 }, { threshold: 0.01, rootMargin: '0px 0px 50px 0px' });
 document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
 </script>
+<script>window.addEventListener("scroll",function(){document.querySelector(".navbar").classList.toggle("scrolled",window.scrollY>50)});</script>
 </body>
 </html>
