@@ -291,51 +291,16 @@
 
 <!-- TESTIMONIALS -->
 <section class="testimonials-section section">
-    <div class="testimonials-bg"><img src="https://www.easywin.it/application/themes/easywin/images/testimonial-bg.jpg" alt="" onerror="this.parentElement.style.background='linear-gradient(135deg,#1a1a2e,#16213e)'"></div>
+    <div class="testimonials-bg" style="background:linear-gradient(135deg,#1a1a2e,#16213e)"></div>
     <div class="container">
         <div class="section-header fade-up" style="text-align:center;">
             <h2 style="font-family:'Comfortaa',cursive;font-size:clamp(28px,3vw,42px);font-weight:700;color:#fff;margin-bottom:40px;">Il tuo successo inizia con noi <span class="gradient-text" style="display:inline-block;">EasyWin</span></h2>
         </div>
-        <div class="test-grid fade-up">
-            <div class="test-card">
-                <div class="test-stars">
-                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                </div>
-                <blockquote>"Ho trovato questo sito attraverso un amico ed è stato un grande aiuto per la mia azienda. Abbiamo partecipato a diversi bandi di gara e abbiamo vinto molti di loro grazie alle informazioni che abbiamo trovato. Consiglio vivamente easyWin."</blockquote>
-                <div class="test-author">
-                    <div class="test-avatar-placeholder"><i class="fas fa-user"></i></div>
-                    <div>
-                        <div class="test-name">Sonia</div>
-                        <div class="test-role">Milano</div>
-                    </div>
-                </div>
+        <div class="fade-up" style="position:relative;">
+            <button onclick="reviewPrev()" style="position:absolute;left:-10px;top:50%;transform:translateY(-50%);z-index:10;width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);background:rgba(30,45,61,0.8);color:#fff;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all 0.3s;backdrop-filter:blur(6px)" onmouseover="this.style.borderColor='#FF8C00';this.style.background='rgba(255,140,0,0.2)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.2)';this.style.background='rgba(30,45,61,0.8)'"><i class="fas fa-chevron-left"></i></button>
+            <div id="reviews-viewport" style="max-width:1000px;margin:0 auto;position:relative;display:flex;align-items:center;justify-content:center;padding:30px 50px;min-height:280px;overflow:hidden">
             </div>
-            <div class="test-card">
-                <div class="test-stars">
-                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                </div>
-                <blockquote>"Ho trovato questo sito cercando bandi di gara e sono rimasto molto soddisfatto. Il sito è ben organizzato e facile da navigare. Il team di supporto è sempre stato molto utile nell'aiutarmi a trovare le informazioni di cui avevo bisogno."</blockquote>
-                <div class="test-author">
-                    <div class="test-avatar-placeholder"><i class="fas fa-user"></i></div>
-                    <div>
-                        <div class="test-name">Sergio</div>
-                        <div class="test-role">Bergamo</div>
-                    </div>
-                </div>
-            </div>
-            <div class="test-card">
-                <div class="test-stars">
-                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                </div>
-                <blockquote>"Ho utilizzato i servizi di easyWin per cercare bandi di gara per la mia azienda ed è stato molto utile. Il sito offre una vasta gamma di opzioni di ricerca. Gli aggiornamenti sui bandi sono tempestivi e precisi."</blockquote>
-                <div class="test-author">
-                    <div class="test-avatar-placeholder"><i class="fas fa-user"></i></div>
-                    <div>
-                        <div class="test-name">Marco</div>
-                        <div class="test-role">Genova</div>
-                    </div>
-                </div>
-            </div>
+            <button onclick="reviewNext()" style="position:absolute;right:-10px;top:50%;transform:translateY(-50%);z-index:10;width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);background:rgba(30,45,61,0.8);color:#fff;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all 0.3s;backdrop-filter:blur(6px)" onmouseover="this.style.borderColor='#FF8C00';this.style.background='rgba(255,140,0,0.2)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.2)';this.style.background='rgba(30,45,61,0.8)'"><i class="fas fa-chevron-right"></i></button>
         </div>
     </div>
 </section>
@@ -787,10 +752,73 @@ async function loadPublicStatistics() {
     const statsSection = document.getElementById('public-stats');
     if (statsSection) statsObs.observe(statsSection);
 }
+// ===== REVIEWS CAROUSEL =====
+var _revCur = 0, _revCards = [], _revN = 0, _revAuto = null;
+var REVIEWS = [
+    { azienda: 'Impresa Geom. Stefano Cresta S.r.l.', stelle: 5, testo: 'Collaboriamo con easyWin da oltre 10 anni. Il servizio di monitoraggio bandi ci ha permesso di intercettare opportunità che altrimenti avremmo perso. Professionali e sempre disponibili.', citta: 'Genova' },
+    { azienda: 'Cesag S.r.l.', stelle: 5, testo: 'Il supporto per la compilazione delle gare è eccezionale. Da quando usiamo easyWin, la nostra percentuale di aggiudicazione è cresciuta notevolmente. Un partner indispensabile.', citta: 'Genova' },
+    { azienda: 'Vuesse Costruzioni S.r.l.', stelle: 5, testo: 'La piattaforma è intuitiva e completa. Riceviamo ogni mattina le notifiche sui nuovi bandi filtrate per le nostre categorie SOA. Un servizio che ci fa risparmiare ore di ricerca.', citta: 'Roma' },
+    { azienda: 'Cosmo Costruzioni Moderne S.r.l.', stelle: 5, testo: 'La banca dati bandi è la più completa che abbiamo trovato. Le notifiche personalizzate per categoria SOA e provincia ci fanno risparmiare ore di ricerca ogni settimana.', citta: 'Genova' },
+    { azienda: 'Alderighi Impianti S.r.l.', stelle: 5, testo: 'Grazie ad easyWin abbiamo scoperto bandi che non avremmo mai trovato da soli. Il simulatore statistico ci ha aiutato a calibrare le offerte in modo vincente.', citta: 'Firenze' },
+    { azienda: 'Ediquadrifoglio', stelle: 5, testo: 'Eccellente servizio di digitalizzazione aggiudicazioni. Le analisi statistiche sui concorrenti ci hanno dato un vantaggio competitivo reale nelle gare più importanti.', citta: 'Genova' },
+    { azienda: 'Stradedil S.r.l.', stelle: 5, testo: 'Usiamo easyWin per monitorare gli esiti di gara dei nostri concorrenti. Le statistiche sui ribassi e le aggiudicazioni sono uno strumento strategico fondamentale.', citta: 'Modena' },
+    { azienda: 'Edilbanny', stelle: 5, testo: 'Da quando ci siamo abbonati a easyWin partecipiamo a molte più gare con risultati concreti. Il simulatore statistico e il monitoraggio esiti sono strumenti unici nel settore.', citta: 'Genova' },
+    { azienda: 'C.R.G. Costruzioni S.r.l.', stelle: 5, testo: 'Il team di supporto è sempre disponibile e competente. Ci hanno guidato nella configurazione dei filtri per trovare esattamente i bandi adatti alla nostra azienda.', citta: 'Cosenza' },
+    { azienda: 'L.P.G. Costruzioni S.r.l.', stelle: 5, testo: 'Il servizio di mailing bandi personalizzato è impeccabile. Ogni giorno riceviamo solo le gare pertinenti alla nostra attività, senza perdere tempo in ricerche manuali.', citta: 'Salerno' }
+];
+function initReviewsCarousel() {
+    var vp = document.getElementById('reviews-viewport');
+    if (!vp) return;
+    _revN = REVIEWS.length;
+    var html = '';
+    for (var i = 0; i < _revN; i++) {
+        var r = REVIEWS[i];
+        var stars = '';
+        for (var s = 0; s < r.stelle; s++) stars += '<i class="fas fa-star" style="color:#F5C518;font-size:0.9rem"></i>';
+        html += '<div class="review-card" style="position:absolute;width:320px;background:#1E2D3D;border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:28px 24px;transition:transform 0.6s cubic-bezier(.4,0,.2,1),opacity 0.6s ease,filter 0.6s ease;display:none;color:#fff">'
+            + '<div style="margin-bottom:16px">' + stars + '</div>'
+            + '<p style="font-size:0.9rem;line-height:1.7;margin-bottom:20px;font-style:italic;color:rgba(255,255,255,0.85)">&ldquo;' + r.testo + '&rdquo;</p>'
+            + '<div style="display:flex;align-items:center;gap:12px;margin-top:auto">'
+            + '<div style="width:44px;height:44px;min-width:44px;border-radius:50%;background:linear-gradient(135deg,#F5C518,#FF8C00);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;font-weight:700;font-family:Comfortaa,cursive">' + r.azienda.charAt(0).toUpperCase() + '</div>'
+            + '<div><div style="font-weight:700;font-size:0.88rem;font-family:Comfortaa,cursive;color:#fff">' + r.azienda + '</div>'
+            + '<div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:2px">' + r.citta + '</div></div>'
+            + '</div>'
+            + '</div>';
+    }
+    vp.innerHTML = html;
+    _revCards = vp.querySelectorAll('.review-card');
+    updateReviews();
+    _revAuto = setInterval(function() { _revCur = (_revCur + 1) % _revN; updateReviews(); }, 4000);
+}
+function updateReviews() {
+    _revCards.forEach(function(el, idx) {
+        var diff = idx - _revCur;
+        if (diff > Math.floor(_revN / 2)) diff -= _revN;
+        if (diff < -Math.floor(_revN / 2)) diff += _revN;
+        var abs = Math.abs(diff);
+        if (abs <= 2) {
+            el.style.display = 'block';
+            el.style.transform = 'translateX(' + (diff * 115) + '%) scale(' + (diff === 0 ? 1.05 : abs === 1 ? 0.9 : 0.75) + ')';
+            el.style.opacity = diff === 0 ? '1' : abs === 1 ? '0.65' : '0.35';
+            el.style.zIndex = diff === 0 ? '3' : abs === 1 ? '2' : '1';
+            el.style.filter = diff === 0 ? 'none' : 'brightness(0.7)';
+            el.style.background = '#1E2D3D';
+            el.style.color = '#fff';
+            el.style.border = diff === 0 ? '2px solid #FF8C00' : '1px solid rgba(255,255,255,0.12)';
+            el.style.boxShadow = diff === 0 ? '0 8px 32px rgba(255,140,0,0.25)' : '0 2px 12px rgba(0,0,0,0.2)';
+        } else {
+            el.style.display = 'none';
+        }
+    });
+}
+function reviewPrev() { _revCur = (_revCur - 1 + _revN) % _revN; updateReviews(); clearInterval(_revAuto); _revAuto = setInterval(function() { _revCur = (_revCur + 1) % _revN; updateReviews(); }, 4000); }
+function reviewNext() { _revCur = (_revCur + 1) % _revN; updateReviews(); clearInterval(_revAuto); _revAuto = setInterval(function() { _revCur = (_revCur + 1) % _revN; updateReviews(); }, 4000); }
+
 document.addEventListener('DOMContentLoaded', function() {
     loadPublicStatistics();
     loadUltimiBandi();
     loadUltimiEsiti();
+    initReviewsCarousel();
 });
 
 // ===== HELPER FUNCTIONS =====
@@ -840,7 +868,7 @@ async function loadUltimiBandi() {
                 + '<div ' + cL + '>Provincia</div><div ' + cL + '>Importo</div><div ' + cL + '>CIG</div><div ' + cLL + '>Categoria SOA</div>'
                 + '<div ' + cV + '><span style="color:rgba(255,255,255,0.9);font-size:0.9rem">' + _esc(b.provincia_nome || '-') + '</span></div>'
                 + '<div ' + cV + '><span style="color:#4ade80;font-size:1.05rem;font-weight:700">' + importoF + '</span></div>'
-                + '<div ' + cV + '><span style="color:rgba(255,255,255,0.6);font-family:monospace;font-size:0.88rem">' + _esc(b.codice_cig || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:rgba(255,255,255,0.6);font-family:Comfortaa,cursive;font-size:0.88rem">' + _esc(b.codice_cig || '-') + '</span></div>'
                 + '<div ' + cVL + '><span style="color:#a78bfa;font-size:0.95rem;font-weight:700">' + _esc(b.soa_categoria || '-') + '</span></div>'
               + '</div>'
               + '<div style="border-bottom:1px solid rgba(255,255,255,0.08)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Stazione appaltante</div><div style="padding:8px 12px;font-size:0.95rem;color:#ffffff;font-weight:700;background:#243749"><i class="fas fa-building" style="margin-right:6px;opacity:0.5"></i>' + _esc(b.stazione || '-') + '</div></div>'
@@ -890,7 +918,7 @@ async function loadUltimiEsiti() {
               + '</div>'
               + '<div class="home-grid4" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">'
                 + '<div ' + cL + '>CIG</div><div ' + cL + '>Categoria SOA</div><div ' + cL + '>Tipologia</div><div ' + cLL + '>Criterio</div>'
-                + '<div ' + cV + '><span style="color:rgba(255,255,255,0.6);font-family:monospace;font-size:0.88rem">' + _esc(e.codice_cig || '-') + '</span></div>'
+                + '<div ' + cV + '><span style="color:rgba(255,255,255,0.6);font-family:Comfortaa,cursive;font-size:0.88rem">' + _esc(e.codice_cig || '-') + '</span></div>'
                 + '<div ' + cV + '><span style="color:#a78bfa;font-size:0.95rem;font-weight:700">' + _esc(e.soa_categoria || '-') + '</span></div>'
                 + '<div ' + cV + '><span style="color:rgba(255,255,255,0.9);font-size:0.85rem">' + _esc(e.tipologia || '-') + '</span></div>'
                 + '<div ' + cVL + '><span style="color:rgba(255,255,255,0.8);font-size:0.85rem">' + _esc(e.criterio || '-') + '</span></div>'

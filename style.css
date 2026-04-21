@@ -1680,7 +1680,7 @@ h1, h2 {
 .contact-form {
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    border-radius: 24px;
     padding: 32px;
     box-shadow: 0 4px 20px rgba(30,45,61,0.08);
 }
@@ -3257,7 +3257,7 @@ footer {
 .form-group textarea {
     padding: 12px 14px;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 16px;
     font-size: 14px;
     font-family: 'Comfortaa', cursive;
     transition: var(--transition);
