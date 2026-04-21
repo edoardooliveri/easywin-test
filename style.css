@@ -1,6 +1,6 @@
 /* ============================================================
    EASYWIN - PROFESSIONAL DESIGN SYSTEM v3
-   Font: Comfortaa (headings) + Open Sans (body)
+   Font: Comfortaa (all)
    Palette: Gold #F5C518 / Orange #FF8C00 / Dark Navy #1E2D3D / White
    Design: Modern, professional, refined
    ============================================================ */
@@ -41,8 +41,11 @@ html {
     overflow-x: hidden;
 }
 
-body {
+body, body * {
     font-family: 'Comfortaa', cursive;
+}
+
+body {
     background: var(--bg);
     color: var(--text);
     line-height: 1.6;
@@ -336,7 +339,7 @@ h1, h2 {
 .slide-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.7) 100%);
+    background: linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.75) 100%);
 }
 
 .slide-content {
@@ -365,7 +368,7 @@ h1, h2 {
     line-height: 1.1;
     letter-spacing: -0.5px;
     margin-bottom: 18px;
-    text-shadow: 0 2px 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.5);
+    text-shadow: 0 2px 20px rgba(0,0,0,0.9), 0 0 40px rgba(0,0,0,0.7), 0 4px 60px rgba(0,0,0,0.5);
     opacity: 0;
     transform: translateY(30px);
     transition: opacity 0.7s ease 0.3s, transform 0.7s ease 0.3s;
@@ -379,7 +382,7 @@ h1, h2 {
 .slide-text p {
     font-size: 16px;
     color: #ffffff;
-    text-shadow: 0 2px 12px rgba(0,0,0,0.9);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.95), 0 0 30px rgba(0,0,0,0.6);
     max-width: 480px;
     line-height: 1.8;
     margin-bottom: 32px;
@@ -897,7 +900,7 @@ h1, h2 {
     background: var(--bg-alt);
     color: var(--text);
     font-size: 14px;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Comfortaa', cursive;
 }
 
 .area-riservata-form .form-row input:focus {
@@ -949,7 +952,7 @@ h1, h2 {
     font-weight: 700;
     line-height: 1.25;
     margin-bottom: 20px;
-    color: var(--dark);
+    color: #1a1a1a;
 }
 
 .about-text h2 .highlight {
@@ -961,7 +964,7 @@ h1, h2 {
 
 .about-text p {
     font-size: 15px;
-    color: var(--text-light);
+    color: #333333;
     line-height: 1.8;
     margin-bottom: 14px;
 }
@@ -1074,7 +1077,7 @@ h1, h2 {
 }
 
 .marquee-card p {
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Comfortaa', cursive;
     font-size: 12px;
     color: rgba(255,255,255,0.65);
     margin: 0;
@@ -1130,14 +1133,14 @@ h1, h2 {
     font-family: 'Comfortaa', cursive;
     font-size: 48px;
     font-weight: 700;
-    color: #F5C518;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    color: #ffffff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .stat-lbl {
     font-size: 12px;
     font-weight: 700;
-    color: #8B6914;
+    color: rgba(255,255,255,0.85);
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-top: 4px;
@@ -1201,7 +1204,7 @@ h1, h2 {
     background: var(--bg-alt);
     color: var(--text);
     font-size: 14px;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Comfortaa', cursive;
     transition: var(--transition);
 }
 
@@ -1396,7 +1399,7 @@ h1, h2 {
 
 .data-table th {
     padding: 16px 18px;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Comfortaa', cursive;
     font-weight: 700;
     font-size: 11px;
     text-align: left;
@@ -2005,7 +2008,7 @@ footer {
     background: var(--bg-alt);
     color: var(--text);
     font-size: 14px;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Comfortaa', cursive;
     transition: var(--transition);
 }
 
@@ -3240,7 +3243,7 @@ footer {
     border: 1px solid var(--border);
     border-radius: 8px;
     font-size: 14px;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Comfortaa', cursive;
     transition: var(--transition);
     width: 100%;
     box-sizing: border-box;
