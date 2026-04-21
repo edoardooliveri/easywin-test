@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abbonamenti - easyWin</title>
+    <title>Abbonamenti e Servizi - easyWin</title>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -12,17 +12,84 @@
         .page-hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(30,45,61,0.95), rgba(30,45,61,0.8)); }
         .page-hero h1 { position: relative; z-index: 1; font-size: clamp(32px, 4vw, 48px); font-weight: 700; margin-bottom: 16px; font-family: 'Comfortaa', cursive; }
         .page-hero p { position: relative; z-index: 1; font-size: 18px; opacity: 0.85; max-width: 700px; margin: 0 auto; }
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 60px; }
-        .pricing-card { background: #fff; border: 2px solid var(--border); border-radius: 14px; padding: 30px; text-align: center; transition: all 0.3s ease; }
-        .pricing-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.15); transform: translateY(-5px); border-color: var(--orange); }
-        .pricing-card.featured { border-color: var(--orange); background: linear-gradient(135deg, rgba(255,140,0,0.05), rgba(245,197,24,0.05)); }
-        .price { font-size: 42px; font-weight: 700; color: var(--orange); margin: 20px 0; }
-        .price span { font-size: 18px; color: var(--text-light); }
-        .plan-name { font-size: 24px; font-weight: 600; color: var(--text); margin-bottom: 20px; }
-        .features-list { text-align: left; list-style: none; padding: 0; margin: 20px 0; }
-        .features-list li { padding: 10px 0; border-bottom: 1px solid var(--border); }
-        .features-list li:last-child { border-bottom: none; }
-        .features-list i { color: var(--orange); margin-right: 10px; }
+
+        /* PACCHETTI */
+        .pack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px; margin-top: 50px; }
+        .pack-card {
+            background: #fff; border: 2px solid var(--border); border-radius: 18px; padding: 36px 28px;
+            text-align: center; transition: all 0.3s ease; display: flex; flex-direction: column;
+        }
+        .pack-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.12); transform: translateY(-6px); border-color: var(--orange); }
+        .pack-card.featured { border-color: var(--orange); background: linear-gradient(135deg, rgba(255,140,0,0.06), rgba(245,197,24,0.04)); position: relative; }
+        .pack-card.featured::before {
+            content: 'CONSIGLIATO'; position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+            background: var(--orange); color: #fff; padding: 6px 20px; border-radius: 20px;
+            font-size: 11px; font-weight: 700; letter-spacing: 1px; font-family: 'Comfortaa', cursive;
+        }
+        .pack-icon { font-size: 40px; color: var(--orange); margin-bottom: 18px; }
+        .pack-name { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 14px; font-family: 'Comfortaa', cursive; }
+        .pack-desc { font-size: 14px; color: var(--text-light); margin-bottom: 20px; line-height: 1.6; }
+        .pack-features { text-align: left; list-style: none; padding: 0; margin: 0 0 24px 0; flex-grow: 1; }
+        .pack-features li { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 14px; display: flex; align-items: center; gap: 10px; }
+        .pack-features li:last-child { border-bottom: none; }
+        .pack-features li i { color: var(--orange); font-size: 14px; flex-shrink: 0; }
+        .pack-cta {
+            display: inline-block; width: 100%; padding: 14px 24px; border-radius: 12px;
+            font-weight: 700; font-size: 15px; text-decoration: none; transition: all 0.3s ease;
+            font-family: 'Comfortaa', cursive; text-align: center;
+        }
+        .pack-cta-outline { border: 2px solid var(--orange); color: var(--orange); background: transparent; }
+        .pack-cta-outline:hover { background: var(--orange); color: #fff; }
+        .pack-cta-fill { background: var(--orange); color: #fff; border: 2px solid var(--orange); }
+        .pack-cta-fill:hover { background: #e07b00; border-color: #e07b00; }
+
+        /* SERVIZI */
+        .serv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 40px; }
+        .serv-card {
+            background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 30px;
+            transition: all 0.3s ease; display: flex; flex-direction: column;
+        }
+        .serv-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.1); transform: translateY(-4px); border-color: var(--orange); }
+        .serv-icon { font-size: 30px; color: var(--orange); margin-bottom: 14px; }
+        .serv-name { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 10px; font-family: 'Comfortaa', cursive; }
+        .serv-desc { font-size: 13px; color: var(--text-light); line-height: 1.6; flex-grow: 1; margin-bottom: 18px; }
+        .serv-link { color: var(--orange); font-weight: 600; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 6px; }
+        .serv-link:hover { text-decoration: underline; }
+
+        /* FORMAZIONE */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; margin-top: 40px; }
+        .form-card {
+            background: var(--dark); color: #fff; border-radius: 18px; padding: 36px 30px;
+            display: flex; flex-direction: column; transition: all 0.3s ease;
+        }
+        .form-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.25); transform: translateY(-4px); }
+        .form-card-icon { font-size: 36px; color: var(--orange); margin-bottom: 16px; }
+        .form-card-name { font-size: 20px; font-weight: 700; margin-bottom: 14px; font-family: 'Comfortaa', cursive; }
+        .form-card-desc { font-size: 14px; opacity: 0.85; line-height: 1.7; flex-grow: 1; margin-bottom: 22px; }
+        .form-card-cta {
+            display: inline-block; width: 100%; padding: 13px 24px; border-radius: 12px;
+            background: var(--orange); color: #fff; font-weight: 700; font-size: 14px;
+            text-decoration: none; text-align: center; transition: all 0.3s ease;
+            font-family: 'Comfortaa', cursive;
+        }
+        .form-card-cta:hover { background: #e07b00; }
+
+        /* PROVA GRATUITA */
+        .prova-box {
+            background: linear-gradient(135deg, var(--dark) 0%, #2a3f55 100%); border-radius: 24px;
+            padding: 60px 48px; text-align: center; color: #fff; position: relative; overflow: hidden;
+        }
+        .prova-box::before {
+            content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px;
+            background: var(--orange); border-radius: 50%; opacity: 0.1;
+        }
+        .prova-box::after {
+            content: ''; position: absolute; bottom: -40px; left: -40px; width: 150px; height: 150px;
+            background: var(--yellow); border-radius: 50%; opacity: 0.08;
+        }
+        .prova-box h2 { font-family: 'Comfortaa', cursive; font-size: clamp(26px, 3vw, 36px); margin-bottom: 16px; position: relative; z-index: 1; }
+        .prova-box p { opacity: 0.9; max-width: 600px; margin: 0 auto 30px; position: relative; z-index: 1; font-size: 16px; line-height: 1.7; }
+        .prova-box .btn { position: relative; z-index: 1; }
     </style>
 </head>
 <body>
@@ -79,132 +146,239 @@
     </button>
 </nav>
 
+<!-- HERO -->
 <section class="page-hero">
     <div class="page-hero-overlay"></div>
     <div class="container">
-        <h1>Piani di Abbonamento</h1>
-        <p>Scegli il piano perfetto per le tue esigenze e inizia a vincere gare oggi</p>
+        <h1>Abbonamenti e Servizi</h1>
+        <p>Scegli il pacchetto perfetto per la tua azienda e inizia a vincere gare d'appalto</p>
     </div>
 </section>
 
+<!-- SEZIONE 1: PACCHETTI ABBONAMENTO -->
 <section class="section">
     <div class="container">
-        <h2 style="text-align: center; margin-bottom: 50px;">Trasparenza nei Prezzi</h2>
-        
-        <div class="pricing-grid fade-up">
-            <div class="pricing-card">
-                <h3 class="plan-name"><i class="fas fa-leaf"></i> Piano Base</h3>
-                <div class="price">99<span>/mese</span></div>
-                <p style="color: var(--text-light); margin-bottom: 20px;">Perfetto per iniziare</p>
-                <ul class="features-list">
-                    <li><i class="fas fa-check"></i> Accesso banca dati bandi</li>
-                    <li><i class="fas fa-check"></i> Filtri personalizzati base</li>
-                    <li><i class="fas fa-check"></i> Notifiche email mailing</li>
-                    <li><i class="fas fa-check"></i> Accesso banca dati esiti</li>
-                    <li><i class="fas fa-check"></i> 5 utenti</li>
-                    <li><i class="fas fa-times"></i> Simulatore statistico</li>
-                    <li><i class="fas fa-times"></i> Supporto prioritario</li>
+        <h2 style="text-align:center; font-family:'Comfortaa',cursive; margin-bottom:10px;">Pacchetti Abbonamento</h2>
+        <p style="text-align:center; color:var(--text-light); max-width:650px; margin:0 auto;">Ogni azienda ha esigenze diverse. Scegli il pacchetto che fa per te e richiedi un preventivo personalizzato.</p>
+
+        <div class="pack-grid fade-up">
+
+            <!-- SOLO BANDI -->
+            <div class="pack-card">
+                <div class="pack-icon"><i class="fas fa-search"></i></div>
+                <div class="pack-name">Solo Bandi</div>
+                <p class="pack-desc">Monitora tutti i bandi di gara pubblici italiani</p>
+                <ul class="pack-features">
+                    <li><i class="fas fa-check"></i> Banca dati bandi completa</li>
+                    <li><i class="fas fa-check"></i> Mailing personalizzato bandi</li>
+                    <li><i class="fas fa-check"></i> Filtri avanzati per regione, importo, SOA</li>
+                    <li><i class="fas fa-check"></i> Monitoraggio bandi MEPA</li>
+                    <li><i class="fas fa-check"></i> Reminder scadenze automatici</li>
+                    <li><i class="fas fa-check"></i> Accesso archivio storico</li>
                 </ul>
-                <a href="contattaci.html" class="btn btn-bordered" style="width: 100%; margin-top: 20px;">Inizia Ora</a>
+                <a href="contattaci.html" class="pack-cta pack-cta-outline">Richiedi Preventivo</a>
             </div>
 
-            <div class="pricing-card featured">
-                <div style="background: var(--orange); color: #fff; padding: 8px 16px; border-radius: 20px; display: inline-block; margin-bottom: 15px; font-size: 12px; font-weight: 700;">CONSIGLIATO</div>
-                <h3 class="plan-name"><i class="fas fa-star"></i> Piano Professional</h3>
-                <div class="price">299<span>/mese</span></div>
-                <p style="color: var(--text-light); margin-bottom: 20px;">La scelta migliore per le aziende</p>
-                <ul class="features-list">
-                    <li><i class="fas fa-check"></i> Tutto del Piano Base</li>
-                    <li><i class="fas fa-check"></i> Simulatore statistico illimitato</li>
-                    <li><i class="fas fa-check"></i> Analisi avanzate</li>
-                    <li><i class="fas fa-check"></i> 20 utenti</li>
-                    <li><i class="fas fa-check"></i> Supporto prioritario</li>
+            <!-- SOLO ESITI -->
+            <div class="pack-card">
+                <div class="pack-icon"><i class="fas fa-trophy"></i></div>
+                <div class="pack-name">Solo Esiti</div>
+                <p class="pack-desc">Analizza le aggiudicazioni e studia i ribassi vincenti</p>
+                <ul class="pack-features">
+                    <li><i class="fas fa-check"></i> Banca dati esiti completa</li>
+                    <li><i class="fas fa-check"></i> Mailing personalizzato esiti</li>
+                    <li><i class="fas fa-check"></i> Aggiudicazioni in tempo reale</li>
+                    <li><i class="fas fa-check"></i> Simulatore statistico</li>
+                    <li><i class="fas fa-check"></i> Analisi ribassi per zona e SOA</li>
+                    <li><i class="fas fa-check"></i> 25+ anni di dati storici</li>
+                </ul>
+                <a href="contattaci.html" class="pack-cta pack-cta-outline">Richiedi Preventivo</a>
+            </div>
+
+            <!-- BANDI + ESITI -->
+            <div class="pack-card featured">
+                <div class="pack-icon"><i class="fas fa-star"></i></div>
+                <div class="pack-name">Bandi + Esiti</div>
+                <p class="pack-desc">La combinazione vincente per competere al meglio</p>
+                <ul class="pack-features">
+                    <li><i class="fas fa-check"></i> Tutto di Solo Bandi</li>
+                    <li><i class="fas fa-check"></i> Tutto di Solo Esiti</li>
+                    <li><i class="fas fa-check"></i> Studio Statistico con AI</li>
+                    <li><i class="fas fa-check"></i> Analisi concorrenti</li>
+                    <li><i class="fas fa-check"></i> Verifica conteggi graduatorie</li>
                     <li><i class="fas fa-check"></i> Report personalizzati</li>
-                    <li><i class="fas fa-check"></i> API per integrazione</li>
                 </ul>
-                <a href="contattaci.html" class="btn btn-primary" style="width: 100%; margin-top: 20px;">Scegli Professional</a>
+                <a href="contattaci.html" class="pack-cta pack-cta-fill">Richiedi Preventivo</a>
             </div>
 
-            <div class="pricing-card">
-                <h3 class="plan-name"><i class="fas fa-rocket"></i> Piano Enterprise</h3>
-                <div class="price">Su Richiesta</div>
-                <p style="color: var(--text-light); margin-bottom: 20px;">Per grandi organizzazioni</p>
-                <ul class="features-list">
-                    <li><i class="fas fa-check"></i> Tutto del Piano Professional</li>
-                    <li><i class="fas fa-check"></i> Illimitati utenti</li>
-                    <li><i class="fas fa-check"></i> Supporto dedicato 24/7</li>
-                    <li><i class="fas fa-check"></i> Consulenza specializzata</li>
-                    <li><i class="fas fa-check"></i> Implementazione custom</li>
-                    <li><i class="fas fa-check"></i> Data center privato</li>
-                    <li><i class="fas fa-check"></i> SLA garantito 99.9%</li>
+            <!-- BANDI + ESITI + ALBO -->
+            <div class="pack-card">
+                <div class="pack-icon"><i class="fas fa-rocket"></i></div>
+                <div class="pack-name">Completo + Albo</div>
+                <p class="pack-desc">Il pacchetto completo con gestione albi fornitori</p>
+                <ul class="pack-features">
+                    <li><i class="fas fa-check"></i> Tutto di Bandi + Esiti</li>
+                    <li><i class="fas fa-check"></i> Gestione albi fornitori</li>
+                    <li><i class="fas fa-check"></i> Iscrizione piattaforme digitali</li>
+                    <li><i class="fas fa-check"></i> Monitoraggio scadenze albi</li>
+                    <li><i class="fas fa-check"></i> Supporto dedicato prioritario</li>
+                    <li><i class="fas fa-check"></i> Digitalizzazione aggiudicazioni</li>
                 </ul>
-                <a href="contattaci.html" class="btn btn-bordered" style="width: 100%; margin-top: 20px;">Contattaci per Preventivo</a>
+                <a href="contattaci.html" class="pack-cta pack-cta-outline">Richiedi Preventivo</a>
             </div>
-        </div>
 
-        <div style="background: var(--bg-light); padding: 40px; border-radius: 14px; margin-top: 60px;">
-            <h2 style="text-align: center; margin-bottom: 40px;">Servizi Aggiuntivi a La Carte</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
-                <div>
-                    <h4 style="color: var(--orange); margin-bottom: 10px;"><i class="fas fa-briefcase"></i> Consulenza Specializzata</h4>
-                    <p>Sessioni di consulenza 1-a-1 con esperti</p>
-                    <p style="color: var(--orange); font-weight: 700; margin-top: 10px;">€200 per ora</p>
-                </div>
-                <div>
-                    <h4 style="color: var(--orange); margin-bottom: 10px;"><i class="fas fa-file"></i> Compilazione Gara</h4>
-                    <p>Compilazione completa della documentazione</p>
-                    <p style="color: var(--orange); font-weight: 700; margin-top: 10px;">A partire da €500</p>
-                </div>
-                <div>
-                    <h4 style="color: var(--orange); margin-bottom: 10px;"><i class="fas fa-graduation-cap"></i> Formazione Team</h4>
-                    <p>Corso personalizzato per il tuo team</p>
-                    <p style="color: var(--orange); font-weight: 700; margin-top: 10px;">A partire da €1.000</p>
-                </div>
-                <div>
-                    <h4 style="color: var(--orange); margin-bottom: 10px;"><i class="fas fa-chart-bar"></i> Studio Statistico</h4>
-                    <p>Analisi statistiche personalizzate</p>
-                    <p style="color: var(--orange); font-weight: 700; margin-top: 10px;">A partire da €800</p>
-                </div>
-                <div>
-                    <h4 style="color: var(--orange); margin-bottom: 10px;"><i class="fas fa-map"></i> Sopralluoghi</h4>
-                    <p>Sopralluoghi con nostri collaboratori</p>
-                    <p style="color: var(--orange); font-weight: 700; margin-top: 10px;">A partire da €300</p>
-                </div>
-                <div>
-                    <h4 style="color: var(--orange); margin-bottom: 10px;"><i class="fas fa-gavel"></i> Consulenza Legale</h4>
-                    <p>Supporto legale specializzato</p>
-                    <p style="color: var(--orange); font-weight: 700; margin-top: 10px;">A partire da €250/ora</p>
-                </div>
-            </div>
-        </div>
-
-        <div id="prova-gratuita" style="background: var(--yellow); background: rgba(245,197,24,0.1); padding: 40px; border-radius: 14px; margin-top: 60px; border-left: 5px solid var(--orange);">
-            <h3 style="color: var(--orange); margin-bottom: 20px;"><i class="fas fa-info-circle"></i> Prova Gratuita</h3>
-            <p style="margin-bottom: 15px;">Volete provare easyWin senza impegno? Offriamo una prova gratuita di 14 giorni completa di tutte le funzionalità del Piano Professional.</p>
-            <a href="contattaci.html" class="btn btn-primary">Richiedi Prova Gratuita</a>
         </div>
     </div>
 </section>
 
+<!-- SEZIONE 2: SERVIZI -->
 <section class="section section-alt">
-    <div class="container" style="text-align:center;">
-        <h2>Domande Frequenti</h2>
-        <div style="max-width: 700px; margin: 0 auto; text-align: left; margin-top: 30px;">
-            <h4 style="color: var(--orange); margin-top: 20px;">Posso cambiare piano quando voglio?</h4>
-            <p>Sì, puoi aggiornare o downgrade il tuo piano in qualsiasi momento. L'addebito sarà proporzionato ai giorni rimanenti.</p>
-            
-            <h4 style="color: var(--orange); margin-top: 20px;">Come funziona la fatturazione?</h4>
-            <p>Gli abbonamenti vengono addebitati mensilmente. Puoi pagare con carta di credito, bonifico bancario o assegno.</p>
-            
-            <h4 style="color: var(--orange); margin-top: 20px;">Esiste un contratto a lungo termine?</h4>
-            <p>Sì, offriamo sconti speciali per impegni di 6 o 12 mesi. Contattaci per dettagli.</p>
-            
-            <h4 style="color: var(--orange); margin-top: 20px;">Quanto supporto fornite?</h4>
-            <p>Tutti i piani includono supporto via email e telefono. Il Piano Professional ha priorità nei tempi di risposta.</p>
+    <div class="container">
+        <h2 style="text-align:center; font-family:'Comfortaa',cursive; margin-bottom:10px;">Servizi Professionali</h2>
+        <p style="text-align:center; color:var(--text-light); max-width:650px; margin:0 auto;">Servizi specializzati a supporto della tua partecipazione alle gare d'appalto. Ogni servizio è disponibile singolarmente.</p>
+
+        <div class="serv-grid fade-up">
+
+            <div class="serv-card">
+                <div class="serv-icon"><i class="fas fa-map-marked-alt"></i></div>
+                <div class="serv-name">Sopralluoghi</div>
+                <p class="serv-desc">Effettuiamo sopralluoghi tecnici presso i siti di gara con personale qualificato, documentando tutto con foto e relazioni dettagliate.</p>
+                <a href="sopralluoghi.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="serv-card">
+                <div class="serv-icon"><i class="fas fa-handshake"></i></div>
+                <div class="serv-name">Avvalimenti</div>
+                <p class="serv-desc">Ti aiutiamo a trovare aziende disponibili a prestare i requisiti necessari per partecipare alle gare tramite l'istituto dell'avvalimento.</p>
+                <a href="avvalimenti.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="serv-card">
+                <div class="serv-icon"><i class="fas fa-file-signature"></i></div>
+                <div class="serv-name">Compilazione Gare</div>
+                <p class="serv-desc">Compilazione completa della documentazione di gara: buste amministrative, tecniche ed economiche, con verifica finale di conformit&agrave;.</p>
+                <a href="compilazione-gare.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="serv-card">
+                <div class="serv-icon"><i class="fas fa-calculator"></i></div>
+                <div class="serv-name">Offerte Vantaggiose</div>
+                <p class="serv-desc">Strategie di ribasso basate su analisi statistica dei dati storici per massimizzare le probabilit&agrave; di aggiudicazione.</p>
+                <a href="offerte-vantaggiose.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="serv-card">
+                <div class="serv-icon"><i class="fas fa-user-tie"></i></div>
+                <div class="serv-name">Presenza Sedute</div>
+                <p class="serv-desc">Inviamo nostri rappresentanti qualificati alle sedute pubbliche di apertura buste in tutta Italia, con report immediato.</p>
+                <a href="presenza-sedute.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="serv-card">
+                <div class="serv-icon"><i class="fas fa-gavel"></i></div>
+                <div class="serv-name">Consulenza Legale</div>
+                <p class="serv-desc">Supporto legale specializzato in appalti pubblici: ricorsi al TAR, accesso agli atti, pareri su bandi e disciplinari.</p>
+                <a href="consulenza-legale.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="serv-card">
+                <div class="serv-icon"><i class="fas fa-folder-open"></i></div>
+                <div class="serv-name">Accesso Atti</div>
+                <p class="serv-desc">Gestione completa delle richieste di accesso agli atti di gara presso le stazioni appaltanti, con follow-up fino all'ottenimento.</p>
+                <a href="accesso-atti.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="serv-card">
+                <div class="serv-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="serv-name">Cauzioni</div>
+                <p class="serv-desc">Assistenza nell'ottenimento di cauzioni provvisorie e definitive a condizioni competitive tramite i nostri partner assicurativi.</p>
+                <a href="cauzioni.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="serv-card">
+                <div class="serv-icon"><i class="fas fa-certificate"></i></div>
+                <div class="serv-name">Certificazioni SOA</div>
+                <p class="serv-desc">Supporto completo per l'ottenimento e il rinnovo delle attestazioni SOA necessarie per partecipare ai lavori pubblici.</p>
+                <a href="certificazioni-soa.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="serv-card">
+                <div class="serv-icon"><i class="fas fa-award"></i></div>
+                <div class="serv-name">Certificazioni ISO</div>
+                <p class="serv-desc">Accompagnamento all'ottenimento delle certificazioni ISO (9001, 14001, 45001) sempre pi&ugrave; richieste nei bandi di gara.</p>
+                <a href="certificazioni-iso.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="serv-card">
+                <div class="serv-icon"><i class="fas fa-truck"></i></div>
+                <div class="serv-name">Servizi e Forniture</div>
+                <p class="serv-desc">Consulenza specializzata per la partecipazione a gare di servizi e forniture, con analisi dei capitolati e supporto tecnico.</p>
+                <a href="servizi-forniture.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="serv-card">
+                <div class="serv-icon"><i class="fas fa-digital-tachograph"></i></div>
+                <div class="serv-name">Digitalizzazione</div>
+                <p class="serv-desc">Digitalizzazione e catalogazione dei verbali di gara cartacei, con conversione in formato digitale ricercabile e analizzabile.</p>
+                <a href="digitalizzazione-aggiudicazioni.html" class="serv-link">Scopri di pi&ugrave; <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+        </div>
+
+        <div style="text-align:center; margin-top:40px;">
+            <a href="contattaci.html" class="btn btn-primary" style="font-size:16px; padding:16px 40px;">Richiedi Preventivo Servizi <i class="fas fa-arrow-right"></i></a>
         </div>
     </div>
 </section>
 
+<!-- SEZIONE 3: FORMAZIONE -->
+<section class="section">
+    <div class="container">
+        <h2 style="text-align:center; font-family:'Comfortaa',cursive; margin-bottom:10px;">Formazione Professionale</h2>
+        <p style="text-align:center; color:var(--text-light); max-width:650px; margin:0 auto;">Corsi tenuti da professionisti con oltre 25 anni di esperienza nel settore degli appalti pubblici.</p>
+
+        <div class="form-grid fade-up">
+
+            <!-- CORSO 1: CODICE APPALTI -->
+            <div class="form-card">
+                <div class="form-card-icon"><i class="fas fa-gavel"></i></div>
+                <div class="form-card-name">Codice degli Appalti</div>
+                <p class="form-card-desc">Analisi completa del Codice degli Appalti e delle sue implicazioni pratiche. Dalla disciplina nazionale e comunitaria ai sistemi di qualificazione, requisiti generali e speciali, garanzie, criteri di aggiudicazione, avvalimento e subappalto. Formazione su misura con approfondimenti su lavori, servizi e forniture.</p>
+                <a href="contattaci.html" class="form-card-cta">Richiedi Preventivo</a>
+            </div>
+
+            <!-- CORSO 2: COMPILAZIONE GARE -->
+            <div class="form-card">
+                <div class="form-card-icon"><i class="fas fa-file-signature"></i></div>
+                <div class="form-card-name">Compilazione Gare d'Appalto</div>
+                <p class="form-card-desc">Impara a compilare correttamente la documentazione di gara senza mai essere escluso. Dal riconoscimento dei requisiti alle procedure aperte e negoziate, dalle ATI al subappalto, fino all'uso delle piattaforme digitali (MEPA, Sintel, Tuttogare). Tu compili, noi verifichiamo.</p>
+                <a href="contattaci.html" class="form-card-cta">Richiedi Preventivo</a>
+            </div>
+
+            <!-- CORSO 3: STATISTICA -->
+            <div class="form-card">
+                <div class="form-card-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="form-card-name">Statistica per il Ribasso Vincente</div>
+                <p class="form-card-desc">Impara a determinare il range di massima probabilit&agrave; di aggiudicazione attraverso l'analisi statistica degli esiti storici. Parametri: area geografica, categoria SOA, tipologia di gara, criterio di aggiudicazione, piattaforma, importo e numero partecipanti.</p>
+                <a href="contattaci.html" class="form-card-cta">Richiedi Preventivo</a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- SEZIONE 4: PROVA GRATUITA -->
+<section class="section section-alt" id="prova-gratuita">
+    <div class="container">
+        <div class="prova-box fade-up">
+            <h2><i class="fas fa-gift" style="margin-right:12px;"></i>Prova Gratuita</h2>
+            <p>Vuoi provare easyWin senza impegno? Offriamo una prova gratuita completa di tutte le funzionalit&agrave;. Scopri il potenziale della nostra piattaforma per la tua azienda, senza alcun vincolo.</p>
+            <a href="contattaci.html" class="btn btn-primary" style="font-size:17px; padding:16px 44px;">Richiedi la Prova Gratuita <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
 <footer>
     <div class="footer-inner">
         <div class="footer-brand">
@@ -242,7 +416,6 @@ window.addEventListener('scroll', () => {
     document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 50);
 });
 </script>
-
 <script>
 document.querySelectorAll('.nav-item > a').forEach(link => {
     link.addEventListener('click', function(e) {
@@ -253,7 +426,6 @@ document.querySelectorAll('.nav-item > a').forEach(link => {
     });
 });
 </script>
-
 <script>
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
