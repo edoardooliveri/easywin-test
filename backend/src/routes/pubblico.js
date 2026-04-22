@@ -730,7 +730,7 @@ export default async function pubblicoRoutes(fastify, opts) {
       // Send to all configured recipients
       for (const recipient of contactRecipients) {
         const result = await sendEmail(recipient, `EasyWin - Contatto da ${nome}: ${oggetto}`, htmlBody, { replyTo: email });
-        fastify.log.info({ recipient, emailStatus: result.status, reason: result.reason || null }, 'Contact form email result');
+        fastify.log.info({ recipient, emailStatus: result.status, reason: result.reason || result.error || null }, 'Contact form email result');
       }
 
       return { message: 'Messaggio inviato con successo. Ti contatteremo a breve.' };
