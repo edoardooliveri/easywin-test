@@ -91,15 +91,15 @@ export async function sendEsitoNotifications(garaId, options = {}) {
     htmlBody += `</div></div>`;
 
     try {
-      // TODO: spostare guard nel provider (per supportare SES senza SMTP_USER)
-      if (process.env.SMTP_USER) {
+      const hasSMTP = !!process.env.SMTP_USER;
+      const hasSES = !!(process.env.SES_ACCESS_KEY_ID && process.env.SES_SECRET_ACCESS_KEY);
+      if (hasSMTP || hasSES) {
         await mailProvider.send({ to: email, subject, html: htmlBody });
         results.sent++;
         results.details.push({ azienda: nome, email, status: 'sent' });
       } else {
-        // SMTP not configured - log only
         results.skipped++;
-        results.details.push({ azienda: nome, email, status: 'skipped', reason: 'SMTP non configurato' });
+        results.details.push({ azienda: nome, email, status: 'skipped', reason: 'Nessun provider email configurato' });
       }
     } catch (err) {
       results.failed++;
@@ -114,9 +114,11 @@ export async function sendEsitoNotifications(garaId, options = {}) {
  * Send custom email
  */
 export async function sendEmail(to, subject, htmlBody, options = {}) {
-  // TODO: spostare guard nel provider (per supportare SES senza SMTP_USER)
-  if (!process.env.SMTP_USER) {
-    return { status: 'skipped', reason: 'SMTP non configurato' };
+  // Guard: serve almeno un provider configurato (SMTP o SES)
+  const hasSMTP = !!process.env.SMTP_USER;
+  const hasSES = !!(process.env.SES_ACCESS_KEY_ID && process.env.SES_SECRET_ACCESS_KEY);
+  if (!hasSMTP && !hasSES) {
+    return { status: 'skipped', reason: 'Nessun provider email configurato (SMTP_USER o SES keys mancanti)' };
   }
 
   try {
