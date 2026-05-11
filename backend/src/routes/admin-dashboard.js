@@ -228,11 +228,30 @@ export default async function adminDashboardRoutes(fastify, opts) {
   });
 
   // GET /api/admin/dashboard/scadenze-abbonamenti - Users with expiring subscriptions (with filters)
+  // NB: i filtri devono essere parametrizzati ($n placeholders) per evitare SQL injection;
+  // la versione precedente concatenava i valori direttamente nella query (bug critico).
+  // La somma degli importi usa COALESCE(col, 0) su ogni addendo per evitare che un singolo
+  // NULL faccia diventare NULL il totale.
   fastify.get('/dashboard/scadenze-abbonamenti', async (request, reply) => {
     try {
-      const { data_inizio, data_fine, includi_pagati, includi_temporanei, agente } = request.query;
+      const { data_inizio, data_fine, agente } = request.query;
+      const params = [];
+      const where = ['up.data_fine IS NOT NULL'];
 
-      let query_str = `
+      if (data_inizio) {
+        params.push(data_inizio);
+        where.push(`up.data_fine >= $${params.length}`);
+      }
+      if (data_fine) {
+        params.push(data_fine);
+        where.push(`up.data_inizio <= $${params.length}`);
+      }
+      if (agente && agente !== '') {
+        params.push(agente);
+        where.push(`u.codice_agente = $${params.length}`);
+      }
+
+      const query_str = `
         SELECT
           u.username,
           COALESCE(az.ragione_sociale, u.nome || ' ' || COALESCE(u.cognome, '')) AS impresa,
@@ -245,39 +264,30 @@ export default async function adminDashboardRoutes(fastify, opts) {
           up.data_fine,
           COALESCE(u.rinnovo_automatico, false) AS rinnovo_automatico,
           COALESCE(up.tipo, 'standard') AS tipo,
-          COALESCE(
-            up.importo_bandi + up.importo_esiti + up.importo_esiti_light +
-            up.importo_newsletter_bandi + up.importo_newsletter_esiti + up.importo_simulazioni,
-            0
+          (
+            COALESCE(up.importo_bandi, 0) +
+            COALESCE(up.importo_esiti, 0) +
+            COALESCE(up.importo_esiti_light, 0) +
+            COALESCE(up.importo_newsletter_bandi, 0) +
+            COALESCE(up.importo_newsletter_esiti, 0) +
+            COALESCE(up.importo_simulazioni, 0)
           ) AS importo
         FROM users u
         LEFT JOIN users_periodi up ON u.username = up.username
-        LEFT JOIN aziende az ON u.id_azienda = az.id
-        LEFT JOIN province p ON az.id_provincia = p.id
-        WHERE up.data_fine IS NOT NULL
+        LEFT JOIN aziende az       ON u.id_azienda = az.id
+        LEFT JOIN province p       ON az.id_provincia = p.id
+        WHERE ${where.join(' AND ')}
+        ORDER BY up.data_fine ASC
       `;
 
-      // Apply filters
-      if (data_inizio) {
-        query_str += ` AND up.data_fine >= '${data_inizio}'`;
-      }
-      if (data_fine) {
-        query_str += ` AND up.data_inizio <= '${data_fine}'`;
-      }
-      if (agente && agente !== '') {
-        query_str += ` AND u.codice_agente = '${agente}'`;
-      }
-
-      query_str += ` ORDER BY up.data_fine ASC`;
-
-      const result = await query(query_str);
+      const result = await query(query_str, params);
 
       return {
         scadenze_abbonamenti: result.rows,
         totale: result.rows.length
       };
     } catch (err) {
-      fastify.log.error(err, 'Scadenze abbonamenti error');
+      fastify.log.error({ err: err.message, stack: err.stack }, 'Scadenze abbonamenti error');
       return reply.status(500).send({ error: err.message });
     }
   });
