@@ -2063,43 +2063,58 @@ export default async function clientiRoutes(fastify, opts) {
   // ============================================================
   // NEWSLETTER
   // ============================================================
+  // Helper interno: storico newsletter per utente. Filtra newsletter_invii_log
+  // (per-destinatario) JOINato a newsletter_invii (header dell'invio). Schema:
+  // - newsletter_invii: id, tipo, oggetto, data_invio, destinatari, inviati, falliti, data_da, data_a (migration 006/020)
+  // - newsletter_invii_log: id, id_invio, username, email, tipo, n_items, status, errore (migration 020)
+  async function getNewsletterStoricoPerUtente(username, tipo, page, limit) {
+    const safeLimit = Math.max(1, Math.min(200, parseInt(limit) || 20));
+    const safePage = Math.max(1, parseInt(page) || 1);
+    const offset = (safePage - 1) * safeLimit;
+
+    const countResult = await query(
+      `SELECT COUNT(*)::int AS total
+       FROM newsletter_invii_log l
+       JOIN newsletter_invii ni ON ni.id = l.id_invio
+       WHERE l.username = $1 AND ni.tipo = $2`,
+      [username, tipo]
+    );
+    const total = countResult.rows[0]?.total || 0;
+
+    const result = await query(
+      `SELECT
+         l.id                 AS id,
+         l.id_invio           AS id_invio,
+         ni.data_invio        AS data_invio,
+         ni.oggetto           AS oggetto,
+         ni.data_da           AS data_da,
+         ni.data_a            AS data_a,
+         l.n_items            AS n_items,
+         l.status             AS status,
+         l.errore             AS errore
+       FROM newsletter_invii_log l
+       JOIN newsletter_invii ni ON ni.id = l.id_invio
+       WHERE l.username = $1 AND ni.tipo = $2
+       ORDER BY ni.data_invio DESC
+       LIMIT $3 OFFSET $4`,
+      [username, tipo, safeLimit, offset]
+    );
+
+    return {
+      newsletter: result.rows,
+      total,
+      page: safePage,
+      limit: safeLimit,
+      pages: Math.max(1, Math.ceil(total / safeLimit))
+    };
+  }
+
   // GET /api/clienti/newsletter/bandi
-  // Bandi newsletter history
+  // Bandi newsletter history (per current user)
   fastify.get('/newsletter/bandi', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     try {
-      const username = request.user.username;
       const { page = 1, limit = 20 } = request.query;
-
-      const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
-
-      const countResult = await query(
-        `SELECT COUNT(*) as total FROM newsletter_invii
-         WHERE username = $1 AND tipo = $2`,
-        [username, 'BANDI']
-      );
-      const total = parseInt(countResult.rows[0].total);
-
-      const result = await query(
-        `SELECT
-          id AS id,
-          data_invio AS data_invio,
-          numero_bandi AS numero_bandi,
-          soggetto AS soggetto,
-          stato_invio AS stato_invio
-         FROM newsletter_invii
-         WHERE username = $1 AND tipo = $2
-         ORDER BY data_invio DESC
-         LIMIT $3 OFFSET $4`,
-        [username, 'BANDI', limit, offset]
-      );
-
-      return {
-        newsletter: result.rows,
-        total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        pages: Math.ceil(total / parseInt(limit))
-      };
+      return await getNewsletterStoricoPerUtente(request.user.username, 'BANDI', page, limit);
     } catch (err) {
       fastify.log.error({ err: err.message }, 'GET /newsletter/bandi error');
       return reply.status(500).send({ error: 'Errore caricamento newsletter bandi' });
@@ -2107,42 +2122,11 @@ export default async function clientiRoutes(fastify, opts) {
   });
 
   // GET /api/clienti/newsletter/esiti
-  // Esiti newsletter history
+  // Esiti newsletter history (per current user)
   fastify.get('/newsletter/esiti', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     try {
-      const username = request.user.username;
       const { page = 1, limit = 20 } = request.query;
-
-      const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
-
-      const countResult = await query(
-        `SELECT COUNT(*) as total FROM newsletter_invii
-         WHERE username = $1 AND tipo = $2`,
-        [username, 'ESITI']
-      );
-      const total = parseInt(countResult.rows[0].total);
-
-      const result = await query(
-        `SELECT
-          id AS id,
-          data_invio AS data_invio,
-          numero_esiti AS numero_esiti,
-          soggetto AS soggetto,
-          stato_invio AS stato_invio
-         FROM newsletter_invii
-         WHERE username = $1 AND tipo = $2
-         ORDER BY data_invio DESC
-         LIMIT $3 OFFSET $4`,
-        [username, 'ESITI', limit, offset]
-      );
-
-      return {
-        newsletter: result.rows,
-        total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        pages: Math.ceil(total / parseInt(limit))
-      };
+      return await getNewsletterStoricoPerUtente(request.user.username, 'ESITI', page, limit);
     } catch (err) {
       fastify.log.error({ err: err.message }, 'GET /newsletter/esiti error');
       return reply.status(500).send({ error: 'Errore caricamento newsletter esiti' });
