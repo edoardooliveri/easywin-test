@@ -173,8 +173,11 @@ export default async function clientiRoutes(fastify, opts) {
       const result = await query(
         `SELECT username, email, nome, cognome, azienda,
                 partita_iva, codice_fiscale, citta, provincia,
-                telefono, approvato, expire, expire_bandi,
-                expire_presidia, data_creazione
+                telefono, approvato,
+                scadenza_esiti, scadenza_bandi, scadenza_esiti_light,
+                scadenza_newsletter_bandi, scadenza_newsletter_esiti,
+                scadenza_presidia, scadenza_albo_ai,
+                data_creazione
          FROM users
          WHERE username = $1`,
         [request.user.username]
@@ -197,9 +200,13 @@ export default async function clientiRoutes(fastify, opts) {
         provincia: u.provincia,
         telefono: u.telefono,
         approvato: u.approvato,
-        scadenza_esiti: u.expire,
-        scadenza_bandi: u.expire_bandi,
-        scadenza_presidia: u.expire_presidia,
+        scadenza_esiti: u.scadenza_esiti,
+        scadenza_bandi: u.scadenza_bandi,
+        scadenza_esiti_light: u.scadenza_esiti_light,
+        scadenza_newsletter_bandi: u.scadenza_newsletter_bandi,
+        scadenza_newsletter_esiti: u.scadenza_newsletter_esiti,
+        scadenza_presidia: u.scadenza_presidia,
+        scadenza_albo_ai: u.scadenza_albo_ai,
         data_creazione: u.data_creazione
       };
     } catch (err) {
@@ -318,6 +325,31 @@ export default async function clientiRoutes(fastify, opts) {
     } catch (err) {
       fastify.log.error({ err: err.message }, 'POST /cambio-password error');
       return reply.status(500).send({ error: 'Errore cambio password' });
+    }
+  });
+
+  // GET /api/clienti/storico-accessi
+  // Returns login history for the current user.
+  // TODO: implementare tabella login_log dedicata. Per ora restituiamo l'ultimo accesso
+  // disponibile in users.ultimo_accesso come unico record, in modo che la UI del profilo
+  // (tab "Storico Accessi") non rompa più con 404.
+  fastify.get('/storico-accessi', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    try {
+      const result = await query(
+        `SELECT ultimo_accesso FROM users WHERE username = $1`,
+        [request.user.username]
+      );
+      if (result.rows.length === 0) {
+        return reply.status(404).send({ error: 'Utente non trovato' });
+      }
+      const ultimo = result.rows[0].ultimo_accesso;
+      return {
+        accessi: ultimo ? [{ data: ultimo, ip: null, user_agent: null }] : [],
+        nota: 'Storico accessi dettagliato non ancora disponibile: viene esposta solo l\'ultima data di accesso registrata.'
+      };
+    } catch (err) {
+      fastify.log.error({ err: err.message }, 'GET /storico-accessi error');
+      return reply.status(500).send({ error: 'Errore nel recupero dello storico accessi' });
     }
   });
 
