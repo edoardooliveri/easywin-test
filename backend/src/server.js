@@ -287,6 +287,7 @@ const AUTO_MIGRATIONS = [
   '028_bandi_id_azienda_dedicata.sql',
   '029_bandi_sped_to_boolean.sql',
   '030_bandi_soa_sec_scorporabili.sql',
+  '032_consolidate_clienti_preferiti_registro.sql',
 ];
 
 async function runAutoMigrations() {

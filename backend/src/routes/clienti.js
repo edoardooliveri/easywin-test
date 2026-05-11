@@ -1432,23 +1432,32 @@ export default async function clientiRoutes(fastify, opts) {
   });
 
   // GET /api/clienti/esiti/preferiti
-  // List favorite esiti
+  // List favorite esiti for the current user.
+  // La tabella preferiti_esiti contiene username/id_gara/data_inserimento
+  // (vedi migration 032). gare ha PK 'id' (non 'id_gara') e colonna 'data'
+  // (non 'data_pubblicazione'); 'numero_gara' non esiste in nessuna migrazione.
   fastify.get('/esiti/preferiti', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     try {
       const username = request.user.username;
 
       const result = await query(
         `SELECT
-          p.id AS id,
-          p.id_gara AS id_gara,
-          g.numero_gara AS numero_gara,
-          g.data_pubblicazione AS data_pubblicazione,
-          g.regione AS regione,
-          p.data_aggiunta AS data_aggiunta
+           p.id                   AS id,
+           p.id_gara              AS id_gara,
+           p.data_inserimento     AS data_aggiunta,
+           g.titolo               AS titolo,
+           g.codice_cig           AS codice_cig,
+           g.data                 AS data,
+           g.regione              AS regione,
+           g.stazione             AS stazione,
+           g.id_soa               AS id_soa,
+           g.importo              AS importo,
+           g.ribasso              AS ribasso,
+           g.n_partecipanti       AS n_partecipanti
          FROM preferiti_esiti p
-         JOIN gare g ON p.id_gara = g.id_gara
+         JOIN gare g ON p.id_gara = g.id
          WHERE p.username = $1
-         ORDER BY p.data_aggiunta DESC`,
+         ORDER BY p.data_inserimento DESC`,
         [username]
       );
 
@@ -1480,7 +1489,7 @@ export default async function clientiRoutes(fastify, opts) {
       }
 
       const result = await query(
-        `INSERT INTO preferiti_esiti (id_gara, username, data_aggiunta)
+        `INSERT INTO preferiti_esiti (id_gara, username, data_inserimento)
          VALUES ($1, $2, NOW())
          RETURNING *`,
         [id, username]
