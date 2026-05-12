@@ -52,6 +52,42 @@ export default async function lookupRoutes(fastify, opts) {
     return result.rows;
   });
 
+  // GET /api/lookups/aziende?search=term
+  // Autocomplete generico delle aziende per il portale clienti (oltre alla
+  // versione admin /api/admin/aziende/search). Richiede almeno 2 caratteri.
+  // Filtra le aziende eliminate. Schema tabella: aziende.id, ragione_sociale,
+  // partita_iva, codice_fiscale, citta.
+  fastify.get('/aziende', async (request) => {
+    const { search, limit = 20 } = request.query;
+    const cap = Math.max(1, Math.min(50, parseInt(limit, 10) || 20));
+    if (!search || search.length < 2) {
+      return [];
+    }
+    try {
+      const result = await query(
+        `SELECT id, ragione_sociale AS nome, partita_iva, codice_fiscale, citta
+         FROM aziende
+         WHERE COALESCE(eliminata, false) = false
+           AND ragione_sociale ILIKE $1
+         ORDER BY ragione_sociale
+         LIMIT $2`,
+        [`%${search}%`, cap]
+      );
+      return result.rows;
+    } catch (err) {
+      // Se 'eliminata' non esiste in alcuni schemi storici, fallback senza filtro
+      const result = await query(
+        `SELECT id, ragione_sociale AS nome, partita_iva, codice_fiscale, citta
+         FROM aziende
+         WHERE ragione_sociale ILIKE $1
+         ORDER BY ragione_sociale
+         LIMIT $2`,
+        [`%${search}%`, cap]
+      );
+      return result.rows;
+    }
+  });
+
   // GET /api/lookups/soa
   fastify.get('/soa', async () => {
     const result = await query(

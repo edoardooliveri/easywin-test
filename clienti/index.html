@@ -2863,6 +2863,134 @@ async function cercaEsiti() {
   }
 }
 
+// === AUTOCOMPLETE GENERICO ============================================
+// Aggancia un dropdown di suggerimenti a un <input> testuale.
+//
+//   attachAutocomplete({
+//     inputId: 'bandi-stazione',
+//     endpoint: '/lookups/stazioni',    // sotto API_BASE
+//     paramName: 'search',              // query string param
+//     minChars: 2,
+//     renderItem: it => it.nome + (it.citta ? ' — ' + it.citta : '')
+//   });
+//
+// Il dropdown viene posizionato in absolute sotto l'input, supporta
+// tastiera (frecce + Invio + Esc), debounce 200ms, e tollera fetch falliti
+// senza generare alert (silenzioso).
+function attachAutocomplete(opts) {
+  const input = document.getElementById(opts.inputId);
+  if (!input) return;
+  const minChars = opts.minChars || 2;
+  const param = opts.paramName || 'search';
+  const renderItem = opts.renderItem || (it => it.nome || it.ragione_sociale || JSON.stringify(it));
+
+  // Crea panel dropdown (una sola volta)
+  let panel = input._acPanel;
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.style.cssText = 'position:absolute;background:#1E2D3D;border:1px solid rgba(255,255,255,0.15);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.35);max-height:280px;overflow:auto;z-index:9000;display:none;font-family:Comfortaa,cursive;min-width:240px;';
+    document.body.appendChild(panel);
+    input._acPanel = panel;
+  }
+
+  let debounceT = null;
+  let activeIdx = -1;
+  let lastItems = [];
+
+  const closePanel = () => { panel.style.display = 'none'; activeIdx = -1; };
+  const positionPanel = () => {
+    const r = input.getBoundingClientRect();
+    panel.style.left   = (window.scrollX + r.left) + 'px';
+    panel.style.top    = (window.scrollY + r.bottom + 4) + 'px';
+    panel.style.width  = r.width + 'px';
+  };
+  const renderPanel = () => {
+    if (lastItems.length === 0) { closePanel(); return; }
+    panel.innerHTML = lastItems.map((it, i) =>
+      `<div data-i="${i}" style="padding:9px 12px;cursor:pointer;color:rgba(255,255,255,0.9);font-size:0.85rem;border-bottom:1px solid rgba(255,255,255,0.05);${i===activeIdx?'background:rgba(245,197,24,0.12);':''}" onmouseover="this.style.background='rgba(245,197,24,0.18)'" onmouseout="this.style.background='${i===activeIdx?'rgba(245,197,24,0.12)':'transparent'}'">${renderItem(it).replace(/</g,'&lt;')}</div>`
+    ).join('');
+    positionPanel();
+    panel.style.display = 'block';
+    Array.from(panel.children).forEach(child => {
+      child.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // evita blur prima di pick
+        const i = parseInt(child.dataset.i, 10);
+        if (Number.isFinite(i)) {
+          input.value = lastItems[i].nome || lastItems[i].ragione_sociale || '';
+          closePanel();
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    });
+  };
+
+  const doFetch = async () => {
+    const q = (input.value || '').trim();
+    if (q.length < minChars) { closePanel(); return; }
+    try {
+      const url = API_BASE + opts.endpoint + '?' + param + '=' + encodeURIComponent(q) + '&limit=15';
+      const res = await fetch(url);
+      if (!res.ok) { closePanel(); return; }
+      const data = await res.json();
+      lastItems = Array.isArray(data) ? data : (data.data || data.risultati || []);
+      activeIdx = -1;
+      renderPanel();
+    } catch (e) {
+      closePanel();
+    }
+  };
+
+  input.addEventListener('input', () => {
+    if (debounceT) clearTimeout(debounceT);
+    debounceT = setTimeout(doFetch, 220);
+  });
+  input.addEventListener('keydown', (e) => {
+    if (panel.style.display === 'none') return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); activeIdx = Math.min(activeIdx + 1, lastItems.length - 1); renderPanel(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); activeIdx = Math.max(activeIdx - 1, 0); renderPanel(); }
+    else if (e.key === 'Enter' && activeIdx >= 0) { e.preventDefault(); input.value = lastItems[activeIdx].nome || lastItems[activeIdx].ragione_sociale || ''; closePanel(); }
+    else if (e.key === 'Escape') { closePanel(); }
+  });
+  input.addEventListener('blur', () => { setTimeout(closePanel, 180); });
+  window.addEventListener('resize', closePanel);
+  window.addEventListener('scroll', closePanel, true);
+}
+
+// Avvia gli autocomplete su DOM ready (chiamata anche da pageshow per
+// gestire il caso della SPA che reidrata sezioni nascoste).
+function initAutocompletes() {
+  attachAutocomplete({
+    inputId: 'bandi-stazione',
+    endpoint: '/lookups/stazioni',
+    paramName: 'search',
+    renderItem: it => `${it.nome || ''}${it.citta ? ' — ' + it.citta : ''}`
+  });
+  attachAutocomplete({
+    inputId: 'esiti-stazione',
+    endpoint: '/lookups/stazioni',
+    paramName: 'search',
+    renderItem: it => `${it.nome || ''}${it.citta ? ' — ' + it.citta : ''}`
+  });
+  attachAutocomplete({
+    inputId: 'esiti-azienda',
+    endpoint: '/lookups/aziende',
+    paramName: 'search',
+    renderItem: it => `${it.nome || it.ragione_sociale || ''}${it.partita_iva ? ' [P.IVA ' + it.partita_iva + ']' : ''}${it.citta ? ' — ' + it.citta : ''}`
+  });
+  attachAutocomplete({
+    inputId: 'cr-stazione',
+    endpoint: '/lookups/stazioni',
+    paramName: 'search',
+    renderItem: it => `${it.nome || ''}${it.citta ? ' — ' + it.citta : ''}`
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAutocompletes);
+} else {
+  initAutocompletes();
+}
+
 // === TOAST NOTIFICATION ===
 function showToast(msg, type) {
   var t = document.createElement('div');
