@@ -923,20 +923,63 @@ export default async function adminDashboardRoutes(fastify, opts) {
   });
 
   // GET /api/admin/dashboard — returns full stats JSON (was redirecting to /stats)
+  // PERFORMANCE: la versione precedente faceva 10 COUNT in parallelo, di cui due
+  // usavano EXTRACT(YEAR FROM created_at) = ... — espressione non-sargable che
+  // sui ~1.1M bandi e ~200k gare faceva full table scan, finendo in timeout
+  // (endpoint riportato come "pending" dal client). Ora le 4 COUNT su bandi/gare
+  // sono accentrate in una sola query con COUNT(*) FILTER (...) e la finestra
+  // temporale usa un range sargable su created_at (usa l'indice se presente).
   fastify.get('/dashboard', async (request, reply) => {
     try {
-      const stats = await Promise.all([
-        query(`SELECT COUNT(*) AS total FROM bandi`),
-        query(`SELECT COUNT(*) AS total FROM gare`),
-        query(`SELECT COUNT(*) AS total FROM aziende WHERE attivo = true`),
-        query(`SELECT COUNT(*) AS total FROM stazioni WHERE attivo = true`),
-        query(`SELECT COUNT(*) AS total FROM users`),
-        query(`SELECT COUNT(*) AS total FROM bandi WHERE EXTRACT(YEAR FROM created_at) = EXTRACT(YEAR FROM NOW()) AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM NOW())`),
-        query(`SELECT COUNT(*) AS total FROM gare WHERE EXTRACT(YEAR FROM created_at) = EXTRACT(YEAR FROM NOW()) AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM NOW())`),
-        query(`SELECT COUNT(*) AS total FROM gare WHERE annullato = true`),
-        query(`SELECT COUNT(*) AS total FROM aziende WHERE attivo = false`),
-        query(`SELECT COUNT(*) AS total FROM stazioni WHERE attivo = false`)
+      const [aggBandi, aggGare, aggAziende, aggStazioni, totUsers] = await Promise.all([
+        query(`
+          SELECT
+            COUNT(*)::int                                                            AS totale,
+            COUNT(*) FILTER (
+              WHERE created_at >= date_trunc('month', NOW())
+                AND created_at <  date_trunc('month', NOW()) + INTERVAL '1 month'
+            )::int                                                                   AS questo_mese
+          FROM bandi
+        `),
+        query(`
+          SELECT
+            COUNT(*)::int                                                            AS totale,
+            COUNT(*) FILTER (
+              WHERE created_at >= date_trunc('month', NOW())
+                AND created_at <  date_trunc('month', NOW()) + INTERVAL '1 month'
+            )::int                                                                   AS questo_mese,
+            COUNT(*) FILTER (WHERE annullato = true)::int                            AS annullati
+          FROM gare
+        `),
+        query(`
+          SELECT
+            COUNT(*) FILTER (WHERE attivo = true)::int  AS attive,
+            COUNT(*) FILTER (WHERE attivo = false)::int AS inattive
+          FROM aziende
+        `),
+        query(`
+          SELECT
+            COUNT(*) FILTER (WHERE attivo = true)::int  AS attive,
+            COUNT(*) FILTER (WHERE attivo = false)::int AS inattive
+          FROM stazioni
+        `),
+        query(`SELECT COUNT(*)::int AS total FROM users`)
       ]);
+
+      // Backward-compat: ritorno lo stesso shape della versione precedente per
+      // non rompere il client admin che si aspetta queste chiavi.
+      const stats = [
+        { rows: [{ total: aggBandi.rows[0].totale }] },                  // bandi_totali
+        { rows: [{ total: aggGare.rows[0].totale }] },                   // esiti_totali
+        { rows: [{ total: aggAziende.rows[0].attive }] },                // aziende_totali
+        { rows: [{ total: aggStazioni.rows[0].attive }] },               // stazioni_totali
+        { rows: [{ total: totUsers.rows[0].total }] },                   // utenti_totali
+        { rows: [{ total: aggBandi.rows[0].questo_mese }] },             // bandi_questo_mese
+        { rows: [{ total: aggGare.rows[0].questo_mese }] },              // esiti_questo_mese
+        { rows: [{ total: aggGare.rows[0].annullati }] },                // esiti_da_cancellare
+        { rows: [{ total: aggAziende.rows[0].inattive }] },              // aziende_inattive
+        { rows: [{ total: aggStazioni.rows[0].inattive }] }              // stazioni_inattive
+      ];
 
       return {
         bandi_totali: parseInt(stats[0].rows[0].total),

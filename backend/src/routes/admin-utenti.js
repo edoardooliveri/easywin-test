@@ -201,14 +201,18 @@ export default async function adminUtentiRoutes(fastify, opts) {
   });
 
   // GET /api/admin/utenti/subagenti-lista — Distinct sub-agent names for dropdowns
+  // FIX: la query originale faceva SELECT DISTINCT gestibile_da_agente con
+  // gestibile_da_agente != '', ma la colonna è BOOLEAN (migration 005), non
+  // VARCHAR. Postgres errava con `operator does not exist: boolean = unknown`
+  // facendo cadere la rotta in 500.
+  //
+  // Nello schema attuale non esiste una colonna 'codice_subagente' analoga a
+  // 'codice_agente'. Per non rompere il dropdown della UI admin restituiamo
+  // una lista vuota in modo stabile; quando il modello dati introdurrà un
+  // campo subagente dedicato (TODO migration futura) qui basterà fare
+  // SELECT DISTINCT codice_subagente.
   fastify.get('/utenti/subagenti-lista', { preHandler: [fastify.authenticate, adminOnly] }, async () => {
-    const result = await query(`
-      SELECT DISTINCT gestibile_da_agente AS nome
-      FROM users
-      WHERE gestibile_da_agente IS NOT NULL AND gestibile_da_agente != ''
-      ORDER BY gestibile_da_agente
-    `);
-    return result.rows.map(r => r.nome);
+    return [];
   });
 
   // GET /api/admin/utenti/:username — Full user detail

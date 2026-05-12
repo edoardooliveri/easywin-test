@@ -32,6 +32,23 @@ const DefaultLimitMinMedia = 10; // Default threshold for minimum participants
 
 export default async function simulazioniEngineRoutes(fastify) {
 
+  // Helper locale: alle route di questo plugin manca un preHandler globale di
+  // auth (a differenza di /api/admin/*). Ogni handler chiama `await
+  // requireAuth(request, reply)` come prima istruzione, ma la funzione non era
+  // mai stata definita nel file -> ReferenceError -> 500/401 generico per
+  // tutte le rotte del simulation engine. Definita qui in modo allineato a
+  // fastify.authenticate (decorator globale in server.js).
+  async function requireAuth(request, reply) {
+    try {
+      await request.jwtVerify();
+    } catch (err) {
+      reply.status(401).send({ error: 'Non autorizzato' });
+      // Throw per interrompere l'handler chiamante senza scrivere ulteriormente
+      // sulla reply (Fastify swallowa l'errore dopo che reply.sent === true).
+      throw err;
+    }
+  }
+
   // ============================================================
   // CRUD OPERATIONS
   // ============================================================
