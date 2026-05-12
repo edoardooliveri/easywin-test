@@ -1,73 +1,127 @@
 /* ============================================================
-   easyWin Admin — Design Tokens
+   easyWin Admin — Design Tokens (light theme)
    ============================================================
-   Generato dal design system (prompts/ADMIN_DESIGN_SYSTEM.md).
    Caricato in cima a tutti i file admin/*.html via:
      <link rel="stylesheet" href="/admin/admin-tokens.css">
-   Da qui sono disponibili in ogni componente le variabili CSS
-   per palette, tipografia, spacing, radius, shadow.
-   Non aggiungere CSS specifico di componenti qui: questo file e
-   solo il "contratto" condiviso.
+
+   Palette: bianco + blu scuro (#1E3A8A) + arancione vivace (#EA580C).
+   Stile professionale moderno tipo dashboard SaaS B2B 2024.
+
+   I colori graduatoria (Vincitrice / Classificata / Anomala / Esclusa /
+   Taglio ali / Sotto media / Da aprire / Ammessa) sono derivati dal
+   legacy easywin.it (Areas/Abbonamenti/Views/Esiti/Esito.cshtml) e
+   leggermente riarmonizzati per leggibilità su superficie chiara.
+
+   Non aggiungere CSS di componenti qui: questo file è solo il contratto.
    ============================================================ */
 
 :root {
-  /* ── Colori ───────────────────────────────────── */
-  --bg:            #0F1A23;
-  --surface:       #1E2D3D;
-  --surface-2:     #243749;
-  --surface-3:     #2D4459;
-  --border:        rgba(255, 255, 255, 0.10);
-  --border-strong: rgba(255, 255, 255, 0.18);
+  /* ── Background / Surfaces ──────────────────── */
+  --bg:            #F5F7FA;   /* sfondo pagina (slate-50/100) */
+  --surface:       #FFFFFF;   /* card, modal, body tabella */
+  --surface-2:     #F0F4F8;   /* header tabella, callout soft, hover light */
+  --surface-3:     #E2E8F0;   /* hover row scuro, divider attivi */
 
-  --text:       rgba(255, 255, 255, 0.92);
-  --text-muted: rgba(255, 255, 255, 0.62);
-  --text-dim:   rgba(255, 255, 255, 0.40);
+  --border:        #E2E8F0;   /* bordi standard (slate-200) */
+  --border-strong: #CBD5E1;   /* bordi focus, divider su card */
 
-  --accent:       #3DD4D7;   /* Teal admin (distinto dal giallo cliente) */
-  --accent-hover: #5AE5E8;
-  --accent-soft:  rgba(61, 212, 215, 0.14);
-  --accent-text:  #0F1A23;   /* testo sopra background accent (es. button primary) */
+  /* ── Testo ──────────────────────────────────── */
+  --text:       #1E293B;      /* slate-800 — testo principale */
+  --text-muted: #64748B;      /* slate-500 — label, hint */
+  --text-dim:   #94A3B8;      /* slate-400 — placeholder, disabled */
+  --text-inverse: #FFFFFF;    /* su superfici scure */
 
-  --success: #22C55E;
-  --warning: #F59E0B;
-  --danger:  #EF4444;
-  --info:    #3B82F6;
+  /* ── Primary (blu scuro corporate) ──────────── */
+  --accent:        #1E3A8A;   /* blue-800 */
+  --accent-hover:  #1E40AF;   /* blue-900 */
+  --accent-soft:   #DBEAFE;   /* blue-100 — pill/tag bg */
+  --accent-text:   #FFFFFF;   /* testo su button accent */
 
-  /* ── Tipografia ───────────────────────────────── */
+  /* ── Secondary (arancione vivace) ────────────── */
+  --secondary:        #EA580C; /* orange-600 */
+  --secondary-hover:  #C2410C; /* orange-700 */
+  --secondary-soft:   #FFEDD5; /* orange-100 — pill/tag bg */
+  --secondary-text:   #FFFFFF; /* testo su button secondary */
+
+  /* ── Stati semantici ────────────────────────── */
+  --success:      #16A34A;   /* green-600 */
+  --success-soft: #DCFCE7;   /* green-100 */
+  --warning:      #EAB308;   /* yellow-500 */
+  --warning-soft: #FEF9C3;   /* yellow-100 */
+  --danger:       #DC2626;   /* red-600 */
+  --danger-soft:  #FEE2E2;   /* red-100 */
+  --info:         #0EA5E9;   /* sky-500 */
+  --info-soft:    #E0F2FE;   /* sky-100 */
+
+  /* ── Colori graduatoria (legacy parity) ──────
+     Mantengono la semantica del vecchio sito ma armonizzati per
+     fondo bianco. Usati nelle tabelle dettaglio esito + ATI/Avvalimenti.
+  */
+  --grad-vincitrice-bg:   #DC2626;   /* rosso vivo — la vincitrice */
+  --grad-vincitrice-text: #FFFFFF;
+  --grad-classificata-bg:   #FCA5A5; /* rosa medio — classificata */
+  --grad-classificata-text: #7F1D1D;
+  --grad-anomala-bg:        #FCA5A5;
+  --grad-anomala-text:      #7F1D1D;
+  --grad-ammessa-bg:        #FECACA; /* rosa chiaro — ammessa */
+  --grad-ammessa-text:      #7F1D1D;
+  --grad-ammessa-riserva-bg:   #FCD34D; /* giallo — ammessa con riserva */
+  --grad-ammessa-riserva-text: #78350F;
+  --grad-sotto-media-bg:    #FDA4AF; /* rosa-rosso — sotto la media */
+  --grad-sotto-media-text:  #7F1D1D;
+  --grad-taglio-ali-bg:     #FEE2E2; /* rosa molto chiaro — taglio ali */
+  --grad-taglio-ali-text:   #7F1D1D;
+  --grad-esclusa-bg:        #1F2937; /* grigio molto scuro — esclusa */
+  --grad-esclusa-text:      #FFFFFF;
+  --grad-da-aprire-bg:      #DDD6FE; /* viola chiaro — da aprire */
+  --grad-da-aprire-text:    #4C1D95;
+
+  /* ── Colori tipologia di gara (badge stato bando) ──
+     Mappatura semplificata: la palette completa per le 60+ tipologie
+     dell'archivio italiano va a granularita standard per macro-famiglia.
+  */
+  --tip-aperta-bg:       #DBEAFE; --tip-aperta-text:       #1E3A8A; /* blue */
+  --tip-negoziata-bg:    #FFEDD5; --tip-negoziata-text:    #9A3412; /* orange */
+  --tip-ristretta-bg:    #FCE7F3; --tip-ristretta-text:    #9D174D; /* pink */
+  --tip-concessione-bg:  #E0E7FF; --tip-concessione-text:  #3730A3; /* indigo */
+  --tip-affidamento-bg:  #DCFCE7; --tip-affidamento-text:  #166534; /* green */
+  --tip-emergenza-bg:    #FEE2E2; --tip-emergenza-text:    #991B1B; /* red */
+  --tip-altro-bg:        #F1F5F9; --tip-altro-text:        #475569; /* slate */
+
+  /* Stato urgenza (sui bandi: scadenza prossima/scaduto/urgente) */
+  --status-attivo-bg:    #DCFCE7; --status-attivo-text:    #166534;
+  --status-urgente-bg:   #FEF3C7; --status-urgente-text:   #92400E;
+  --status-scaduto-bg:   #E5E7EB; --status-scaduto-text:   #6B7280;
+  --status-annullato-bg: #FEE2E2; --status-annullato-text: #991B1B;
+
+  /* ── Tipografia ─────────────────────────────── */
   --font-head: 'Comfortaa', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
-  --text-xs:   0.75rem;   /* 12 */
-  --text-sm:   0.875rem;  /* 14 */
-  --text-base: 1rem;      /* 16 */
-  --text-md:   1.125rem;  /* 18 */
-  --text-lg:   1.375rem;  /* 22 */
-  --text-xl:   1.75rem;   /* 28 */
-  --text-2xl:  2.25rem;   /* 36 */
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-md:   1.125rem;
+  --text-lg:   1.375rem;
+  --text-xl:   1.75rem;
+  --text-2xl:  2.25rem;
 
-  /* ── Spacing ──────────────────────────────────── */
-  --sp-1:  4px;
-  --sp-2:  8px;
-  --sp-3:  12px;
-  --sp-4:  16px;
-  --sp-5:  20px;
-  --sp-6:  24px;
-  --sp-8:  32px;
-  --sp-10: 40px;
+  /* ── Spacing ────────────────────────────────── */
+  --sp-1:  4px;  --sp-2:  8px;  --sp-3:  12px; --sp-4:  16px;
+  --sp-5:  20px; --sp-6:  24px; --sp-8:  32px; --sp-10: 40px;
 
-  /* ── Radius ───────────────────────────────────── */
+  /* ── Radius ─────────────────────────────────── */
   --radius-sm:   8px;
   --radius-md:   12px;
   --radius-lg:   16px;
   --radius-pill: 9999px;
 
-  /* ── Shadows ──────────────────────────────────── */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.20);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.30);
-  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45);
+  /* ── Shadows (soft per fondo bianco) ─────────── */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 1px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06);
 
-  /* ── Misc ─────────────────────────────────────── */
   --transition-fast: 120ms ease;
   --transition-base: 150ms ease;
 }
@@ -91,6 +145,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-head);
   font-weight: 600;
   line-height: 1.25;
+  color: var(--text);
   margin: 0;
 }
 
@@ -117,16 +172,16 @@ input, select, textarea {
   color: inherit;
 }
 
-/* Numeri tabulari ovunque sia importante l'allineamento (importi, ribassi) */
+/* Numeri tabulari (importi, ribassi, contatori) */
 .tabular, td.num, th.num { font-variant-numeric: tabular-nums; }
 
 /* ============================================================
-   Utility classes minime (lasciate volutamente poche: le pagine
-   useranno classi semantiche prefissate, es. .bn- per Bandi).
+   Utility classes minime
    ============================================================ */
 .text-muted { color: var(--text-muted) !important; }
 .text-dim   { color: var(--text-dim)   !important; }
 .text-accent{ color: var(--accent)     !important; }
+.text-secondary { color: var(--secondary) !important; }
 
 .text-success { color: var(--success) !important; }
 .text-warning { color: var(--warning) !important; }
@@ -137,3 +192,44 @@ input, select, textarea {
 .font-mono { font-family: var(--font-mono); }
 
 .hidden { display: none !important; }
+
+/* Classi di graduatoria (legacy parity) per <tr> nelle tabelle esito.
+   Le mantengo coi nomi originali (.Vincitrice, .Esclusa, ecc.) così il
+   JS che applica queste classi (vedi clienti/admin) continua a funzionare. */
+tr.Vincitrice  td, td.Vincitrice  { background: var(--grad-vincitrice-bg);  color: var(--grad-vincitrice-text); }
+tr.Vincitrice  a, td.Vincitrice a { color: var(--grad-vincitrice-text); }
+tr.Classificata td, td.Classificata { background: var(--grad-classificata-bg); color: var(--grad-classificata-text); }
+tr.Anomala     td, td.Anomala     { background: var(--grad-anomala-bg);     color: var(--grad-anomala-text); }
+tr.Ammessa     td, td.Ammessa     { background: var(--grad-ammessa-bg);     color: var(--grad-ammessa-text); }
+tr.AmmessaConRiserva td, td.AmmessaConRiserva { background: var(--grad-ammessa-riserva-bg); color: var(--grad-ammessa-riserva-text); }
+tr.MinoreMedia td, td.MinoreMedia { background: var(--grad-sotto-media-bg); color: var(--grad-sotto-media-text); }
+tr.TaglioAli   td, td.TaglioAli   { background: var(--grad-taglio-ali-bg);  color: var(--grad-taglio-ali-text); }
+tr.Esclusa     td, td.Esclusa     { background: var(--grad-esclusa-bg);     color: var(--grad-esclusa-text); }
+tr.Esclusa     a, td.Esclusa a    { color: var(--grad-esclusa-text); }
+tr.DaAprire    td, td.DaAprire    { background: var(--grad-da-aprire-bg);   color: var(--grad-da-aprire-text); }
+
+/* Badge utility per tipologia di gara */
+.tip-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 12px; border-radius: var(--radius-pill);
+  font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.2px;
+  background: var(--tip-altro-bg); color: var(--tip-altro-text);
+}
+.tip-badge--aperta      { background: var(--tip-aperta-bg);      color: var(--tip-aperta-text); }
+.tip-badge--negoziata   { background: var(--tip-negoziata-bg);   color: var(--tip-negoziata-text); }
+.tip-badge--ristretta   { background: var(--tip-ristretta-bg);   color: var(--tip-ristretta-text); }
+.tip-badge--concessione { background: var(--tip-concessione-bg); color: var(--tip-concessione-text); }
+.tip-badge--affidamento { background: var(--tip-affidamento-bg); color: var(--tip-affidamento-text); }
+.tip-badge--emergenza   { background: var(--tip-emergenza-bg);   color: var(--tip-emergenza-text); }
+
+/* Badge stato bando */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 12px; border-radius: var(--radius-pill);
+  font-size: var(--text-xs); font-weight: 700; letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.status-badge--attivo    { background: var(--status-attivo-bg);    color: var(--status-attivo-text); }
+.status-badge--urgente   { background: var(--status-urgente-bg);   color: var(--status-urgente-text); }
+.status-badge--scaduto   { background: var(--status-scaduto-bg);   color: var(--status-scaduto-text); }
+.status-badge--annullato { background: var(--status-annullato-bg); color: var(--status-annullato-text); }
