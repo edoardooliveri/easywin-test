@@ -7231,22 +7231,61 @@ async function calcolaRibassoAI() {
     if (regioneId) params.set('id_regione', regioneId);
 
     const res = await fetch(API_BASE + '/esiti?' + params.toString());
-    if (!res.ok) throw new Error('Errore nella connessione al database');
+    if (!res.ok) {
+      const msg = res.status === 500 ? 'Il server ha riportato un errore interno.'
+                : res.status === 401 ? 'Sessione scaduta, effettua di nuovo il login.'
+                : `Errore ${res.status} dal server.`;
+      throw new Error(msg);
+    }
     const data = await res.json();
+    const rawList = Array.isArray(data?.data) ? data.data : [];
 
-    let esiti = (data.data || []).filter(e => e.ribasso !== null && e.ribasso !== undefined && Number(e.ribasso) > 0);
+    // Filtra solo gli esiti con un ribasso valido (>0). Le aggiudicazioni
+    // "in corso" / placeholder vengono escluse dal calcolo statistico.
+    const conRibasso = rawList.filter(e => e.ribasso !== null && e.ribasso !== undefined && Number(e.ribasso) > 0);
 
-    // Filtra per tipologia di gara (basato sul numero di partecipanti)
+    // Filtra per tipologia procedurale, usando il numero partecipanti come
+    // proxy: negoziata ≤ 15, aperta > 15. Se non viene specificata o se il
+    // filtro lascia 0 esiti, ricadiamo sul superset senza filtro tipologia
+    // anziché bloccare l'utente con un alert.
+    let esiti = conRibasso;
+    let tipologiaApplicata = tipologia;
     if (tipologia === 'negoziata') {
-      esiti = esiti.filter(e => e.n_partecipanti && Number(e.n_partecipanti) <= 15);
+      const f = conRibasso.filter(e => e.n_partecipanti && Number(e.n_partecipanti) <= 15);
+      if (f.length > 0) esiti = f; else tipologiaApplicata = '';
     } else if (tipologia === 'aperta') {
-      esiti = esiti.filter(e => e.n_partecipanti && Number(e.n_partecipanti) > 15);
+      const f = conRibasso.filter(e => e.n_partecipanti && Number(e.n_partecipanti) > 15);
+      if (f.length > 0) esiti = f; else tipologiaApplicata = '';
     }
 
     if (esiti.length === 0) {
-      alert('Nessun esito trovato con i parametri specificati. Prova a modificare i filtri (es. rimuovi la tipologia o la SOA per ampliare la ricerca).');
+      // Niente alert(): mostriamo un messaggio inline nel box risultati così
+      // l'utente capisce immediatamente cosa è successo, senza popup OS.
+      const totLetti = rawList.length;
+      document.getElementById('cr-analisi-testo').innerHTML =
+        `<div style="padding:14px;background:rgba(239,68,68,0.08);border-left:3px solid #ef4444;border-radius:0 8px 8px 0;">
+          <i class="fas fa-exclamation-circle" style="color:#ef4444;margin-right:6px;"></i>
+          <strong>Nessun esito utile per il calcolo.</strong><br>
+          ${totLetti === 0
+            ? 'La ricerca non ha restituito esiti con i filtri specificati.'
+            : `Trovati ${totLetti} esiti totali ma nessuno ha un ribasso valido (&gt; 0%).`}
+          <br><span style="color:var(--text-muted);">Suggerimento: rimuovi la Stazione o cambia Categoria SOA / Criterio per ampliare la base statistica.</span>
+        </div>`;
+      document.getElementById('cr-range-min').textContent = '-';
+      document.getElementById('cr-range-max').textContent = '-';
+      document.getElementById('cr-range-ottimale').textContent = 'Ribasso ottimale: -';
+      document.getElementById('cr-confidenza').textContent = 'Confidenza: -';
+      document.getElementById('cr-stat-esiti').textContent = '0';
+      ['cr-stat-media','cr-stat-mediana','cr-stat-devstd'].forEach(id => { document.getElementById(id).textContent = '-'; });
+      document.getElementById('cr-esiti-body').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-dim);">Nessun esito utilizzabile</td></tr>';
+      document.getElementById('cr-risultato').style.display = 'block';
+      document.getElementById('cr-risultato').scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
+    // override tipologia originale per i messaggi successivi (era già usata
+    // per "tipologiaTesto"): consistency col fallback applicato sopra.
+    // eslint-disable-next-line no-param-reassign
+    var tipologia_effettiva = tipologiaApplicata;
 
     // Extract ribassi values
     const ribassi = esiti.map(e => Number(e.ribasso));
@@ -7292,8 +7331,11 @@ async function calcolaRibassoAI() {
 
     // Generate AI analysis text
     const stazioneTesto = stazione || 'le stazioni selezionate';
-    const tipologiaTesto = tipologia === 'negoziata' ? ' (Procedura Negoziata, ≤15 partecipanti)' : tipologia === 'aperta' ? ' (Procedura Aperta, >15 partecipanti)' : '';
-    let analisi = `<p><strong>Analisi basata su ${n} esiti</strong> della stazione appaltante "${stazioneTesto}"${tipologiaTesto}.</p>`;
+    const tipologiaTesto = tipologia_effettiva === 'negoziata' ? ' (Procedura Negoziata, ≤15 partecipanti)' : tipologia_effettiva === 'aperta' ? ' (Procedura Aperta, >15 partecipanti)' : '';
+    const tipologiaNote = (tipologia && tipologia !== tipologia_effettiva)
+      ? `<p style="margin-top:8px;padding:10px;background:rgba(245,158,11,0.10);border-left:3px solid var(--yellow);border-radius:0 8px 8px 0;color:#fbbf24;"><i class="fas fa-info-circle" style="margin-right:6px"></i>Il filtro tipologia (${tipologia === 'negoziata' ? 'Negoziata' : 'Aperta'}) non ha trovato esiti corrispondenti, quindi è stato ignorato per il calcolo.</p>`
+      : '';
+    let analisi = tipologiaNote + `<p><strong>Analisi basata su ${n} esiti</strong> della stazione appaltante "${stazioneTesto}"${tipologiaTesto}.</p>`;
     analisi += `<p>I ribassi vincitori analizzati si distribuiscono in un intervallo che va da <strong>${sorted[0].toFixed(3)}%</strong> a <strong>${sorted[n - 1].toFixed(3)}%</strong>, con una concentrazione principale tra il primo quartile (<strong>${q1.toFixed(3)}%</strong>) e il terzo quartile (<strong>${q3.toFixed(3)}%</strong>).</p>`;
     analisi += `<p>La <strong>media dei ribassi vincitori</strong> si attesta al <strong>${media.toFixed(3)}%</strong>, mentre la <strong>mediana</strong> (valore centrale, meno influenzato da valori estremi) e pari al <strong>${mediana.toFixed(3)}%</strong>.`;
 
@@ -7350,8 +7392,15 @@ async function calcolaRibassoAI() {
     document.getElementById('cr-risultato').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   } catch (err) {
-    alert('Errore durante il calcolo: ' + err.message);
     console.error('calcolaRibassoAI error:', err);
+    document.getElementById('cr-analisi-testo').innerHTML =
+      `<div style="padding:14px;background:rgba(239,68,68,0.08);border-left:3px solid #ef4444;border-radius:0 8px 8px 0;">
+        <i class="fas fa-exclamation-triangle" style="color:#ef4444;margin-right:6px;"></i>
+        <strong>Errore durante il calcolo.</strong><br>
+        ${(err && err.message) ? err.message : 'Errore sconosciuto.'}
+      </div>`;
+    document.getElementById('cr-risultato').style.display = 'block';
+    document.getElementById('cr-risultato').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } finally {
     btn.disabled = false;
     btn.style.opacity = '1';
