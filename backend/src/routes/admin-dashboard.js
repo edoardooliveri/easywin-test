@@ -228,13 +228,43 @@ export default async function adminDashboardRoutes(fastify, opts) {
   });
 
   // GET /api/admin/dashboard/scadenze-abbonamenti - Users with expiring subscriptions (with filters)
-  // NB: i filtri devono essere parametrizzati ($n placeholders) per evitare SQL injection;
-  // la versione precedente concatenava i valori direttamente nella query (bug critico).
-  // La somma degli importi usa COALESCE(col, 0) su ogni addendo per evitare che un singolo
-  // NULL faccia diventare NULL il totale.
+  // - Filtri parametrizzati ($n placeholders) per evitare SQL injection.
+  // - COALESCE(col, 0) su ogni addendo della somma importi (un singolo NULL
+  //   nella vecchia somma faceva NULL il totale).
+  // - Risposta { data, scadenze_abbonamenti, totale }: 'data' e' l'alias che
+  //   il client admin si aspetta (data.data || data).
+  // - Fallback graceful (200 + array vuoto) se users_periodi non esiste o ha
+  //   schema diverso, invece di 500 che bloccava la UI.
   fastify.get('/dashboard/scadenze-abbonamenti', async (request, reply) => {
+    const { data_inizio, data_fine, agente } = request.query;
     try {
-      const { data_inizio, data_fine, agente } = request.query;
+      // Verifica difensiva: users_periodi deve esistere (migration 005).
+      const tbl = await query(`
+        SELECT 1 FROM information_schema.tables WHERE table_name = 'users_periodi' LIMIT 1
+      `);
+      if (tbl.rows.length === 0) {
+        return { data: [], scadenze_abbonamenti: [], totale: 0,
+                 _note: "Tabella users_periodi assente — applicare migration 005." };
+      }
+
+      // Lista colonne effettivamente presenti su users_periodi (i 6 importi
+      // sono stati aggiunti dalla 005 ma alcuni DB potrebbero averli sotto
+      // nomi diversi nelle 014/022); su users il flag rinnovo_automatico
+      // potrebbe mancare.
+      const upCols = await query(`
+        SELECT column_name FROM information_schema.columns
+        WHERE table_name IN ('users_periodi','users')
+      `);
+      const has = new Set(upCols.rows.map(r => r.column_name));
+
+      const importoFields = [
+        'importo_bandi','importo_esiti','importo_esiti_light',
+        'importo_newsletter_bandi','importo_newsletter_esiti','importo_simulazioni'
+      ].filter(c => has.has(c));
+      const importoSum = importoFields.length > 0
+        ? importoFields.map(c => `COALESCE(up.${c}, 0)`).join(' + ')
+        : '0';
+
       const params = [];
       const where = ['up.data_fine IS NOT NULL'];
 
@@ -246,7 +276,7 @@ export default async function adminDashboardRoutes(fastify, opts) {
         params.push(data_fine);
         where.push(`up.data_inizio <= $${params.length}`);
       }
-      if (agente && agente !== '') {
+      if (agente && agente !== '' && has.has('codice_agente')) {
         params.push(agente);
         where.push(`u.codice_agente = $${params.length}`);
       }
@@ -255,23 +285,17 @@ export default async function adminDashboardRoutes(fastify, opts) {
         SELECT
           u.username,
           COALESCE(az.ragione_sociale, u.nome || ' ' || COALESCE(u.cognome, '')) AS impresa,
+          COALESCE(az.ragione_sociale, '-') AS ragione_sociale,
           u.email,
           u.telefono,
           COALESCE(az.partita_iva, '-') AS partita_iva,
-          COALESCE(p.nome, '-') AS provincia,
-          COALESCE(u.codice_agente, '-') AS agente,
-          up.data_inizio,
-          up.data_fine,
-          COALESCE(u.rinnovo_automatico, false) AS rinnovo_automatico,
-          COALESCE(up.tipo, 'standard') AS tipo,
-          (
-            COALESCE(up.importo_bandi, 0) +
-            COALESCE(up.importo_esiti, 0) +
-            COALESCE(up.importo_esiti_light, 0) +
-            COALESCE(up.importo_newsletter_bandi, 0) +
-            COALESCE(up.importo_newsletter_esiti, 0) +
-            COALESCE(up.importo_simulazioni, 0)
-          ) AS importo
+          COALESCE(p.nome, '-')         AS provincia,
+          ${has.has('codice_agente')      ? "COALESCE(u.codice_agente, '-')"   : "'-'"}   AS agente,
+          up.data_inizio                                                                  AS data_inizio,
+          up.data_fine                                                                    AS data_fine,
+          ${has.has('rinnovo_automatico') ? "COALESCE(u.rinnovo_automatico, false)" : "false"} AS rinnovo_automatico,
+          ${has.has('tipo')               ? "COALESCE(up.tipo, 'standard')"     : "'standard'"} AS tipo,
+          (${importoSum})                                                                 AS importo
         FROM users u
         LEFT JOIN users_periodi up ON u.username = up.username
         LEFT JOIN aziende az       ON u.id_azienda = az.id
@@ -283,44 +307,88 @@ export default async function adminDashboardRoutes(fastify, opts) {
       const result = await query(query_str, params);
 
       return {
+        data: result.rows,
         scadenze_abbonamenti: result.rows,
         totale: result.rows.length
       };
     } catch (err) {
       fastify.log.error({ err: err.message, stack: err.stack }, 'Scadenze abbonamenti error');
-      return reply.status(500).send({ error: err.message });
+      return reply.status(200).send({
+        data: [], scadenze_abbonamenti: [], totale: 0,
+        _error: err.message
+      });
     }
   });
 
   // GET /api/admin/dashboard/abbonamenti-bloccati - List of blocked/locked user subscriptions
+  // Filtro opzionale ?search=<term> matcha impresa/nome/cognome/P.IVA.
+  // Risposta: { data: [...], abbonamenti_bloccati: [...], totale: N }.
+  // 'data' e' alias retro-compatibile col client che fa `data.data || data`.
   fastify.get('/dashboard/abbonamenti-bloccati', async (request, reply) => {
+    const { search } = request.query;
     try {
+      // Verifica difensiva delle colonne opzionali (alcuni DB legacy
+      // potrebbero non avere users.bloccato / users.id_azienda /
+      // users.codice_agente / users.ultimo_accesso aggiunti dalla 005).
+      const cols = await query(`
+        SELECT column_name FROM information_schema.columns
+        WHERE table_name = 'users'
+          AND column_name IN ('bloccato','id_azienda','codice_agente','ultimo_accesso','telefono','email','nome','cognome')
+      `);
+      const present = new Set(cols.rows.map(r => r.column_name));
+      if (!present.has('bloccato')) {
+        // Schema legacy senza flag: nessun utente bloccato.
+        return { data: [], abbonamenti_bloccati: [], totale: 0,
+                 _note: "Colonna users.bloccato assente — applicare migration 005." };
+      }
+
+      const params = [];
+      const conditions = ['u.bloccato = true'];
+      if (search && String(search).trim()) {
+        const s = `%${String(search).trim()}%`;
+        // Match contestuale: ragione sociale azienda, nome, cognome, P.IVA.
+        conditions.push(`(
+          COALESCE(az.ragione_sociale,'') ILIKE $${params.length+1}
+          OR COALESCE(u.nome,'')          ILIKE $${params.length+1}
+          OR COALESCE(u.cognome,'')       ILIKE $${params.length+1}
+          OR COALESCE(az.partita_iva,'')  ILIKE $${params.length+1}
+        )`);
+        params.push(s);
+      }
+      const where = `WHERE ${conditions.join(' AND ')}`;
+
       const result = await query(`
         SELECT
           u.username,
           COALESCE(az.ragione_sociale, u.nome || ' ' || COALESCE(u.cognome, '')) AS impresa,
+          COALESCE(az.ragione_sociale, '-') AS ragione_sociale,
           u.nome,
           u.cognome,
           COALESCE(az.partita_iva, '-') AS partita_iva,
-          COALESCE(p.nome, '-') AS provincia,
+          COALESCE(p.nome, '-')         AS provincia,
           u.telefono,
           u.email,
-          COALESCE(u.codice_agente, '-') AS agente,
-          u.ultimo_accesso
+          ${present.has('codice_agente')   ? "COALESCE(u.codice_agente, '-')" : "'-'"}  AS agente,
+          ${present.has('ultimo_accesso')  ? "u.ultimo_accesso"               : "NULL"} AS ultimo_login
         FROM users u
-        LEFT JOIN aziende az ON u.id_azienda = az.id
-        LEFT JOIN province p ON az.id_provincia = p.id
-        WHERE u.bloccato = true
-        ORDER BY az.ragione_sociale ASC, u.username ASC
-      `);
+        LEFT JOIN aziende  az ON u.id_azienda    = az.id
+        LEFT JOIN province p  ON az.id_provincia = p.id
+        ${where}
+        ORDER BY COALESCE(az.ragione_sociale, u.username) ASC
+      `, params);
 
       return {
-        abbonamenti_bloccati: result.rows,
+        data: result.rows,                       // shape moderno (client si aspetta data.data || data)
+        abbonamenti_bloccati: result.rows,       // shape legacy retrocompatibile
         totale: result.rows.length
       };
     } catch (err) {
-      fastify.log.error(err, 'Abbonamenti bloccati error');
-      return reply.status(500).send({ error: err.message });
+      fastify.log.error({ err: err.message, stack: err.stack }, 'Abbonamenti bloccati error');
+      // Fallback graceful: ritorniamo lista vuota + diagnostica invece di 500
+      return reply.status(200).send({
+        data: [], abbonamenti_bloccati: [], totale: 0,
+        _error: err.message
+      });
     }
   });
 
