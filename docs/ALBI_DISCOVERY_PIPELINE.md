@@ -25,11 +25,11 @@ questi dati e permette di richiedere il servizio di iscrizione.
               ┌──────────────────────┼──────────────────────┐
               ▼                      ▼                      ▼
    ┌───────────────────┐  ┌────────────────────┐  ┌────────────────────┐
-   │ scan-albi-        │  │ ricerca-albi-web   │  │ popola-albi-       │
-   │ completo.js       │  │ (Claude AI)        │  │ fornitori.js       │
-   │                   │  │                    │  │                    │
-   │ URL pattern +     │  │ Fetch sito + AI    │  │ Bulk per piatta-   │
-   │ DuckDuckGo + KW   │  │ extraction         │  │ forma (MePA/CONSIP)│
+   │ scan-albi-        │  │ Cowork / claude.ai │  │ popola-albi-       │
+   │ completo.js       │  │ (web search ON)    │  │ fornitori.js       │
+   │ (NO AI)           │  │                    │  │ (NO AI)            │
+   │ URL pattern +     │  │ Discovery AI a     │  │ Bulk per piatta-   │
+   │ DuckDuckGo + KW   │  │ costo 0 via chat   │  │ forma (MePA/CONSIP)│
    └─────────┬─────────┘  └──────────┬─────────┘  └──────────┬─────────┘
              │                       │                       │
              ▼                       ▼                       ▼
@@ -53,6 +53,13 @@ questi dati e permette di richiedere il servizio di iscrizione.
              ▼
    UI cliente "Albi Fornitori" + dashboard admin
 ```
+
+NB: nessuno degli script eseguiti sul server consuma più la
+`ANTHROPIC_API_KEY` per la discovery degli albi. Il vecchio
+`backend/scripts/ricerca-albi-web.js` è stato rimosso. La parte AI
+viene fatta interattivamente in claude.ai/Cowork (piano incluso, costo
+zero) e i risultati JSON vengono mergiati nel cumulativo in locale,
+poi importati nel DB dallo script `import-albi-da-scan.js`.
 
 Tutte le run vengono tracciate in `albi_discovery_runs` (migration 034).
 
@@ -97,38 +104,44 @@ node backend/scripts/popola-albi-fornitori.js --dry-run
 node backend/scripts/popola-albi-fornitori.js
 ```
 
-### Step 3 — Discovery web + AI per le stazioni rimanenti
+### Step 3 — Discovery AI via Cowork / claude.ai (costo zero)
 
-`ricerca-albi-web.js` itera sulle stazioni senza albo verificato,
-ordina per numero di bandi pubblicati (così le stazioni più attive
-vengono coperte prima), fa fetch del sito web + DuckDuckGo + estrazione
-con Claude. **Incrementale**: salta le stazioni già processate.
+La discovery AI non gira più sul server (`ricerca-albi-web.js`
+rimosso: consumava `ANTHROPIC_API_KEY` di produzione). Si fa
+interattivamente in chat claude.ai (Pro/Team) o Cowork: incluso nel
+piano, costo €0 di API.
+
+Workflow per ogni batch di 50 stazioni:
 
 ```bash
-# Test su 10 stazioni
-node backend/scripts/ricerca-albi-web.js --limit 10 --dry-run
+# 1) Estrai 50 stazioni non ancora processate, copia nella clipboard (macOS)
+node scripts/genera-batch-albi.js --batch 1 --size 50 | pbcopy
 
-# Produzione: 500 stazioni alla volta
-node backend/scripts/ricerca-albi-web.js --limit 500
+# 2) Apri https://claude.ai → nuova chat → modello Sonnet 4.5 → web search ON
+#    Copia il prompt da prompts/COWORK_ALBI_DISCOVERY.md (tutto il blocco
+#    fra le triple-backtick) → incolla → vai a capo → incolla la lista
+#    (è già nella clipboard).
+#    Claude restituirà un JSON conforme allo schema.
 
-# Riprendi da un offset specifico
-node backend/scripts/ricerca-albi-web.js --offset 2000 --limit 500
+# 3) Salva la risposta JSON in data/cowork-batches/batch-001-out.json e applica:
+node scripts/applica-batch-albi.js --in data/cowork-batches/batch-001-out.json
 
-# Solo una stazione specifica (debug)
-node backend/scripts/ricerca-albi-web.js --id 1234
+# 4) Ripeti con --batch 2, 3, ... il file _processed.json evita duplicati.
 ```
 
-File di progresso: `backend/scripts/ricerca-albi-progress.json` (idempotenza
-locale). Log: `backend/scripts/ricerca-albi-log.txt`.
+Quando hai accumulato abbastanza batch (es. tutte le ~14.000 stazioni
+restanti) lancia lo Step 1 sopra (`import-albi-da-scan.js`) puntando al
+file cumulativo `data/albi_fornitori_results.json` per popolare il DB.
 
-Costo stimato: ~€0.005-0.01 per stazione con Sonnet, ~€0.001 con Haiku.
-Per 14.000 stazioni rimanenti: tra ~€14 (Haiku) e ~€140 (Sonnet) una tantum.
+Vedi `prompts/COWORK_ALBI_DISCOVERY.md` per il prompt completo + regole
+anti-allucinazione + esempi di output (alta/media/bassa confidence).
 
 ### Step 4 — Re-check periodico (opzionale)
 
-Ogni 60 giorni rilanciare lo step 3 con flag `--recheck` (TODO) per
-scoprire variazioni: nuove SOA accettate, scadenze nuove, piattaforma
-cambiata. Il job rispetta un cooldown per non sovraccaricare i server.
+Ogni 60 giorni rifare lo Step 3 (Cowork) per le stazioni con
+`albi_fornitori.ultimo_aggiornamento < NOW() - 60 days`. Lo script
+`genera-batch-albi.js` accetta in futuro un flag `--recheck` (TODO)
+che pesca da quel filtro invece che dalle stazioni mai processate.
 
 ---
 
@@ -152,11 +165,11 @@ TOKEN=...  # JWT admin
 curl -H "Authorization: Bearer $TOKEN" \
   http://localhost:3001/api/albi-fornitori/admin/discovery/status | jq
 
-# Avvia ricerca AI su 100 stazioni
+# Avvia bulk piattaforme (MePA/CONSIP/Sintel ecc.)
 curl -X POST http://localhost:3001/api/albi-fornitori/admin/discovery/run \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"tipo":"ricerca_web","limit":100}'
+  -d '{"tipo":"popola_piattaforme"}'
 
 # Importa il seed iniziale (217 albi pronti)
 curl -X POST http://localhost:3001/api/albi-fornitori/admin/discovery/run \
@@ -164,6 +177,9 @@ curl -X POST http://localhost:3001/api/albi-fornitori/admin/discovery/run \
   -H "Content-Type: application/json" \
   -d '{"tipo":"import_scan","file":"data/albi_fornitori_ok_only.json"}'
 ```
+
+NB: il tipo `ricerca_web` non è più disponibile (ritorna 400). La
+discovery AI passa per Cowork/claude.ai — vedi Step 3.
 
 **Anti double-run**: il backend rifiuta `POST /run` se esiste già una run
 dello stesso tipo con `success IS NULL`. Per sbloccare: `POST /runs/:id/chiudi`.
@@ -191,10 +207,12 @@ dello stesso tipo con `success IS NULL`. Per sbloccare: `POST /runs/:id/chiudi`.
   progresso degli script e marca la run come success/error quando il
   child process termina.
 - **Scheduler automatico** stile `presidia-scheduler.js`: ogni notte
-  alle 02:00 lancia `ricerca-albi-web --limit N` finché non tutte le
-  stazioni sono coperte. Toggle via env `ALBI_DISCOVERY_AUTO=true`.
-- **Web search nativo Anthropic** (quando disponibile in produzione)
-  per sostituire DuckDuckGo HTML scraping (oggi fragile a rate limit).
+  alle 02:00 lancia `popola_piattaforme` (no AI) per riconciliare
+  eventuali stazioni nuove; la parte AI rimane manuale via Cowork per
+  non consumare API key del server.
+- **Pannello UI admin Cowork** che genera direttamente il blocco
+  pronto-da-incollare con un click (oggi: `node scripts/genera-batch-albi.js
+  --batch N | pbcopy`).
 
 ---
 
@@ -208,9 +226,11 @@ Il file JSON contiene ragioni sociali "vecchie" (es. aziende municipalizzate
 ridenominate). Esamina `data/import-albi-report.json` → array `ambigui`,
 correggi manualmente.
 
-### `ricerca-albi-web.js` si interrompe per rate limit DuckDuckGo
-Aumenta `DELAY_BETWEEN_REQUESTS` (default 2000 ms) in `CONFIG`. Riavvia,
-riprende dal progresso salvato.
+### `scan-albi-completo.js` si interrompe per rate limit DuckDuckGo
+Aumenta il delay tra le richieste nel config dello script. Riavvia,
+riprende dal progresso salvato. NB: la discovery AI vera (con
+estrazione dei dettagli) ora la fai via Cowork (Step 3) — non serve
+più mantenere lo script che chiamava Anthropic dal server.
 
 ### La UI cliente "Albi Fornitori" mostra ancora 0
 Verifica con `psql`:

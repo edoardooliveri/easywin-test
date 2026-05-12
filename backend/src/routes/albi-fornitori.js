@@ -1211,7 +1211,7 @@ export default async function albiFornitoRoutes(fastify) {
   });
 
   // POST /api/albi-fornitori/admin/discovery/run
-  // Body: { tipo: 'ricerca_web' | 'scan_completo' | 'popola_piattaforme' | 'import_scan',
+  // Body: { tipo: 'scan_completo' | 'popola_piattaforme' | 'import_scan',
   //         limit?: number, offset?: number, from_id?: number, file?: string, dry_run?: bool }
   //
   // Lancia lo script Node corrispondente in background (child_process.spawn
@@ -1219,16 +1219,25 @@ export default async function albiFornitoRoutes(fastify) {
   // albi_discovery_runs con success=null e id PID, poi al termine il run
   // viene chiuso dal processo stesso via signal/exit.
   //
-  // Path script (relativi a __dirname dello server):
-  //   ricerca_web        → ../../backend/scripts/ricerca-albi-web.js
-  //   scan_completo      → ../../tools/albi/scan-albi-completo.js
-  //   popola_piattaforme → ../../backend/scripts/popola-albi-fornitori.js
-  //   import_scan        → ../../tools/albi/import-albi-da-scan.js
+  // NOTA: il tipo 'ricerca_web' (script ricerca-albi-web.js) consumava la
+  // ANTHROPIC_API_KEY del server per fare web-search + extraction. È stato
+  // rimosso: ora la discovery AI passa tramite chat claude.ai/Cowork
+  // (prompt in prompts/COWORK_ALBI_DISCOVERY.md + script
+  // scripts/genera-batch-albi.js + scripts/applica-batch-albi.js).
+  //
+  // Path script disponibili (relativi a __dirname dello server):
+  //   scan_completo      → ../../tools/albi/scan-albi-completo.js     (no AI, URL pattern + DuckDuckGo)
+  //   popola_piattaforme → ../../backend/scripts/popola-albi-fornitori.js (no AI, bulk per piattaforma)
+  //   import_scan        → ../../tools/albi/import-albi-da-scan.js    (no AI, import JSON → DB)
   fastify.post('/admin/discovery/run', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const { tipo, limit, offset, from_id, file, dry_run } = request.body || {};
-    const allowed = ['ricerca_web', 'scan_completo', 'popola_piattaforme', 'import_scan'];
+    const allowed = ['scan_completo', 'popola_piattaforme', 'import_scan'];
     if (!allowed.includes(tipo)) {
-      return reply.status(400).send({ error: 'tipo non valido', allowed });
+      return reply.status(400).send({
+        error: 'tipo non valido',
+        allowed,
+        hint: 'Per la discovery AI, usa la pipeline Cowork: scripts/genera-batch-albi.js + prompts/COWORK_ALBI_DISCOVERY.md (vedi docs/ALBI_DISCOVERY_PIPELINE.md).'
+      });
     }
 
     // Anti double-run: se c'e gia una run dello stesso tipo in corso, bloccala
@@ -1262,12 +1271,6 @@ export default async function albiFornitoRoutes(fastify) {
     const ROOT = path.resolve(__dirname, '..', '..', '..');
 
     switch (tipo) {
-      case 'ricerca_web':
-        scriptPath = path.join(ROOT, 'backend', 'scripts', 'ricerca-albi-web.js');
-        if (limit)   args.push('--limit', String(limit));
-        if (offset)  args.push('--offset', String(offset));
-        if (dry_run) args.push('--dry-run');
-        break;
       case 'scan_completo':
         scriptPath = path.join(ROOT, 'tools', 'albi', 'scan-albi-completo.js');
         if (limit)   args.push('--limit', String(limit));
