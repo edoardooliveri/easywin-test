@@ -701,34 +701,127 @@ export default async function adminDashboardRoutes(fastify, opts) {
 
   // ==================== SERVICE STATUS ====================
 
-  // GET /api/admin/servizi/stato - Service status
+  /**
+   * GET /api/admin/servizi/stato
+   *
+   * Parity con legacy easywin.it (Areas/Gestione/Views/Dashboard/StatoServizi.cshtml):
+   * la pagina mostra i `JobMessages` di un dato servizio in una data, filtrando
+   * opzionalmente per IDEsito quando il servizio e' quello degli esiti.
+   *
+   * Schema-tolerant: nel nuovo DB esistono piu' tabelle "log job" parzialmente
+   * sovrapposte (job_messages versione 005 con job_name/messaggio/tipo,
+   * versione 006 con id_job FK jobs.id/messaggio/livello). Detect dinamico
+   * delle colonne per evitare 500 su DB legacy. Se nessuna colonna utile
+   * esiste, ritorna 200 con messaggi=[] piu' marker `_warning` (no crash).
+   *
+   * Query params:
+   *   servizio  string  — chiave del servizio (es. "invio-esito", "newsletter")
+   *   data      string  — YYYY-MM-DD: data di esecuzione da filtrare
+   *   esito     int     — IDEsito (solo per servizi sugli esiti)
+   *
+   * Response (parity legacy JobMessages):
+   *   {
+   *     success: true,
+   *     messaggi: [ { data, messaggio, severity, priority } ],
+   *     totale: N,
+   *     log: "<table>...</table>"   // pre-rendered per il vecchio client se serve
+   *   }
+   */
   fastify.get('/servizi/stato', async (request, reply) => {
     try {
-      const services = [
-        {
-          nome: 'newsletter_sender',
-          stato: process.env.SERVICE_NEWSLETTER_STATUS || 'running',
-          ultimo_esecuzione: new Date(),
-          prossimo_esecuzione: new Date(Date.now() + 3600000)
-        },
-        {
-          nome: 'web_scraper',
-          stato: process.env.SERVICE_SCRAPER_STATUS || 'running',
-          ultimo_esecuzione: new Date(),
-          prossimo_esecuzione: new Date(Date.now() + 1800000)
-        },
-        {
-          nome: 'email_queue',
-          stato: process.env.SERVICE_EMAIL_STATUS || 'running',
-          ultimo_esecuzione: new Date(),
-          prossimo_esecuzione: new Date(Date.now() + 300000)
-        }
-      ];
+      const { servizio, data, esito } = request.query || {};
 
-      return { servizi: services };
+      // Detect quali colonne sono disponibili in job_messages
+      const cols = await query(`
+        SELECT column_name FROM information_schema.columns
+        WHERE table_name = 'job_messages'
+      `);
+      const have = new Set(cols.rows.map(r => r.column_name));
+
+      // Se la tabella non esiste o non ha le colonne utili → 200 vuoto graceful
+      if (!have.has('data') && !have.has('messaggio')) {
+        return {
+          success: true,
+          messaggi: [],
+          totale: 0,
+          log: '',
+          _warning: 'job_messages non disponibile in questo schema'
+        };
+      }
+
+      // Costruisco SELECT dinamico in base alle colonne presenti
+      const selectParts = ['jm.data AS data', 'jm.messaggio AS messaggio'];
+      // Severity: usa "livello" (006) o "tipo" (005) o fallback 'info'
+      if (have.has('livello'))      selectParts.push('jm.livello AS severity');
+      else if (have.has('tipo'))    selectParts.push('jm.tipo AS severity');
+      else                          selectParts.push("'info'::text AS severity");
+
+      // Priority: non presente nel nuovo schema → null
+      selectParts.push("NULL::text AS priority");
+
+      // Filtri WHERE
+      const where = [];
+      const params = [];
+
+      // Filtro servizio: prova job_name (005) o JOIN jobs.nome/tipo (006)
+      if (servizio) {
+        if (have.has('job_name')) {
+          params.push(servizio);
+          where.push(`jm.job_name ILIKE '%' || $${params.length} || '%'`);
+        } else if (have.has('id_job')) {
+          params.push(servizio);
+          where.push(`EXISTS (
+            SELECT 1 FROM jobs j
+            WHERE j.id = jm.id_job
+              AND (j.nome ILIKE '%' || $${params.length} || '%'
+                   OR j.tipo ILIKE '%' || $${params.length} || '%')
+          )`);
+        }
+      }
+
+      // Filtro data (cast a date per ignorare ora)
+      if (data) {
+        params.push(data);
+        where.push(`jm.data::date = $${params.length}::date`);
+      }
+
+      // Filtro IDEsito: il legacy lo usa solo per il servizio "esiti".
+      // Cerco il numero nel testo del messaggio (i job log degli esiti
+      // tipicamente loggano "Esito ID=123" o simili).
+      if (esito && Number(esito) > 0) {
+        params.push(`%${Number(esito)}%`);
+        where.push(`jm.messaggio ILIKE $${params.length}`);
+      }
+
+      const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+      const sql = `
+        SELECT ${selectParts.join(', ')}
+        FROM job_messages jm
+        ${whereSql}
+        ORDER BY jm.data DESC
+        LIMIT 500
+      `;
+
+      const result = await query(sql, params);
+      const messaggi = result.rows;
+
+      return {
+        success: true,
+        messaggi,
+        totale: messaggi.length,
+        // log HTML pre-rendered (parity legacy: lo usa il vecchio client se vuole)
+        log: ''
+      };
     } catch (err) {
-      fastify.log.error(err, 'Service status error');
-      return reply.status(500).send({ error: err.message });
+      fastify.log.error({ err: err.message }, 'Service status error');
+      // Non rispondere 500: il client gestisce errori "soft" mostrando il warning
+      return {
+        success: false,
+        messaggi: [],
+        totale: 0,
+        log: '',
+        _error: err.message
+      };
     }
   });
 

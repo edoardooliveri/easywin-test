@@ -3007,22 +3007,45 @@ button:not(.bn-act):not(.bix-act-btn):not(.ute-iconbtn):not(.ew-btn):not(.flatpi
           #pageAmministrazione .amm-callout .btn { margin-left: auto; }
 
           /* Stato Servizi log — terminale dark anche su tema light (look "console") */
+          /* Risultati Stato Servizi — parity legacy: tabella .datagrid
+             (Data | Messaggio | Severity | Priority) su sfondo bianco.
+             Le righe colorate (rosso Error, arancio Cancellato) sono
+             applicate inline dal JS. */
           #pageAmministrazione #statoServiziResults {
             min-height: 240px;
-            background: #0F172A;        /* slate-900 */
-            border: 1px solid #1E293B;
+            background: var(--surface);
+            border: 1px solid var(--border);
             border-radius: var(--radius-md);
             padding: var(--sp-4);
-            color: #E2E8F0;             /* slate-200 */
-            font-family: var(--font-mono);
-            font-size: var(--text-xs);
-            line-height: 1.6;
-            white-space: pre-wrap; word-break: break-word;
-            max-height: 460px; overflow-y: auto;
+            color: var(--text);
+            font-family: var(--font-body);
+            font-size: var(--text-sm);
+            max-height: 540px; overflow: auto;
           }
           #pageAmministrazione #statoServiziResults:empty::before {
             content: 'Seleziona un servizio e clicca MOSTRA per visualizzare il log delle esecuzioni.';
-            color: #64748B; font-family: var(--font-body); font-style: italic;
+            color: var(--text-muted); font-style: italic;
+          }
+          #pageAmministrazione #statoServiziResults table.datagrid {
+            width: 100%; border-collapse: collapse;
+            font-size: var(--text-sm);
+          }
+          #pageAmministrazione #statoServiziResults table.datagrid thead th {
+            background: var(--surface-2);
+            color: var(--text);
+            font-weight: 700;
+            text-align: left;
+            padding: 8px 10px;
+            border-bottom: 2px solid var(--border-strong);
+            position: sticky; top: 0; z-index: 1;
+          }
+          #pageAmministrazione #statoServiziResults table.datagrid tbody tr:hover td {
+            background: var(--surface-2);
+          }
+          #pageAmministrazione #statoServiziResults table.datagrid td {
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
           }
 
           /* Search section row */
@@ -3326,9 +3349,9 @@ button:not(.bn-act):not(.bix-act-btn):not(.ute-iconbtn):not(.ew-btn):not(.flatpi
                   <label for="admin-stato-data">Data</label>
                   <input type="date" id="admin-stato-data" placeholder="Data da elaborare">
                 </div>
-                <div class="amm-form-col">
-                  <label for="admin-stato-esito">Esito</label>
-                  <input type="number" id="admin-stato-esito" value="0">
+                <div class="amm-form-col" id="admin-stato-esito-col" style="display:none">
+                  <label for="admin-stato-esito">IDEsito</label>
+                  <input type="number" id="admin-stato-esito" value="0" placeholder="inserire l'id dell'esito" min="0">
                 </div>
               </div>
               <div class="button-group">
@@ -15531,9 +15554,93 @@ function applicaFiltroScadenze() {
   loadScadenzeAbbonamenti();
 }
 
+/* ────────────────────────────────────────────────────────────────
+   STATO SERVIZI — parity con legacy easywin.it:
+   Areas/Gestione/Views/Dashboard/StatoServizi.cshtml
+     - "Mostra" → tabella Data | Message | Severity | Priority
+     - Riga rossa se Severity = Error
+     - Riga arancio se Message contiene " - Cancellato"
+     - "Rilancia" → confirm('Conferma restart servizio?') prima del POST
+                    alert('Operazione effettuata correttamente') al successo
+     - Campo IDEsito visibile SOLO quando il servizio e' "esiti"
+       (legacy: IDServizio == 3; qui: chiavi che contengono "esito"/"esiti")
+   ──────────────────────────────────────────────────────────────── */
+
+// Mostra/nascondi #admin-stato-esito al cambio servizio (parity legacy)
+function _aggiornaVisibilitaEsito() {
+  const sel = document.getElementById('admin-stato-servizio');
+  const wrapEsito = document.getElementById('admin-stato-esito-col');
+  if (!sel || !wrapEsito) return;
+  const v = (sel.value || '').toLowerCase();
+  const isEsitoService = v.includes('esit'); // copre "esiti-ai", "invio-esito", ...
+  wrapEsito.style.display = isEsitoService ? '' : 'none';
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('admin-stato-servizio');
+  if (sel) {
+    sel.addEventListener('change', _aggiornaVisibilitaEsito);
+    _aggiornaVisibilitaEsito(); // stato iniziale
+  }
+});
+
+function _rowColorStatoServizio(msg) {
+  // Parity legacy StatoServizio.cshtml:
+  //   string color = msg.Severity == "Error" ? "red" : "";
+  //   if (msg.Message.IndexOf(" - Cancellato") >= 0) color = "Orange";
+  const sev = (msg.severity || '').toLowerCase();
+  const txt = msg.messaggio || '';
+  if (txt.indexOf(' - Cancellato') >= 0) return '#C2410C'; // orange-700
+  if (sev === 'error' || sev === 'err' || sev === 'danger') return '#DC2626'; // red-600
+  return ''; // colore di default
+}
+
+function _formatDataIT(d) {
+  if (!d) return '';
+  try {
+    const dt = new Date(d);
+    if (Number.isNaN(dt.getTime())) return String(d);
+    return dt.toLocaleString('it-IT', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+  } catch { return String(d); }
+}
+
+function _renderStatoServiziTable(messaggi) {
+  if (!messaggi || messaggi.length === 0) {
+    return '<div style="padding:1rem;color:var(--text-muted);font-style:italic">'
+         + 'Nessun messaggio trovato per i filtri selezionati.'
+         + '</div>';
+  }
+  let html = '<h4 style="margin:0 0 .5rem 0;color:var(--text)">Risultati (' + messaggi.length + ')</h4>';
+  html += '<table class="datagrid" style="width:100%;border-collapse:collapse;background:#fff;color:#1A1A1A">';
+  html += '<thead><tr>'
+       +   '<th style="width:14%;text-align:left;padding:8px;border-bottom:2px solid var(--border)">Data</th>'
+       +   '<th style="width:70%;text-align:left;padding:8px;border-bottom:2px solid var(--border)">Messaggio</th>'
+       +   '<th style="width:8%;text-align:left;padding:8px;border-bottom:2px solid var(--border)">Severity</th>'
+       +   '<th style="width:8%;text-align:left;padding:8px;border-bottom:2px solid var(--border)">Priority</th>'
+       + '</tr></thead><tbody>';
+  for (const m of messaggi) {
+    const color = _rowColorStatoServizio(m);
+    const style = color ? ` style="color:${color}"` : '';
+    const sev = m.severity || '';
+    const pri = m.priority || '';
+    html += '<tr>'
+         +   `<td${style} style="padding:6px 8px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums">${_formatDataIT(m.data)}</td>`
+         +   `<td${style} style="padding:6px 8px;border-bottom:1px solid var(--border)">${(m.messaggio||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</td>`
+         +   `<td${style} style="padding:6px 8px;border-bottom:1px solid var(--border)">${sev}</td>`
+         +   `<td${style} style="padding:6px 8px;border-bottom:1px solid var(--border)">${pri}</td>`
+         + '</tr>';
+  }
+  html += '</tbody></table>';
+  return html;
+}
+
 async function mostraStatoServizio() {
   const container = document.getElementById('statoServiziResults');
-  container.innerHTML = '<div style="text-align:center"><i class="fas fa-spinner fa-spin"></i> Caricamento...</div>';
+  container.innerHTML = '<div style="text-align:center;padding:1rem">'
+                      + '<i class="fas fa-spinner fa-spin"></i> Caricamento...'
+                      + '</div>';
 
   try {
     const params = new URLSearchParams();
@@ -15543,7 +15650,7 @@ async function mostraStatoServizio() {
 
     if (servizio) params.set('servizio', servizio);
     if (data) params.set('data', data);
-    if (esito) params.set('esito', esito);
+    if (esito && Number(esito) > 0) params.set('esito', esito);
 
     const res = await fetch(`${API_BASE}/admin/servizi/stato?${params}`, {
       headers: { ...authHeaders(), 'Content-Type': 'application/json' }
@@ -15551,29 +15658,45 @@ async function mostraStatoServizio() {
     if (!res.ok) throw new Error('API non disponibile');
     const result = await res.json();
 
-    container.innerHTML = result.log || JSON.stringify(result, null, 2);
+    // Se il backend ha ritornato un warning (schema diverso) lo mostro in testa
+    let header = '';
+    if (result._warning) {
+      header = `<div style="background:var(--warning-soft);color:var(--warning);padding:.5rem .75rem;border-radius:6px;margin-bottom:.75rem">`
+             + `<i class="fas fa-exclamation-triangle"></i> ${result._warning}</div>`;
+    }
+    if (result._error) {
+      header = `<div style="background:var(--danger-soft);color:var(--danger);padding:.5rem .75rem;border-radius:6px;margin-bottom:.75rem">`
+             + `<i class="fas fa-times-circle"></i> Errore backend: ${result._error}</div>`;
+    }
+
+    container.innerHTML = header + _renderStatoServiziTable(result.messaggi || []);
   } catch (err) {
     console.error('Errore caricamento stato servizio:', err);
-    container.innerHTML = 'Errore nel caricamento dello stato servizio: ' + err.message;
+    container.innerHTML = `<div style="background:var(--danger-soft);color:var(--danger);padding:.75rem 1rem;border-radius:8px">`
+                        + `<i class="fas fa-times-circle"></i> Errore nel caricamento dello stato servizio: ${err.message}`
+                        + `</div>`;
   }
 }
 
 async function rilanciServizio() {
-  try {
-    const servizio = document.getElementById('admin-stato-servizio')?.value;
-    if (!servizio) {
-      alert('Seleziona un servizio');
-      return;
-    }
+  const servizio = document.getElementById('admin-stato-servizio')?.value;
+  if (!servizio) {
+    alert('Seleziona un servizio');
+    return;
+  }
+  // Parity legacy: conferma esplicita prima del restart
+  if (!confirm('Conferma restart servizio?')) return;
 
+  try {
     const res = await fetch(`${API_BASE}/admin/servizi/${encodeURIComponent(servizio)}/rilancia`, {
       method: 'POST',
       headers: { ...authHeaders(), 'Content-Type': 'application/json' }
     });
 
     if (!res.ok) throw new Error('API non disponibile');
-    const result = await res.json();
-    alert('Servizio rilanciato con successo: ' + (result.message || 'OK'));
+    await res.json();
+    // Parity legacy: messaggio identico a quello del vecchio JS
+    alert('Operazione effettuata correttamente');
     mostraStatoServizio();
   } catch (err) {
     console.error('Errore rilancio servizio:', err);
