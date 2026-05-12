@@ -288,6 +288,7 @@ const AUTO_MIGRATIONS = [
   '029_bandi_sped_to_boolean.sql',
   '030_bandi_soa_sec_scorporabili.sql',
   '032_consolidate_clienti_preferiti_registro.sql',
+  '033_cleanup_province_criteri_regioni.sql',
 ];
 
 async function runAutoMigrations() {
