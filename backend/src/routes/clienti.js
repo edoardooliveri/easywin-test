@@ -1719,7 +1719,11 @@ export default async function clientiRoutes(fastify, opts) {
   // ============================================================
 
   // GET /api/clienti/ati/cerca?search=
-  // Search companies involved in ATI relationships
+  // Search companies involved in ATI relationships.
+  // FIX: la versione precedente referenziava az.id_azienda e az.piva, che non
+  // esistono — lo schema aziende (migration 001) ha az.id e az.partita_iva.
+  // Anche il JOIN era espresso come OR sui due lati: usiamo UNION + join
+  // separati per renderlo sargable e usare gli indici idx_ati_gare.
   fastify.get('/ati/cerca', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     try {
       const { search } = request.query;
@@ -1728,16 +1732,16 @@ export default async function clientiRoutes(fastify, opts) {
       }
 
       const result = await query(
-        `SELECT DISTINCT
-          az.id_azienda AS id,
+        `SELECT
+          az.id              AS id,
           az.ragione_sociale AS nome,
-          az.piva AS piva,
-          COUNT(DISTINCT a.id_gara) AS num_ati
+          az.partita_iva     AS piva,
+          COUNT(DISTINCT a.id_gara)::int AS num_ati
          FROM aziende az
-         JOIN ati_gare a ON az.id_azienda = a.id_mandataria OR az.id_azienda = a.id_mandante
-         WHERE UPPER(az.ragione_sociale) LIKE UPPER($1)
-         GROUP BY az.id_azienda, az.ragione_sociale, az.piva
-         ORDER BY num_ati DESC
+         JOIN ati_gare a ON a.id_mandataria = az.id OR a.id_mandante = az.id
+         WHERE az.ragione_sociale ILIKE $1
+         GROUP BY az.id, az.ragione_sociale, az.partita_iva
+         ORDER BY num_ati DESC, az.ragione_sociale
          LIMIT 20`,
         ['%' + search + '%']
       );
@@ -1751,80 +1755,97 @@ export default async function clientiRoutes(fastify, opts) {
 
   // GET /api/clienti/ati/dettaglio/:idAzienda
   // Full ATI detail for a company: composition, esiti, avvalimenti
+  // FIX: lo schema reale (migration 001/002) usa aziende.id / aziende.partita_iva
+  // (non id_azienda / piva), gare.id / gare.data / gare.titolo / gare.stazione
+  // / gare.importo / gare.importo_so (non id_gara), e ati_gare.avvalimento
+  // (boolean) — la tabella non ha 'percentuale_mandante'. dettaglio_gara non
+  // ha 'risultato'/'specializzazione'/'id_azienda_avvalimento'. La query era
+  // rotta su quasi ogni colonna → 500. Riscritta con i nomi corretti.
   fastify.get('/ati/dettaglio/:idAzienda', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     try {
-      const { idAzienda } = request.params;
+      const idAzienda = parseInt(request.params.idAzienda, 10);
+      if (!Number.isFinite(idAzienda) || idAzienda <= 0) {
+        return reply.status(400).send({ error: 'idAzienda non valido' });
+      }
 
-      // Get ATI partners (as mandataria and as mandante)
+      // Composizione ATI: per ogni gara in cui l'azienda figura, identifica
+      // il partner (l'altra azienda nella riga ati_gare).
       const composizione = await query(
-        `SELECT DISTINCT
+        `SELECT
           CASE WHEN a.id_mandataria = $1 THEN 'Mandataria' ELSE 'Mandante' END AS ruolo,
           CASE WHEN a.id_mandataria = $1 THEN az2.ragione_sociale ELSE az1.ragione_sociale END AS partner_nome,
-          CASE WHEN a.id_mandataria = $1 THEN az2.piva ELSE az1.piva END AS partner_piva,
-          CASE WHEN a.id_mandataria = $1 THEN a.id_mandante ELSE a.id_mandataria END AS partner_id,
-          a.percentuale_mandante AS percentuale,
-          COUNT(DISTINCT a.id_gara) AS num_gare
+          CASE WHEN a.id_mandataria = $1 THEN az2.partita_iva     ELSE az1.partita_iva     END AS partner_piva,
+          CASE WHEN a.id_mandataria = $1 THEN a.id_mandante       ELSE a.id_mandataria       END AS partner_id,
+          NULL::numeric AS percentuale,
+          COUNT(DISTINCT a.id_gara)::int AS num_gare
          FROM ati_gare a
-         JOIN aziende az1 ON a.id_mandataria = az1.id_azienda
-         JOIN aziende az2 ON a.id_mandante = az2.id_azienda
+         JOIN aziende az1 ON a.id_mandataria = az1.id
+         JOIN aziende az2 ON a.id_mandante   = az2.id
          WHERE a.id_mandataria = $1 OR a.id_mandante = $1
-         GROUP BY ruolo, partner_nome, partner_piva, partner_id, a.percentuale_mandante
+         GROUP BY ruolo, partner_nome, partner_piva, partner_id
          ORDER BY num_gare DESC
          LIMIT 50`,
         [idAzienda]
       );
 
-      // Get esiti for this company in ATI
+      // Esiti in cui l'azienda ha partecipato in ATI: join dettaglio_gara per
+      // recuperare la posizione / il ribasso dell'azienda nella graduatoria.
       const esiti = await query(
         `SELECT DISTINCT
-          g.id_gara AS id_gara,
-          g.data AS data,
-          g.stazione AS stazione,
-          g.titolo AS titolo,
-          g.importo_so AS importo,
-          dg.risultato AS risultato,
-          dg.ribasso AS ribasso
+          g.id                  AS id_gara,
+          g.data                AS data,
+          g.stazione            AS stazione,
+          g.titolo              AS titolo,
+          g.importo             AS importo,
+          CASE
+            WHEN dg.vincitrice IS TRUE THEN 'Vincitrice'
+            WHEN dg.esclusa    IS TRUE THEN 'Esclusa'
+            WHEN dg.anomala    IS TRUE THEN 'Anomala'
+            WHEN dg.posizione  IS NOT NULL THEN 'Classificata pos. ' || dg.posizione
+            ELSE 'Partecipante'
+          END                   AS risultato,
+          dg.ribasso            AS ribasso
          FROM ati_gare a
-         JOIN gare g ON a.id_gara = g.id_gara
-         LEFT JOIN dettaglio_gara dg ON g.id_gara = dg.id_gara AND (dg.id_azienda = $1)
+         JOIN gare g            ON a.id_gara   = g.id
+         LEFT JOIN dettaglio_gara dg ON dg.id_gara = g.id AND dg.id_azienda = $1
          WHERE a.id_mandataria = $1 OR a.id_mandante = $1
          ORDER BY g.data DESC
          LIMIT 50`,
         [idAzienda]
       );
 
-      // Get avvalimenti for this company
+      // Avvalimenti: in ati_gare avvalimento=true il mandante è l'avvalente.
+      // Aggreghiamo per coppia (azienda principale, azienda avvalente).
       const avvalimenti = await query(
-        `SELECT DISTINCT
-          az1.ragione_sociale AS azienda,
-          az2.ragione_sociale AS avvalente,
-          dg.specializzazione AS specializzazione,
-          COUNT(DISTINCT dg.id_gara) AS num_esiti
-         FROM dettaglio_gara dg
-         JOIN aziende az1 ON dg.id_azienda = az1.id_azienda
-         LEFT JOIN aziende az2 ON dg.id_azienda_avvalimento = az2.id_azienda
-         WHERE (dg.id_azienda = $1 OR dg.id_azienda_avvalimento = $1)
-           AND dg.id_azienda_avvalimento IS NOT NULL
-         GROUP BY az1.ragione_sociale, az2.ragione_sociale, dg.specializzazione
+        `SELECT
+          az1.ragione_sociale     AS azienda,
+          az2.ragione_sociale     AS avvalente,
+          NULL::text              AS specializzazione,
+          COUNT(DISTINCT a.id_gara)::int AS num_esiti
+         FROM ati_gare a
+         JOIN aziende az1 ON a.id_mandataria = az1.id
+         JOIN aziende az2 ON a.id_mandante   = az2.id
+         WHERE a.avvalimento = true
+           AND (a.id_mandataria = $1 OR a.id_mandante = $1)
+         GROUP BY az1.ragione_sociale, az2.ragione_sociale
          ORDER BY num_esiti DESC
          LIMIT 50`,
         [idAzienda]
       );
 
-      // Get company info
       const azienda = await query(
-        `SELECT ragione_sociale, piva FROM aziende WHERE id_azienda = $1`,
+        `SELECT ragione_sociale, partita_iva AS piva FROM aziende WHERE id = $1`,
         [idAzienda]
       );
 
       return {
-        azienda: azienda.rows[0] || {},
+        azienda:     azienda.rows[0] || {},
         composizione: composizione.rows,
-        esiti: esiti.rows,
-        avvalimenti: avvalimenti.rows
+        esiti:        esiti.rows,
+        avvalimenti:  avvalimenti.rows
       };
     } catch (err) {
-      fastify.log.error({ err: err.message }, 'GET /ati/dettaglio/:idAzienda error');
+      fastify.log.error({ err: err.message, stack: err.stack }, 'GET /ati/dettaglio/:idAzienda error');
       return reply.status(500).send({ error: 'Errore caricamento dettaglio ATI' });
     }
   });
