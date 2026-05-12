@@ -1,0 +1,139 @@
+/* ============================================================
+   easyWin Admin — Design Tokens
+   ============================================================
+   Generato dal design system (prompts/ADMIN_DESIGN_SYSTEM.md).
+   Caricato in cima a tutti i file admin/*.html via:
+     <link rel="stylesheet" href="/admin/admin-tokens.css">
+   Da qui sono disponibili in ogni componente le variabili CSS
+   per palette, tipografia, spacing, radius, shadow.
+   Non aggiungere CSS specifico di componenti qui: questo file e
+   solo il "contratto" condiviso.
+   ============================================================ */
+
+:root {
+  /* ── Colori ───────────────────────────────────── */
+  --bg:            #0F1A23;
+  --surface:       #1E2D3D;
+  --surface-2:     #243749;
+  --surface-3:     #2D4459;
+  --border:        rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.18);
+
+  --text:       rgba(255, 255, 255, 0.92);
+  --text-muted: rgba(255, 255, 255, 0.62);
+  --text-dim:   rgba(255, 255, 255, 0.40);
+
+  --accent:       #3DD4D7;   /* Teal admin (distinto dal giallo cliente) */
+  --accent-hover: #5AE5E8;
+  --accent-soft:  rgba(61, 212, 215, 0.14);
+  --accent-text:  #0F1A23;   /* testo sopra background accent (es. button primary) */
+
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger:  #EF4444;
+  --info:    #3B82F6;
+
+  /* ── Tipografia ───────────────────────────────── */
+  --font-head: 'Comfortaa', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --text-xs:   0.75rem;   /* 12 */
+  --text-sm:   0.875rem;  /* 14 */
+  --text-base: 1rem;      /* 16 */
+  --text-md:   1.125rem;  /* 18 */
+  --text-lg:   1.375rem;  /* 22 */
+  --text-xl:   1.75rem;   /* 28 */
+  --text-2xl:  2.25rem;   /* 36 */
+
+  /* ── Spacing ──────────────────────────────────── */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+
+  /* ── Radius ───────────────────────────────────── */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-pill: 9999px;
+
+  /* ── Shadows ──────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.30);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45);
+
+  /* ── Misc ─────────────────────────────────────── */
+  --transition-fast: 120ms ease;
+  --transition-base: 150ms ease;
+}
+
+/* ============================================================
+   Reset / base
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-head);
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0;
+}
+
+code, pre, .mono, .codice {
+  font-family: var(--font-mono);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--transition-base);
+}
+a:hover { color: var(--accent-hover); }
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* Numeri tabulari ovunque sia importante l'allineamento (importi, ribassi) */
+.tabular, td.num, th.num { font-variant-numeric: tabular-nums; }
+
+/* ============================================================
+   Utility classes minime (lasciate volutamente poche: le pagine
+   useranno classi semantiche prefissate, es. .bn- per Bandi).
+   ============================================================ */
+.text-muted { color: var(--text-muted) !important; }
+.text-dim   { color: var(--text-dim)   !important; }
+.text-accent{ color: var(--accent)     !important; }
+
+.text-success { color: var(--success) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-danger  { color: var(--danger)  !important; }
+.text-info    { color: var(--info)    !important; }
+
+.font-head { font-family: var(--font-head); }
+.font-mono { font-family: var(--font-mono); }
+
+.hidden { display: none !important; }
