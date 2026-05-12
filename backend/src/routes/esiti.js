@@ -274,6 +274,16 @@ export default async function esitiRoutes(fastify) {
   fastify.get('/:id', async (request, reply) => {
     const { id } = request.params;
 
+    // Validazione id: gare.id è SERIAL (integer). Quando il SPA admin
+    // costruisce URL come /admin/esiti/crea e fa request a /api/esiti/crea,
+    // qui finiva la stringa 'crea' nel WHERE → Postgres lanciava
+    // 'invalid input syntax for type integer' → 500 "Esito non trovato".
+    // Ora respingiamo con 400 esplicito.
+    const numId = parseInt(id, 10);
+    if (!Number.isFinite(numId) || numId <= 0) {
+      return reply.status(400).send({ error: 'ID esito non valido', received: id });
+    }
+
     // Main gara query — includes ALL real columns from gare table
     const garaResult = await query(`
       SELECT g."id",

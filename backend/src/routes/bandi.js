@@ -364,6 +364,15 @@ export default async function bandiRoutes(fastify, opts) {
   fastify.get('/:id', async (request, reply) => {
     const { id } = request.params;
 
+    // Validazione id: bandi.id è UUID. SPA admin che naviga a
+    // /admin/bandi/crea o /admin/bandi/import fa request a /api/bandi/crea
+    // → 'crea' non è uuid → Postgres lanciava 'invalid input syntax for
+    // type uuid' → 500. Validiamo prima esplicitamente.
+    const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    if (!UUID_RE.test(id)) {
+      return reply.status(400).send({ error: 'ID bando non valido', received: id });
+    }
+
     const bando = await query(
       `SELECT b.*,
         COALESCE(s.nome, b.stazione_nome) AS stazione_nome, s.citta AS stazione_citta,
