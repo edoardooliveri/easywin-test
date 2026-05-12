@@ -779,6 +779,7 @@ a{text-decoration:none;color:inherit}
   <a href="#" data-page="albi-fornitori">Albi Fornitori</a>
   <a href="#" data-page="calcola-ribasso">Calcola Ribasso</a>
   <a href="#" data-page="ati-avvalimenti">ATI / Avvalimenti</a>
+  <a href="#" data-page="profilo-azienda">Profilo Azienda</a>
   <a href="#" data-page="storico-newsletter">Newsletter</a>
   <a href="#" data-page="tabella-soa">Tabella SOA</a>
   <a href="#" data-page="contatti">Contatti</a>
@@ -1804,6 +1805,84 @@ a{text-decoration:none;color:inherit}
       </table>
     </div>
   </div>
+
+  <!-- ===================== PROFILO AZIENDA PAGE ===================== -->
+  <div id="page-profilo-azienda" class="page-section hidden">
+    <h1 class="page-title">Profilo Azienda</h1>
+
+    <div style="margin-bottom:20px">
+      <label style="font-weight:700;display:block;margin-bottom:8px">Cerca azienda</label>
+      <div style="display:flex;gap:10px">
+        <input type="text" id="pa-search" placeholder="Ragione sociale o P.IVA (min 2 caratteri)..." style="flex:1;padding:10px;border:1px solid var(--border-dark);border-radius:20px;font-size:13px">
+      </div>
+      <p style="color:var(--text-muted);font-size:12px;margin-top:6px"><i class="fas fa-info-circle" style="margin-right:4px"></i>Digita per vedere i suggerimenti, poi clicca sull'azienda desiderata.</p>
+    </div>
+
+    <div id="pa-detail" style="display:none">
+      <!-- Anagrafica -->
+      <div style="background:#1E2D3D;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:20px;margin-bottom:20px">
+        <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+          <div style="flex:1;min-width:280px">
+            <h2 id="pa-nome" style="margin:0 0 8px 0;color:var(--yellow);font-family:Comfortaa,cursive">—</h2>
+            <p style="margin:2px 0;color:rgba(255,255,255,0.7);font-size:0.9em"><strong>P.IVA:</strong> <span id="pa-piva">—</span> &middot; <strong>C.F.:</strong> <span id="pa-cf">—</span></p>
+            <p style="margin:2px 0;color:rgba(255,255,255,0.7);font-size:0.9em"><strong>Sede:</strong> <span id="pa-sede">—</span></p>
+            <p style="margin:2px 0;color:rgba(255,255,255,0.7);font-size:0.9em"><strong>Contatti:</strong> <span id="pa-contatti">—</span></p>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;min-width:480px">
+            <div class="kpi-card"><div class="kpi-label">PARTECIPAZIONI</div><div class="kpi-value" id="pa-kpi-part">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">VINTE</div><div class="kpi-value" id="pa-kpi-vinte" style="color:#22c55e">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">ESCLUSE</div><div class="kpi-value" id="pa-kpi-escluse" style="color:#ef4444">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">MEDIA RIBASSO</div><div class="kpi-value" id="pa-kpi-media" style="color:var(--yellow)">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grafici -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px">
+        <div style="background:#1E2D3D;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:20px">
+          <h3 style="margin:0 0 12px 0;color:#fff;font-size:1rem">Ribassi negli ultimi 40 esiti</h3>
+          <canvas id="pa-chart-ribassi" height="180"></canvas>
+        </div>
+        <div style="background:#1E2D3D;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:20px">
+          <h3 style="margin:0 0 12px 0;color:#fff;font-size:1rem">Esito partecipazioni</h3>
+          <canvas id="pa-chart-risultati" height="220"></canvas>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+        <div style="background:#1E2D3D;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:20px">
+          <h3 style="margin:0 0 12px 0;color:#fff;font-size:1rem">Top categorie SOA</h3>
+          <canvas id="pa-chart-soa" height="200"></canvas>
+        </div>
+        <div style="background:#1E2D3D;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:20px">
+          <h3 style="margin:0 0 12px 0;color:#fff;font-size:1rem">Forme di partecipazione</h3>
+          <canvas id="pa-chart-ati" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Tabella ultimi esiti -->
+      <h3 style="margin:24px 0 10px 0;color:#fff;font-size:1rem">Ultimi 40 esiti</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>Data</th><th>Stazione</th><th>Oggetto</th><th>Importo</th><th>Ribasso</th><th>Pos.</th><th>SOA</th></tr>
+        </thead>
+        <tbody id="pa-esiti-body">
+          <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-dim);">Seleziona un'azienda per visualizzare i dati.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="pa-empty" style="text-align:center;padding:60px 20px;color:var(--text-muted)">
+      <i class="fas fa-building" style="font-size:48px;opacity:0.3;margin-bottom:14px;display:block"></i>
+      Cerca un'azienda per visualizzarne il profilo completo con grafici sui ribassi storici, esito delle partecipazioni, top categorie SOA e forme ATI/Avvalimento.
+    </div>
+  </div>
+
+  <style>
+    .kpi-card { background:#243749;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:10px 14px;text-align:center }
+    .kpi-label { font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.5px;margin-bottom:4px }
+    .kpi-value { font-size:1.4rem;color:#fff;font-weight:700;font-family:Comfortaa,cursive }
+  </style>
 
   <!-- ===================== PROFILO UTENTE PAGE ===================== -->
   <div id="page-profilo" class="page-section hidden">
@@ -7216,6 +7295,180 @@ updateAuthUI();
     window.location.href = '../index.html#area-riservata';
   }
 })();
+
+// ===== PROFILO AZIENDA (con grafici Chart.js) =====
+// Replica la pagina /Abbonamenti/Aziende/Azienda.cshtml del vecchio sito.
+// Usa Chart.js già caricato dalla CDN.
+
+let _paAutocompleteWired = false;
+let _paCharts = {}; // riferimenti per fare destroy() su ricaricamento
+
+function initProfiloAzienda() {
+  if (_paAutocompleteWired) return;
+  _paAutocompleteWired = true;
+  attachAutocomplete({
+    inputId:   'pa-search',
+    endpoint:  '/lookups/aziende',
+    paramName: 'search',
+    minChars:  2,
+    renderItem: it => `${it.nome || it.ragione_sociale || ''}${it.partita_iva ? ' [P.IVA ' + it.partita_iva + ']' : ''}${it.citta ? ' — ' + it.citta : ''}`
+  });
+  // Selezione di un suggerimento → load profilo
+  document.getElementById('pa-search').addEventListener('change', async (ev) => {
+    const val = ev.target.value.trim();
+    if (!val) return;
+    // Recupera l'id dall'API lookups
+    try {
+      const res = await fetch(API_BASE + '/lookups/aziende?search=' + encodeURIComponent(val) + '&limit=1');
+      if (!res.ok) return;
+      const arr = await res.json();
+      const item = (Array.isArray(arr) ? arr : (arr.data || []))[0];
+      if (item && item.id) loadProfiloAzienda(item.id);
+    } catch (e) { /* silenzioso */ }
+  });
+}
+
+async function loadProfiloAzienda(idAzienda) {
+  const detail = document.getElementById('pa-detail');
+  const empty  = document.getElementById('pa-empty');
+  detail.style.display = 'none';
+  empty.style.display = 'block';
+  empty.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px"></i>Caricamento profilo azienda...';
+
+  try {
+    const [aRes, ribRes, risRes] = await Promise.all([
+      fetch(API_BASE + '/clienti/aziende/' + idAzienda, { headers: authHeaders() }),
+      fetch(API_BASE + '/clienti/aziende/' + idAzienda + '/ribassi', { headers: authHeaders() }),
+      fetch(API_BASE + '/clienti/aziende/' + idAzienda + '/risultati', { headers: authHeaders() })
+    ]);
+    if (!aRes.ok) throw new Error('Errore caricamento anagrafica (' + aRes.status + ')');
+    const azienda  = await aRes.json();
+    const ribassi  = ribRes.ok ? await ribRes.json() : { data: [], statistiche: {} };
+    const risultati = risRes.ok ? await risRes.json() : { breakdown: {}, ati: {}, top_categorie_soa: [] };
+
+    renderProfiloAziendaUI(azienda, ribassi, risultati);
+
+    empty.style.display = 'none';
+    detail.style.display = 'block';
+  } catch (err) {
+    empty.style.display = 'block';
+    empty.innerHTML = '<div style="padding:14px;background:rgba(239,68,68,0.08);border-left:3px solid #ef4444;border-radius:0 8px 8px 0;display:inline-block;text-align:left"><i class="fas fa-exclamation-triangle" style="color:#ef4444;margin-right:6px"></i><strong>Errore caricamento profilo.</strong><br>' + (err.message || 'Errore sconosciuto') + '</div>';
+    console.error('loadProfiloAzienda error:', err);
+  }
+}
+
+function renderProfiloAziendaUI(azienda, ribassi, risultati) {
+  // Anagrafica
+  document.getElementById('pa-nome').textContent = azienda.ragione_sociale || '—';
+  document.getElementById('pa-piva').textContent = azienda.partita_iva || '—';
+  document.getElementById('pa-cf').textContent   = azienda.codice_fiscale || '—';
+  const sedeParts = [azienda.indirizzo, azienda.cap, azienda.citta, azienda.provincia_sigla ? '(' + azienda.provincia_sigla.trim() + ')' : null].filter(Boolean);
+  document.getElementById('pa-sede').textContent = sedeParts.join(' ') || '—';
+  const contattiParts = [
+    azienda.telefono ? '☎ ' + azienda.telefono : null,
+    azienda.email ? '✉ ' + azienda.email : null,
+    azienda.pec ? '📧 ' + azienda.pec : null,
+    azienda.sito_web ? '🌐 ' + azienda.sito_web : null
+  ].filter(Boolean);
+  document.getElementById('pa-contatti').textContent = contattiParts.join('  ') || '—';
+
+  // KPI
+  const stats = azienda.statistiche || {};
+  document.getElementById('pa-kpi-part').textContent    = stats.partecipazioni ?? 0;
+  document.getElementById('pa-kpi-vinte').textContent   = stats.vinte ?? 0;
+  document.getElementById('pa-kpi-escluse').textContent = stats.escluse ?? 0;
+  document.getElementById('pa-kpi-media').textContent   = stats.media_ribasso != null
+    ? Number(stats.media_ribasso).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 3 }) + '%'
+    : '—';
+
+  // Distruggi chart precedenti per non leak-are canvas
+  Object.values(_paCharts).forEach(c => { try { c.destroy(); } catch (e) {} });
+  _paCharts = {};
+
+  const baseOpts = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: 'rgba(255,255,255,0.85)' } } },
+    scales: { x: { ticks: { color: 'rgba(255,255,255,0.7)' } }, y: { ticks: { color: 'rgba(255,255,255,0.7)' } } }
+  };
+  const pieOpts = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { color: 'rgba(255,255,255,0.85)', boxWidth: 12 } } }
+  };
+
+  // Chart 1: linea ribassi nel tempo
+  const dataRibassi = (ribassi.data || []).slice().reverse(); // dal più vecchio al più recente
+  _paCharts.ribassi = new Chart(document.getElementById('pa-chart-ribassi'), {
+    type: 'line',
+    data: {
+      labels: dataRibassi.map(r => r.data ? new Date(r.data).toLocaleDateString('it-IT', { month: 'short', year: '2-digit' }) : ''),
+      datasets: [{
+        label: 'Ribasso %',
+        data: dataRibassi.map(r => parseFloat(r.ribasso)),
+        borderColor: '#F5C518',
+        backgroundColor: 'rgba(245,197,24,0.15)',
+        tension: 0.25, pointRadius: 3, pointBackgroundColor: dataRibassi.map(r => r.vincitrice ? '#22c55e' : '#F5C518')
+      }]
+    },
+    options: baseOpts
+  });
+
+  // Chart 2: pie esito partecipazioni
+  const b = risultati.breakdown || {};
+  const labels2 = ['Vinte', 'Classificate', 'Anomale', 'Escluse'];
+  const data2 = [b.vinte || 0, b.classificate || 0, b.anomale || 0, b.escluse || 0];
+  _paCharts.risultati = new Chart(document.getElementById('pa-chart-risultati'), {
+    type: 'doughnut',
+    data: { labels: labels2, datasets: [{ data: data2, backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444'] }] },
+    options: pieOpts
+  });
+
+  // Chart 3: top SOA
+  const soaList = risultati.top_categorie_soa || [];
+  _paCharts.soa = new Chart(document.getElementById('pa-chart-soa'), {
+    type: 'bar',
+    data: {
+      labels: soaList.map(s => s.soa || '?'),
+      datasets: [{ label: 'N. partecipazioni', data: soaList.map(s => s.n), backgroundColor: '#a78bfa' }]
+    },
+    options: baseOpts
+  });
+
+  // Chart 4: ATI vs avvalimento vs solo
+  const a = risultati.ati || {};
+  const soloPart = Math.max(0, (b.partecipazioni || 0) - (a.in_ati || 0) - (a.in_avvalimento || 0));
+  _paCharts.ati = new Chart(document.getElementById('pa-chart-ati'), {
+    type: 'pie',
+    data: {
+      labels: ['Solo (singola)', 'In ATI', 'In avvalimento'],
+      datasets: [{ data: [soloPart, a.in_ati || 0, a.in_avvalimento || 0], backgroundColor: ['#64748b', '#3b82f6', '#f59e0b'] }]
+    },
+    options: pieOpts
+  });
+
+  // Tabella ultimi esiti
+  const rows = (ribassi.data || []).map(r => {
+    const dataFmt    = r.data ? new Date(r.data).toLocaleDateString('it-IT') : '-';
+    const importoFmt = r.importo ? Number(r.importo).toLocaleString('it-IT', { minimumFractionDigits: 2 }) + ' €' : '-';
+    const ribFmt     = r.ribasso != null ? Number(r.ribasso).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) + '%' : '-';
+    const ribColor   = r.vincitrice ? '#22c55e' : '#F5C518';
+    return `<tr>
+      <td>${dataFmt}</td>
+      <td title="${(r.stazione || '').replace(/"/g, '&quot;')}" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.stazione || '-'}</td>
+      <td title="${(r.titolo || '').replace(/"/g, '&quot;')}" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.titolo || '-'}</td>
+      <td>${importoFmt}</td>
+      <td style="font-weight:600;color:${ribColor}">${ribFmt}</td>
+      <td>${r.posizione || '-'}</td>
+      <td>${r.soa_codice || '-'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('pa-esiti-body').innerHTML = rows || '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-dim);">Nessun esito registrato per questa azienda.</td></tr>';
+}
+
+// Init quando l'utente naviga alla sezione
+document.addEventListener('DOMContentLoaded', () => {
+  const link = document.querySelector('a[data-page="profilo-azienda"]');
+  if (link) link.addEventListener('click', () => setTimeout(initProfiloAzienda, 100));
+});
 
 // ===== CALCOLA RIBASSO AI =====
 let _crInitialized = false;

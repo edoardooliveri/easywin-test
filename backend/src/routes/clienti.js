@@ -1979,31 +1979,64 @@ export default async function clientiRoutes(fastify, opts) {
   // COMPANY ANALYTICS
   // ============================================================
   // GET /api/clienti/aziende/:id
-  // Company card with statistics
+  // Company card with statistics. FIX schema: aziende ha id (non id_azienda),
+  // partita_iva, codice_fiscale, telefono (non telefono_ufficio), email
+  // (non email_ufficio). provincia/regione sono derivate via JOIN province/regioni.
   fastify.get('/aziende/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     try {
-      const { id } = request.params;
+      const idAz = parseInt(request.params.id, 10);
+      if (!Number.isFinite(idAz) || idAz <= 0) {
+        return reply.status(400).send({ error: 'ID azienda non valido' });
+      }
 
       const result = await query(
         `SELECT
-          id_azienda AS id,
-          ragione_sociale AS ragione_sociale,
-          partita_iva AS partita_iva,
-          codice_fiscale AS codice_fiscale,
-          provincia AS provincia,
-          regione AS regione,
-          telefono_ufficio AS telefono,
-          email_ufficio AS email
-         FROM aziende
-         WHERE id_azienda = $1 LIMIT 1`,
-        [id]
+          a.id              AS id,
+          a.ragione_sociale AS ragione_sociale,
+          a.partita_iva     AS partita_iva,
+          a.codice_fiscale  AS codice_fiscale,
+          a.citta           AS citta,
+          a.indirizzo       AS indirizzo,
+          a.cap             AS cap,
+          p.nome            AS provincia,
+          p.sigla           AS provincia_sigla,
+          r.nome            AS regione,
+          a.telefono        AS telefono,
+          a.fax             AS fax,
+          a.email           AS email,
+          a.pec             AS pec,
+          a.sito_web        AS sito_web
+         FROM aziende a
+         LEFT JOIN province p ON a.id_provincia = p.id
+         LEFT JOIN regioni r  ON p.id_regione   = r.id
+         WHERE a.id = $1
+         LIMIT 1`,
+        [idAz]
       );
 
       if (result.rows.length === 0) {
         return reply.status(404).send({ error: 'Azienda non trovata' });
       }
 
-      return result.rows[0];
+      // Statistiche di sintesi
+      const stats = await query(
+        `SELECT
+          COUNT(*)::int                                              AS partecipazioni,
+          COUNT(*) FILTER (WHERE vincitrice = true)::int             AS vinte,
+          COUNT(*) FILTER (WHERE esclusa = true)::int                AS escluse,
+          COUNT(*) FILTER (WHERE anomala = true)::int                AS anomale,
+          AVG(ribasso) FILTER (WHERE ribasso IS NOT NULL)::numeric(10,3) AS media_ribasso,
+          MIN(ribasso) FILTER (WHERE ribasso IS NOT NULL)::numeric(10,3) AS min_ribasso,
+          MAX(ribasso) FILTER (WHERE ribasso IS NOT NULL)::numeric(10,3) AS max_ribasso
+         FROM dettaglio_gara
+         WHERE id_azienda = $1`,
+        [idAz]
+      );
+
+      return {
+        ...result.rows[0],
+        statistiche: stats.rows[0] || {}
+      };
     } catch (err) {
       fastify.log.error({ err: err.message }, 'GET /aziende/:id error');
       return reply.status(500).send({ error: 'Errore caricamento azienda' });
@@ -2011,36 +2044,51 @@ export default async function clientiRoutes(fastify, opts) {
   });
 
   // GET /api/clienti/aziende/:id/ribassi
-  // Discount chart data (last 40, with regression)
+  // Serie storica dei ribassi (ultimi 40 esiti). FIX: dettaglio_gara.id_gara
+  // referenzia gare.id (non gare.id_gara); gare.data (non data_pubblicazione).
   fastify.get('/aziende/:id/ribassi', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     try {
-      const { id } = request.params;
+      const idAz = parseInt(request.params.id, 10);
+      if (!Number.isFinite(idAz) || idAz <= 0) {
+        return reply.status(400).send({ error: 'ID azienda non valido' });
+      }
 
       const result = await query(
         `SELECT
-          dg.id_gara AS id_gara,
-          dg.ribasso AS ribasso,
-          g.data_pubblicazione AS data_pubblicazione,
-          dg.posizione AS posizione
+          dg.id_gara    AS id_gara,
+          dg.ribasso    AS ribasso,
+          dg.posizione  AS posizione,
+          dg.vincitrice AS vincitrice,
+          g.data        AS data,
+          g.titolo      AS titolo,
+          g.stazione    AS stazione,
+          g.importo     AS importo,
+          g.id_soa      AS id_soa,
+          soa.codice    AS soa_codice
          FROM dettaglio_gara dg
-         JOIN gare g ON dg.id_gara = g.id_gara
+         JOIN gare g     ON dg.id_gara = g.id
+         LEFT JOIN soa   ON g.id_soa   = soa.id
          WHERE dg.id_azienda = $1 AND dg.ribasso IS NOT NULL
-         ORDER BY g.data_pubblicazione DESC
+         ORDER BY g.data DESC
          LIMIT 40`,
-        [id]
+        [idAz]
       );
 
-      // Simple regression calculation (frontend can enhance this)
-      const ribassi = result.rows.map(r => parseFloat(r.ribasso) || 0);
-      const avg = ribassi.length > 0 ? ribassi.reduce((a, b) => a + b) / ribassi.length : 0;
+      const ribassi = result.rows.map(r => parseFloat(r.ribasso)).filter(r => Number.isFinite(r));
+      const avg = ribassi.length > 0 ? ribassi.reduce((a, b) => a + b, 0) / ribassi.length : 0;
+      const variance = ribassi.length > 1
+        ? ribassi.reduce((s, v) => s + Math.pow(v - avg, 2), 0) / ribassi.length
+        : 0;
 
       return {
         data: result.rows,
         statistiche: {
-          totale_record: result.rows.length,
-          media_ribasso: avg.toFixed(2),
-          min_ribasso: ribassi.length > 0 ? Math.min(...ribassi).toFixed(2) : 0,
-          max_ribasso: ribassi.length > 0 ? Math.max(...ribassi).toFixed(2) : 0
+          totale_record:   result.rows.length,
+          media_ribasso:   avg ? avg.toFixed(3) : null,
+          min_ribasso:     ribassi.length > 0 ? Math.min(...ribassi).toFixed(3) : null,
+          max_ribasso:     ribassi.length > 0 ? Math.max(...ribassi).toFixed(3) : null,
+          varianza:        variance ? variance.toFixed(3) : null,
+          dev_std:         variance ? Math.sqrt(variance).toFixed(3) : null
         }
       };
     } catch (err) {
@@ -2050,30 +2098,59 @@ export default async function clientiRoutes(fastify, opts) {
   });
 
   // GET /api/clienti/aziende/:id/risultati
-  // Results breakdown chart
+  // Breakdown risultati per pie chart: vinte, classificate, anomale, escluse,
+  // taglio_ali. Più breakdown ATI vs solo (basato su ati_gare).
   fastify.get('/aziende/:id/risultati', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     try {
-      const { id } = request.params;
+      const idAz = parseInt(request.params.id, 10);
+      if (!Number.isFinite(idAz) || idAz <= 0) {
+        return reply.status(400).send({ error: 'ID azienda non valido' });
+      }
 
-      const result = await query(
+      const breakdownRes = await query(
         `SELECT
-          dg.posizione AS posizione,
-          COUNT(*) as total
-         FROM dettaglio_gara dg
-         WHERE dg.id_azienda = $1
-         GROUP BY dg.posizione
-         ORDER BY dg.posizione ASC`,
-        [id]
+          COUNT(*)::int                                          AS partecipazioni,
+          COUNT(*) FILTER (WHERE vincitrice = true)::int         AS vinte,
+          COUNT(*) FILTER (WHERE esclusa    = true)::int         AS escluse,
+          COUNT(*) FILTER (WHERE anomala    = true)::int         AS anomale,
+          COUNT(*) FILTER (WHERE taglio_ali = true)::int         AS taglio_ali,
+          COUNT(*) FILTER (
+            WHERE vincitrice IS NOT TRUE
+              AND esclusa    IS NOT TRUE
+              AND anomala    IS NOT TRUE
+          )::int                                                 AS classificate
+         FROM dettaglio_gara
+         WHERE id_azienda = $1`,
+        [idAz]
       );
 
-      const breakdown = {};
-      result.rows.forEach(row => {
-        breakdown[`posizione_${row.posizione}`] = row.total;
-      });
+      // Breakdown ATI vs solo: conta in quante gare l'azienda è dentro un ATI
+      const atiRes = await query(
+        `SELECT
+          COUNT(DISTINCT a.id_gara) FILTER (WHERE a.avvalimento IS NOT TRUE)::int AS in_ati,
+          COUNT(DISTINCT a.id_gara) FILTER (WHERE a.avvalimento = true)::int      AS in_avvalimento
+         FROM ati_gare a
+         WHERE a.id_mandataria = $1 OR a.id_mandante = $1`,
+        [idAz]
+      );
+
+      // Top 5 categorie SOA in cui l'azienda partecipa
+      const soaRes = await query(
+        `SELECT soa.codice AS soa, COUNT(*)::int AS n
+         FROM dettaglio_gara dg
+         JOIN gare g ON dg.id_gara = g.id
+         LEFT JOIN soa ON g.id_soa = soa.id
+         WHERE dg.id_azienda = $1 AND soa.codice IS NOT NULL
+         GROUP BY soa.codice
+         ORDER BY n DESC
+         LIMIT 5`,
+        [idAz]
+      );
 
       return {
-        posizioni: result.rows,
-        breakdown
+        breakdown:    breakdownRes.rows[0] || {},
+        ati:          atiRes.rows[0]       || {},
+        top_categorie_soa: soaRes.rows
       };
     } catch (err) {
       fastify.log.error({ err: err.message }, 'GET /aziende/:id/risultati error');
