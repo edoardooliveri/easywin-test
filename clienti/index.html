@@ -2537,51 +2537,103 @@ async function cercaBandi() {
   const resultsDiv = document.getElementById('bandiResults');
   resultsDiv.innerHTML = '<p class="results-count">Caricamento in corso...</p>';
 
-  // Collect filter values from the Bandi form
   const bandiPage = document.getElementById('page-bandi');
-  const selects = bandiPage.querySelectorAll('.filter-select');
   const params = new URLSearchParams();
   params.set('limit', '50');
 
-  // Date fields
-  const dataInizio = bandiPage.querySelector('#bandi-data-inizio');
-  const dataFine = bandiPage.querySelector('#bandi-data-fine');
-  if (dataInizio && dataInizio.value) {
-    const parts = dataInizio.value.split('/');
-    if (parts.length === 3) params.set('data_dal', `${parts[2]}-${parts[1]}-${parts[0]}`);
-  }
-  if (dataFine && dataFine.value) {
-    const parts = dataFine.value.split('/');
-    if (parts.length === 3) params.set('data_al', `${parts[2]}-${parts[1]}-${parts[0]}`);
+  // ─── Helpers ───────────────────────────────────────────────────────────
+  const setIfVal = (key, val) => {
+    if (val !== undefined && val !== null && String(val).trim() !== '') params.set(key, String(val).trim());
+  };
+  const itToIso = (it) => {
+    if (!it) return null;
+    const parts = it.split('/');
+    if (parts.length !== 3) return null;
+    return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+  };
+  const val = (id) => document.getElementById(id)?.value;
+  const checked = (id) => document.getElementById(id)?.checked;
+
+  // ─── Date scadenza ────────────────────────────────────────────────────
+  setIfVal('data_dal', itToIso(val('bandi-data-inizio')));
+  setIfVal('data_al',  itToIso(val('bandi-data-fine')));
+
+  // ─── Date inserimento (+ flag includi data_modifica) ──────────────────
+  setIfVal('data_inserimento_dal', itToIso(val('bandi-data-insert-inizio')));
+  setIfVal('data_inserimento_al',  itToIso(val('bandi-data-insert-fine')));
+  if (checked('bandi-filtra-data-modifica')) params.set('filtra_data_modifica', '1');
+
+  // ─── Testi separati (NON più tutti sovrapposti su 'search') ───────────
+  // 'stazione' rimane mappato su 'search' del backend (cerca anche su titolo/CIG/CUP),
+  // ma oggetto e CIG ora sono parametri separati che il backend filtra
+  // distintamente (cig su b.codice_cig, oggetto su b.titolo).
+  setIfVal('search',  val('bandi-stazione'));
+  setIfVal('oggetto', val('bandi-oggetto'));
+  setIfVal('cig',     val('bandi-cig'));
+
+  // ─── Territori / regioni / province ───────────────────────────────────
+  setIfVal('id_regione',   val('bandi-regioni'));
+  setIfVal('id_provincia', val('bandi-province'));
+  // Territori (Nord/Centro/Sud/Isole) non è ancora supportato dal backend:
+  // verrà aggiunto nello stesso commit lato server quando avremo lookup territori.
+
+  // ─── Importi ──────────────────────────────────────────────────────────
+  // Inviati solo se diversi dal default del form (0 / 1.000.000.000)
+  const impMin = parseFloat(val('bandi-importo-min'));
+  if (Number.isFinite(impMin) && impMin > 0) params.set('importo_min', impMin);
+  const impMax = parseFloat(val('bandi-importo-max'));
+  if (Number.isFinite(impMax) && impMax > 0 && impMax < 1000000000) params.set('importo_max', impMax);
+
+  // ─── Categorie SOA ────────────────────────────────────────────────────
+  // SOA Lavori (prevalente): valore numerico, va in b.id_soa.
+  setIfVal('id_soa', val('bandi-soa'));
+  // SOA Scorporabili Lavori: filtro su tabella laterale bandi_soa_sec.
+  setIfVal('id_soa_scorp', val('bandi-soa-scorp'));
+  // Servizi / Forniture (codice SF01...): NON più sovrapposto a id_soa
+  // (mismatch di tipo INT vs VARCHAR causava HTTP 500). Va in codice_soa,
+  // che il backend risolve via JOIN su soa.codice.
+  setIfVal('codice_soa',       val('bandi-servizi'));
+  setIfVal('codice_soa_scorp', val('bandi-servizi-scorp'));
+
+  // ─── Tipologie / Criteri / Piattaforme ───────────────────────────────
+  setIfVal('id_tipologia',   val('bandi-tipologia'));
+  setIfVal('id_criterio',    val('bandi-criterio'));
+  setIfVal('id_piattaforma', val('bandi-piattaforma'));
+
+  // ─── Checkbox semplici ───────────────────────────────────────────────
+  if (checked('bandi-telematica'))           params.set('telematica', '1');
+  if (checked('bandi-includi-senza-scadenza')) params.set('includi_senza_scadenza', '1');
+
+  // ─── Ricerca su Oggetto: tipo + logica AND/OR ─────────────────────────
+  const oMatch = document.querySelector('input[name=bandi-search-type]:checked')?.value;
+  const oLogic = document.querySelector('input[name=bandi-logic]:checked')?.value;
+  if (val('bandi-oggetto')) {
+    if (oMatch) params.set('oggetto_match', oMatch);   // 'esatta' | 'parziale' | 'inizia'
+    if (oLogic) params.set('oggetto_logica', oLogic);  // 'and' | 'or'
   }
 
-  // Text search fields
-  const stazione = bandiPage.querySelector('#bandi-stazione');
-  const oggetto = bandiPage.querySelector('#bandi-oggetto');
-  const codiceCig = bandiPage.querySelector('#bandi-cig');
-  if (stazione && stazione.value) params.set('search', stazione.value);
-  else if (oggetto && oggetto.value) params.set('search', oggetto.value);
-  else if (codiceCig && codiceCig.value) params.set('search', codiceCig.value);
+  // ─── Ordinamento ──────────────────────────────────────────────────────
+  // Il <select> esiste come 'bandi-ordinamento' con value "campo:order"
+  // (es. 'data_pubblicazione:desc').
+  const ord = val('bandi-ordinamento');
+  if (ord && ord.includes(':')) {
+    const [s, o] = ord.split(':');
+    if (s) params.set('sort', s);
+    if (o) params.set('order', o);
+  }
 
-  // Category / dropdown filters (param names must match backend: id_soa, id_tipologia, etc.)
-  const soaVal = document.getElementById('bandi-soa')?.value;
-  if (soaVal) params.set('id_soa', soaVal);
-  const soaScorpVal = document.getElementById('bandi-soa-scorp')?.value;
-  if (soaScorpVal) params.set('id_soa_scorp', soaScorpVal);
-  const serviziVal = document.getElementById('bandi-servizi')?.value;
-  if (serviziVal) params.set('id_soa', serviziVal);
-  const serviziScorpVal = document.getElementById('bandi-servizi-scorp')?.value;
-  if (serviziScorpVal) params.set('id_soa_scorp', serviziScorpVal);
-  const tipologiaVal = document.getElementById('bandi-tipologia')?.value;
-  if (tipologiaVal) params.set('id_tipologia', tipologiaVal);
-  const criterioVal = document.getElementById('bandi-criterio')?.value;
-  if (criterioVal) params.set('id_criterio', criterioVal);
-  const piattaformaVal = document.getElementById('bandi-piattaforma')?.value;
-  if (piattaformaVal) params.set('id_piattaforma', piattaformaVal);
+  // ─── Validazione esclusività SOA Lavori vs Scorporabili ──────────────
+  if (params.get('id_soa') && params.get('id_soa_scorp')) {
+    resultsDiv.innerHTML = '<p class="results-count" style="color:#f87171">Selezionare Categorie SOA di Lavori OPPURE Scorporabili di Lavori, non entrambi.</p>';
+    return;
+  }
 
   try {
     const res = await fetch(API_BASE + '/bandi?' + params.toString());
-    if (!res.ok) throw new Error('API error');
+    if (!res.ok) {
+      const msg = res.status === 500 ? 'Errore interno del server.' : `Errore ${res.status} dalla ricerca.`;
+      throw new Error(msg);
+    }
     const data = await res.json();
     if (!data.data || data.data.length === 0) {
       resultsDiv.innerHTML = '<p class="results-count">BANDI DI GARA trovati: <strong>0</strong></p><p style="font-size:13px;color:#94a3b8">Nessun bando trovato con i criteri specificati.</p>';
@@ -2648,7 +2700,8 @@ async function cercaBandi() {
     html += '</div>';
     resultsDiv.innerHTML = html;
   } catch(err) {
-    resultsDiv.innerHTML = '<p class="results-count">BANDI DI GARA trovati: <strong>0</strong></p><p style="font-size:13px;color:#94a3b8">Errore nella connessione al database.</p>';
+    const detail = (err && err.message) ? err.message : 'Errore sconosciuto.';
+    resultsDiv.innerHTML = '<p class="results-count">BANDI DI GARA trovati: <strong>0</strong></p><p style="font-size:13px;color:#94a3b8">' + detail + ' Verifica i filtri e riprova.</p>';
     console.error('cercaBandi error:', err);
   }
 }

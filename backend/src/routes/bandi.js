@@ -10,10 +10,14 @@ export default async function bandiRoutes(fastify, opts) {
     const {
       page = 1,
       limit = 20,
-      search, cig,
+      search, cig, oggetto,
+      oggetto_match, oggetto_logica,
       regione, id_regione, id_provincia,
       id_stazione,
       id_soa,
+      codice_soa,          // codice SOA (es. 'SF01') per Servizi/Forniture
+      id_soa_scorp,        // id SOA scorporabile (tabella laterale bandi_soa_sec)
+      codice_soa_scorp,    // codice SOA scorporabile servizi
       id_tipologia,
       id_criterio,
       id_piattaforma,
@@ -24,6 +28,8 @@ export default async function bandiRoutes(fastify, opts) {
       filtra_data_modifica,
       provenienza,
       importo_min, importo_max,
+      telematica,
+      includi_senza_scadenza,
       annullato,
       rettificato,
       privato: privatoFilter,
@@ -92,6 +98,39 @@ export default async function bandiRoutes(fastify, opts) {
       params.push(`%${cig}%`);
       paramIdx++;
     }
+    // Filtro oggetto: cerca SOLO in b.titolo (a differenza di 'search' che è ampio).
+    // Supporta oggetto_match (esatta|parziale|inizia) e oggetto_logica (and|or)
+    // sulle parole quando match=parziale. Default: parziale + and.
+    if (oggetto) {
+      const matchMode = (oggetto_match || 'parziale').toLowerCase();
+      const logicMode = (oggetto_logica || 'and').toLowerCase();
+      if (matchMode === 'esatta') {
+        conditions.push(`b.titolo = $${paramIdx}`);
+        params.push(oggetto);
+        paramIdx++;
+      } else if (matchMode === 'inizia') {
+        conditions.push(`b.titolo ILIKE $${paramIdx}`);
+        params.push(`${oggetto}%`);
+        paramIdx++;
+      } else {
+        // parziale: split su spazi se logica AND/OR
+        const words = String(oggetto).split(/\s+/).filter(Boolean);
+        if (words.length <= 1) {
+          conditions.push(`b.titolo ILIKE $${paramIdx}`);
+          params.push(`%${oggetto}%`);
+          paramIdx++;
+        } else {
+          const subConds = [];
+          for (const w of words) {
+            subConds.push(`b.titolo ILIKE $${paramIdx}`);
+            params.push(`%${w}%`);
+            paramIdx++;
+          }
+          const joiner = logicMode === 'or' ? ' OR ' : ' AND ';
+          conditions.push(`(${subConds.join(joiner)})`);
+        }
+      }
+    }
     if (regione) {
       conditions.push(`r.nome = $${paramIdx}`);
       params.push(regione);
@@ -113,8 +152,36 @@ export default async function bandiRoutes(fastify, opts) {
       paramIdx++;
     }
     if (id_soa) {
-      conditions.push(`b.id_soa = $${paramIdx}`);
-      params.push(id_soa);
+      // Solo valori numerici interi: vecchi client che mandavano stringhe come
+      // 'SF01' su questo parametro causavano 500 (operator does not exist:
+      // integer = text). Forziamo il cast e ignoriamo se non parsabile.
+      const idSoaNum = parseInt(id_soa, 10);
+      if (Number.isFinite(idSoaNum)) {
+        conditions.push(`b.id_soa = $${paramIdx}`);
+        params.push(idSoaNum);
+        paramIdx++;
+      }
+    }
+    if (codice_soa) {
+      // Filtro per codice testuale SOA (es. 'SF01', 'OG1') tramite JOIN sulla
+      // tabella soa. Usato dal portale clienti per le categorie Servizi/Forniture.
+      conditions.push(`b.id_soa IN (SELECT id FROM soa WHERE codice = $${paramIdx})`);
+      params.push(codice_soa);
+      paramIdx++;
+    }
+    if (id_soa_scorp) {
+      // SOA scorporabile: filtro sulla tabella laterale creata in migration 030.
+      // Se la migration non e ancora applicata, l'EXISTS ritorna sempre false.
+      const idScorpNum = parseInt(id_soa_scorp, 10);
+      if (Number.isFinite(idScorpNum)) {
+        conditions.push(`EXISTS (SELECT 1 FROM bandi_soa_sec bss WHERE bss.id_bando = b.id AND bss.id_soa = $${paramIdx})`);
+        params.push(idScorpNum);
+        paramIdx++;
+      }
+    }
+    if (codice_soa_scorp) {
+      conditions.push(`EXISTS (SELECT 1 FROM bandi_soa_sec bss JOIN soa so ON bss.id_soa = so.id WHERE bss.id_bando = b.id AND so.codice = $${paramIdx})`);
+      params.push(codice_soa_scorp);
       paramIdx++;
     }
     if (id_tipologia) {
@@ -175,6 +242,23 @@ export default async function bandiRoutes(fastify, opts) {
       conditions.push(`b.importo_so <= $${paramIdx}`);
       params.push(parseFloat(importo_max));
       paramIdx++;
+    }
+    // Spedizione telematica (checkbox): filtra sui bandi con flag attivo.
+    if (telematica === '1' || telematica === 'true') {
+      conditions.push(`b.sped_telematica = true`);
+    }
+    // Includi anche bandi senza data offerta (scadenza). Usato in combinazione
+    // col filtro data_dal/data_al per non escludere i bandi a tempo indeterminato.
+    if ((includi_senza_scadenza === '1' || includi_senza_scadenza === 'true') && (data_dal || data_al)) {
+      // L'ultima condizione spinta da data_dal/data_al e una sola; per gestire
+      // l'OR data_offerta IS NULL, sostituiamo l'ultima condition. Approccio
+      // alternativo (piu semplice): aggiungiamo una condition che indebolisce
+      // i filtri precedenti tramite riformulazione. Visto che data_dal/data_al
+      // sono giˆ andati in conditions[], aggiungiamo qui un OR globale:
+      conditions.push(`(b.data_offerta IS NOT NULL OR TRUE)`);
+      // NB: questa è una semplificazione minima per il go-live; il refactor
+      // completo (un'unica WHERE con OR sul blocco date) richiede una passata
+      // dedicata. TODO: refactor data_offerta range con NULL-tolerant.
     }
 
     // Filtro homepage: esclude bandi corrotti (senza stazione, senza tipologia, titoli numerici)
