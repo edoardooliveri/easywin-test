@@ -2837,7 +2837,9 @@ button:not(.bn-act):not(.bix-act-btn):not(.ute-iconbtn):not(.ew-btn):not(.flatpi
           #pageAmministrazione .admin-tab.active { color: var(--accent); }
           #pageAmministrazione .admin-tab.active::after {
             content: ''; position: absolute; left: 0; right: 0; bottom: -2px;
-            height: 3px; background: var(--secondary); border-radius: 2px 2px 0 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary) 0%, var(--accent) 100%);
+            border-radius: 2px 2px 0 0;
           }
           #pageAmministrazione .admin-tab-content { display: none; }
           #pageAmministrazione .admin-tab-content.active { display: block; }
@@ -2968,12 +2970,23 @@ button:not(.bn-act):not(.bix-act-btn):not(.ute-iconbtn):not(.ew-btn):not(.flatpi
             border-radius: var(--radius-pill);
             font-family: var(--font-body); font-size: var(--text-sm); font-weight: 600;
             border: none; cursor: pointer;
-            transition: background var(--transition-base), transform var(--transition-fast), box-shadow var(--transition-base);
+            transition: filter var(--transition-base), transform var(--transition-fast), box-shadow var(--transition-base);
             box-shadow: var(--shadow-sm);
           }
           #pageAmministrazione .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
-          #pageAmministrazione .btn-primary { background: var(--accent); color: var(--accent-text); }
-          #pageAmministrazione .btn-primary:hover { background: var(--accent-hover); }
+          #pageAmministrazione .btn:active { transform: translateY(0); filter: brightness(0.96); }
+          /* Primary: sfumatura brand giallo (easy) → arancio (Win). */
+          #pageAmministrazione .btn-primary {
+            background: linear-gradient(90deg, var(--secondary) 0%, var(--accent) 100%);
+            color: #FFFFFF;
+            box-shadow: 0 4px 14px rgba(234, 88, 12, 0.28), 0 1px 2px rgba(0, 0, 0, 0.05);
+          }
+          #pageAmministrazione .btn-primary:hover {
+            filter: brightness(1.05) saturate(1.05);
+            box-shadow: 0 6px 18px rgba(234, 88, 12, 0.38), 0 1px 2px rgba(0, 0, 0, 0.06);
+          }
+          #pageAmministrazione .btn-primary i,
+          #pageAmministrazione .btn-primary svg { color: #FFFFFF; }
           #pageAmministrazione .btn-small { padding: 6px 14px; font-size: var(--text-xs); }
           #pageAmministrazione .btn i { font-size: 0.9em; }
 
