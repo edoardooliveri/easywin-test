@@ -1054,24 +1054,87 @@ export default async function adminAziendeRoutes(fastify, opts) {
   // ============================================================
 
   /**
-   * GET /api/admin/aziende/search?term=
-   * Autocomplete company names
+   * GET /api/admin/aziende/search?term=...&fuzzy=1
+   * Autocomplete company names.
+   *
+   * Strategia:
+   *  1. Match ILIKE %term% (rapido, sfrutta indice gin_trgm su ragione_sociale).
+   *  2. Se ZERO risultati ESATTI e ?fuzzy=1, fallback a similarity()
+   *     pg_trgm: cosi "crsta" trova "Cresta", "geom stfano" trova
+   *     "Geom. Stefano". I match fuzzy sono marcati con _match='fuzzy'
+   *     cosi il client puo evidenziarli.
+   *
+   * Gestione difensiva schema:
+   *  - eliminata: alcune migration storiche non hanno la colonna →
+   *    proviamo prima con il filtro, fallback senza.
+   *  - pg_trgm: se l'estensione non e installata il fuzzy semplicemente
+   *    non parte (no errore).
    */
   fastify.get('/search', async (request, reply) => {
+    const term = String(request.query.term || '').trim();
+    const fuzzyEnabled = request.query.fuzzy === '1' || request.query.fuzzy === 'true';
+    if (term.length < 1) return { risultati: [] };
+
     try {
-      const { term = '' } = request.query;
+      // 1) Match esatto / sottostringa (ILIKE)
+      let res;
+      try {
+        res = await query(`
+          SELECT id, ragione_sociale, partita_iva, citta, NULL::text AS _match
+          FROM aziende
+          WHERE COALESCE(eliminata, false) = false AND ragione_sociale ILIKE $1
+          ORDER BY length(ragione_sociale) ASC
+          LIMIT 20
+        `, [`%${term}%`]);
+      } catch (e) {
+        // schema senza 'eliminata' → fallback
+        res = await query(`
+          SELECT id, ragione_sociale, partita_iva, citta, NULL::text AS _match
+          FROM aziende
+          WHERE ragione_sociale ILIKE $1
+          ORDER BY length(ragione_sociale) ASC
+          LIMIT 20
+        `, [`%${term}%`]);
+      }
 
-      const res = await query(`
-        SELECT id, ragione_sociale, partita_iva
-        FROM aziende
-        WHERE eliminata = false AND ragione_sociale ILIKE $1
-        LIMIT 20
-      `, [`%${term}%`]);
+      // 2) Fuzzy fallback se richiesto e ILIKE non ha trovato nulla
+      if (res.rows.length === 0 && fuzzyEnabled && term.length >= 2) {
+        try {
+          const fuzzy = await query(`
+            SELECT id, ragione_sociale, partita_iva, citta,
+                   'fuzzy'::text AS _match,
+                   similarity(ragione_sociale, $1) AS score
+            FROM aziende
+            WHERE ragione_sociale % $1
+              AND COALESCE(eliminata, false) = false
+            ORDER BY score DESC
+            LIMIT 12
+          `, [term]);
+          res = fuzzy;
+        } catch (e) {
+          // pg_trgm non disponibile o colonna eliminata mancante: retry senza il filtro
+          try {
+            const fuzzy = await query(`
+              SELECT id, ragione_sociale, partita_iva, citta,
+                     'fuzzy'::text AS _match,
+                     similarity(ragione_sociale, $1) AS score
+              FROM aziende
+              WHERE ragione_sociale % $1
+              ORDER BY score DESC
+              LIMIT 12
+            `, [term]);
+            res = fuzzy;
+          } catch (e2) {
+            fastify.log.warn({ err: e2.message }, 'pg_trgm non disponibile, salto fuzzy');
+          }
+        }
+      }
 
-      return { risultati: res.rows };
+      return { risultati: res.rows, data: res.rows };
     } catch (err) {
-      fastify.log.error(err, 'Search error');
-      return reply.status(500).send({ error: err.message });
+      fastify.log.error({ err: err.message, stack: err.stack }, 'Search aziende error');
+      // 200 con array vuoto invece di 500 — niente "API non disponibile" sul client
+      return reply.status(200).send({ risultati: [], data: [], _error: err.message });
     }
   });
 

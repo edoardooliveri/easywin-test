@@ -3328,9 +3328,11 @@ button:not(.bn-act):not(.bix-act-btn):not(.ute-iconbtn):not(.ew-btn):not(.flatpi
         <div class="search-section compact">
           <!-- Riga 1: Ragione Sociale (largo), Partita IVA, Codice Fiscale -->
           <div class="form-row" style="grid-template-columns: 2fr 1fr 1fr;">
-            <div class="form-col">
+            <div class="form-col" style="position:relative">
               <label>Ragione Sociale</label>
-              <input type="text" id="aziende-ragione" placeholder="es. Acme S.r.l.">
+              <input type="text" id="aziende-ragione" placeholder="es. Acme S.r.l. (digita per suggerimenti)" autocomplete="off" oninput="aziendeRagioneAutocomplete(this.value)">
+              <!-- Tendina suggerimenti autocomplete (popolata via JS) -->
+              <div id="aziende-ragione-ac" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;margin-top:4px;background:#fff;border:1px solid #d4dbe5;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,0.12);max-height:320px;overflow-y:auto"></div>
             </div>
             <div class="form-col">
               <label>Partita IVA</label>
@@ -26377,6 +26379,70 @@ async function loadAlbiTuttiGliAlbi(page) {
 }
 
 let _albiRaccAcTimer = null;
+// ============================================================
+// Autocomplete su Aziende (filtro lista admin)
+// ============================================================
+// Mentre l'utente digita la ragione sociale, mostra una tendina con
+// i match (incluso il fuzzy: digiti "crsta" -> trova "Cresta").
+// Click su un suggerimento popola il campo e lancia la ricerca completa.
+let _aziendeAcTimer = null;
+async function aziendeRagioneAutocomplete(term) {
+  const box = document.getElementById('aziende-ragione-ac');
+  if (!box) return;
+  const t = (term || '').trim();
+  if (t.length < 2) { box.style.display = 'none'; box.innerHTML = ''; return; }
+
+  box.innerHTML = '<div style="padding:12px;color:#64748b;font-size:12px;text-align:center"><i class="fas fa-spinner fa-spin"></i> Ricerca aziende…</div>';
+  box.style.display = 'block';
+
+  clearTimeout(_aziendeAcTimer);
+  _aziendeAcTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/aziende/search?term=${encodeURIComponent(t)}&fuzzy=1`, { headers: authHeaders() });
+      if (!res.ok) {
+        box.innerHTML = '<div style="padding:12px;color:#dc2626;font-size:12px;text-align:center">Errore ricerca (' + res.status + ')</div>';
+        return;
+      }
+      const data = await res.json();
+      const rows = data.risultati || data.data || [];
+      if (!rows.length) {
+        box.innerHTML = '<div style="padding:14px;color:#64748b;font-size:13px;text-align:center">Nessuna azienda trovata per "' + esc(t) + '"</div>';
+        return;
+      }
+      box.innerHTML = rows.slice(0, 12).map(a => `
+        <div class="aziende-ac-item"
+             data-id="${a.id}"
+             data-nome="${esc(a.ragione_sociale || '')}"
+             style="padding:11px 14px;cursor:pointer;border-bottom:1px solid #eef1f5;font-size:13px">
+          <strong>${esc(a.ragione_sociale || '-')}</strong>
+          ${a.partita_iva ? `<span style="color:#64748b;font-size:11px;margin-left:8px">P.IVA ${esc(a.partita_iva)}</span>` : ''}
+          ${a.citta ? `<span style="color:#94a3b8;font-size:11px;margin-left:8px">· ${esc(a.citta)}</span>` : ''}
+          ${a._match === 'fuzzy' ? '<span style="color:#EA580C;font-size:10px;margin-left:8px;font-weight:600">~ match approssimato</span>' : ''}
+        </div>
+      `).join('');
+      box.querySelectorAll('.aziende-ac-item').forEach(it => {
+        it.addEventListener('mouseenter', () => it.style.background = '#f8fafc');
+        it.addEventListener('mouseleave', () => it.style.background = 'transparent');
+        it.addEventListener('click', () => {
+          document.getElementById('aziende-ragione').value = it.dataset.nome;
+          box.style.display = 'none';
+          // Lancia la ricerca completa per visualizzare la riga nella tabella sotto
+          if (typeof searchAziende === 'function') searchAziende();
+        });
+      });
+    } catch (e) {
+      box.innerHTML = '<div style="padding:12px;color:#dc2626;font-size:12px;text-align:center">Errore: ' + esc(e.message) + '</div>';
+    }
+  }, 200);
+}
+
+// Chiusura tendina quando si clicca fuori
+document.addEventListener('click', (e) => {
+  const box = document.getElementById('aziende-ragione-ac');
+  const inp = document.getElementById('aziende-ragione');
+  if (box && inp && !box.contains(e.target) && e.target !== inp) box.style.display = 'none';
+});
+
 async function albiRaccAziendaAutocomplete(term) {
   const box = document.getElementById('albi-racc-azienda-ac');
   document.getElementById('albi-racc-azienda-id').value = '';

@@ -290,6 +290,7 @@ const AUTO_MIGRATIONS = [
   '032_consolidate_clienti_preferiti_registro.sql',
   '033_cleanup_province_criteri_regioni.sql',
   '034_albi_discovery_runs.sql',
+  '035_pg_trgm_fuzzy_search.sql',
 ];
 
 async function runAutoMigrations() {
