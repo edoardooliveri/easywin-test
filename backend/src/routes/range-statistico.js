@@ -16,33 +16,36 @@ export default async function rangeStatisticoRoutes(fastify) {
     } = request.body;
 
     // Build query to fetch matching historical esiti
-    const conditions = ['eliminata = false', 'g.ribasso IS NOT NULL', 'g.n_partecipanti > 2'];
+    // FIX schema: la tabella gare non ha 'eliminata' (usa 'annullato');
+    // province.id (non id_provincia), regioni.id + regioni.nome (non
+    // id_regione/regione), bandi.id (non id_bando).
+    const conditions = ['g.annullato = false', 'g.ribasso IS NOT NULL', 'g.n_partecipanti > 2'];
     const params = [];
     let idx = 1;
 
-    if (id_regione) { conditions.push(`p.id_regione = $${idx}`); params.push(id_regione); idx++; }
-    if (id_stazione) { conditions.push(`g.id_stazione = $${idx}`); params.push(id_stazione); idx++; }
-    if (id_soa) { conditions.push(`g.id_soa = $${idx}`); params.push(id_soa); idx++; }
-    if (id_criterio) { conditions.push(`b.id_criterio = $${idx}`); params.push(id_criterio); idx++; }
-    if (importo_min) { conditions.push(`g.importo >= $${idx}`); params.push(importo_min); idx++; }
-    if (importo_max) { conditions.push(`g.importo <= $${idx}`); params.push(importo_max); idx++; }
-    if (data_min) { conditions.push(`g.data >= $${idx}`); params.push(data_min); idx++; }
-    if (data_max) { conditions.push(`g.data <= $${idx}`); params.push(data_max); idx++; }
+    if (id_regione)  { conditions.push(`p.id_regione = $${idx}`);  params.push(parseInt(id_regione, 10));  idx++; }
+    if (id_stazione) { conditions.push(`g.id_stazione = $${idx}`); params.push(parseInt(id_stazione, 10)); idx++; }
+    if (id_soa)      { conditions.push(`g.id_soa = $${idx}`);      params.push(parseInt(id_soa, 10));      idx++; }
+    if (id_criterio) { conditions.push(`b.id_criterio = $${idx}`); params.push(parseInt(id_criterio, 10)); idx++; }
+    if (importo_min) { conditions.push(`g.importo >= $${idx}`);    params.push(parseFloat(importo_min));   idx++; }
+    if (importo_max) { conditions.push(`g.importo <= $${idx}`);    params.push(parseFloat(importo_max));   idx++; }
+    if (data_min)    { conditions.push(`g.data >= $${idx}`);       params.push(data_min);                  idx++; }
+    if (data_max)    { conditions.push(`g.data <= $${idx}`);       params.push(data_max);                  idx++; }
 
     const result = await query(`
       SELECT g.id, g.data, g.importo, g.ribasso, g.n_partecipanti,
         g.media_ar, g.soglia_an, g.codice_cig,
-        s.nome AS stazione_nome,
-        soa.descrizione AS soa_categoria,
-        c.nome AS criterio,
-        r.regione AS regione_nome
+        s.nome             AS stazione_nome,
+        soa.descrizione    AS soa_categoria,
+        c.nome             AS criterio,
+        r.nome             AS regione_nome
       FROM gare g
       LEFT JOIN stazioni s ON g.id_stazione = s.id
-      LEFT JOIN province p ON s.id_provincia = p.id_provincia
-      LEFT JOIN regioni r ON p.id_regione = r.id_regione
-      LEFT JOIN bandi b ON g.id_bando = b.id_bando
-      LEFT JOIN soa ON g.id_soa = soa.id
-      LEFT JOIN criteri c ON b.id_criterio = c.id
+      LEFT JOIN province p ON s.id_provincia = p.id
+      LEFT JOIN regioni  r ON p.id_regione   = r.id
+      LEFT JOIN bandi    b ON g.id_bando     = b.id
+      LEFT JOIN soa        ON g.id_soa       = soa.id
+      LEFT JOIN criteri  c ON b.id_criterio  = c.id
       WHERE ${conditions.join(' AND ')}
       ORDER BY g.data DESC
       LIMIT 500
@@ -115,25 +118,25 @@ export default async function rangeStatisticoRoutes(fastify) {
       return { error: `SOA ${soa_categoria} non trovata` };
     }
 
-    const conditions = ['eliminata = false', 'g.ribasso IS NOT NULL', 'g.n_partecipanti > 2',
+    const conditions = ['g.annullato = false', 'g.ribasso IS NOT NULL', 'g.n_partecipanti > 2',
       `g.id_soa = $1`];
     const params = [soaResult.rows[0].id];
 
     if (criterio) {
       const critResult = await query(
-        `SELECT id_criterio FROM criteri WHERE nome ILIKE $1 LIMIT 1`,
+        `SELECT id FROM criteri WHERE nome ILIKE $1 LIMIT 1`,
         [`%${criterio}%`]
       );
       if (critResult.rows.length > 0) {
         conditions.push(`b.id_criterio = $2`);
-        params.push(critResult.rows[0].id_criterio);
+        params.push(critResult.rows[0].id);
       }
     }
 
     const result = await query(`
       SELECT g.ribasso
       FROM gare g
-      LEFT JOIN bandi b ON g.id_bando = b.id_bando
+      LEFT JOIN bandi b ON g.id_bando = b.id
       WHERE ${conditions.join(' AND ')}
       ORDER BY g.data DESC LIMIT 200
     `, params);

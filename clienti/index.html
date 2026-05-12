@@ -7327,6 +7327,84 @@ async function searchStazioni(query) {
   }
 }
 
+// Renderer dei risultati provenienti dal backend AI
+// (/api/range-statistico/calcola). Mantiene la stessa shape DOM del
+// fallback client-side, così l'utente non vede differenze visive.
+function renderRangeAIResults(aiData, ctx) {
+  const r        = aiData.range_vincente || {};
+  const dist     = aiData.distribuzione || {};
+  const trend    = aiData.trend || {};
+  const insight  = aiData.ai_insight || null;
+  const campione = Array.isArray(aiData.campione) ? aiData.campione : [];
+  const n        = aiData.n_gare_analizzate || campione.length;
+
+  // Confidence basata sul sample size (stessa logica del fallback)
+  let confidenza = 'Bassa', confidenzaColor = '#ef4444';
+  if (n >= 50)      { confidenza = 'Alta';        confidenzaColor = '#22c55e'; }
+  else if (n >= 20) { confidenza = 'Media';       confidenzaColor = '#f59e0b'; }
+  else if (n >= 10) { confidenza = 'Sufficiente'; confidenzaColor = '#3b82f6'; }
+
+  const fmt = (x, d = 3) => (x == null) ? '-' : Number(x).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: d });
+
+  document.getElementById('cr-range-min').textContent      = fmt(r.min) + '%';
+  document.getElementById('cr-range-max').textContent      = fmt(r.max) + '%';
+  document.getElementById('cr-range-ottimale').textContent = 'Ribasso ottimale consigliato: ' + fmt(r.ottimale || r.media) + '%';
+  document.getElementById('cr-confidenza').innerHTML       = 'Livello di confidenza: <span style="color:' + confidenzaColor + ';font-weight:600;">' + confidenza + '</span> (' + n + ' esiti analizzati da AI)';
+  document.getElementById('cr-stat-esiti').textContent     = n;
+  document.getElementById('cr-stat-media').textContent     = fmt(r.media) + '%';
+  document.getElementById('cr-stat-mediana').textContent   = fmt(r.mediana) + '%';
+  document.getElementById('cr-stat-devstd').textContent    = fmt(r.dev_std);
+
+  // Costruzione analisi narrativa. Se Claude ha prodotto un insight,
+  // lo includiamo testualmente; altrimenti si usa la sintesi statistica.
+  const stazioneTesto = ctx.stazione || 'le stazioni selezionate';
+  let html = '';
+  html += `<p><strong>Analisi su ${n} esiti storici</strong> per la stazione "${stazioneTesto}".</p>`;
+  if (insight && typeof insight === 'string') {
+    html += `<div style="margin-top:12px;padding:14px;background:rgba(245,197,24,0.10);border-left:3px solid var(--yellow);border-radius:0 8px 8px 0;">
+      <i class="fas fa-brain" style="color:var(--yellow);margin-right:6px;"></i>
+      <strong>Insight AI (Claude):</strong><br>${insight.replace(/\n/g, '<br>')}
+    </div>`;
+  } else {
+    html += `<p>Il <strong>range vincente</strong> stimato è <strong>${fmt(r.min)}% – ${fmt(r.max)}%</strong>, con valore ottimale <strong>${fmt(r.ottimale || r.media)}%</strong>.</p>`;
+  }
+  if (trend && trend.direzione) {
+    const ico = trend.direzione === 'crescente' ? 'fa-arrow-up' : trend.direzione === 'decrescente' ? 'fa-arrow-down' : 'fa-arrows-alt-h';
+    html += `<p style="margin-top:8px"><i class="fas ${ico}" style="margin-right:6px;color:var(--orange)"></i><strong>Trend:</strong> ${trend.direzione}${trend.variazione_pct != null ? ' (' + fmt(trend.variazione_pct) + '% nell\'ultimo periodo)' : ''}.</p>`;
+  }
+  if (ctx.importo) {
+    const imp = Number(ctx.importo);
+    if (Number.isFinite(imp) && imp > 0 && r.ottimale != null) {
+      const risp = imp * (r.ottimale / 100);
+      html += `<p style="margin-top:10px"><i class="fas fa-euro-sign" style="color:var(--orange);margin-right:6px"></i>Con importo di <strong>${imp.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</strong>, il ribasso ottimale corrisponde a un risparmio stimato di <strong>${risp.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</strong>.</p>`;
+    }
+  }
+  document.getElementById('cr-analisi-testo').innerHTML = html;
+
+  // Tabella campione
+  const tbody = document.getElementById('cr-esiti-body');
+  if (campione.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-dim);">Nessun esito rappresentativo da mostrare</td></tr>';
+  } else {
+    tbody.innerHTML = campione.map(e => {
+      const dataFmt    = e.data ? new Date(e.data).toLocaleDateString('it-IT') : '-';
+      const importoFmt = e.importo ? Number(e.importo).toLocaleString('it-IT', { minimumFractionDigits: 2 }) + ' €' : '-';
+      const ribFmt     = e.ribasso != null ? Number(e.ribasso).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) + '%' : '-';
+      return `<tr>
+        <td>${dataFmt}</td>
+        <td title="${e.stazione || ''}" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.stazione || '-'}</td>
+        <td>-</td>
+        <td>${importoFmt}</td>
+        <td style="font-weight:600;color:var(--yellow);">${ribFmt}</td>
+        <td>${e.n_partecipanti || '-'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('cr-risultato').style.display = 'block';
+  document.getElementById('cr-risultato').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 async function calcolaRibassoAI() {
   const stazione = document.getElementById('cr-stazione').value.trim();
   const soaId = document.getElementById('cr-soa').value;
@@ -7340,6 +7418,52 @@ async function calcolaRibassoAI() {
     return;
   }
 
+  // ─── Tentativo 1: chiamata al vero backend AI (Claude SDK) ─────────────
+  // Endpoint POST /api/range-statistico/calcola raccoglie gli esiti storici
+  // matchanti, calcola range/distribuzione/trend e (se ANTHROPIC_API_KEY
+  // configurata) aggiunge un ai_insight prodotto da Claude. Se rispondere
+  // 404 (dati insufficienti) o 500 (es. chiave AI mancante), cadiamo sul
+  // fallback statistico client-side qui sotto in modo che la UI non rimanga
+  // bloccata.
+  const aiBtn = document.getElementById('cr-calcola-btn');
+  const aiLoading = document.getElementById('cr-loading');
+  const aiResultBox = document.getElementById('cr-risultato');
+  aiBtn.disabled = true;
+  aiBtn.style.opacity = '0.5';
+  if (aiLoading) aiLoading.style.display = 'inline';
+  aiResultBox.style.display = 'none';
+
+  try {
+    const body = {
+      id_regione:  regioneId ? parseInt(regioneId, 10) : undefined,
+      id_soa:      soaId ? parseInt(soaId, 10) : undefined,
+      id_criterio: criterioId ? parseInt(criterioId, 10) : undefined,
+      importo_min: importo ? parseFloat(importo) * 0.5 : undefined,
+      importo_max: importo ? parseFloat(importo) * 1.5 : undefined
+    };
+    // pulizia campi undefined
+    Object.keys(body).forEach(k => body[k] === undefined && delete body[k]);
+
+    const aiRes = await fetch(API_BASE + '/range-statistico/calcola', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body)
+    });
+
+    if (aiRes.ok) {
+      const aiData = await aiRes.json();
+      renderRangeAIResults(aiData, { stazione, importo, tipologia });
+      aiBtn.disabled = false; aiBtn.style.opacity = '1';
+      if (aiLoading) aiLoading.style.display = 'none';
+      return; // successo - non eseguire il fallback
+    }
+    // 404 (n_gare_trovate insufficienti) o 500: fallback al calcolo locale
+    console.info('range-statistico/calcola non disponibile (', aiRes.status, '), fallback statistico client-side');
+  } catch (e) {
+    console.info('range-statistico/calcola errore di rete, fallback statistico:', e.message);
+  }
+
+  // ─── Tentativo 2 (fallback): calcolo statistico client-side ────────────
   // Show loading
   const btn = document.getElementById('cr-calcola-btn');
   const loading = document.getElementById('cr-loading');
