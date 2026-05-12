@@ -2759,14 +2759,31 @@ button:not(.bn-act):not(.bix-act-btn):not(.ute-iconbtn):not(.ew-btn):not(.flatpi
       <div id="pageAmministrazione" class="page">
 
         <!-- ================================================================
-             SEZIONE AMMINISTRAZIONE — redesign 2026-05-12 (light theme)
-             Palette: bianco + blu scuro (#1E3A8A) + arancione vivace (#EA580C)
-             Tokens caricati da admin/admin-tokens.css.
+             SEZIONE AMMINISTRAZIONE — redesign 2026-05-12 (brand light theme)
+             Palette: bianco + ARANCIONE BRAND (#EA580C) + GIALLO BRAND (#F5C518)
+                      + nero #1A1A1A (testo, dal logo easyWin).
+             Override scoped a #pageAmministrazione: le altre pageX della SPA
+             rimangono con la palette blu corporate (admin-tokens.css default).
+             Quando lo conferma l'utente, l'override viene rimosso da qui e
+             spostato nei tokens globali → tutte le pagine ereditano i nuovi colori.
 
              Tutti gli id/name/onclick sono PRESERVATI (contratto col JS).
              Classi nuove prefissate .amm-* per scope.
              ================================================================ -->
         <style>
+          /* ── Override token brand (scoped) ── */
+          #pageAmministrazione {
+            --accent:        #EA580C;            /* arancione brand (Win) */
+            --accent-hover:  #C2410C;            /* arancione scuro */
+            --accent-soft:   #FFEDD5;            /* arancione tenue */
+            --accent-text:   #FFFFFF;            /* testo su button accent */
+            --secondary:     #F5C518;            /* giallo brand (easy) */
+            --secondary-hover: #EAB308;          /* giallo scuro */
+            --secondary-soft:  #FEF9C3;          /* giallo tenue */
+            --secondary-text:  #1A1A1A;          /* testo su button giallo */
+            --text:          #1A1A1A;            /* nero brand */
+          }
+
           /* Spazio verticale tra le sezioni della dashboard */
           #pageAmministrazione .amm-section { margin-bottom: var(--sp-8); }
           #pageAmministrazione .amm-section:last-child { margin-bottom: 0; }
