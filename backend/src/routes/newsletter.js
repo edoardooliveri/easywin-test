@@ -968,8 +968,35 @@ export default async function newsletterRoutes(fastify, opts) {
   // Utenti SENZA filtri ricevono TUTTI i bandi/esiti (comportamento legacy).
 
   // POST /api/admin/newsletter/auto — Invio automatico giornaliero
+  //
+  // Parametri (parity con legacy easywin.it InviaNewsletter):
+  //   tipo            'bandi' | 'esiti' | 'both'
+  //   data_riferimento 'YYYY-MM-DD' (default: ieri)
+  //   utente_iniziale  username — invia solo agli utenti con username >= questo
+  //                    (utile per riprendere un invio interrotto, parity legacy
+  //                    UtenteNewsletter)
+  //   filtro_utenti    'user1,user2,...' — restringe l'invio a questi soli
+  //                    utenti (parity legacy Utenti textarea CSV)
+  //   dryRun           bool — simula l'invio senza mandare email reali; ritorna
+  //                    comunque il conteggio per testing
   fastify.post('/auto', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { tipo = 'both', data_riferimento } = request.body || {};
+    const {
+      tipo = 'both',
+      data_riferimento,
+      utente_iniziale,
+      filtro_utenti,
+      dryRun = false
+    } = request.body || {};
+
+    // Normalizza filtro_utenti in array di username puliti
+    const filtroUtentiArr = (() => {
+      if (!filtro_utenti) return null;
+      if (Array.isArray(filtro_utenti)) return filtro_utenti.map(s => String(s).trim()).filter(Boolean);
+      return String(filtro_utenti)
+        .split(/[,;\n\s]+/)
+        .map(s => s.trim())
+        .filter(Boolean);
+    })();
 
     // Data di riferimento = ieri (i bandi importati ieri vengono inviati oggi alle 4)
     const ieri = data_riferimento
@@ -1020,20 +1047,42 @@ export default async function newsletterRoutes(fastify, opts) {
         }
 
         // 2. Utenti iscritti alla newsletter bandi (with optional email_newsletter_bandi_servizi)
+        // Aggiungo filtri legacy: utente_iniziale + filtro_utenti
+        const userWhereParts = [
+          `u.newsletter_bandi = true`,
+          `u.attivo = true`,
+          `u.email IS NOT NULL`,
+          `u.email != ''`
+        ];
+        const userWhereParams = [];
+        if (utente_iniziale) {
+          userWhereParams.push(utente_iniziale);
+          userWhereParts.push(`u.username >= $${userWhereParams.length}`);
+        }
+        if (filtroUtentiArr && filtroUtentiArr.length > 0) {
+          userWhereParams.push(filtroUtentiArr);
+          userWhereParts.push(`u.username = ANY($${userWhereParams.length})`);
+        }
+        const userWhereSql = userWhereParts.join(' AND ');
+
         let usersBandi;
         try {
           usersBandi = await query(
             `SELECT u.id, u.username,
                     COALESCE(NULLIF(u.email_newsletter_bandi_servizi, ''), u.email) AS email
              FROM users u
-             WHERE u.newsletter_bandi = true AND u.attivo = true AND u.email IS NOT NULL AND u.email != ''`
+             WHERE ${userWhereSql}
+             ORDER BY u.username`,
+            userWhereParams
           );
         } catch (e) {
           // email_newsletter_bandi_servizi column may not exist (migration 014 not applied)
           usersBandi = await query(
             `SELECT u.id, u.username, u.email
              FROM users u
-             WHERE u.newsletter_bandi = true AND u.attivo = true AND u.email IS NOT NULL AND u.email != ''`
+             WHERE ${userWhereSql}
+             ORDER BY u.username`,
+            userWhereParams
           );
         }
 
@@ -1098,22 +1147,28 @@ export default async function newsletterRoutes(fastify, opts) {
               filtri.length > 0 ? `Bandi selezionati in base ai tuoi ${filtri.length} filtri personalizzati.` : ''
             );
 
-            await transporter.sendMail({
-              from: process.env.SMTP_FROM || 'newsletter@easywin.it',
-              to: user.email,
-              subject: `Newsletter Bandi EasyWin — ${dateRange.da} (${items.length} bandi)`,
-              html,
-              text: `Newsletter Bandi ${dateRange.da} — ${items.length} bandi per te`
-            });
-            log.bandi.sent++;
+            if (dryRun) {
+              // dryRun: simula l'invio senza inviare email reali (parity legacy
+              // IsStorico=false + SendMail=false). Utile per testing/debug.
+              log.bandi.sent++;
+            } else {
+              await transporter.sendMail({
+                from: process.env.SMTP_FROM || 'newsletter@easywin.it',
+                to: user.email,
+                subject: `Newsletter Bandi EasyWin — ${dateRange.da} (${items.length} bandi)`,
+                html,
+                text: `Newsletter Bandi ${dateRange.da} — ${items.length} bandi per te`
+              });
+              log.bandi.sent++;
+            }
           } catch (err) {
             log.bandi.failed++;
             log.bandi.errors.push({ user: user.username, email: user.email, error: err.message });
           }
         }
 
-        // Log invio
-        if (log.bandi.sent > 0 || log.bandi.failed > 0) {
+        // Log invio (no log in dryRun → niente spam su newsletter_invii)
+        if (!dryRun && (log.bandi.sent > 0 || log.bandi.failed > 0)) {
           await query(
             `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
@@ -1147,20 +1202,42 @@ export default async function newsletterRoutes(fastify, opts) {
         );
 
         // Province per esiti (dalla tabella gare hanno id_provincia diretto)
+        // Filtri legacy: utente_iniziale + filtro_utenti
+        const userEsitiWhereParts = [
+          `u.newsletter_esiti = true`,
+          `u.attivo = true`,
+          `u.email IS NOT NULL`,
+          `u.email != ''`
+        ];
+        const userEsitiWhereParams = [];
+        if (utente_iniziale) {
+          userEsitiWhereParams.push(utente_iniziale);
+          userEsitiWhereParts.push(`u.username >= $${userEsitiWhereParams.length}`);
+        }
+        if (filtroUtentiArr && filtroUtentiArr.length > 0) {
+          userEsitiWhereParams.push(filtroUtentiArr);
+          userEsitiWhereParts.push(`u.username = ANY($${userEsitiWhereParams.length})`);
+        }
+        const userEsitiWhereSql = userEsitiWhereParts.join(' AND ');
+
         let usersEsiti;
         try {
           usersEsiti = await query(
             `SELECT u.id, u.username,
                     COALESCE(NULLIF(u.email_newsletter_esiti, ''), u.email) AS email
              FROM users u
-             WHERE u.newsletter_esiti = true AND u.attivo = true AND u.email IS NOT NULL AND u.email != ''`
+             WHERE ${userEsitiWhereSql}
+             ORDER BY u.username`,
+            userEsitiWhereParams
           );
         } catch (e) {
           // email_newsletter_esiti column may not exist (migration 014 not applied)
           usersEsiti = await query(
             `SELECT u.id, u.username, u.email
              FROM users u
-             WHERE u.newsletter_esiti = true AND u.attivo = true AND u.email IS NOT NULL AND u.email != ''`
+             WHERE ${userEsitiWhereSql}
+             ORDER BY u.username`,
+            userEsitiWhereParams
           );
         }
 
@@ -1225,21 +1302,25 @@ export default async function newsletterRoutes(fastify, opts) {
               filtri.length > 0 ? `Esiti selezionati in base ai tuoi ${filtri.length} filtri personalizzati.` : ''
             );
 
-            await transporter.sendMail({
-              from: process.env.SMTP_FROM || 'newsletter@easywin.it',
-              to: user.email,
-              subject: `Newsletter Esiti EasyWin — ${dateRange.da} (${items.length} esiti)`,
-              html,
-              text: `Newsletter Esiti ${dateRange.da} — ${items.length} esiti per te`
-            });
-            log.esiti.sent++;
+            if (dryRun) {
+              log.esiti.sent++;
+            } else {
+              await transporter.sendMail({
+                from: process.env.SMTP_FROM || 'newsletter@easywin.it',
+                to: user.email,
+                subject: `Newsletter Esiti EasyWin — ${dateRange.da} (${items.length} esiti)`,
+                html,
+                text: `Newsletter Esiti ${dateRange.da} — ${items.length} esiti per te`
+              });
+              log.esiti.sent++;
+            }
           } catch (err) {
             log.esiti.failed++;
             log.esiti.errors.push({ user: user.username, email: user.email, error: err.message });
           }
         }
 
-        if (log.esiti.sent > 0 || log.esiti.failed > 0) {
+        if (!dryRun && (log.esiti.sent > 0 || log.esiti.failed > 0)) {
           await query(
             `INSERT INTO newsletter_invii (tipo, data_da, data_a, destinatari, inviati, falliti, oggetto, note, data_invio)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
@@ -1254,9 +1335,14 @@ export default async function newsletterRoutes(fastify, opts) {
       return {
         success: true,
         data_riferimento: ieriStr,
+        dryRun: !!dryRun,
+        utente_iniziale: utente_iniziale || null,
+        filtro_utenti: filtroUtentiArr,
         bandi: log.bandi,
         esiti: log.esiti,
-        message: `Newsletter auto completata. Bandi: ${log.bandi.sent} inviati, ${log.bandi.skipped} skip. Esiti: ${log.esiti.sent} inviati, ${log.esiti.skipped} skip.`
+        message: dryRun
+          ? `[DRY RUN] Simulazione completata. Bandi: ${log.bandi.sent} sarebbero stati inviati, ${log.bandi.skipped} skip. Esiti: ${log.esiti.sent} sarebbero stati inviati, ${log.esiti.skipped} skip.`
+          : `Newsletter auto completata. Bandi: ${log.bandi.sent} inviati, ${log.bandi.skipped} skip. Esiti: ${log.esiti.sent} inviati, ${log.esiti.skipped} skip.`
       };
     } catch (err) {
       fastify.log.error(err, 'Newsletter auto error');
