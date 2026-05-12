@@ -289,6 +289,7 @@ const AUTO_MIGRATIONS = [
   '030_bandi_soa_sec_scorporabili.sql',
   '032_consolidate_clienti_preferiti_registro.sql',
   '033_cleanup_province_criteri_regioni.sql',
+  '034_albi_discovery_runs.sql',
 ];
 
 async function runAutoMigrations() {

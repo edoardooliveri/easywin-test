@@ -1172,4 +1172,163 @@ export default async function albiFornitoRoutes(fastify) {
     `);
     return { regioni: result.rows.map(r => r.regione) };
   });
+
+  // ============================================================
+  // DISCOVERY: status + trigger (admin)
+  // ============================================================
+  // I 3 script CLI in tools/albi/ e backend/scripts/ricerca-albi-web.js
+  // restano la fonte autoritativa per le scansioni batch (incrementali,
+  // riavviabili, scritti per girare anche in detached). Questi endpoint
+  // espongono via REST lo stato delle run e permettono di triggerare una
+  // run senza ssh sul server.
+
+  // GET /api/albi-fornitori/admin/discovery/status
+  // Sintesi: ultime 20 run + view aggregata + coverage stazioni.
+  fastify.get('/admin/discovery/status', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    try {
+      const [runs, summary, coverage] = await Promise.all([
+        query(`SELECT id, tipo, started_at, finished_at, success,
+                      stazioni_processate, albi_trovati, albi_inseriti, albi_aggiornati, errori,
+                      range_from_id, range_to_id, limit_count, triggered_by
+               FROM albi_discovery_runs
+               ORDER BY started_at DESC LIMIT 20`),
+        query(`SELECT * FROM v_albi_discovery_summary`),
+        query(`SELECT
+                 (SELECT COUNT(*) FROM stazioni WHERE attivo = true)::int AS stazioni_totali,
+                 (SELECT COUNT(DISTINCT id_stazione) FROM albi_fornitori WHERE attivo = true)::int AS stazioni_con_albo,
+                 (SELECT COUNT(*) FROM albi_fornitori WHERE attivo = true)::int AS albi_attivi,
+                 (SELECT COUNT(*) FROM albi_fornitori WHERE attivo = true AND verificato = true)::int AS albi_verificati`)
+      ]);
+      return {
+        runs:     runs.rows,
+        summary:  summary.rows,
+        coverage: coverage.rows[0] || {}
+      };
+    } catch (err) {
+      fastify.log.error({ err: err.message }, 'GET /admin/discovery/status error');
+      return reply.status(500).send({ error: 'Errore caricamento status discovery' });
+    }
+  });
+
+  // POST /api/albi-fornitori/admin/discovery/run
+  // Body: { tipo: 'ricerca_web' | 'scan_completo' | 'popola_piattaforme' | 'import_scan',
+  //         limit?: number, offset?: number, from_id?: number, file?: string, dry_run?: bool }
+  //
+  // Lancia lo script Node corrispondente in background (child_process.spawn
+  // detached). NON aspetta il termine: registra subito una riga in
+  // albi_discovery_runs con success=null e id PID, poi al termine il run
+  // viene chiuso dal processo stesso via signal/exit.
+  //
+  // Path script (relativi a __dirname dello server):
+  //   ricerca_web        → ../../backend/scripts/ricerca-albi-web.js
+  //   scan_completo      → ../../tools/albi/scan-albi-completo.js
+  //   popola_piattaforme → ../../backend/scripts/popola-albi-fornitori.js
+  //   import_scan        → ../../tools/albi/import-albi-da-scan.js
+  fastify.post('/admin/discovery/run', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { tipo, limit, offset, from_id, file, dry_run } = request.body || {};
+    const allowed = ['ricerca_web', 'scan_completo', 'popola_piattaforme', 'import_scan'];
+    if (!allowed.includes(tipo)) {
+      return reply.status(400).send({ error: 'tipo non valido', allowed });
+    }
+
+    // Anti double-run: se c'e gia una run dello stesso tipo in corso, bloccala
+    const running = await query(
+      `SELECT id FROM albi_discovery_runs WHERE tipo = $1 AND success IS NULL LIMIT 1`,
+      [tipo]
+    );
+    if (running.rows.length > 0) {
+      return reply.status(409).send({ error: 'Run dello stesso tipo gia in corso', run_id: running.rows[0].id });
+    }
+
+    // Inserisci row "running"
+    const ins = await query(
+      `INSERT INTO albi_discovery_runs (tipo, started_at, range_from_id, limit_count, triggered_by)
+       VALUES ($1, NOW(), $2, $3, $4) RETURNING id`,
+      [tipo, from_id || null, limit || null, `admin:${request.user?.username || 'sconosciuto'}`]
+    );
+    const runId = ins.rows[0].id;
+
+    // Lancia script in detached. NB: l'output del processo NON viene catturato
+    // qui (sarebbe troppo lento per request HTTP); ogni script scrive il proprio
+    // log su file (vedi tools/albi/scan-albi-progress.json e backend/scripts/
+    // ricerca-albi-*-log.txt). La chiusura della run viene gestita da un
+    // sentinella separato (TODO: implementare worker che osserva i file di
+    // report e marca la run come success/error).
+    let scriptPath, args = [];
+    const path = await import('path');
+    const { spawn } = await import('child_process');
+    const { fileURLToPath } = await import('url');
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    const ROOT = path.resolve(__dirname, '..', '..', '..');
+
+    switch (tipo) {
+      case 'ricerca_web':
+        scriptPath = path.join(ROOT, 'backend', 'scripts', 'ricerca-albi-web.js');
+        if (limit)   args.push('--limit', String(limit));
+        if (offset)  args.push('--offset', String(offset));
+        if (dry_run) args.push('--dry-run');
+        break;
+      case 'scan_completo':
+        scriptPath = path.join(ROOT, 'tools', 'albi', 'scan-albi-completo.js');
+        if (limit)   args.push('--limit', String(limit));
+        if (from_id) args.push('--from-id', String(from_id));
+        if (dry_run) args.push('--dry-run');
+        break;
+      case 'popola_piattaforme':
+        scriptPath = path.join(ROOT, 'backend', 'scripts', 'popola-albi-fornitori.js');
+        if (dry_run) args.push('--dry-run');
+        break;
+      case 'import_scan':
+        scriptPath = path.join(ROOT, 'tools', 'albi', 'import-albi-da-scan.js');
+        if (file)    args.push('--file=' + file);
+        if (dry_run) args.push('--dry-run');
+        break;
+    }
+
+    try {
+      const child = spawn(process.execPath, [scriptPath, ...args], {
+        cwd: ROOT,
+        detached: true,
+        stdio: 'ignore',
+        env: { ...process.env, ALBI_DISCOVERY_RUN_ID: String(runId) }
+      });
+      child.unref();
+      fastify.log.info({ runId, tipo, scriptPath, pid: child.pid }, 'discovery run started');
+      return { run_id: runId, tipo, pid: child.pid, message: 'Run avviata in background. Stato consultabile via GET /admin/discovery/status' };
+    } catch (err) {
+      // Se lo spawn fallisce, chiudi subito la run come ko
+      await query(
+        `UPDATE albi_discovery_runs SET finished_at = NOW(), success = false,
+                error_detail = $2 WHERE id = $1`,
+        [runId, JSON.stringify({ message: err.message, stack: err.stack?.slice(0, 800) })]
+      );
+      fastify.log.error({ err: err.message, scriptPath }, 'discovery spawn error');
+      return reply.status(500).send({ error: 'Errore avvio run', detail: err.message });
+    }
+  });
+
+  // POST /admin/discovery/runs/:id/chiudi
+  // Chiusura manuale di una run rimasta "running" per errore di sistema o
+  // crash del processo figlio. Permette di sbloccare il flag anti double-run.
+  fastify.post('/admin/discovery/runs/:id/chiudi', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const runId = parseInt(request.params.id, 10);
+    if (!Number.isFinite(runId) || runId <= 0) return reply.status(400).send({ error: 'id non valido' });
+
+    const { success, note } = request.body || {};
+    try {
+      const upd = await query(
+        `UPDATE albi_discovery_runs
+         SET finished_at = NOW(),
+             success = $2,
+             error_detail = COALESCE(error_detail, '{}'::jsonb) || $3::jsonb
+         WHERE id = $1 AND success IS NULL RETURNING id`,
+        [runId, success === false ? false : true, JSON.stringify({ closed_manually: true, note: note || null })]
+      );
+      if (upd.rows.length === 0) return reply.status(404).send({ error: 'Run non trovata o gia chiusa' });
+      return { run_id: runId, closed: true };
+    } catch (err) {
+      fastify.log.error({ err: err.message }, 'POST /admin/discovery/runs/:id/chiudi error');
+      return reply.status(500).send({ error: 'Errore chiusura run' });
+    }
+  });
 }
