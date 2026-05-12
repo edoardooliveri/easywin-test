@@ -723,6 +723,23 @@ a{text-decoration:none;color:inherit}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- Tom-Select: widget multi-select con tag display, ricerca, keyboard nav.
+     Sostituisce i <select> nativi dei filtri Bandi/Esiti permettendo
+     scelta multipla. ~50KB minified, no dipendenze esterne. -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.dark.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<style>
+  /* Override per integrare Tom-Select col tema scuro del cliente */
+  .ts-control { background: #243749 !important; border: 1px solid rgba(255,255,255,0.12) !important; border-radius: 22px !important; padding: 6px 14px !important; color: #fff !important; font-family: Comfortaa, cursive !important; font-size: 13px !important; min-height: 38px; }
+  .ts-control input { color: #fff !important; font-family: inherit !important; }
+  .ts-control .item { background: rgba(245,197,24,0.18) !important; color: #F5C518 !important; border-radius: 10px !important; padding: 2px 8px !important; margin: 1px 4px 1px 0 !important; font-weight: 600 !important; }
+  .ts-control .item .remove { color: rgba(245,197,24,0.7) !important; border-left: 1px solid rgba(245,197,24,0.3) !important; padding: 0 4px !important; margin-left: 6px !important; }
+  .ts-dropdown { background: #1E2D3D !important; border: 1px solid rgba(255,255,255,0.12) !important; border-radius: 12px !important; box-shadow: 0 8px 24px rgba(0,0,0,0.35) !important; color: rgba(255,255,255,0.9) !important; }
+  .ts-dropdown .option { color: rgba(255,255,255,0.9) !important; padding: 9px 14px !important; }
+  .ts-dropdown .option.active { background: rgba(245,197,24,0.18) !important; color: #F5C518 !important; }
+  .ts-dropdown .option:hover { background: rgba(255,255,255,0.06) !important; }
+  .ts-dropdown .no-results { color: rgba(255,255,255,0.5) !important; padding: 12px 14px !important; }
+</style>
 </head>
 <body>
 
@@ -967,29 +984,29 @@ a{text-decoration:none;color:inherit}
       <div class="filter-grid">
         <div class="filter-section">
           <span class="filter-label">Territori</span>
-          <select class="filter-select" id="bandi-territori"><option value="">Tutti i territori</option></select>
+          <select class="filter-select" id="bandi-territori" multiple data-ts="bandi-territori" data-placeholder="Tutti i territori"></select>
         </div>
         <div class="filter-section">
           <span class="filter-label">Regioni</span>
-          <select class="filter-select" id="bandi-regioni"><option value="">Tutte le regioni</option></select>
+          <select class="filter-select" id="bandi-regioni" multiple data-ts="bandi-regioni" data-placeholder="Tutte le regioni"></select>
         </div>
         <div class="filter-section">
           <span class="filter-label">Province</span>
-          <select class="filter-select" id="bandi-province"><option value="">Tutte le province</option></select>
+          <select class="filter-select" id="bandi-province" multiple data-ts="bandi-province" data-placeholder="Tutte le province"></select>
         </div>
       </div>
       <p class="filter-warning">ATTENZIONE: filtrare per "Categorie SOA di Lavori" oppure per "Categorie SOA scorporabili di Lavori", ma NON contemporaneamente!</p>
       <div class="filter-grid-2">
-        <div class="filter-section"><span class="filter-label">Categorie SOA di Lavori</span><select class="filter-select" id="bandi-soa"><option value="">Tutte le SOA</option></select></div>
-        <div class="filter-section"><span class="filter-label">Categorie SOA scorporabili di Lavori</span><select class="filter-select" id="bandi-soa-scorp"><option value="">Tutte le SOA scorporabili</option></select></div>
-        <div class="filter-section"><span class="filter-label">Categorie di servizi e forniture</span><select class="filter-select" id="bandi-servizi"><option value="">Tutti i servizi e forniture</option></select></div>
-        <div class="filter-section"><span class="filter-label">Categorie scorporabili di servizi e forniture</span><select class="filter-select" id="bandi-servizi-scorp"><option value="">Tutti i servizi scorporabili</option></select></div>
-        <div class="filter-section"><span class="filter-label">Tipologie di gara</span><select class="filter-select" id="bandi-tipologia"><option value="">Tutte le tipologie</option></select></div>
-        <div class="filter-section"><span class="filter-label">Criteri di aggiudicazione</span><select class="filter-select" id="bandi-criterio"><option value="">Tutti i criteri</option></select></div>
+        <div class="filter-section"><span class="filter-label">Categorie SOA di Lavori</span><select class="filter-select" id="bandi-soa" multiple data-ts="bandi-soa" data-placeholder="Tutte le SOA"></select></div>
+        <div class="filter-section"><span class="filter-label">Categorie SOA scorporabili di Lavori</span><select class="filter-select" id="bandi-soa-scorp" multiple data-ts="bandi-soa-scorp" data-placeholder="Tutte le SOA scorporabili"></select></div>
+        <div class="filter-section"><span class="filter-label">Categorie di servizi e forniture</span><select class="filter-select" id="bandi-servizi" multiple data-ts="bandi-servizi" data-placeholder="Tutti i servizi e forniture"></select></div>
+        <div class="filter-section"><span class="filter-label">Categorie scorporabili di servizi e forniture</span><select class="filter-select" id="bandi-servizi-scorp" multiple data-ts="bandi-servizi-scorp" data-placeholder="Tutti i servizi scorporabili"></select></div>
+        <div class="filter-section"><span class="filter-label">Tipologie di gara</span><select class="filter-select" id="bandi-tipologia" multiple data-ts="bandi-tipologia" data-placeholder="Tutte le tipologie"></select></div>
+        <div class="filter-section"><span class="filter-label">Criteri di aggiudicazione</span><select class="filter-select" id="bandi-criterio" multiple data-ts="bandi-criterio" data-placeholder="Tutti i criteri"></select></div>
       </div>
       <div style="display:flex;gap:15px;align-items:center;margin-bottom:12px">
         <label style="font-size:13px"><input type="checkbox"> Telematica</label>
-        <div class="filter-section" style="flex:1"><span class="filter-label">Piattaforme digitali</span><select class="filter-select" id="bandi-piattaforma"><option value="">Tutte le piattaforme</option></select></div>
+        <div class="filter-section" style="flex:1"><span class="filter-label">Piattaforme digitali</span><select class="filter-select" id="bandi-piattaforma" multiple data-ts="bandi-piattaforma" data-placeholder="Tutte le piattaforme"></select></div>
       </div>
       <table class="filter-table">
         <tr>
@@ -1177,16 +1194,16 @@ a{text-decoration:none;color:inherit}
     <button class="filter-toggle" id="toggleEsitiFilters">Mostra / Nascondi filtri</button>
     <div id="esitiFilters">
       <div class="filter-grid">
-        <div class="filter-section"><span class="filter-label">Territori</span><select class="filter-select"><option>Opzioni</option></select></div>
-        <div class="filter-section"><span class="filter-label">Regioni</span><select class="filter-select"><option>Opzioni</option></select></div>
-        <div class="filter-section"><span class="filter-label">Province</span><select class="filter-select"><option>Opzioni</option></select></div>
+        <div class="filter-section"><span class="filter-label">Territori</span><select class="filter-select" id="esiti-territori" multiple data-ts="esiti-territori" data-placeholder="Tutti i territori"></select></div>
+        <div class="filter-section"><span class="filter-label">Regioni</span><select class="filter-select" id="esiti-regioni" multiple data-ts="esiti-regioni" data-placeholder="Tutte le regioni"></select></div>
+        <div class="filter-section"><span class="filter-label">Province</span><select class="filter-select" id="esiti-province" multiple data-ts="esiti-province" data-placeholder="Tutte le province"></select></div>
       </div>
       <p class="filter-warning">ATTENZIONE: filtrare per "Categorie SOA di Lavori" oppure per "Categorie SOA scorporabili di Lavori", ma NON contemporaneamente!</p>
       <div class="filter-grid-2">
-        <div class="filter-section"><span class="filter-label">Categorie SOA di Lavori</span><select class="filter-select"><option>Opzioni</option></select></div>
-        <div class="filter-section"><span class="filter-label">Categorie SOA scorporabili di Lavori</span><select class="filter-select"><option>Opzioni</option></select></div>
-        <div class="filter-section"><span class="filter-label">Tipologie di Gara</span><select class="filter-select"><option>Opzioni</option></select></div>
-        <div class="filter-section"><span class="filter-label">Piattaforme digitali</span><select class="filter-select"><option>Opzioni</option></select></div>
+        <div class="filter-section"><span class="filter-label">Categorie SOA di Lavori</span><select class="filter-select" id="esiti-soa" multiple data-ts="esiti-soa" data-placeholder="Tutte le SOA"></select></div>
+        <div class="filter-section"><span class="filter-label">Categorie SOA scorporabili di Lavori</span><select class="filter-select" id="esiti-soa-scorp" multiple data-ts="esiti-soa-scorp" data-placeholder="Tutte le SOA scorporabili"></select></div>
+        <div class="filter-section"><span class="filter-label">Tipologie di Gara</span><select class="filter-select" id="esiti-tipologia" multiple data-ts="esiti-tipologia" data-placeholder="Tutte le tipologie"></select></div>
+        <div class="filter-section"><span class="filter-label">Piattaforme digitali</span><select class="filter-select" id="esiti-piattaforma" multiple data-ts="esiti-piattaforma" data-placeholder="Tutte le piattaforme"></select></div>
       </div>
       <table class="filter-table">
         <tr><td><label>Aggiudicazioni dal:</label></td><td><input type="text" id="esiti-data-dal" placeholder="gg/mm/aaaa"></td><td><label>Importo minimo:</label></td><td><input type="number"></td><td><label>Numero partecipanti minimo:</label></td><td><input type="number"></td></tr>
@@ -2625,6 +2642,15 @@ async function cercaBandi() {
   const setIfVal = (key, val) => {
     if (val !== undefined && val !== null && String(val).trim() !== '') params.set(key, String(val).trim());
   };
+  // appendMulti(key, selectId): se il select e' multiple (Tom-Select),
+  // appende N volte lo stesso parametro (?key=A&key=B&key=C). Il backend
+  // riceve un array Fastify e fa filtro = ANY($n).
+  const appendMulti = (key, selectId) => {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const vals = Array.from(sel.selectedOptions).map(o => o.value).filter(v => v !== '');
+    vals.forEach(v => params.append(key, v));
+  };
   const itToIso = (it) => {
     if (!it) return null;
     const parts = it.split('/');
@@ -2651,11 +2677,10 @@ async function cercaBandi() {
   setIfVal('oggetto', val('bandi-oggetto'));
   setIfVal('cig',     val('bandi-cig'));
 
-  // ─── Territori / regioni / province ───────────────────────────────────
-  setIfVal('id_regione',   val('bandi-regioni'));
-  setIfVal('id_provincia', val('bandi-province'));
-  // Territori (Nord/Centro/Sud/Isole) non è ancora supportato dal backend:
-  // verrà aggiunto nello stesso commit lato server quando avremo lookup territori.
+  // ─── Territori / regioni / province (MULTI-SELECT) ────────────────────
+  appendMulti('territori',     'bandi-territori');
+  appendMulti('id_regione',    'bandi-regioni');
+  appendMulti('id_provincia',  'bandi-province');
 
   // ─── Importi ──────────────────────────────────────────────────────────
   // Inviati solo se diversi dal default del form (0 / 1.000.000.000)
@@ -2664,21 +2689,21 @@ async function cercaBandi() {
   const impMax = parseFloat(val('bandi-importo-max'));
   if (Number.isFinite(impMax) && impMax > 0 && impMax < 1000000000) params.set('importo_max', impMax);
 
-  // ─── Categorie SOA ────────────────────────────────────────────────────
-  // SOA Lavori (prevalente): valore numerico, va in b.id_soa.
-  setIfVal('id_soa', val('bandi-soa'));
-  // SOA Scorporabili Lavori: filtro su tabella laterale bandi_soa_sec.
-  setIfVal('id_soa_scorp', val('bandi-soa-scorp'));
-  // Servizi / Forniture (codice SF01...): NON più sovrapposto a id_soa
-  // (mismatch di tipo INT vs VARCHAR causava HTTP 500). Va in codice_soa,
-  // che il backend risolve via JOIN su soa.codice.
-  setIfVal('codice_soa',       val('bandi-servizi'));
-  setIfVal('codice_soa_scorp', val('bandi-servizi-scorp'));
+  // ─── Categorie SOA (MULTI) ───────────────────────────────────────────
+  // SOA Lavori prevalente → b.id_soa (multi)
+  appendMulti('id_soa',              'bandi-soa');
+  // SOA Scorporabili Lavori → tabella laterale bandi_soa_sec (multi)
+  appendMulti('id_soa_scorp',        'bandi-soa-scorp');
+  // Servizi / Forniture (codici SF*): NON più sovrapposto a id_soa
+  // (mismatch INT vs VARCHAR causava 500). Va in codice_soa, risolto
+  // dal backend via JOIN su soa.codice.
+  appendMulti('codice_soa',          'bandi-servizi');
+  appendMulti('codice_soa_scorp',    'bandi-servizi-scorp');
 
-  // ─── Tipologie / Criteri / Piattaforme ───────────────────────────────
-  setIfVal('id_tipologia',   val('bandi-tipologia'));
-  setIfVal('id_criterio',    val('bandi-criterio'));
-  setIfVal('id_piattaforma', val('bandi-piattaforma'));
+  // ─── Tipologie / Criteri / Piattaforme (MULTI) ───────────────────────
+  appendMulti('id_tipologia',   'bandi-tipologia');
+  appendMulti('id_criterio',    'bandi-criterio');
+  appendMulti('id_piattaforma', 'bandi-piattaforma');
 
   // ─── Checkbox semplici ───────────────────────────────────────────────
   if (checked('bandi-telematica'))           params.set('telematica', '1');
@@ -2703,7 +2728,9 @@ async function cercaBandi() {
   }
 
   // ─── Validazione esclusività SOA Lavori vs Scorporabili ──────────────
-  if (params.get('id_soa') && params.get('id_soa_scorp')) {
+  // Con multi-select getAll() restituisce array; basta che entrambi gli
+  // array abbiano almeno un elemento per scattare la regola.
+  if (params.getAll('id_soa').length > 0 && params.getAll('id_soa_scorp').length > 0) {
     resultsDiv.innerHTML = '<p class="results-count" style="color:#f87171">Selezionare Categorie SOA di Lavori OPPURE Scorporabili di Lavori, non entrambi.</p>';
     return;
   }
@@ -2817,18 +2844,23 @@ async function cercaEsiti() {
   setIfVal('oggetto', val('esiti-oggetto'));
   setIfVal('azienda', val('esiti-azienda'));
 
-  // ─── Select dropdown ──────────────────────────────────────────────────
-  // I select Esiti hanno id vuoto (codice legacy): li individuiamo per
-  // posizione DOM tra gli element <select> visibili della pagina Esiti.
-  const sels = Array.from(esitiPage.querySelectorAll('select'))
-    .filter(s => s.offsetParent !== null);
-  // Ordine atteso: 0=Territori 1=Regioni 2=Province 3=SOA 4=SOAScorp 5=Tipologie 6=Piattaforme
-  setIfVal('id_regione',   sels[1]?.value);
-  setIfVal('id_provincia', sels[2]?.value);
-  setIfVal('id_soa',       sels[3]?.value);
-  setIfVal('id_soa_scorp', sels[4]?.value);
-  setIfVal('id_tipologia', sels[5]?.value);
-  setIfVal('id_piattaforma', sels[6]?.value);
+  // ─── Select dropdown (MULTI-SELECT via Tom-Select) ────────────────────
+  // Tutti i 7 select dei filtri esiti hanno ora id univoco (esiti-territori,
+  // esiti-regioni, ...) e attributo multiple. appendMulti() raccoglie
+  // selectedOptions e appende N volte lo stesso parametro all'URL.
+  // appendMulti definito sopra (chiusura cercaEsiti).
+  function _appendMulti(key, selId) {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    Array.from(sel.selectedOptions).map(o => o.value).filter(v => v !== '').forEach(v => params.append(key, v));
+  }
+  _appendMulti('territori',     'esiti-territori');
+  _appendMulti('id_regione',    'esiti-regioni');
+  _appendMulti('id_provincia',  'esiti-province');
+  _appendMulti('id_soa',        'esiti-soa');
+  _appendMulti('id_soa_scorp',  'esiti-soa-scorp');
+  _appendMulti('id_tipologia',  'esiti-tipologia');
+  _appendMulti('id_piattaforma','esiti-piattaforma');
 
   // ─── CIG (input text senza id, dentro filter-table) ─────────────────
   const textInputs = esitiPage.querySelectorAll('.filter-table input[type="text"]');
@@ -3893,10 +3925,36 @@ function populateDropdowns(pageId, lookups) {
 
     if (options.length > 0) {
       const firstOpt = sel.querySelector('option');
-      const defaultText = (firstOpt && firstOpt.value === '') ? firstOpt.textContent : 'Opzioni';
-      sel.innerHTML = `<option value="">${defaultText}</option>` + options.join('');
+      const isMulti = sel.multiple || sel.hasAttribute('data-ts');
+      if (isMulti) {
+        // Per i select multiple non mettiamo l'option "vuota" (Tom-Select
+        // gestisce il placeholder via data-placeholder); l'utente per
+        // "tutti" semplicemente non seleziona niente.
+        sel.innerHTML = options.join('');
+      } else {
+        const defaultText = (firstOpt && firstOpt.value === '') ? firstOpt.textContent : 'Opzioni';
+        sel.innerHTML = `<option value="">${defaultText}</option>` + options.join('');
+      }
     }
   });
+
+  // Inizializza Tom-Select sui select marcati con data-ts. Se gia'
+  // inizializzato (es. ri-call di populateDropdowns) lo distrugge e
+  // ricrea con le nuove opzioni.
+  if (typeof TomSelect !== 'undefined') {
+    page.querySelectorAll('select[data-ts]').forEach(sel => {
+      if (sel.tomselect) { try { sel.tomselect.destroy(); } catch (e) {} }
+      try {
+        new TomSelect(sel, {
+          plugins: ['remove_button'],
+          placeholder: sel.getAttribute('data-placeholder') || 'Seleziona...',
+          maxOptions: 1000,
+          // L'utente puo selezionare TUTTI gli elementi del dropdown;
+          // togli il default 50 di Tom-Select.
+        });
+      } catch (e) { console.warn('TomSelect init failed for', sel.id, e); }
+    });
+  }
 }
 
 // ===== VIEW BANDO DETAIL =====

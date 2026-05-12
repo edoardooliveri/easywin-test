@@ -131,73 +131,74 @@ export default async function bandiRoutes(fastify, opts) {
         }
       }
     }
+    // Helpers per gestire multi-value: Fastify parse `?k=A&k=B` come
+    // request.query.k = ['A','B']; tollerare anche CSV `?k=A,B` e singolo
+    // `?k=A`. toIntArray e toStrArray normalizzano in array filtrato.
+    const toArr = (v) => {
+      if (v === undefined || v === null) return [];
+      if (Array.isArray(v)) return v.flatMap(x => String(x).split(',')).map(s => s.trim()).filter(Boolean);
+      return String(v).split(',').map(s => s.trim()).filter(Boolean);
+    };
+    const toIntArr = (v) => toArr(v).map(x => parseInt(x, 10)).filter(n => Number.isFinite(n));
+
     if (regione) {
       conditions.push(`r.nome = $${paramIdx}`);
       params.push(regione);
       paramIdx++;
     }
-    if (id_regione) {
-      conditions.push(`p.id_regione = $${paramIdx}`);
-      params.push(parseInt(id_regione));
-      paramIdx++;
+    {
+      const arr = toIntArr(id_regione);
+      if (arr.length === 1) { conditions.push(`p.id_regione = $${paramIdx}`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`p.id_regione = ANY($${paramIdx})`); params.push(arr); paramIdx++; }
     }
-    if (id_provincia) {
-      conditions.push(`s.id_provincia = $${paramIdx}`);
-      params.push(parseInt(id_provincia));
-      paramIdx++;
+    {
+      const arr = toIntArr(id_provincia);
+      if (arr.length === 1) { conditions.push(`s.id_provincia = $${paramIdx}`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`s.id_provincia = ANY($${paramIdx})`); params.push(arr); paramIdx++; }
     }
     if (id_stazione) {
       conditions.push(`b.id_stazione = $${paramIdx}`);
       params.push(id_stazione);
       paramIdx++;
     }
-    if (id_soa) {
-      // Solo valori numerici interi: vecchi client che mandavano stringhe come
-      // 'SF01' su questo parametro causavano 500 (operator does not exist:
-      // integer = text). Forziamo il cast e ignoriamo se non parsabile.
-      const idSoaNum = parseInt(id_soa, 10);
-      if (Number.isFinite(idSoaNum)) {
-        conditions.push(`b.id_soa = $${paramIdx}`);
-        params.push(idSoaNum);
-        paramIdx++;
-      }
+    {
+      // id_soa: solo valori numerici. Vecchi client che mandavano 'SF01'
+      // qui causavano 500 (operator does not exist: integer = text).
+      const arr = toIntArr(id_soa);
+      if (arr.length === 1) { conditions.push(`b.id_soa = $${paramIdx}`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`b.id_soa = ANY($${paramIdx})`); params.push(arr); paramIdx++; }
     }
-    if (codice_soa) {
-      // Filtro per codice testuale SOA (es. 'SF01', 'OG1') tramite JOIN sulla
-      // tabella soa. Usato dal portale clienti per le categorie Servizi/Forniture.
-      conditions.push(`b.id_soa IN (SELECT id FROM soa WHERE codice = $${paramIdx})`);
-      params.push(codice_soa);
-      paramIdx++;
+    {
+      // codice_soa testuale (es. 'SF01', 'OG1') → JOIN tabella soa.
+      const arr = toArr(codice_soa);
+      if (arr.length === 1) { conditions.push(`b.id_soa IN (SELECT id FROM soa WHERE codice = $${paramIdx})`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`b.id_soa IN (SELECT id FROM soa WHERE codice = ANY($${paramIdx}))`); params.push(arr); paramIdx++; }
     }
-    if (id_soa_scorp) {
-      // SOA scorporabile: filtro sulla tabella laterale creata in migration 030.
-      // Se la migration non e ancora applicata, l'EXISTS ritorna sempre false.
-      const idScorpNum = parseInt(id_soa_scorp, 10);
-      if (Number.isFinite(idScorpNum)) {
-        conditions.push(`EXISTS (SELECT 1 FROM bandi_soa_sec bss WHERE bss.id_bando = b.id AND bss.id_soa = $${paramIdx})`);
-        params.push(idScorpNum);
-        paramIdx++;
-      }
+    {
+      // SOA scorporabile: tabella laterale bandi_soa_sec (migration 030).
+      const arr = toIntArr(id_soa_scorp);
+      if (arr.length === 1) { conditions.push(`EXISTS (SELECT 1 FROM bandi_soa_sec bss WHERE bss.id_bando = b.id AND bss.id_soa = $${paramIdx})`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`EXISTS (SELECT 1 FROM bandi_soa_sec bss WHERE bss.id_bando = b.id AND bss.id_soa = ANY($${paramIdx}))`); params.push(arr); paramIdx++; }
     }
-    if (codice_soa_scorp) {
-      conditions.push(`EXISTS (SELECT 1 FROM bandi_soa_sec bss JOIN soa so ON bss.id_soa = so.id WHERE bss.id_bando = b.id AND so.codice = $${paramIdx})`);
-      params.push(codice_soa_scorp);
-      paramIdx++;
+    {
+      const arr = toArr(codice_soa_scorp);
+      if (arr.length === 1) { conditions.push(`EXISTS (SELECT 1 FROM bandi_soa_sec bss JOIN soa so ON bss.id_soa = so.id WHERE bss.id_bando = b.id AND so.codice = $${paramIdx})`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`EXISTS (SELECT 1 FROM bandi_soa_sec bss JOIN soa so ON bss.id_soa = so.id WHERE bss.id_bando = b.id AND so.codice = ANY($${paramIdx}))`); params.push(arr); paramIdx++; }
     }
-    if (id_tipologia) {
-      conditions.push(`b.id_tipologia = $${paramIdx}`);
-      params.push(id_tipologia);
-      paramIdx++;
+    {
+      const arr = toIntArr(id_tipologia);
+      if (arr.length === 1) { conditions.push(`b.id_tipologia = $${paramIdx}`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`b.id_tipologia = ANY($${paramIdx})`); params.push(arr); paramIdx++; }
     }
-    if (id_criterio) {
-      conditions.push(`b.id_criterio = $${paramIdx}`);
-      params.push(id_criterio);
-      paramIdx++;
+    {
+      const arr = toIntArr(id_criterio);
+      if (arr.length === 1) { conditions.push(`b.id_criterio = $${paramIdx}`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`b.id_criterio = ANY($${paramIdx})`); params.push(arr); paramIdx++; }
     }
-    if (id_piattaforma) {
-      conditions.push(`b.id_piattaforma = $${paramIdx}`);
-      params.push(parseInt(id_piattaforma));
-      paramIdx++;
+    {
+      const arr = toIntArr(id_piattaforma);
+      if (arr.length === 1) { conditions.push(`b.id_piattaforma = $${paramIdx}`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`b.id_piattaforma = ANY($${paramIdx})`); params.push(arr); paramIdx++; }
     }
     if (data_dal) {
       conditions.push(`b.data_pubblicazione >= $${paramIdx}`);

@@ -53,67 +53,69 @@ export default async function esitiRoutes(fastify) {
         }
       }
     }
-    if (id_regione) {
-      conditions.push(`r."id" = $${paramIdx}`);
-      params.push(parseInt(id_regione));
-      paramIdx++;
+    // Multi-value helpers (vedi commento in routes/bandi.js per spiegazione)
+    const toArr = (v) => {
+      if (v === undefined || v === null) return [];
+      if (Array.isArray(v)) return v.flatMap(x => String(x).split(',')).map(s => s.trim()).filter(Boolean);
+      return String(v).split(',').map(s => s.trim()).filter(Boolean);
+    };
+    const toIntArr = (v) => toArr(v).map(x => parseInt(x, 10)).filter(n => Number.isFinite(n));
+
+    {
+      const arr = toIntArr(id_regione);
+      if (arr.length === 1) { conditions.push(`r."id" = $${paramIdx}`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`r."id" = ANY($${paramIdx})`); params.push(arr); paramIdx++; }
     }
-    if (id_provincia) {
-      conditions.push(`p."id" = $${paramIdx}`);
-      params.push(parseInt(id_provincia));
-      paramIdx++;
+    {
+      const arr = toIntArr(id_provincia);
+      if (arr.length === 1) { conditions.push(`p."id" = $${paramIdx}`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`p."id" = ANY($${paramIdx})`); params.push(arr); paramIdx++; }
     }
     if (id_stazione) {
       conditions.push(`b."id_stazione" = $${paramIdx}`);
       params.push(parseInt(id_stazione));
       paramIdx++;
     }
-    if (id_soa) {
-      const v = parseInt(id_soa, 10);
-      if (Number.isFinite(v)) {
-        conditions.push(`g."id_soa" = $${paramIdx}`); params.push(v); paramIdx++;
-      }
+    {
+      const arr = toIntArr(id_soa);
+      if (arr.length === 1) { conditions.push(`g."id_soa" = $${paramIdx}`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`g."id_soa" = ANY($${paramIdx})`); params.push(arr); paramIdx++; }
     }
-    if (codice_soa) {
-      conditions.push(`g."id_soa" IN (SELECT id FROM soa WHERE codice = $${paramIdx})`);
-      params.push(codice_soa);
-      paramIdx++;
+    {
+      const arr = toArr(codice_soa);
+      if (arr.length === 1) { conditions.push(`g."id_soa" IN (SELECT id FROM soa WHERE codice = $${paramIdx})`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`g."id_soa" IN (SELECT id FROM soa WHERE codice = ANY($${paramIdx}))`); params.push(arr); paramIdx++; }
     }
-    if (id_soa_scorp) {
-      const v = parseInt(id_soa_scorp, 10);
-      if (Number.isFinite(v)) {
-        // gare_soa_sec: tabella laterale analoga a bandi_soa_sec; gestita
-        // graceful con EXISTS - se non esiste il filtro semplicemente non matcha
-        conditions.push(`EXISTS (SELECT 1 FROM gare_soa_sec gs WHERE gs.id_gara = g.id AND gs.id_soa = $${paramIdx})`);
-        params.push(v);
-        paramIdx++;
-      }
+    {
+      const arr = toIntArr(id_soa_scorp);
+      if (arr.length === 1) { conditions.push(`EXISTS (SELECT 1 FROM gare_soa_sec gs WHERE gs.id_gara = g.id AND gs.id_soa = $${paramIdx})`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`EXISTS (SELECT 1 FROM gare_soa_sec gs WHERE gs.id_gara = g.id AND gs.id_soa = ANY($${paramIdx}))`); params.push(arr); paramIdx++; }
     }
-    if (codice_soa_scorp) {
-      conditions.push(`EXISTS (SELECT 1 FROM gare_soa_sec gs JOIN soa so ON gs.id_soa = so.id WHERE gs.id_gara = g.id AND so.codice = $${paramIdx})`);
-      params.push(codice_soa_scorp);
-      paramIdx++;
+    {
+      const arr = toArr(codice_soa_scorp);
+      if (arr.length === 1) { conditions.push(`EXISTS (SELECT 1 FROM gare_soa_sec gs JOIN soa so ON gs.id_soa = so.id WHERE gs.id_gara = g.id AND so.codice = $${paramIdx})`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`EXISTS (SELECT 1 FROM gare_soa_sec gs JOIN soa so ON gs.id_soa = so.id WHERE gs.id_gara = g.id AND so.codice = ANY($${paramIdx}))`); params.push(arr); paramIdx++; }
     }
-    if (id_criterio) {
+    {
       // id_criterio is on bandi, not gare
-      conditions.push(`b."id_criterio" = $${paramIdx}`);
-      params.push(parseInt(id_criterio));
-      paramIdx++;
+      const arr = toIntArr(id_criterio);
+      if (arr.length === 1) { conditions.push(`b."id_criterio" = $${paramIdx}`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`b."id_criterio" = ANY($${paramIdx})`); params.push(arr); paramIdx++; }
     }
-    if (id_tipologia) {
-      conditions.push(`g."id_tipologia" = $${paramIdx}`);
-      params.push(parseInt(id_tipologia));
-      paramIdx++;
+    {
+      const arr = toIntArr(id_tipologia);
+      if (arr.length === 1) { conditions.push(`g."id_tipologia" = $${paramIdx}`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`g."id_tipologia" = ANY($${paramIdx})`); params.push(arr); paramIdx++; }
     }
     if (id_tipo_dati) {
       conditions.push(`g."id_tipo_dati" = $${paramIdx}`);
       params.push(parseInt(id_tipo_dati));
       paramIdx++;
     }
-    if (id_piattaforma) {
-      conditions.push(`b."id_piattaforma" = $${paramIdx}`);
-      params.push(parseInt(id_piattaforma));
-      paramIdx++;
+    {
+      const arr = toIntArr(id_piattaforma);
+      if (arr.length === 1) { conditions.push(`b."id_piattaforma" = $${paramIdx}`); params.push(arr[0]); paramIdx++; }
+      else if (arr.length > 1) { conditions.push(`b."id_piattaforma" = ANY($${paramIdx})`); params.push(arr); paramIdx++; }
     }
     if (inserito_da) {
       conditions.push(`g."created_at" = $${paramIdx}`);
