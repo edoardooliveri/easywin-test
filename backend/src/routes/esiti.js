@@ -9,9 +9,14 @@ export default async function esitiRoutes(fastify) {
   fastify.get('/', async (request) => {
     const {
       page = 1, limit = 25, sort = 'data', order = 'DESC',
-      search, cig, id_regione, id_provincia, id_stazione, id_soa, id_criterio,
+      search, cig, oggetto, oggetto_match, oggetto_logica,
+      id_regione, id_provincia, id_stazione, id_soa, codice_soa,
+      id_soa_scorp, codice_soa_scorp,
+      id_criterio,
       id_tipologia, id_tipo_dati, id_piattaforma, inserito_da, data_dal, data_al, variante,
-      min_partecipanti, importo_min, importo_max
+      min_partecipanti, max_partecipanti, importo_min, importo_max,
+      cause_esclusione, solo_complete, ati, avvalimento,
+      azienda, azienda_match, azienda_ruolo
     } = request.query;
 
     const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
@@ -29,6 +34,25 @@ export default async function esitiRoutes(fastify) {
       params.push(`%${cig}%`);
       paramIdx++;
     }
+    // oggetto: cerca solo su b.titolo. match: esatta|parziale|inizia, logica: and|or.
+    if (oggetto) {
+      const mm = (oggetto_match || 'parziale').toLowerCase();
+      const ll = (oggetto_logica || 'and').toLowerCase();
+      if (mm === 'esatta') {
+        conditions.push(`b."titolo" = $${paramIdx}`); params.push(oggetto); paramIdx++;
+      } else if (mm === 'inizia') {
+        conditions.push(`b."titolo" ILIKE $${paramIdx}`); params.push(`${oggetto}%`); paramIdx++;
+      } else {
+        const ws = String(oggetto).split(/\s+/).filter(Boolean);
+        if (ws.length <= 1) {
+          conditions.push(`b."titolo" ILIKE $${paramIdx}`); params.push(`%${oggetto}%`); paramIdx++;
+        } else {
+          const sc = [];
+          for (const w of ws) { sc.push(`b."titolo" ILIKE $${paramIdx}`); params.push(`%${w}%`); paramIdx++; }
+          conditions.push(`(${sc.join(ll === 'or' ? ' OR ' : ' AND ')})`);
+        }
+      }
+    }
     if (id_regione) {
       conditions.push(`r."id" = $${paramIdx}`);
       params.push(parseInt(id_regione));
@@ -45,8 +69,29 @@ export default async function esitiRoutes(fastify) {
       paramIdx++;
     }
     if (id_soa) {
-      conditions.push(`g."id_soa" = $${paramIdx}`);
-      params.push(parseInt(id_soa));
+      const v = parseInt(id_soa, 10);
+      if (Number.isFinite(v)) {
+        conditions.push(`g."id_soa" = $${paramIdx}`); params.push(v); paramIdx++;
+      }
+    }
+    if (codice_soa) {
+      conditions.push(`g."id_soa" IN (SELECT id FROM soa WHERE codice = $${paramIdx})`);
+      params.push(codice_soa);
+      paramIdx++;
+    }
+    if (id_soa_scorp) {
+      const v = parseInt(id_soa_scorp, 10);
+      if (Number.isFinite(v)) {
+        // gare_soa_sec: tabella laterale analoga a bandi_soa_sec; gestita
+        // graceful con EXISTS - se non esiste il filtro semplicemente non matcha
+        conditions.push(`EXISTS (SELECT 1 FROM gare_soa_sec gs WHERE gs.id_gara = g.id AND gs.id_soa = $${paramIdx})`);
+        params.push(v);
+        paramIdx++;
+      }
+    }
+    if (codice_soa_scorp) {
+      conditions.push(`EXISTS (SELECT 1 FROM gare_soa_sec gs JOIN soa so ON gs.id_soa = so.id WHERE gs.id_gara = g.id AND so.codice = $${paramIdx})`);
+      params.push(codice_soa_scorp);
       paramIdx++;
     }
     if (id_criterio) {
@@ -94,6 +139,47 @@ export default async function esitiRoutes(fastify) {
       conditions.push(`g."n_partecipanti" >= $${paramIdx}`);
       params.push(parseInt(min_partecipanti));
       paramIdx++;
+    }
+    if (max_partecipanti) {
+      conditions.push(`g."n_partecipanti" <= $${paramIdx}`);
+      params.push(parseInt(max_partecipanti));
+      paramIdx++;
+    }
+    // Solo esiti completi (con vincitore o n_partecipanti > 0).
+    if (solo_complete === '1' || solo_complete === 'true') {
+      conditions.push(`(g."id_vincitore" IS NOT NULL OR g."n_partecipanti" > 0)`);
+    }
+    // Esiti con almeno una causa di esclusione registrata in dettaglio_gara.
+    if (cause_esclusione === '1' || cause_esclusione === 'true') {
+      conditions.push(`EXISTS (SELECT 1 FROM dettaglio_gara dg WHERE dg.id_gara = g.id AND dg.posizione IS NULL)`);
+    }
+    // Esiti che hanno almeno una ATI tra i partecipanti.
+    if (ati === '1' || ati === 'true') {
+      conditions.push(`EXISTS (SELECT 1 FROM ati_gare ag WHERE ag.id_gara = g.id)`);
+    }
+    // Avvalimento - tabella opzionale: graceful via EXISTS.
+    if (avvalimento === '1' || avvalimento === 'true') {
+      conditions.push(`EXISTS (SELECT 1 FROM avvalimenti_gare avg WHERE avg.id_gara = g.id)`);
+    }
+    // Filtro azienda: matching su ragione_sociale. azienda_ruolo controlla in
+    // quale ruolo cercare l'azienda (vincitrice/partecipante/esclusa).
+    if (azienda) {
+      const am = (azienda_match || 'parziale').toLowerCase();
+      const pattern = am === 'esatta' ? azienda
+                    : am === 'inizia' ? `${azienda}%`
+                    : `%${azienda}%`;
+      const op = am === 'esatta' ? '=' : 'ILIKE';
+      const ruolo = (azienda_ruolo || 'partecipate').toLowerCase();
+      if (ruolo === 'vinte') {
+        conditions.push(`EXISTS (SELECT 1 FROM aziende az WHERE az.id = g.id_vincitore AND az.ragione_sociale ${op} $${paramIdx})`);
+        params.push(pattern); paramIdx++;
+      } else if (ruolo === 'esclusa') {
+        conditions.push(`EXISTS (SELECT 1 FROM dettaglio_gara dg JOIN aziende az ON dg.id_azienda = az.id WHERE dg.id_gara = g.id AND dg.posizione IS NULL AND az.ragione_sociale ${op} $${paramIdx})`);
+        params.push(pattern); paramIdx++;
+      } else {
+        conditions.push(`EXISTS (SELECT 1 FROM dettaglio_gara dg JOIN aziende az ON dg.id_azienda = az.id WHERE dg.id_gara = g.id AND az.ragione_sociale ${op} $${paramIdx})`);
+        params.push(pattern); paramIdx++;
+      }
     }
     if (importo_min) {
       conditions.push(`g."importo" >= $${paramIdx}`);

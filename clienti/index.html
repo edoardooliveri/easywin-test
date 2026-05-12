@@ -2710,35 +2710,96 @@ async function cercaEsiti() {
   const resultsDiv = document.getElementById('esitiResults');
   resultsDiv.innerHTML = '<p class="results-count">Caricamento in corso...</p>';
 
+  const esitiPage = document.getElementById('page-esiti');
   const params = new URLSearchParams();
   params.set('limit', '50');
 
-  // Collect text fields
-  const stazione = document.getElementById('esiti-stazione');
-  const oggetto = document.getElementById('esiti-oggetto');
-  const azienda = document.getElementById('esiti-azienda');
-  if (stazione && stazione.value) params.set('search', stazione.value);
-  else if (oggetto && oggetto.value) params.set('search', oggetto.value);
+  const setIfVal = (k, v) => {
+    if (v !== undefined && v !== null && String(v).trim() !== '') params.set(k, String(v).trim());
+  };
+  const itToIso = (it) => {
+    if (!it) return null;
+    const parts = it.split('/');
+    return parts.length === 3 ? `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}` : null;
+  };
+  const val = (id) => document.getElementById(id)?.value;
+  const checked = (id) => document.getElementById(id)?.checked;
 
-  // Date fields from filter-table
-  const esitiPage = document.getElementById('page-esiti');
-  const dateInputs = esitiPage.querySelectorAll('.filter-table input[type="text"]');
-  if (dateInputs[0] && dateInputs[0].value) {
-    const parts = dateInputs[0].value.split('/');
-    if (parts.length === 3) params.set('data_dal', `${parts[2]}-${parts[1]}-${parts[0]}`);
-  }
-  if (dateInputs[1] && dateInputs[1].value) {
-    const parts = dateInputs[1].value.split('/');
-    if (parts.length === 3) params.set('data_al', `${parts[2]}-${parts[1]}-${parts[0]}`);
+  // ─── Date aggiudicazione ──────────────────────────────────────────────
+  setIfVal('data_dal', itToIso(val('esiti-data-dal')));
+  setIfVal('data_al',  itToIso(val('esiti-data-al')));
+
+  // ─── Testi separati: stazione, oggetto, azienda, CIG ─────────────────
+  // 'stazione' va in search (cerca su titolo+CIG+stazione); 'oggetto' nel
+  // nuovo parametro 'oggetto' (LIKE solo su titolo); azienda filtra
+  // vincitore/partecipante; cig è a sé.
+  setIfVal('search',  val('esiti-stazione'));
+  setIfVal('oggetto', val('esiti-oggetto'));
+  setIfVal('azienda', val('esiti-azienda'));
+
+  // ─── Select dropdown ──────────────────────────────────────────────────
+  // I select Esiti hanno id vuoto (codice legacy): li individuiamo per
+  // posizione DOM tra gli element <select> visibili della pagina Esiti.
+  const sels = Array.from(esitiPage.querySelectorAll('select'))
+    .filter(s => s.offsetParent !== null);
+  // Ordine atteso: 0=Territori 1=Regioni 2=Province 3=SOA 4=SOAScorp 5=Tipologie 6=Piattaforme
+  setIfVal('id_regione',   sels[1]?.value);
+  setIfVal('id_provincia', sels[2]?.value);
+  setIfVal('id_soa',       sels[3]?.value);
+  setIfVal('id_soa_scorp', sels[4]?.value);
+  setIfVal('id_tipologia', sels[5]?.value);
+  setIfVal('id_piattaforma', sels[6]?.value);
+
+  // ─── CIG (input text senza id, dentro filter-table) ─────────────────
+  const textInputs = esitiPage.querySelectorAll('.filter-table input[type="text"]');
+  // Convenzione: l'ultimo text non-date è il CIG (prima sono i due datepicker).
+  for (const t of textInputs) {
+    if (!t.placeholder.includes('gg/mm') && t !== document.getElementById('esiti-stazione') && t !== document.getElementById('esiti-oggetto') && t !== document.getElementById('esiti-azienda')) {
+      if (t.value) setIfVal('cig', t.value);
+    }
   }
 
-  // Number fields
+  // ─── Importi e numero partecipanti min/max (4 number inputs) ────────
   const numInputs = esitiPage.querySelectorAll('.filter-table input[type="number"]');
-  if (numInputs[4] && numInputs[4].value) params.set('min_partecipanti', numInputs[4].value);
+  // Layout atteso nelle 2 righe (vedi screenshot audit):
+  // [0]=importo_min, [1]=num_partecipanti_min, [2]=importo_max, [3]=num_partecipanti_max
+  const impMin = parseFloat(numInputs[0]?.value);
+  if (Number.isFinite(impMin) && impMin > 0) params.set('importo_min', impMin);
+  const numMin = parseInt(numInputs[1]?.value, 10);
+  if (Number.isFinite(numMin) && numMin > 0) params.set('min_partecipanti', numMin);
+  const impMax = parseFloat(numInputs[2]?.value);
+  if (Number.isFinite(impMax) && impMax > 0) params.set('importo_max', impMax);
+  const numMax = parseInt(numInputs[3]?.value, 10);
+  if (Number.isFinite(numMax) && numMax > 0) params.set('max_partecipanti', numMax);
+
+  // ─── Checkbox: Cause esclusione, Solo gare complete, ATI con, Avvalimento con
+  if (checked('esiti-cause-esclusione')) params.set('cause_esclusione', '1');
+  if (checked('esiti-solo-complete'))    params.set('solo_complete', '1');
+  if (checked('esiti-ati'))              params.set('ati', '1');
+  if (checked('esiti-avvalimento'))      params.set('avvalimento', '1');
+
+  // ─── Ricerca su Oggetto: tipo (esatta|parziale|inizia) + logica AND/OR
+  const oMatch = document.querySelector('input[name=esiti-search-type-oggetto]:checked')?.value;
+  const oLogic = document.querySelector('input[name=esiti-logic-oggetto]:checked')?.value;
+  if (val('esiti-oggetto')) {
+    if (oMatch) params.set('oggetto_match', oMatch);
+    if (oLogic) params.set('oggetto_logica', oLogic);
+  }
+
+  // ─── Ricerca su Azienda: tipo + Partecipate/Vinte/Esclusa ────────────
+  const aMatch = document.querySelector('input[name=esiti-search-type-azienda]:checked')?.value;
+  const aRole  = document.querySelector('input[name=esiti-azienda-ruolo]:checked')?.value;
+  if (val('esiti-azienda')) {
+    if (aMatch) params.set('azienda_match', aMatch);
+    if (aRole)  params.set('azienda_ruolo', aRole); // 'partecipate' | 'vinte' | 'esclusa'
+  }
 
   try {
     const res = await fetch(API_BASE + '/esiti?' + params.toString());
-    if (!res.ok) throw new Error('API error');
+    if (!res.ok) {
+      const msg = res.status === 500 ? 'Errore interno del server.' : `Errore ${res.status} dalla ricerca.`;
+      throw new Error(msg);
+    }
     const data = await res.json();
     if (!data.data || data.data.length === 0) {
       resultsDiv.innerHTML = '<p class="results-count">ESITI DI GARA trovati: <strong>0</strong></p><p style="font-size:13px;color:#94a3b8">Nessun esito trovato con i criteri specificati.</p>';
@@ -2755,7 +2816,7 @@ async function cercaEsiti() {
       const e = s => { if(!s)return''; const d=document.createElement('div'); d.textContent=s; return d.innerHTML; };
       const importoFmt = es.importo ? Number(es.importo).toLocaleString('it-IT', {minimumFractionDigits:2,maximumFractionDigits:2}) + ' €' : '-';
       const garaInCorso = !es.ribasso && !es.vincitore_nome;
-      const ribFmt = es.ribasso ? Number(es.ribasso).toFixed(5) + '%' : null;
+      const ribFmt = es.ribasso ? Number(es.ribasso).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) + '%' : null;
       const stazioneSitoWeb = es.stazione_sito_web || '';
       const statusBadge = garaInCorso
         ? '<span style="background:rgba(245,158,11,0.2);color:#fbbf24;padding:3px 12px;border-radius:12px;font-size:0.72rem;font-weight:600">GARA IN CORSO</span>'
@@ -2786,7 +2847,7 @@ async function cercaEsiti() {
         + '<div style="border-bottom:1px solid rgba(255,255,255,0.1)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Stazione appaltante</div><div style="padding:8px 12px;font-size:0.95rem;color:#ffffff;font-weight:700;background:#243749"><i class="fas fa-building" style="margin-right:6px;opacity:0.5"></i>' + e(es.stazione_nome||'-') + '</div></div>'
         + '<div style="border-bottom:1px solid rgba(255,255,255,0.1)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D">Oggetto</div><div style="padding:10px 12px;font-size:0.88rem;color:rgba(255,255,255,0.85);font-weight:500;line-height:1.5;text-align:justify;cursor:pointer;background:#243749" onclick="viewEsito(\'' + es.id + '\')">' + e(es.titolo||'-') + '</div></div>'
         + (es.vincitore_nome ? '<div style="border-bottom:1px solid rgba(255,255,255,0.1)"><div style="padding:6px 12px;font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1E2D3D"><i class="fas fa-trophy" style="color:#F5C518;margin-right:4px"></i>Vincitore</div><div style="padding:8px 12px;font-size:0.95rem;color:#ffffff;font-weight:700;background:#243749">' + e(es.vincitore_nome) + (es.vincitore_piva ? ' <span style="font-size:0.75rem;color:rgba(255,255,255,0.5)">P.IVA: ' + e(es.vincitore_piva) + '</span>' : '') + '</div></div>' : '')
-        + (es.media_ar || es.soglia_an ? '<div style="border-bottom:1px solid rgba(255,255,255,0.1);display:flex;gap:0"><div style="flex:1;background:#243749;padding:8px 12px;border-right:1px solid rgba(255,255,255,0.1)"><div style="font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;margin-bottom:4px"><i class="fas fa-chart-line" style="margin-right:3px"></i>Media Ar.</div><div style="font-size:0.95rem;color:#ffffff;font-weight:700">' + (es.media_ar ? Number(es.media_ar).toFixed(5) : '-') + '</div></div><div style="flex:1;background:#243749;padding:8px 12px"><div style="font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;margin-bottom:4px">Soglia An.</div><div style="font-size:0.95rem;color:#ef4444;font-weight:700">' + (es.soglia_an ? Number(es.soglia_an).toFixed(5) : '-') + '</div></div></div>' : '')
+        + (es.media_ar || es.soglia_an ? '<div style="border-bottom:1px solid rgba(255,255,255,0.1);display:flex;gap:0"><div style="flex:1;background:#243749;padding:8px 12px;border-right:1px solid rgba(255,255,255,0.1)"><div style="font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;margin-bottom:4px"><i class="fas fa-chart-line" style="margin-right:3px"></i>Media Ar.</div><div style="font-size:0.95rem;color:#ffffff;font-weight:700">' + (es.media_ar ? Number(es.media_ar).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) : '-') + '</div></div><div style="flex:1;background:#243749;padding:8px 12px"><div style="font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;margin-bottom:4px">Soglia An.</div><div style="font-size:0.95rem;color:#ef4444;font-weight:700">' + (es.soglia_an ? Number(es.soglia_an).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) : '-') + '</div></div></div>' : '')
         + '<div class="sopr-footer" style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:#1E2D3D;border-top:1px solid rgba(255,255,255,0.1);border-radius:0 0 20px 20px;flex-wrap:wrap">'
           + '<button onclick="event.stopPropagation();viewEsito(\'' + es.id + '\')" class="btn-action-orange"><i class="fas fa-eye"></i> VISUALIZZA ESITO</button>'
           + '<button onclick="event.stopPropagation();toggleRegistroEsito(\'' + es.id + '\', this)" style="background:transparent;color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.25);padding:8px 16px;border-radius:50px;cursor:pointer;font-weight:600;font-size:0.78rem;font-family:Comfortaa,cursive;transition:all 0.2s;display:flex;align-items:center;gap:6px" onmouseover="this.style.background=\'rgba(255,255,255,0.1)\';this.style.color=\'#fff\'" onmouseout="this.style.background=\'transparent\';this.style.color=\'rgba(255,255,255,0.8)\'"><i class="fas fa-plus-circle"></i> AGGIUNGI AL REGISTRO</button>'
@@ -2796,7 +2857,8 @@ async function cercaEsiti() {
     eHtml += '</div>';
     resultsDiv.innerHTML = eHtml;
   } catch(err) {
-    resultsDiv.innerHTML = '<p class="results-count">ESITI DI GARA trovati: <strong>0</strong></p><p style="font-size:13px;color:#94a3b8">Errore nella connessione al database.</p>';
+    const detail = (err && err.message) ? err.message : 'Errore sconosciuto.';
+    resultsDiv.innerHTML = '<p class="results-count">ESITI DI GARA trovati: <strong>0</strong></p><p style="font-size:13px;color:#94a3b8">' + detail + ' Verifica i filtri e riprova.</p>';
     console.error('cercaEsiti error:', err);
   }
 }
@@ -3023,8 +3085,8 @@ function renderGraduatoria(graduatoria) {
       <td>${pos}</td>
       <td>${nome}</td>
       <td>${provincia}</td>
-      <td>${ribasso != null ? Number(ribasso).toFixed(5) + '%' : ''}</td>
-      <td>${scarto != null ? Number(scarto).toFixed(5) : ''}</td>
+      <td>${ribasso != null ? Number(ribasso).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) + '%' : ''}</td>
+      <td>${scarto != null ? Number(scarto).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) : ''}</td>
       <td>${(g.Vincitrice || g.vincitrice) ? 'VINCITRICE' : (g.Esclusa || g.esclusa) ? 'ESCLUSA' : (g.Anomala || g.anomala) ? 'ANOMALA' : 'AMMESSA'}</td>
       <td>${g.Note || g.note || ''}</td>
     </tr>`;
@@ -3276,7 +3338,7 @@ function stampaEsito() {
       </div>
       <div class="info-item">
         <span class="info-label">Ribasso Vincitore</span>
-        <span class="info-value">${e.ribasso ? Number(e.ribasso).toFixed(5) + '%' : '-'}</span>
+        <span class="info-value">${e.ribasso ? Number(e.ribasso).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) + '%' : '-'}</span>
       </div>
     </div>
     <div class="info-row">
@@ -3290,15 +3352,15 @@ function stampaEsito() {
   <div class="stats-row">
     <div class="stat-card">
       <div class="stat-label">Media Aritmetica</div>
-      <div class="stat-value">${e.media_ar ? Number(e.media_ar).toFixed(5) : '-'}%</div>
+      <div class="stat-value">${e.media_ar ? Number(e.media_ar).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) : '-'}%</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Soglia di Anomalia</div>
-      <div class="stat-value">${e.soglia_an ? Number(e.soglia_an).toFixed(5) : '-'}%</div>
+      <div class="stat-value">${e.soglia_an ? Number(e.soglia_an).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) : '-'}%</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Ribasso Vincitore</div>
-      <div class="stat-value">${e.ribasso ? Number(e.ribasso).toFixed(5) : '-'}%</div>
+      <div class="stat-value">${e.ribasso ? Number(e.ribasso).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) : '-'}%</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Partecipanti</div>
@@ -3331,7 +3393,7 @@ function stampaEsito() {
         const nome = g.azienda_nome || g.ragione_sociale || '';
         const pos = g.Posizione ?? g.posizione ?? (i + 1);
         const risultato = (g.Vincitrice || g.vincitrice) ? 'VINCITRICE' : (g.Esclusa || g.esclusa) ? 'ESCLUSA' : (g.Anomala || g.anomala) ? 'ANOMALA' : 'AMMESSA';
-        return '<tr class="' + rowClass + '"><td>' + pos + '</td><td>' + nome + '</td><td></td><td>' + (ribasso != null ? Number(ribasso).toFixed(5) + '%' : '') + '</td><td></td><td>' + risultato + '</td><td>' + (g.Note || g.note || '') + '</td></tr>';
+        return '<tr class="' + rowClass + '"><td>' + pos + '</td><td>' + nome + '</td><td></td><td>' + (ribasso != null ? Number(ribasso).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) + '%' : '') + '</td><td></td><td>' + risultato + '</td><td>' + (g.Note || g.note || '') + '</td></tr>';
       }).join('')}
     </tbody>
   </table>
@@ -3492,7 +3554,7 @@ function formatCurrency(n) {
 
 function formatPercent(n) {
   if (!n && n !== 0) return '';
-  return Number(n).toFixed(5) + '%';
+  return Number(n).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) + '%';
 }
 
 function truncate(s, len) {
@@ -4069,7 +4131,7 @@ function renderPartecipanti() {
     return;
   }
   tbody.innerHTML = partecipanti.map((p, i) =>
-    `<tr><td>${i+1}</td><td>${p.nome}</td><td>${p.provincia}</td><td>${p.ribasso.toFixed(5)}%</td><td></td><td><button onclick="rimuoviPartecipante(${i})" style="background:#c00;color:#fff;border:none;padding:4px 8px;cursor:pointer;border-radius:3px">X</button></td></tr>`
+    `<tr><td>${i+1}</td><td>${p.nome}</td><td>${p.provincia}</td><td>${p.ribasso.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 })}%</td><td></td><td><button onclick="rimuoviPartecipante(${i})" style="background:#c00;color:#fff;border:none;padding:4px 8px;cursor:pointer;border-radius:3px">X</button></td></tr>`
   ).join('');
 }
 
@@ -4374,9 +4436,9 @@ function esportaPDF() {
   doc.setFont(undefined, 'normal');
   doc.setFontSize(9);
   const calcData = [
-    ['Media Aritmetica:', mediaAr.toFixed(5) + '%'],
-    ['Media Scarti:', mediaScarti.toFixed(5) + '%'],
-    ['SOGLIA DI ANOMALIA:', sogliaAnomalia.toFixed(5) + '%']
+    ['Media Aritmetica:', mediaAr.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) + '%'],
+    ['Media Scarti:', mediaScarti.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) + '%'],
+    ['SOGLIA DI ANOMALIA:', sogliaAnomalia.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) + '%']
   ];
 
   calcData.forEach(item => {
@@ -4486,9 +4548,9 @@ function esportaXLS() {
     [''],
     ['RISULTATI CALCOLO'],
     [''],
-    ['Media Aritmetica:', mediaAr.toFixed(5)],
-    ['Media Scarti:', mediaScarti.toFixed(5)],
-    ['SOGLIA DI ANOMALIA:', sogliaAnomalia.toFixed(5)]
+    ['Media Aritmetica:', mediaAr.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 })],
+    ['Media Scarti:', mediaScarti.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 })],
+    ['SOGLIA DI ANOMALIA:', sogliaAnomalia.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 })]
   ];
 
   const ws1 = XLSX.utils.aoa_to_sheet(testaData);
@@ -5131,7 +5193,7 @@ async function exportSimulazioneFromList(id, format) {
         const rows = dettagli.map(d => [
           String(d.posizione || ''),
           d.ragione_sociale || d.azienda || '',
-          d.ribasso != null ? Number(d.ribasso).toFixed(5) : '',
+          d.ribasso != null ? Number(d.ribasso).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) : '',
           d.risultato || d.esito || ''
         ]);
         doc.autoTable({
@@ -5512,10 +5574,10 @@ async function loadAziendaRibassi(id) {
       const varianza = values.reduce((sum, val) => sum + Math.pow(val - media, 2), 0) / values.length;
       const stdDev = Math.sqrt(varianza);
 
-      document.getElementById('stat-moda').textContent = moda.toFixed(5) + '%';
-      document.getElementById('stat-media').textContent = media.toFixed(5) + '%';
+      document.getElementById('stat-moda').textContent = moda.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) + '%';
+      document.getElementById('stat-media').textContent = media.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) + '%';
       document.getElementById('stat-varianza').textContent = varianza.toFixed(8);
-      document.getElementById('stat-std-dev').textContent = stdDev.toFixed(5);
+      document.getElementById('stat-std-dev').textContent = stdDev.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 });
     }
   } catch (err) {}
 }
@@ -7266,7 +7328,7 @@ async function calcolaRibassoAI() {
     tbody.innerHTML = esiti.map(e => {
       const dataFmt = e.data ? new Date(e.data).toLocaleDateString('it-IT') : '-';
       const importoFmt = e.importo ? Number(e.importo).toLocaleString('it-IT', { minimumFractionDigits: 2 }) + ' \u20AC' : '-';
-      const ribassoFmt = e.ribasso ? Number(e.ribasso).toFixed(5) + '%' : '-';
+      const ribassoFmt = e.ribasso ? Number(e.ribasso).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) + '%' : '-';
       const ribVal = Number(e.ribasso || 0);
       // Color code: green if close to optimal, yellow if within range, gray otherwise
       let rowColor = '';
