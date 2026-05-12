@@ -43,22 +43,20 @@
   })();
 </script>
 <script>
-  // ════════════════ STEP 6 — SHIM ALERT / CONFIRM / PROMPT ════════════════
+  // ════════════════ SHIM ALERT / CONFIRM / PROMPT ════════════════
   // Sostituisce i dialog nativi del browser con modal custom in Comfortaa,
-  // palette blu/arancio, usando le classi .ew-shim-* definite nel CSS.
+  // palette brand (gradient giallo→arancio + nero), classi .ew-shim-*.
   //
-  // - alert() rimane sincrono (ritorna subito undefined) ma mostra il modal
-  //   non-bloccante. Se del codice chiamante si aspetta di bloccare il thread
-  //   (non può succedere in JS reale), il comportamento è invariato: l'OK non
-  //   è atteso. Per i casi che necessitano attesa si può chiamare ewAlert().
-  // - confirm() continua a ritornare un booleano sincrono usando il window.confirm
-  //   NATIVO come fallback, ma per richieste explicit abbiamo anche ewConfirm()
-  //   che ritorna una Promise<boolean>. Per compat massima con codice esistente,
-  //   confirm() nativo viene lasciato; alert() invece viene rimpiazzato col modal.
-  // - prompt() idem: lasciamo il prompt nativo per compat, aggiungiamo ewPrompt().
+  // - alert(msg) → mostra modal non-bloccante. window.alert e' overridato
+  //   (alert non ritorna nulla → safe da rimpiazzare globalmente).
   //
-  // Chiavi: possiamo attivare/disattivare lo shim di confirm impostando
-  // window.__ewShimConfirm = true prima dell'uso.
+  // - ewConfirm(msg) → Promise<boolean>, modal stilato. Tutti i confirm()
+  //   nativi nel file sono stati refactored a `await ewConfirm()` da
+  //   /tmp/refactor-modals-v3.js. window.confirm e' lasciato intatto come
+  //   fallback per eventuale codice futuro che usa la versione sincrona.
+  //
+  // - ewPrompt(msg, def) → Promise<string|null>, modal stilato. Stesso
+  //   discorso: i prompt() nativi sono refactored ad `await ewPrompt()`.
   (function() {
     function ensureStyles() { /* CSS è nello <style> principale, no-op qui */ }
     function openShim(kind, message, defaultValue) {
@@ -2423,54 +2421,98 @@ button:not(.bn-act):not(.bix-act-btn):not(.ute-iconbtn):not(.ew-btn):not(.flatpi
   font-family: 'Comfortaa', sans-serif !important;
 }
 
-/* ─── Modal EW shim custom (per alert/confirm sostituiti) ────────────── */
+/* ─── Modal EW shim custom (per alert/confirm sostituiti) ──────────────
+   Palette brand 2026: bianco + sfumatura giallo→arancio + nero brand. */
 .ew-shim-backdrop {
-  position: fixed; inset: 0; background: rgba(15,23,42,0.55);
+  position: fixed; inset: 0; background: rgba(26, 26, 26, 0.55);
   display: flex; align-items: center; justify-content: center;
-  z-index: 99999; backdrop-filter: blur(2px); animation: ewFadeIn 0.15s ease;
+  z-index: 99999; backdrop-filter: blur(3px); animation: ewFadeIn 0.15s ease;
   font-family: 'Comfortaa', sans-serif;
 }
 .ew-shim-dialog {
   background: #ffffff; border-radius: 18px;
-  min-width: 320px; max-width: 90vw; width: 440px;
-  box-shadow: 0 20px 60px rgba(15,23,42,0.35);
+  min-width: 320px; max-width: 90vw; width: 460px;
+  box-shadow: 0 20px 60px rgba(26, 26, 26, 0.30), 0 8px 20px rgba(234, 88, 12, 0.18);
   overflow: hidden;
-  border: 1px solid rgba(30,45,61,0.08);
+  border: 1px solid rgba(26, 26, 26, 0.08);
   animation: ewZoomIn 0.18s ease;
 }
 .ew-shim-header {
-  background: linear-gradient(135deg, #1E2D3D 0%, #2A3F55 100%);
+  background: linear-gradient(90deg, #F5C518 0%, #EA580C 100%);
   color: #ffffff;
-  padding: 16px 22px;
+  padding: 16px 24px;
   font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 0.4px;
-  display: flex; align-items: center; gap: 10px;
+  font-size: 16px;
+  letter-spacing: 0.3px;
+  display: flex; align-items: center; gap: 12px;
+  font-family: 'Comfortaa', sans-serif;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.15);
 }
-.ew-shim-header i { color: #FF8C00; font-size: 18px; }
+.ew-shim-header i {
+  color: #ffffff;
+  font-size: 20px;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15));
+}
 .ew-shim-body {
-  padding: 22px;
-  font-size: 14px;
-  color: #1e293b;
+  padding: 24px;
+  font-size: 14.5px;
+  color: #1A1A1A;
   line-height: 1.55;
   white-space: pre-wrap;
   word-wrap: break-word;
+  font-family: 'Comfortaa', sans-serif;
 }
 .ew-shim-body input {
-  width: 100%; margin-top: 14px; padding: 10px 12px;
-  border: 2px solid #d4dbe5; border-radius: 10px;
+  width: 100%; margin-top: 14px; padding: 10px 14px;
+  border: 2px solid #E2E8F0; border-radius: 10px;
   font-family: 'Comfortaa', sans-serif; font-size: 14px;
-  outline: none; transition: border-color 0.15s;
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+  color: #1A1A1A;
 }
-.ew-shim-body input:focus { border-color: #FF8C00; }
+.ew-shim-body input:focus {
+  border-color: #EA580C;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
+}
 .ew-shim-footer {
   display: flex; justify-content: flex-end; gap: 10px;
-  padding: 14px 22px 18px 22px;
-  background: #f8f9fc;
-  border-top: 1px solid rgba(30,45,61,0.06);
+  padding: 16px 24px 20px 24px;
+  background: #FFFAF0;          /* sfondo crema tenue, in linea col brand */
+  border-top: 1px solid rgba(234, 88, 12, 0.10);
+}
+/* Override .ew-btn dentro al modal: pulsante OK con la sfumatura brand */
+.ew-shim-footer .ew-btn {
+  font-family: 'Comfortaa', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 9px 22px;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.1s, box-shadow 0.15s;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.ew-shim-footer .ew-btn:not(.ew-btn-ghost) {
+  background: linear-gradient(90deg, #F5C518 0%, #EA580C 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.32);
+}
+.ew-shim-footer .ew-btn:not(.ew-btn-ghost):hover {
+  filter: brightness(1.05) saturate(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(234, 88, 12, 0.42);
+}
+.ew-shim-footer .ew-btn:not(.ew-btn-ghost):active { transform: translateY(0); filter: brightness(0.96); }
+.ew-shim-footer .ew-btn-ghost {
+  background: transparent;
+  color: #1A1A1A !important;
+  border: 2px solid #E2E8F0;
+}
+.ew-shim-footer .ew-btn-ghost:hover {
+  background: #F8FAFC;
+  border-color: #1A1A1A;
 }
 @keyframes ewFadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes ewZoomIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+@keyframes ewZoomIn { from { opacity: 0; transform: scale(0.94) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
 /* ─── Toast / notifiche (se presenti) ────────────────────────────────── */
 .toast, .notification, [class*="toast-"], [class*="notif-"] {
@@ -9613,7 +9655,7 @@ async function viewEsitoDetail(id) {
 
 // ══════ WORKFLOW FUNCTIONS (match original ASP.NET EsitiController) ══════
 async function confermaEsito(id) {
-  if (!confirm('Vuoi confermare la gara?\n\nSe sei Amministratore, l\'esito verrà anche abilitato automaticamente.')) return;
+  if (!(await ewConfirm('Vuoi confermare la gara?\n\nSe sei Amministratore, l\'esito verrà anche abilitato automaticamente.'))) return;
   try {
     const res = await fetch(API_BASE + '/esiti/' + id + '/conferma', { method: 'POST', headers: authHeaders() });
     const data = await res.json();
@@ -9628,7 +9670,7 @@ async function confermaEsito(id) {
 }
 
 async function abilitaEsito(id) {
-  if (!confirm('Abilitare questo esito? Sarà visibile ai clienti nell\'area riservata.')) return;
+  if (!(await ewConfirm('Abilitare questo esito? Sarà visibile ai clienti nell\'area riservata.'))) return;
   try {
     const res = await fetch(API_BASE + '/esiti/' + id + '/abilita', { method: 'POST', headers: authHeaders() });
     const data = await res.json();
@@ -9639,7 +9681,7 @@ async function abilitaEsito(id) {
 }
 
 async function disabilitaEsito(id) {
-  if (!confirm('Disabilitare questo esito? Non sarà più visibile ai clienti.')) return;
+  if (!(await ewConfirm('Disabilitare questo esito? Non sarà più visibile ai clienti.'))) return;
   try {
     const res = await fetch(API_BASE + '/esiti/' + id + '/disabilita', { method: 'POST', headers: authHeaders() });
     const data = await res.json();
@@ -9650,7 +9692,7 @@ async function disabilitaEsito(id) {
 }
 
 async function inviaNotificheEsitoDetail(id) {
-  if (!confirm('Vuoi inviare le email di notifica a TUTTI i partecipanti di questo esito?')) return;
+  if (!(await ewConfirm('Vuoi inviare le email di notifica a TUTTI i partecipanti di questo esito?'))) return;
   try {
     const res = await fetch(API_BASE + '/esiti/' + id + '/invia-notifiche', {
       method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' }
@@ -9663,7 +9705,7 @@ async function inviaNotificheEsitoDetail(id) {
 }
 
 async function setTempEsito(id) {
-  if (!confirm('Vuoi rimettere questo esito in bozza?\n\nL\'esito tornerà in stato temporaneo e dovrà essere riconfermato.')) return;
+  if (!(await ewConfirm('Vuoi rimettere questo esito in bozza?\n\nL\'esito tornerà in stato temporaneo e dovrà essere riconfermato.'))) return;
   try {
     const res = await fetch(API_BASE + '/esiti/' + id + '/set-temp', { method: 'POST', headers: authHeaders() });
     const data = await res.json();
@@ -9674,7 +9716,7 @@ async function setTempEsito(id) {
 }
 
 async function bloccaEsito(id) {
-  if (!confirm('Vuoi bloccare le modifiche a questo esito?')) return;
+  if (!(await ewConfirm('Vuoi bloccare le modifiche a questo esito?'))) return;
   try {
     const res = await fetch(API_BASE + '/esiti/' + id + '/blocca', { method: 'POST', headers: authHeaders() });
     const data = await res.json();
@@ -9685,7 +9727,7 @@ async function bloccaEsito(id) {
 }
 
 async function sbloccaEsito(id) {
-  if (!confirm('Vuoi sbloccare le modifiche a questo esito?')) return;
+  if (!(await ewConfirm('Vuoi sbloccare le modifiche a questo esito?'))) return;
   try {
     const res = await fetch(API_BASE + '/esiti/' + id + '/sblocca', { method: 'POST', headers: authHeaders() });
     const data = await res.json();
@@ -9990,7 +10032,7 @@ async function verificaTuttiBandiPagina() {
   if (!container) return;
   const rows = container.querySelectorAll('tr[data-bando-id]');
   if (!rows.length) { alert('Nessun bando in pagina da verificare. Esegui prima una ricerca.'); return; }
-  if (!confirm('Verificare tutti i ' + rows.length + ' bandi della pagina? L\'operazione può richiedere alcuni minuti.')) return;
+  if (!(await ewConfirm('Verificare tutti i ' + rows.length + ' bandi della pagina? L\'operazione può richiedere alcuni minuti.'))) return;
   let ok = 0, err = 0;
   for (const row of rows) {
     const id = row.getAttribute('data-bando-id');
@@ -10163,7 +10205,7 @@ async function cercaBandoDaCig(cig) {
 
 // ══════ BANDO WORKFLOW FUNCTIONS ══════
 async function convertiBandoInEsito(bandoId) {
-  if (!confirm('Vuoi convertire questo bando in un esito?\n\nVerrà creato un nuovo esito con i dati del bando (stazione, SOA, importo, CIG, etc.).\nL\'esito verrà creato come BOZZA (temp) e dovrà essere completato con la graduatoria.')) return;
+  if (!(await ewConfirm('Vuoi convertire questo bando in un esito?\n\nVerrà creato un nuovo esito con i dati del bando (stazione, SOA, importo, CIG, etc.).\nL\'esito verrà creato come BOZZA (temp) e dovrà essere completato con la graduatoria.'))) return;
   try {
     const res = await fetch(API_BASE + '/bandi/' + bandoId + '/converti-esito', {
       method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' }
@@ -10171,7 +10213,7 @@ async function convertiBandoInEsito(bandoId) {
     const data = await res.json();
     if (!res.ok) {
       if (res.status === 409 && data.esito_id) {
-        if (confirm('Esiste già un esito collegato (ID: ' + data.esito_id + ').\nVuoi visualizzarlo?')) {
+        if ((await ewConfirm('Esiste già un esito collegato (ID: ' + data.esito_id + ').\nVuoi visualizzarlo?'))) {
           selectSection('esiti');
           setTimeout(() => { selectSubPage('esiti', 'esiti'); viewEsitoDetail(data.esito_id); }, 200);
         }
@@ -10789,7 +10831,7 @@ async function salvaBandoCreazione(e) {
 }
 
 async function clonaBando(id) {
-  if (!confirm('Vuoi creare una copia di questo bando?')) return;
+  if (!(await ewConfirm('Vuoi creare una copia di questo bando?'))) return;
   try {
     const token = localStorage.getItem('easywin_token');
     const res = await fetch(API_BASE + '/bandi/' + id + '/clona', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
@@ -10799,7 +10841,7 @@ async function clonaBando(id) {
   } catch(e) { alert('Errore clonazione: ' + e.message); }
 }
 async function eliminaBando(id) {
-  if (!confirm('Sicuro di voler eliminare questo bando? Verrà spostato nel cestino.')) return;
+  if (!(await ewConfirm('Sicuro di voler eliminare questo bando? Verrà spostato nel cestino.'))) return;
   try {
     const token = localStorage.getItem('easywin_token');
     await fetch(API_BASE + '/bandi/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
@@ -10808,9 +10850,9 @@ async function eliminaBando(id) {
   } catch(e) { alert('Errore eliminazione: ' + e.message); }
 }
 async function creaSopralluogoBando(id) {
-  const data_sopralluogo = prompt('Data sopralluogo (YYYY-MM-DD):');
+  const data_sopralluogo = (await ewPrompt('Data sopralluogo (YYYY-MM-DD):'));
   if (!data_sopralluogo) return;
-  const note = prompt('Note (opzionale):') || '';
+  const note = (await ewPrompt('Note (opzionale):')) || '';
   try {
     const token = localStorage.getItem('easywin_token');
     await fetch(API_BASE + '/bandi/' + id + '/sopralluoghi', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ data_sopralluogo, note }) });
@@ -10819,9 +10861,9 @@ async function creaSopralluogoBando(id) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 async function creaScritturaBando(id) {
-  const data_scrittura = prompt('Data scrittura (YYYY-MM-DD):');
+  const data_scrittura = (await ewPrompt('Data scrittura (YYYY-MM-DD):'));
   if (!data_scrittura) return;
-  const oggetto = prompt('Oggetto:') || '';
+  const oggetto = (await ewPrompt('Oggetto:')) || '';
   try {
     const token = localStorage.getItem('easywin_token');
     await fetch(API_BASE + '/bandi/' + id + '/scritture', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ data_scrittura, oggetto }) });
@@ -10830,9 +10872,9 @@ async function creaScritturaBando(id) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 async function creaAperturaBando(id) {
-  const data_apertura = prompt('Data apertura (YYYY-MM-DD):');
+  const data_apertura = (await ewPrompt('Data apertura (YYYY-MM-DD):'));
   if (!data_apertura) return;
-  const note = prompt('Note (opzionale):') || '';
+  const note = (await ewPrompt('Note (opzionale):')) || '';
   try {
     const token = localStorage.getItem('easywin_token');
     await fetch(API_BASE + '/bandi/' + id + '/aperture', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ data_apertura, note }) });
@@ -10841,7 +10883,7 @@ async function creaAperturaBando(id) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 async function creaElaboratoBando(id) {
-  const titolo = prompt('Titolo elaborato:');
+  const titolo = (await ewPrompt('Titolo elaborato:'));
   if (!titolo) return;
   try {
     const token = localStorage.getItem('easywin_token');
@@ -10851,7 +10893,7 @@ async function creaElaboratoBando(id) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 async function dissociaBando(id) {
-  if (!confirm('Rimuovere l\'associazione con l\'esito?')) return;
+  if (!(await ewConfirm('Rimuovere l\'associazione con l\'esito?'))) return;
   try {
     const token = localStorage.getItem('easywin_token');
     await fetch(API_BASE + '/bandi/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ id_esito: null }) });
@@ -10860,7 +10902,7 @@ async function dissociaBando(id) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 async function associaEsitoABando(id) {
-  const cig = prompt('CIG dell\'esito da associare:');
+  const cig = (await ewPrompt('CIG dell\'esito da associare:'));
   if (!cig) return;
   try {
     const res = await fetch(API_BASE + '/esiti?codice_cig=' + encodeURIComponent(cig));
@@ -10891,7 +10933,7 @@ async function __apriFontiByTipo(idBando, tipoWanted, labelUi) {
     // Filtra per tipo (stringa 'bando'|'esito'), case-insensitive
     const matching = all.filter(l => String(l.tipo || '').toLowerCase() === tipoWanted);
     if (!matching.length) {
-      const goDetail = confirm(`Nessun link di tipo "${labelUi}" collegato a questo bando.\n\nVuoi aprire il dettaglio del bando per inserirne uno nella sezione FONTI WEB?`);
+      const goDetail = (await ewConfirm(`Nessun link di tipo "${labelUi}" collegato a questo bando.\n\nVuoi aprire il dettaglio del bando per inserirne uno nella sezione FONTI WEB?`));
       if (goDetail) viewBandoDetailEnhanced(idBando, currentBandiPage);
       return;
     }
@@ -11092,7 +11134,7 @@ async function salvaAvvisoBando(id) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 async function azzeraAvvisoBando(id) {
-  if (!confirm('Azzerare l\'avviso impostato su questo bando?')) return;
+  if (!(await ewConfirm('Azzerare l\'avviso impostato su questo bando?'))) return;
   try {
     const token = localStorage.getItem('easywin_token');
     const res = await fetch(API_BASE + '/bandi/' + id + '/azzera-avviso', {
@@ -11220,7 +11262,7 @@ async function salvaPosticipaBando(id) {
 // DA DESTINARSI - segna l'apertura di un bando come "da destinarsi"
 // ===========================================================================
 async function aperturaDaDestinarsi(id) {
-  if (!confirm('Impostare l\'apertura di questo bando come "DA DESTINARSI"?\n\nLa data di apertura verrà rimossa.')) return;
+  if (!(await ewConfirm('Impostare l\'apertura di questo bando come "DA DESTINARSI"?\n\nLa data di apertura verrà rimossa.'))) return;
   try {
     const token = localStorage.getItem('easywin_token');
     const res = await fetch(API_BASE + '/bandi/' + id + '/da-destinarsi', {
@@ -11235,7 +11277,7 @@ async function aperturaDaDestinarsi(id) {
 }
 
 async function impostaControlloBando(id) {
-  const nota = prompt('Nota controllo:');
+  const nota = (await ewPrompt('Nota controllo:'));
   if (!nota) return;
   try {
     const token = localStorage.getItem('easywin_token');
@@ -11245,9 +11287,9 @@ async function impostaControlloBando(id) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 async function aggiungEventoBando(id) {
-  const titolo = prompt('Titolo evento:');
+  const titolo = (await ewPrompt('Titolo evento:'));
   if (!titolo) return;
-  const data_evento = prompt('Data evento (YYYY-MM-DD):');
+  const data_evento = (await ewPrompt('Data evento (YYYY-MM-DD):'));
   if (!data_evento) return;
   try {
     const token = localStorage.getItem('easywin_token');
@@ -11661,7 +11703,7 @@ async function salvaEsitoModifica(e, id) {
   } catch(err) { alert('Errore salvataggio: ' + err.message); }
 }
 async function eliminaEsito(id) {
-  if (!confirm('Sicuro di voler eliminare questo esito? Verrà spostato nel cestino.')) return;
+  if (!(await ewConfirm('Sicuro di voler eliminare questo esito? Verrà spostato nel cestino.'))) return;
   try {
     const token = localStorage.getItem('easywin_token');
     const res = await fetch(API_BASE + '/esiti/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
@@ -11672,7 +11714,7 @@ async function eliminaEsito(id) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 async function clonaEsito(id) {
-  if (!confirm('Vuoi creare una copia di questo esito?')) return;
+  if (!(await ewConfirm('Vuoi creare una copia di questo esito?'))) return;
   try {
     const token = localStorage.getItem('easywin_token');
     const res = await fetch(API_BASE + '/esiti/' + id + '/clona', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
@@ -11685,7 +11727,7 @@ async function clonaEsito(id) {
 }
 function viewBandoFromEsito(idBando) { selectSubPage('bandi', 'bandi'); setTimeout(() => viewBandoDetail(idBando), 200); }
 async function dissociaEsitoBando(id) {
-  if (!confirm('Rimuovere l\'associazione con il bando?')) return;
+  if (!(await ewConfirm('Rimuovere l\'associazione con il bando?'))) return;
   try {
     const token = localStorage.getItem('easywin_token');
     // Endpoint dedicato creato ad hoc: /api/esiti/:id/dissocia-bando
@@ -11699,7 +11741,7 @@ async function dissociaEsitoBando(id) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 async function associaBandoAEsito(id) {
-  const cig = prompt('CIG del bando da associare:');
+  const cig = (await ewPrompt('CIG del bando da associare:'));
   if (!cig) return;
   try {
     const token = localStorage.getItem('easywin_token');
@@ -11709,7 +11751,7 @@ async function associaBandoAEsito(id) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 async function creaBandoDaEsito(id) {
-  if (!confirm('Creare un nuovo bando partendo dai dati di questo esito?')) return;
+  if (!(await ewConfirm('Creare un nuovo bando partendo dai dati di questo esito?'))) return;
   alert('Funzionalità in sviluppo — sarà disponibile nella prossima versione.');
 }
 async function esportaEsitoPDF(id) {
@@ -11782,9 +11824,9 @@ async function gestisciRicorsiEsito(id) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 async function creaRicorsoEsito(idEsito) {
-  const id_azienda = prompt('ID azienda ricorrente:');
-  const tipo = prompt('Tipo ricorso (TAR/Consiglio di Stato/altro):', 'TAR');
-  const note = prompt('Note:') || '';
+  const id_azienda = (await ewPrompt('ID azienda ricorrente:'));
+  const tipo = (await ewPrompt('Tipo ricorso (TAR/Consiglio di Stato/altro):', 'TAR'));
+  const note = (await ewPrompt('Note:')) || '';
   if (!id_azienda) return;
   try {
     const token = localStorage.getItem('easywin_token');
@@ -11793,7 +11835,7 @@ async function creaRicorsoEsito(idEsito) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 async function eliminaRicorso(idRicorso, idEsito) {
-  if (!confirm('Eliminare questo ricorso?')) return;
+  if (!(await ewConfirm('Eliminare questo ricorso?'))) return;
   try {
     const token = localStorage.getItem('easywin_token');
     await fetch(API_BASE + '/esiti/ricorsi/' + idRicorso, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
@@ -11801,7 +11843,7 @@ async function eliminaRicorso(idRicorso, idEsito) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 async function azzeraCalcoliEsito(id) {
-  if (!confirm('Azzerare tutti i dati matematici di questo esito? (media, soglia, ribasso, graduatoria)')) return;
+  if (!(await ewConfirm('Azzerare tutti i dati matematici di questo esito? (media, soglia, ribasso, graduatoria)'))) return;
   try {
     const token = localStorage.getItem('easywin_token');
     // Endpoint dedicato: azzera anche la tabella dettaglio_gara (graduatoria)
@@ -11815,9 +11857,9 @@ async function azzeraCalcoliEsito(id) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 async function forzaVincitoreEsito(id) {
-  const id_azienda = prompt('ID dell\'azienda vincitrice:');
+  const id_azienda = (await ewPrompt('ID dell\'azienda vincitrice:'));
   if (!id_azienda) return;
-  const motivo = prompt('Motivo della forzatura:', 'Forzatura manuale') || 'Forzatura manuale';
+  const motivo = (await ewPrompt('Motivo della forzatura:', 'Forzatura manuale')) || 'Forzatura manuale';
   try {
     const token = localStorage.getItem('easywin_token');
     const res = await fetch(API_BASE + '/esiti/' + id + '/forza-vincitore', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ id_azienda: parseInt(id_azienda), motivo }) });
@@ -11826,21 +11868,21 @@ async function forzaVincitoreEsito(id) {
   } catch(e) { alert('Errore: ' + e.message); }
 }
 async function gestisciNumerazioneEsito(id) {
-  const azione = prompt('Azione numerazione:\n1 = Copia da altro esito\n2 = Inverti numerazione\n3 = Sposta posizione\n\nInserisci 1, 2 o 3:');
+  const azione = (await ewPrompt('Azione numerazione:\n1 = Copia da altro esito\n2 = Inverti numerazione\n3 = Sposta posizione\n\nInserisci 1, 2 o 3:'));
   const token = localStorage.getItem('easywin_token');
   try {
     if (azione === '1') {
-      const idSorgente = prompt('ID esito sorgente da cui copiare:');
+      const idSorgente = (await ewPrompt('ID esito sorgente da cui copiare:'));
       if (!idSorgente) return;
       await fetch(API_BASE + '/esiti/' + id + '/copia-numerazione', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ id_esito_sorgente: parseInt(idSorgente) }) });
       alert('Numerazione copiata!');
     } else if (azione === '2') {
-      if (!confirm('Invertire la numerazione della graduatoria?')) return;
+      if (!(await ewConfirm('Invertire la numerazione della graduatoria?'))) return;
       await fetch(API_BASE + '/esiti/' + id + '/inverti-numerazione', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
       alert('Numerazione invertita!');
     } else if (azione === '3') {
-      const idDettaglio = prompt('ID dettaglio da spostare:');
-      const nuovaPosizione = prompt('Nuova posizione:');
+      const idDettaglio = (await ewPrompt('ID dettaglio da spostare:'));
+      const nuovaPosizione = (await ewPrompt('Nuova posizione:'));
       if (!idDettaglio || !nuovaPosizione) return;
       await fetch(API_BASE + '/esiti/' + id + '/sposta-numerazione', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ id_dettaglio: parseInt(idDettaglio), nuova_posizione: parseInt(nuovaPosizione) }) });
       alert('Posizione spostata!');
@@ -12241,7 +12283,7 @@ async function saveStazione(id) {
 }
 
 async function deleteStazione(id) {
-  if (!confirm('Eliminare questa stazione? (spostata nel cestino)')) return;
+  if (!(await ewConfirm('Eliminare questa stazione? (spostata nel cestino)'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}`, { method: 'DELETE', headers: authHeaders() });
     const j = await res.json();
@@ -12769,7 +12811,7 @@ function __uteExportCSV() {
 }
 
 async function deleteUtente(username) {
-  if (!confirm(`Eliminare l'utente ${username}? Questa azione non è reversibile.`)) return;
+  if (!(await ewConfirm(`Eliminare l'utente ${username}? Questa azione non è reversibile.`))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/utenti/${encodeURIComponent(username)}`, { method: 'DELETE', headers: authHeaders() });
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -13256,7 +13298,7 @@ async function __uteDetAddEmail() {
 
 async function __uteDetDelEmail(id) {
   const uname = window.__uteDet.username;
-  if (!confirm('Eliminare questa email?')) return;
+  if (!(await ewConfirm('Eliminare questa email?'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/utenti/${encodeURIComponent(uname)}/emails/${id}`, { method: 'DELETE', headers: authHeaders() });
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -13378,7 +13420,7 @@ async function __uteSavePeriodo(id) {
 }
 
 async function __uteDetDelPeriodo(id) {
-  if (!confirm('Eliminare questo periodo?')) return;
+  if (!(await ewConfirm('Eliminare questo periodo?'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/utenti/periodi/${id}`, { method: 'DELETE', headers: authHeaders() });
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -13486,7 +13528,7 @@ async function __uteSaveFattura() {
 }
 
 async function __uteDelFattura(id) {
-  if (!confirm('Eliminare questa fattura?')) return;
+  if (!(await ewConfirm('Eliminare questa fattura?'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/utenti/fatture/${id}`, { method: 'DELETE', headers: authHeaders() });
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -13582,7 +13624,7 @@ async function __uteSalvaImporti() {
 // scadenza attuale, avanza data_scadenza e ricarica la scheda utente
 async function __uteCreaProssimoRinnovo() {
   const uname = window.__uteDet.username;
-  if (!confirm('Creare il prossimo rinnovo per questo utente?')) return;
+  if (!(await ewConfirm('Creare il prossimo rinnovo per questo utente?'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/utenti/${encodeURIComponent(uname)}/crea-prossimo-rinnovo`, { method: 'POST', headers: authHeaders() });
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -13597,7 +13639,7 @@ async function __uteCreaProssimoRinnovo() {
 // valori correnti dell'utente
 async function __uteCopiaImportiFattura(idFattura) {
   const uname = window.__uteDet.username;
-  if (!confirm('Copiare gli importi di questa fattura sui prezzi correnti?')) return;
+  if (!(await ewConfirm('Copiare gli importi di questa fattura sui prezzi correnti?'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/utenti/${encodeURIComponent(uname)}/copia-importi-fattura`, { method: 'POST', headers: { 'Content-Type':'application/json', ...authHeaders() }, body: JSON.stringify({ id_fattura: idFattura }) });
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -13852,14 +13894,14 @@ function __uteSelRowToggle(scope, kind, id) {
   }
 }
 
-function __uteSelEditSub(scope, kind, id) {
+async function __uteSelEditSub(scope, kind, id) {
   const st = window.__uteSelCache.byScope[scope];
   const arr = kind === 'lavori' ? st.soa_lavori : st.soa_servizi;
   let row = arr.find(x => String(x.id) === String(id));
   if (!row) { row = { id, selezionato: false, regioni: [], province: [] }; arr.push(row); }
-  const reg = prompt('Regioni specifiche per questa SOA (id separati da virgola, vuoto = usa master)', (row.regioni||[]).join(','));
+  const reg = (await ewPrompt('Regioni specifiche per questa SOA (id separati da virgola, vuoto = usa master)', (row.regioni||[]).join(',')));
   if (reg === null) return;
-  const prov = prompt('Province specifiche per questa SOA (sigle separate da virgola, vuoto = usa master)', (row.province||[]).join(','));
+  const prov = (await ewPrompt('Province specifiche per questa SOA (sigle separate da virgola, vuoto = usa master)', (row.province||[]).join(',')));
   if (prov === null) return;
   row.regioni = reg.split(',').map(s=>s.trim()).filter(Boolean);
   row.province = prov.split(',').map(s=>s.trim()).filter(Boolean);
@@ -13902,7 +13944,7 @@ async function __uteSaveSelezione(scope) {
 async function __uteSelCopiaDa(scope) {
   const from = document.getElementById('sel_'+scope+'_copyfrom')?.value;
   if (!from) return;
-  if (!confirm(`Copiare ${__SEL_LABEL[from]} in ${__SEL_LABEL[scope]}? I dati attuali verranno sovrascritti.`)) return;
+  if (!(await ewConfirm(`Copiare ${__SEL_LABEL[from]} in ${__SEL_LABEL[scope]}? I dati attuali verranno sovrascritti.`))) return;
   const uname = window.__uteDet.username;
   try {
     const res = await fetch(`${API_BASE}/admin/utenti/${encodeURIComponent(uname)}/selezione/copia`, {
@@ -13918,7 +13960,7 @@ async function __uteSelCopiaDa(scope) {
 
 async function __uteSelApplicaRegioniSoa(scope) {
   __uteSelCollectCurrent(scope);
-  if (!confirm('Applicare le regioni e province master a TUTTE le SOA attualmente selezionate? Le impostazioni specifiche verranno sovrascritte.')) return;
+  if (!(await ewConfirm('Applicare le regioni e province master a TUTTE le SOA attualmente selezionate? Le impostazioni specifiche verranno sovrascritte.'))) return;
   const uname = window.__uteDet.username;
   try {
     // First save current state
@@ -13935,7 +13977,7 @@ async function __uteSelApplicaRegioniSoa(scope) {
 }
 
 async function __uteSelAggiungiCollegati(scope) {
-  if (!confirm('Aggiungere automaticamente i servizi/CPV collegati alle SOA Lavori selezionate?')) return;
+  if (!(await ewConfirm('Aggiungere automaticamente i servizi/CPV collegati alle SOA Lavori selezionate?'))) return;
   const uname = window.__uteDet.username;
   try {
     await __uteSaveSelezione(scope);
@@ -14322,7 +14364,7 @@ async function __pfrToggle(ruleId, attivo) {
 
 // ─── Delete rule ───
 async function __pfrDelete(ruleId) {
-  if (!confirm('Eliminare questa regola di filtro?')) return;
+  if (!(await ewConfirm('Eliminare questa regola di filtro?'))) return;
   const uname = window.__uteDet.username;
   try {
     const res = await fetch(`${API_BASE}/admin/utenti/${encodeURIComponent(uname)}/filtri-bandi/${ruleId}`, {
@@ -14590,12 +14632,12 @@ function __uteStorToggleAll(expand) {
 async function __uteStorAddPeriodo() {
   const uname = window.__uteDet.username;
   const today = new Date().toISOString().slice(0,10);
-  const data_inizio = prompt('Data inizio (AAAA-MM-GG)', today);
+  const data_inizio = (await ewPrompt('Data inizio (AAAA-MM-GG)', today));
   if (!data_inizio) return;
   const fineDef = new Date(); fineDef.setFullYear(fineDef.getFullYear()+1);
-  const data_fine = prompt('Data fine (AAAA-MM-GG)', fineDef.toISOString().slice(0,10));
+  const data_fine = (await ewPrompt('Data fine (AAAA-MM-GG)', fineDef.toISOString().slice(0,10)));
   if (!data_fine) return;
-  const tipo = prompt('Tipo periodo', 'standard') || 'standard';
+  const tipo = (await ewPrompt('Tipo periodo', 'standard')) || 'standard';
   try {
     const res = await fetch(`${API_BASE}/admin/utenti/${encodeURIComponent(uname)}/periodi`, {
       method: 'POST',
@@ -14623,7 +14665,7 @@ async function __uteStorEditPeriodo(id) {
   for (const [k, label] of fields) {
     const curr = periodo[k] ?? '';
     const displayed = (k.startsWith('data_') && curr) ? String(curr).slice(0,10) : curr;
-    const val = prompt(label, displayed);
+    const val = (await ewPrompt(label, displayed));
     if (val === null) return; // annullato
     body[k] = val === '' ? null : (k.startsWith('prezzo_') ? parseFloat(val) : val);
   }
@@ -14640,7 +14682,7 @@ async function __uteStorEditPeriodo(id) {
 }
 
 async function __uteStorDelPeriodo(id) {
-  if (!confirm('Eliminare definitivamente questo periodo? Le fatture collegate resteranno ma diventeranno orfane.')) return;
+  if (!(await ewConfirm('Eliminare definitivamente questo periodo? Le fatture collegate resteranno ma diventeranno orfane.'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/utenti/periodi/${id}`, { method: 'DELETE', headers: authHeaders() });
     if (!res.ok) throw new Error('HTTP '+res.status);
@@ -14653,14 +14695,14 @@ async function __uteStorDelPeriodo(id) {
 
 async function __uteStorAddFattura(periodoId, importoSuggerito, tipo) {
   const uname = window.__uteDet.username;
-  const numero = prompt('Numero fattura', '');
+  const numero = (await ewPrompt('Numero fattura', ''));
   if (!numero) return;
-  const data_emissione = prompt('Data emissione (AAAA-MM-GG)', new Date().toISOString().slice(0,10));
+  const data_emissione = (await ewPrompt('Data emissione (AAAA-MM-GG)', new Date().toISOString().slice(0,10)));
   if (!data_emissione) return;
-  const importoStr = prompt('Imponibile €', String(importoSuggerito));
+  const importoStr = (await ewPrompt('Imponibile €', String(importoSuggerito)));
   if (importoStr === null) return;
   const importo = parseFloat(importoStr) || 0;
-  const ivaStr = prompt('IVA €', String(+(importo * 0.22).toFixed(2)));
+  const ivaStr = (await ewPrompt('IVA €', String(+(importo * 0.22).toFixed(2))));
   if (ivaStr === null) return;
   const iva = parseFloat(ivaStr) || 0;
   try {
@@ -14693,7 +14735,7 @@ async function __uteStorEditFattura(id) {
   for (const [k, label] of fields) {
     const curr = fattura[k] ?? '';
     const displayed = (k.startsWith('data_') && curr) ? String(curr).slice(0,10) : curr;
-    const val = prompt(label, displayed);
+    const val = (await ewPrompt(label, displayed));
     if (val === null) return;
     body[k] = val === '' ? null : (['importo','iva','totale'].includes(k) ? parseFloat(val) : val);
   }
@@ -14710,7 +14752,7 @@ async function __uteStorEditFattura(id) {
 }
 
 async function __uteStorDelFattura(id) {
-  if (!confirm('Eliminare definitivamente questa fattura e tutti i suoi pagamenti?')) return;
+  if (!(await ewConfirm('Eliminare definitivamente questa fattura e tutti i suoi pagamenti?'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/utenti/fatture/${id}`, { method: 'DELETE', headers: authHeaders() });
     if (!res.ok) throw new Error('HTTP '+res.status);
@@ -14722,12 +14764,12 @@ async function __uteStorDelFattura(id) {
 // ══════════ Storico — CRUD pagamenti ══════════
 
 async function __uteStorAddPagamento(idFattura, residuoSuggerito) {
-  const importoStr = prompt('Importo pagamento €', String(residuoSuggerito));
+  const importoStr = (await ewPrompt('Importo pagamento €', String(residuoSuggerito)));
   if (importoStr === null) return;
   const importo = parseFloat(importoStr) || 0;
-  const data_pagamento = prompt('Data pagamento (AAAA-MM-GG)', new Date().toISOString().slice(0,10));
+  const data_pagamento = (await ewPrompt('Data pagamento (AAAA-MM-GG)', new Date().toISOString().slice(0,10)));
   if (!data_pagamento) return;
-  const metodo = prompt('Metodo (bonifico/contanti/…)', 'bonifico') || 'bonifico';
+  const metodo = (await ewPrompt('Metodo (bonifico/contanti/…)', 'bonifico')) || 'bonifico';
   try {
     const res = await fetch(`${API_BASE}/admin/utenti/fatture/${idFattura}/pagamenti`, {
       method: 'POST',
@@ -14741,7 +14783,7 @@ async function __uteStorAddPagamento(idFattura, residuoSuggerito) {
 }
 
 async function __uteStorDelPagamento(id) {
-  if (!confirm('Eliminare questo pagamento?')) return;
+  if (!(await ewConfirm('Eliminare questo pagamento?'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/utenti/pagamenti/${id}`, { method: 'DELETE', headers: authHeaders() });
     if (!res.ok) throw new Error('HTTP '+res.status);
@@ -15560,7 +15602,7 @@ function applicaFiltroScadenze() {
      - "Mostra" → tabella Data | Message | Severity | Priority
      - Riga rossa se Severity = Error
      - Riga arancio se Message contiene " - Cancellato"
-     - "Rilancia" → confirm('Conferma restart servizio?') prima del POST
+     - "Rilancia" → (await ewConfirm('Conferma restart servizio?')) prima del POST
                     alert('Operazione effettuata correttamente') al successo
      - Campo IDEsito visibile SOLO quando il servizio e' "esiti"
        (legacy: IDServizio == 3; qui: chiavi che contengono "esito"/"esiti")
@@ -15685,7 +15727,7 @@ async function rilanciServizio() {
     return;
   }
   // Parity legacy: conferma esplicita prima del restart
-  if (!confirm('Conferma restart servizio?')) return;
+  if (!(await ewConfirm('Conferma restart servizio?'))) return;
 
   try {
     const res = await fetch(`${API_BASE}/admin/servizi/${encodeURIComponent(servizio)}/rilancia`, {
@@ -16360,7 +16402,7 @@ async function uploadAllegatoBando(bandoId) {
 }
 
 async function deleteAllegatoBando(bandoId, allegatoId) {
-  if (!confirm('Eliminare questo allegato?')) return;
+  if (!(await ewConfirm('Eliminare questo allegato?'))) return;
   try {
     const res = await fetch(`${API_BASE}/bandi/${bandoId}/allegati/${allegatoId}`, {
       method: 'DELETE',
@@ -17414,8 +17456,8 @@ function removeReviewPartecipante(idx) {
   if (row) row.remove();
 }
 
-function discardEsitoReview() {
-  if (!confirm('Scartare i dati estratti dall\'AI?')) return;
+async function discardEsitoReview() {
+  if (!(await ewConfirm('Scartare i dati estratti dall\'AI?'))) return;
   window._esitoReviewData = null;
   document.getElementById('esiti-ai-review-section').style.display = 'none';
   document.getElementById('esiti-ai-result').innerHTML = '';
@@ -17671,7 +17713,7 @@ async function inviaNotificheEsito() {
   const esitoId = document.getElementById('invia-esito-id').value.trim();
   if (!esitoId) { alert('Inserisci l\'ID dell\'esito'); return; }
   const container = document.getElementById('invio-notifiche-result');
-  if (!confirm('Vuoi inviare le email di notifica a TUTTI i partecipanti di questo esito?')) return;
+  if (!(await ewConfirm('Vuoi inviare le email di notifica a TUTTI i partecipanti di questo esito?'))) return;
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin" style="color:var(--success)"></i><p>Invio email in corso...</p></div>';
   try {
     const res = await fetch(`${API_BASE}/esiti/${esitoId}/invia-notifiche`, {
@@ -17966,7 +18008,7 @@ async function prsImportSingle(codice, btnEl) {
 async function prsImportAll() {
   const newBandi = __prsSearchResults.filter(b => !b.already_imported);
   if (newBandi.length === 0) { alert('Nessun bando nuovo da importare'); return; }
-  if (!confirm(`Importare ${newBandi.length} bandi nuovi da Presidia?`)) return;
+  if (!(await ewConfirm(`Importare ${newBandi.length} bandi nuovi da Presidia?`))) return;
 
   const btn = document.getElementById('prs-btn-import-all');
   if (btn) { btn.disabled = true; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Importazione 0/${newBandi.length}...`; }
@@ -18360,7 +18402,7 @@ async function searchEsitiIncompleti() {
 }
 
 async function elxIncDelete(id) {
-  if (!confirm('Spostare questo esito nel cestino?')) return;
+  if (!(await ewConfirm('Spostare questo esito nel cestino?'))) return;
   try {
     const res = await fetch(`${API_BASE}/esiti/${id}`, { method: 'DELETE', headers: authHeaders() });
     if (!res.ok) throw new Error('Errore eliminazione');
@@ -18465,7 +18507,7 @@ async function loadCestinoAziende(page = 1) {
 }
 
 async function ripristinaAzienda(id) {
-  if (!confirm('Ripristinare questa azienda?')) return;
+  if (!(await ewConfirm('Ripristinare questa azienda?'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/aziende/${id}/ripristina`, { method: 'POST', headers: authHeaders() });
     if (res.ok) showToast('Azienda ripristinata', 'success');
@@ -18475,7 +18517,7 @@ async function ripristinaAzienda(id) {
 }
 
 async function eliminaAziendaDefinitivo(id) {
-  if (!confirm('Eliminare DEFINITIVAMENTE questa azienda? L\'azione è irreversibile!')) return;
+  if (!(await ewConfirm('Eliminare DEFINITIVAMENTE questa azienda? L\'azione è irreversibile!'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/aziende/${id}/definitivo`, { method: 'DELETE', headers: authHeaders() });
     if (res.ok) showToast('Azienda eliminata definitivamente', 'success');
@@ -18620,7 +18662,7 @@ async function loadCestinoStazioni() {
 async function cstBulkRestore() {
   const ids = cstGetSelectedIds();
   if (!ids.length) { alert('Seleziona almeno una stazione da ripristinare'); return; }
-  if (!confirm(`Ripristinare ${ids.length} stazion${ids.length===1?'e':'i'}?`)) return;
+  if (!(await ewConfirm(`Ripristinare ${ids.length} stazion${ids.length===1?'e':'i'}?`))) return;
   try {
     for (const id of ids) {
       await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}/ripristina`, { method: 'POST', headers: authHeaders() });
@@ -18632,7 +18674,7 @@ async function cstBulkRestore() {
 async function cstBulkDelete() {
   const ids = cstGetSelectedIds();
   if (!ids.length) { alert('Seleziona almeno una stazione da eliminare'); return; }
-  if (!confirm(`ATTENZIONE: eliminare DEFINITIVAMENTE ${ids.length} stazion${ids.length===1?'e':'i'}?\nQuesta operazione NON può essere annullata.`)) return;
+  if (!(await ewConfirm(`ATTENZIONE: eliminare DEFINITIVAMENTE ${ids.length} stazion${ids.length===1?'e':'i'}?\nQuesta operazione NON può essere annullata.`))) return;
   try {
     for (const id of ids) {
       await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}/definitivo`, { method: 'DELETE', headers: authHeaders() });
@@ -18642,7 +18684,7 @@ async function cstBulkDelete() {
 }
 
 async function ripristinaStazione(id) {
-  if (!confirm('Ripristinare questa stazione?')) return;
+  if (!(await ewConfirm('Ripristinare questa stazione?'))) return;
   try {
     await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}/ripristina`, { method: 'POST', headers: authHeaders() });
     loadCestinoStazioni();
@@ -18650,7 +18692,7 @@ async function ripristinaStazione(id) {
 }
 
 async function eliminaStazioneDefinitivo(id) {
-  if (!confirm('Eliminare DEFINITIVAMENTE questa stazione?')) return;
+  if (!(await ewConfirm('Eliminare DEFINITIVAMENTE questa stazione?'))) return;
   try {
     await fetch(`${API_BASE}/admin/stazioni/stazioni/${id}/definitivo`, { method: 'DELETE', headers: authHeaders() });
     loadCestinoStazioni();
@@ -18800,7 +18842,7 @@ async function loadCestinoEsiti() {
 }
 
 async function elxCesRestore(id) {
-  if (!confirm('Ripristinare questo esito dal cestino?')) return;
+  if (!(await ewConfirm('Ripristinare questo esito dal cestino?'))) return;
   try {
     const res = await fetch(`${API_BASE}/esiti/${id}/ripristina`, { method: 'POST', headers: authHeaders() });
     if (!res.ok) throw new Error('Errore ripristino');
@@ -18811,7 +18853,7 @@ async function elxCesRestore(id) {
 async function elxCesRestoreSel() {
   const ids = Array.from(window.__elxCestino.selected);
   if (!ids.length) { showToast && showToast('Nessun esito selezionato', 'warning'); return; }
-  if (!confirm(`Ripristinare ${ids.length} esiti?`)) return;
+  if (!(await ewConfirm(`Ripristinare ${ids.length} esiti?`))) return;
   let ok = 0, err = 0;
   for (const id of ids) {
     try { const r = await fetch(`${API_BASE}/esiti/${id}/ripristina`, { method: 'POST', headers: authHeaders() }); if (r.ok) ok++; else err++; } catch(_) { err++; }
@@ -19086,7 +19128,7 @@ async function loadSopralluoghiAdmin() {
 }
 
 async function deleteSopralluogo(id) {
-  if (!confirm('Eliminare definitivamente questo sopralluogo? L\'operazione non è reversibile.')) return;
+  if (!(await ewConfirm('Eliminare definitivamente questo sopralluogo? L\'operazione non è reversibile.'))) return;
   try {
     const res = await fetch(`${API_BASE}/appuntamenti/sopralluoghi/${id}`, {
       method: 'DELETE', headers: authHeaders()
@@ -19151,7 +19193,7 @@ async function viewSopralluogoDetail(id) {
 }
 
 async function markSoprEseguito(id) {
-  const d = prompt('Data di esecuzione (YYYY-MM-DD) — lascia vuoto per oggi:', '');
+  const d = (await ewPrompt('Data di esecuzione (YYYY-MM-DD) — lascia vuoto per oggi:', ''));
   try {
     const body = d ? { data_sopralluogo: d } : {};
     const res = await fetch(`${API_BASE}/appuntamenti/sopralluoghi/${id}/esegui`, {
@@ -19171,7 +19213,7 @@ async function markSoprEseguito(id) {
 }
 
 async function annullaSopralluogo(id) {
-  if (!confirm('Annullare questo sopralluogo?')) return;
+  if (!(await ewConfirm('Annullare questo sopralluogo?'))) return;
   try {
     const res = await fetch(`${API_BASE}/appuntamenti/sopralluoghi/${id}/annulla`, {
       method: 'PATCH', headers: authHeaders()
@@ -20230,7 +20272,7 @@ async function toggleEseguitoApertura(id) {
 async function deleteEvento(tipo, id) {
   const route = __tipoRoute(tipo);
   if (!route) return alert('Tipo evento non valido: ' + tipo);
-  if (!confirm(`Eliminare definitivamente questo ${tipo}? L'operazione non è reversibile.`)) return;
+  if (!(await ewConfirm(`Eliminare definitivamente questo ${tipo}? L'operazione non è reversibile.`))) return;
   try {
     const r = await fetch(`${API_BASE}/appuntamenti/${route}/${id}`, {
       method: 'DELETE',
@@ -20248,11 +20290,11 @@ async function markEventoEseguito(tipo, id) {
   if (!route) return alert('Tipo evento non valido: ' + tipo);
   let body = {};
   if (tipo === 'sopralluogo') {
-    const d = prompt('Data di esecuzione (YYYY-MM-DD, vuoto = oggi):', new Date().toISOString().slice(0,10));
+    const d = (await ewPrompt('Data di esecuzione (YYYY-MM-DD, vuoto = oggi):', new Date().toISOString().slice(0,10)));
     if (d === null) return;
     if (d.trim()) body.data_sopralluogo = d.trim();
   } else {
-    if (!confirm(`Segnare questa ${tipo} come eseguita?`)) return;
+    if (!(await ewConfirm(`Segnare questa ${tipo} come eseguita?`))) return;
   }
   try {
     const r = await fetch(`${API_BASE}/appuntamenti/${route}/${id}/esegui`, {
@@ -20897,7 +20939,7 @@ async function saveIntermediario(id) {
 }
 
 async function deleteIntermediario(id) {
-  if (!confirm('Sei sicuro di voler eliminare questo intermediario?')) return;
+  if (!(await ewConfirm('Sei sicuro di voler eliminare questo intermediario?'))) return;
   try {
     const res = await fetch(`${API_BASE}/intermediari/${id}`, { method:'DELETE', headers: authHeaders() });
     const j = await res.json();
@@ -21179,7 +21221,7 @@ async function saveEsecutore(id) {
 }
 
 async function deleteEsecutore(id) {
-  if (!confirm('Sei sicuro di voler eliminare questo esecutore?')) return;
+  if (!(await ewConfirm('Sei sicuro di voler eliminare questo esecutore?'))) return;
   try {
     const res = await fetch(`${API_BASE}/esecutori-esterni/${id}`, { method:'DELETE', headers: authHeaders() });
     const j = await res.json();
@@ -21340,7 +21382,7 @@ async function savePiattaforma(event) {
 }
 
 async function deletePiattaforma(id) {
-  if (!confirm('Sei sicuro di voler eliminare questa piattaforma?')) return;
+  if (!(await ewConfirm('Sei sicuro di voler eliminare questa piattaforma?'))) return;
   try {
     await fetch(`${API_BASE}/piattaforme/${id}`, {
       method: 'DELETE',
@@ -21562,7 +21604,7 @@ async function loadApiKeys() {
 }
 
 async function deleteApiKey(id) {
-  if (!confirm('Sei sicuro? Questa azione non può essere annullata.')) return;
+  if (!(await ewConfirm('Sei sicuro? Questa azione non può essere annullata.'))) return;
   try {
     await fetch(`${API_BASE}/admin/sistema/api-keys/${id}`, {
       method: 'DELETE',
@@ -21766,7 +21808,7 @@ async function saveAlbo() {
 }
 
 async function deleteAlbo(stazioneId) {
-  if (!confirm('Sei sicuro di voler eliminare questo albo? Questa azione non può essere annullata.')) return;
+  if (!(await ewConfirm('Sei sicuro di voler eliminare questo albo? Questa azione non può essere annullata.'))) return;
   try {
     const res = await fetch(API_BASE + '/albi-fornitori/admin/albo/' + stazioneId, {
       method: 'DELETE',
@@ -22094,15 +22136,15 @@ async function viewRichiestaDetail(id) {
 }
 
 async function updateRichiestaStato(id) {
-  const nuovoStato = prompt('Nuovo stato:\n- in_lavorazione\n- completata\n- annullata');
+  const nuovoStato = (await ewPrompt('Nuovo stato:\n- in_lavorazione\n- completata\n- annullata'));
   if (!nuovoStato) return;
   const validStati = ['in_lavorazione','completata','annullata'];
   if (!validStati.includes(nuovoStato)) { alert('Stato non valido. Valori ammessi: ' + validStati.join(', ')); return; }
 
   let payload = { stato: nuovoStato };
-  const prev = prompt('Importo preventivo (es. 250.00, opzionale):');
+  const prev = (await ewPrompt('Importo preventivo (es. 250.00, opzionale):'));
   if (prev) payload.preventivo = parseFloat(prev);
-  const note = prompt('Note EasyWin (opzionale):');
+  const note = (await ewPrompt('Note EasyWin (opzionale):'));
   if (note) payload.note_easywin = note;
 
   try {
@@ -22141,13 +22183,13 @@ async function loadAlbiIscrizioni() {
   }
 }
 
-function showRegistraIscrizioneForm() {
-  const alboId = prompt('ID Albo Fornitori:');
+async function showRegistraIscrizioneForm() {
+  const alboId = (await ewPrompt('ID Albo Fornitori:'));
   if (!alboId) return;
-  const azId = prompt('ID Azienda:');
+  const azId = (await ewPrompt('ID Azienda:'));
   if (!azId) return;
-  const numIscrizione = prompt('Numero Iscrizione (opzionale):');
-  const scadenza = prompt('Data Scadenza (YYYY-MM-DD, opzionale):');
+  const numIscrizione = (await ewPrompt('Numero Iscrizione (opzionale):'));
+  const scadenza = (await ewPrompt('Data Scadenza (YYYY-MM-DD, opzionale):'));
 
   registraIscrizione(parseInt(alboId), parseInt(azId), numIscrizione, scadenza);
 }
@@ -22370,7 +22412,7 @@ async function saveConcorrente(id) {
 }
 
 async function deleteConcorrente(id) {
-  if (!confirm('Vuoi davvero eliminare questo concorrente? L\'operazione non è reversibile.')) return;
+  if (!(await ewConfirm('Vuoi davvero eliminare questo concorrente? L\'operazione non è reversibile.'))) return;
   try {
     const res = await fetch(`${API_BASE}/concorrenti/${id}`, { method: 'DELETE', headers: authHeaders() });
     const d = await res.json().catch(()=>({}));
@@ -22958,7 +23000,7 @@ async function elxDaAbilita(id) {
   } catch(e) { showToast && showToast('Errore: ' + e.message, 'error'); }
 }
 async function elxDaDelete(id) {
-  if (!confirm('Eliminare questo esito? Verrà spostato nel cestino.')) return;
+  if (!(await ewConfirm('Eliminare questo esito? Verrà spostato nel cestino.'))) return;
   try {
     const res = await fetch(`${API_BASE}/esiti/${id}`, { method: 'DELETE', headers: authHeaders() });
     if (!res.ok) throw new Error('Errore eliminazione');
@@ -22969,7 +23011,7 @@ async function elxDaDelete(id) {
 async function elxDaAbilitaSel() {
   const ids = Array.from(window.__elxDaAbil.selected);
   if (!ids.length) { showToast && showToast('Nessun esito selezionato', 'warning'); return; }
-  if (!confirm(`Abilitare ${ids.length} esiti?`)) return;
+  if (!(await ewConfirm(`Abilitare ${ids.length} esiti?`))) return;
   let ok = 0, err = 0;
   for (const id of ids) {
     try { const r = await fetch(`${API_BASE}/esiti/${id}/abilita`, { method: 'POST', headers: authHeaders() }); if (r.ok) ok++; else err++; } catch(_) { err++; }
@@ -22979,7 +23021,7 @@ async function elxDaAbilitaSel() {
   searchEsitiDaAbilitare();
 }
 async function elxDaAbilitaTutti() {
-  if (!confirm('Abilitare TUTTI gli esiti correnti?')) return;
+  if (!(await ewConfirm('Abilitare TUTTI gli esiti correnti?'))) return;
   try {
     const res = await fetch(`${API_BASE}/esiti/abilita-tutti`, { method: 'POST', headers: authHeaders() });
     if (!res.ok) throw new Error('Errore abilitazione');
@@ -23143,7 +23185,7 @@ function switchDetailTab(btn, idx, tabId) {
 
 // ═══════════════════ AZIENDA DETAIL WITH TABS ═══════════════════
 async function eliminaAzienda(id) {
-  if (!confirm(`Sei sicuro di voler eliminare l'azienda ID ${id}? Questa azione la segnerà come cessata.`)) return;
+  if (!(await ewConfirm(`Sei sicuro di voler eliminare l'azienda ID ${id}? Questa azione la segnerà come cessata.`))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/aziende/${id}`, { method: 'DELETE', headers: authHeaders() });
     if (!res.ok) throw new Error('Errore eliminazione');
@@ -23636,7 +23678,7 @@ async function addNotaAzienda(idAzienda) {
 }
 
 async function eliminaNotaAzienda(idNota, idAzienda) {
-  if (!confirm('Eliminare questa nota?')) return;
+  if (!(await ewConfirm('Eliminare questa nota?'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/aziende/note/${idNota}`, { method: 'DELETE', headers: authHeaders() });
     if (res.ok) { showToast('Nota eliminata', 'success'); viewAziendaDetailEnhanced(idAzienda, currentAziendePage); }
@@ -23648,7 +23690,7 @@ async function eliminaNotaAzienda(idNota, idAzienda) {
 async function invioPasswordProva(idAzienda) {
   const servizio = document.getElementById('az_prova_serv')?.value || 'esiti';
   const giorni = parseInt(document.getElementById('az_prova_giorni')?.value) || 7;
-  if (!confirm(`Attivare accesso di prova ${servizio.toUpperCase()} per ${giorni} giorni?`)) return;
+  if (!(await ewConfirm(`Attivare accesso di prova ${servizio.toUpperCase()} per ${giorni} giorni?`))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/aziende/${idAzienda}/password-prova`, {
       method: 'POST',
@@ -23667,7 +23709,7 @@ async function invioPasswordProva(idAzienda) {
 
 // ═══════ DESCRIZIONE SERVIZI ═══════
 async function invioDescrizioneServizi(idAzienda) {
-  if (!confirm('Inviare la descrizione dei servizi via email a questa azienda?')) return;
+  if (!(await ewConfirm('Inviare la descrizione dei servizi via email a questa azienda?'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/aziende/invia-mail`, {
       method: 'POST',
@@ -23726,7 +23768,7 @@ async function aggiungiAttestazione(idAzienda) {
 }
 
 async function eliminaAttestazione(idAtt, idAzienda) {
-  if (!confirm('Eliminare questa attestazione?')) return;
+  if (!(await ewConfirm('Eliminare questa attestazione?'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/aziende/attestazioni/${idAtt}`, { method: 'DELETE', headers: authHeaders() });
     if (res.ok) { showToast('Attestazione eliminata', 'success'); viewAziendaDetailEnhanced(idAzienda, currentAziendePage); }
@@ -23753,7 +23795,7 @@ async function aggiungiPersonale(idAzienda) {
 }
 
 async function eliminaPersonale(idPers, idAzienda) {
-  if (!confirm('Eliminare questo membro del personale?')) return;
+  if (!(await ewConfirm('Eliminare questo membro del personale?'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/aziende/personale/${idPers}`, { method: 'DELETE', headers: authHeaders() });
     if (res.ok) { showToast('Personale eliminato', 'success'); viewAziendaDetailEnhanced(idAzienda, currentAziendePage); }
@@ -23778,7 +23820,7 @@ async function aggiungiMembroConsorzio(idAzienda) {
 }
 
 async function eliminaMembroConsorzio(idAzienda, idConsorzio) {
-  if (!confirm('Rimuovere questo membro dal consorzio?')) return;
+  if (!(await ewConfirm('Rimuovere questo membro dal consorzio?'))) return;
   try {
     const res = await fetch(`${API_BASE}/admin/aziende/consorzi/${idConsorzio}`, { method: 'DELETE', headers: authHeaders() });
     if (res.ok) { showToast('Membro rimosso', 'success'); viewAziendaDetailEnhanced(idAzienda, currentAziendePage); }
@@ -24275,7 +24317,7 @@ async function aggiungiFonteBando(idBando) {
 }
 
 async function eliminaFonte(id, idBando) {
-  if (!confirm('Eliminare questa fonte web?')) return;
+  if (!(await ewConfirm('Eliminare questa fonte web?'))) return;
   try {
     const token = localStorage.getItem('easywin_token');
     const res = await fetch(API_BASE + '/bandi/links/' + id, {
@@ -24317,7 +24359,7 @@ async function scaricaAllegato(id) {
   window.open(API_BASE + '/allegati/' + id + '/download?token=' + encodeURIComponent(token), '_blank');
 }
 async function eliminaAllegato(idAll, idBando) {
-  if (!confirm('Eliminare questo allegato?')) return;
+  if (!(await ewConfirm('Eliminare questo allegato?'))) return;
   try {
     const token = localStorage.getItem('easywin_token');
     const res = await fetch(API_BASE + '/allegati/' + idAll, {
@@ -24431,7 +24473,7 @@ async function gestDisponibilita(idBando, tipo, operazione) {
   if (!da || !a) { alert('Seleziona entrambe le date (Da / A).'); return; }
   const label = tipo === 'presa_visione' ? 'Presa Visione' : 'Sopralluogo';
   const verb  = operazione === 'add' ? 'AGGIUNGERE' : 'RIMUOVERE';
-  if (!confirm(`${verb} disponibilità ${label} dal ${elDa.value} al ${elA.value} ?`)) return;
+  if (!(await ewConfirm(`${verb} disponibilità ${label} dal ${elDa.value} al ${elA.value} ?`))) return;
   try {
     const token = localStorage.getItem('easywin_token');
     const res = await fetch(`${API_BASE}/bandi/${idBando}/disponibilita`, {
@@ -25522,7 +25564,7 @@ async function __edDetSalvaTutti() {
 }
 
 async function __edDetDelRow(rowId) {
-  if (!confirm('Eliminare questa riga dalla graduatoria?')) return;
+  if (!(await ewConfirm('Eliminare questa riga dalla graduatoria?'))) return;
   try {
     const r = await fetch(`${API_BASE}/esiti/${__edDet.esitoId}/graduatoria/${rowId}`, { method: 'DELETE', headers: authHeaders() });
     if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -25540,7 +25582,7 @@ function __edDetToggleAll(cb) {
 async function __edDetEliminaSelezionate() {
   const ids = [...document.querySelectorAll('.edDetRowChk:checked')].map(c => Number(c.getAttribute('data-row')));
   if (!ids.length) { alert('Seleziona almeno una riga'); return; }
-  if (!confirm(`Eliminare ${ids.length} righe?`)) return;
+  if (!(await ewConfirm(`Eliminare ${ids.length} righe?`))) return;
   let ok = 0;
   for (const rid of ids) {
     try {
@@ -25782,7 +25824,7 @@ async function __edDetAiCommit() {
   }));
   if (!rows.length) { alert('Nessuna riga con azienda abbinata: scegli almeno un\'azienda prima di applicare'); return; }
   const replace = document.getElementById('edDetAiReplace')?.checked || false;
-  if (replace && !confirm('Sicuro di voler SOSTITUIRE la graduatoria esistente? Le righe attuali verranno eliminate.')) return;
+  if (replace && !(await ewConfirm('Sicuro di voler SOSTITUIRE la graduatoria esistente? Le righe attuali verranno eliminate.'))) return;
   try {
     const r = await fetch(`${API_BASE}/esiti-ai/commit-graduatoria/${__edDetAi.esitoId}`, {
       method: 'POST',
@@ -25924,7 +25966,7 @@ async function __edAtiPut(atiId, field, value) {
 }
 
 async function __edAtiDel(atiId) {
-  if (!confirm('Eliminare questa riga ATI?')) return;
+  if (!(await ewConfirm('Eliminare questa riga ATI?'))) return;
   try {
     const r = await fetch(`${API_BASE}/esiti/${__edAti.esitoId}/ati/${atiId}`, { method: 'DELETE', headers: authHeaders() });
     if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -25933,7 +25975,7 @@ async function __edAtiDel(atiId) {
 }
 
 async function __edAtiAdd(idMandataria, kind) {
-  const idMandante = prompt('ID azienda mandante/ausiliaria:');
+  const idMandante = (await ewPrompt('ID azienda mandante/ausiliaria:'));
   if (!idMandante) return;
   try {
     const r = await fetch(`${API_BASE}/esiti/${__edAti.esitoId}/ati`, {
@@ -26178,7 +26220,7 @@ async function loadImportBandiDuplicati() {
 }
 
 async function risolviDuplicato(id) {
-  if (!confirm('Confermi la risoluzione di questo duplicato?')) return;
+  if (!(await ewConfirm('Confermi la risoluzione di questo duplicato?'))) return;
   try {
     await fetch(`${API_BASE}/admin/bandi-import/risolvi-duplicato`, {
       method: 'POST',
@@ -26712,7 +26754,7 @@ async function loadAlbiRaccomandazioniAI() {
 function exportAlbiRaccomandazioni() { alert('Export raccomandazioni: funzionalità in sviluppo'); }
 
 async function richiediServizioAlbo(alboId) {
-  if (!confirm('Richiedere il servizio di iscrizione per questo albo?')) return;
+  if (!(await ewConfirm('Richiedere il servizio di iscrizione per questo albo?'))) return;
   try {
     await fetch(`${API_BASE}/albi-fornitori/${alboId}/richiedi-servizio`, { method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
     alert('Richiesta inviata con successo');
