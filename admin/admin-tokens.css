@@ -25,23 +25,27 @@
   --border:        #E2E8F0;   /* bordi standard (slate-200) */
   --border-strong: #CBD5E1;   /* bordi focus, divider su card */
 
-  /* ── Testo ──────────────────────────────────── */
-  --text:       #1E293B;      /* slate-800 — testo principale */
+  /* ── Testo (nero brand del logo) ───────────────── */
+  --text:       #1A1A1A;      /* nero brand — testo principale */
   --text-muted: #64748B;      /* slate-500 — label, hint */
   --text-dim:   #94A3B8;      /* slate-400 — placeholder, disabled */
   --text-inverse: #FFFFFF;    /* su superfici scure */
 
-  /* ── Primary (blu scuro corporate) ──────────── */
-  --accent:        #1E3A8A;   /* blue-800 */
-  --accent-hover:  #1E40AF;   /* blue-900 */
-  --accent-soft:   #DBEAFE;   /* blue-100 — pill/tag bg */
+  /* ── Primary: ARANCIO BRAND (Win del logo) ──── */
+  --accent:        #EA580C;   /* arancio brand (da "Win" del logo easyWin) */
+  --accent-hover:  #C2410C;   /* arancio scuro su hover */
+  --accent-soft:   #FFEDD5;   /* arancio tenue — pill/tag bg */
   --accent-text:   #FFFFFF;   /* testo su button accent */
 
-  /* ── Secondary (arancione vivace) ────────────── */
-  --secondary:        #EA580C; /* orange-600 */
-  --secondary-hover:  #C2410C; /* orange-700 */
-  --secondary-soft:   #FFEDD5; /* orange-100 — pill/tag bg */
-  --secondary-text:   #FFFFFF; /* testo su button secondary */
+  /* ── Secondary: GIALLO BRAND (easy del logo) ── */
+  --secondary:        #F5C518;   /* giallo brand (da "easy" del logo easyWin) */
+  --secondary-hover:  #EAB308;   /* giallo scuro su hover */
+  --secondary-soft:   #FEF9C3;   /* giallo tenue — pill/tag bg */
+  --secondary-text:   #1A1A1A;   /* testo su button giallo (nero brand) */
+
+  /* ── Gradient brand (yellow → orange) ────────── */
+  --gradient-brand:        linear-gradient(90deg, #F5C518 0%, #EA580C 100%);
+  --gradient-brand-hover:  linear-gradient(90deg, #EAB308 0%, #C2410C 100%);
 
   /* ── Stati semantici ────────────────────────── */
   --success:      #16A34A;   /* green-600 */
