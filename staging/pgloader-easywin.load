@@ -26,7 +26,7 @@ WITH include drop,              -- drop tabelle esistenti su Postgres prima di c
      -- non KABOOM.
      prefetch rows = 1000,      -- righe lette dal sorgente per batch (default 25000)
      batch rows = 1000,         -- righe scritte su Postgres per batch
-     batch size = '20 MB',      -- limite hard sul singolo batch
+     batch size = 20 MB,        -- limite hard sul singolo batch (NB: no apici!)
      workers = 1,               -- 1 worker per tabella (default = #core)
      concurrency = 1            -- 1 tabella alla volta (default 2)
 
