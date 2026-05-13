@@ -1145,17 +1145,44 @@ export default async function adminAziendeRoutes(fastify, opts) {
   fastify.get('/search-piva', async (request, reply) => {
     try {
       const { term = '' } = request.query;
+      if (!term || term.length < 2) return { risultati: [] };
 
       const res = await query(`
-        SELECT id, ragione_sociale, partita_iva
+        SELECT id, ragione_sociale, partita_iva, codice_fiscale, citta
         FROM aziende
-        WHERE eliminata = false AND partita_iva ILIKE $1
+        WHERE COALESCE(eliminata, false) = false AND partita_iva ILIKE $1
+        ORDER BY ragione_sociale
         LIMIT 20
-      `, [`%${term}%`]);
+      `, [`${term}%`]);   // prefix match (più veloce e logico per PIVA)
 
       return { risultati: res.rows };
     } catch (err) {
-      fastify.log.error(err, 'Search PIVA error');
+      fastify.log.error({ err: err.message }, 'Search PIVA error');
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  /**
+   * GET /api/admin/aziende/search-cf?term=
+   * Autocomplete by codice fiscale
+   * Match prefix (CF di 16 caratteri, prefix è ottimale)
+   */
+  fastify.get('/search-cf', async (request, reply) => {
+    try {
+      const { term = '' } = request.query;
+      if (!term || term.length < 2) return { risultati: [] };
+
+      const res = await query(`
+        SELECT id, ragione_sociale, partita_iva, codice_fiscale, citta
+        FROM aziende
+        WHERE COALESCE(eliminata, false) = false AND codice_fiscale ILIKE $1
+        ORDER BY ragione_sociale
+        LIMIT 20
+      `, [`${term}%`]);
+
+      return { risultati: res.rows };
+    } catch (err) {
+      fastify.log.error({ err: err.message }, 'Search CF error');
       return reply.status(500).send({ error: err.message });
     }
   });

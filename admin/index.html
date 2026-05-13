@@ -3650,28 +3650,131 @@ button:not(.bn-act):not(.bix-act-btn):not(.ute-iconbtn):not(.ew-btn):not(.flatpi
             -webkit-text-fill-color: transparent;
             background-clip: text;
           }
+
+          /* Autocomplete tendine (Ragione Sociale / Partita IVA / Codice Fiscale)
+             Stesso look per le 3, Comfortaa, hover brand. */
+          #pageAziende .az-autocomplete {
+            position: absolute;
+            top: 100%; left: 0; right: 0;
+            z-index: 50;
+            margin-top: 4px;
+            background: #FFFFFF;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(15,23,42,0.12);
+            max-height: 320px;
+            overflow-y: auto;
+            font-family: 'Comfortaa', sans-serif;
+          }
+          #pageAziende .az-autocomplete::-webkit-scrollbar { width: 6px; }
+          #pageAziende .az-autocomplete::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #F5C518, #EA580C);
+            border-radius: 3px;
+          }
+          #pageAziende .az-ac-item {
+            padding: 11px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #F1F5F9;
+            font-size: 13px;
+            color: #1A1A1A;
+            transition: background 0.1s;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-family: 'Comfortaa', sans-serif;
+          }
+          #pageAziende .az-ac-item:last-child { border-bottom: none; }
+          #pageAziende .az-ac-item:hover {
+            background: linear-gradient(90deg, #FFFAF0, #FEF9C3);
+            color: #1A1A1A;
+          }
+          #pageAziende .az-ac-item strong {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #1A1A1A;
+          }
+          #pageAziende .az-ac-item .az-ac-sub {
+            font-size: 11.5px;
+            color: #64748B;
+            font-weight: 500;
+          }
+          #pageAziende .az-ac-loading,
+          #pageAziende .az-ac-empty,
+          #pageAziende .az-ac-err {
+            padding: 14px;
+            text-align: center;
+            font-size: 12.5px;
+            font-family: 'Comfortaa', sans-serif;
+          }
+          #pageAziende .az-ac-loading { color: #64748B; }
+          #pageAziende .az-ac-loading i { color: #EA580C; margin-right: 6px; }
+          #pageAziende .az-ac-empty { color: #94A3B8; font-style: italic; }
+          #pageAziende .az-ac-err { color: #DC2626; }
         </style>
 
-        <div class="page-header">
-          <h1 class="page-title">AZIENDE</h1>
+        <!-- Header pagina Aziende — titolo centrato con underline brand
+             gradient (stesso pattern di Amministrazione). -->
+        <div class="page-header" style="text-align:center;padding:var(--sp-6) 0 var(--sp-4);position:relative">
+          <h1 class="page-title" style="
+            font-family:var(--font-head);
+            font-size:1.85rem;
+            font-weight:700;
+            color:#1A1A1A;
+            text-transform:uppercase;
+            letter-spacing:2px;
+            margin:0 0 var(--sp-3) 0;
+            text-align:center;
+            display:inline-block;
+            position:relative">
+            Aziende
+            <span style="
+              position:absolute;
+              bottom:-8px;
+              left:50%;
+              transform:translateX(-50%);
+              width:80px;
+              height:4px;
+              background:linear-gradient(90deg, #F5C518 0%, #EA580C 100%);
+              border-radius:2px"></span>
+          </h1>
+          <p class="page-subtitle" style="
+            color:var(--text-muted);
+            font-size:var(--text-sm);
+            margin:var(--sp-4) auto 0;
+            max-width:640px;
+            text-align:center;
+            font-family:var(--font-body)">
+            Anagrafica aziende: ricerca live, filtri SOA, scadenze attestazioni, sostituzione e invio mail.
+          </p>
         </div>
 
         <div class="search-section compact">
-          <!-- Riga 1: Ragione Sociale (largo), Partita IVA, Codice Fiscale -->
+          <!-- Riga 1: Ragione Sociale (largo), Partita IVA, Codice Fiscale
+               TUTTI con autocomplete live dal DB. -->
           <div class="form-row" style="grid-template-columns: 2fr 1fr 1fr;">
             <div class="form-col" style="position:relative">
               <label>Ragione Sociale</label>
-              <input type="text" id="aziende-ragione" placeholder="es. Acme S.r.l. (digita per suggerimenti)" autocomplete="off" oninput="aziendeRagioneAutocomplete(this.value)">
-              <!-- Tendina suggerimenti autocomplete (popolata via JS) -->
-              <div id="aziende-ragione-ac" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;margin-top:4px;background:#fff;border:1px solid #d4dbe5;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,0.12);max-height:320px;overflow-y:auto"></div>
+              <input type="text" id="aziende-ragione"
+                placeholder="Digita per cercare per nome..."
+                autocomplete="off"
+                oninput="aziendeRagioneAutocomplete(this.value)">
+              <div id="aziende-ragione-ac" class="az-autocomplete" style="display:none"></div>
             </div>
-            <div class="form-col">
+            <div class="form-col" style="position:relative">
               <label>Partita IVA</label>
-              <input type="text" id="aziende-piva" placeholder="es. 12345678901">
+              <input type="text" id="aziende-piva"
+                placeholder="Digita per cercare per P.IVA..."
+                autocomplete="off"
+                oninput="aziendePivaAutocomplete(this.value)">
+              <div id="aziende-piva-ac" class="az-autocomplete" style="display:none"></div>
             </div>
-            <div class="form-col">
+            <div class="form-col" style="position:relative">
               <label>Codice Fiscale</label>
-              <input type="text" id="aziende-cf">
+              <input type="text" id="aziende-cf"
+                placeholder="Digita per cercare per CF..."
+                autocomplete="off"
+                oninput="aziendeCfAutocomplete(this.value)">
+              <div id="aziende-cf-ac" class="az-autocomplete" style="display:none"></div>
             </div>
           </div>
           <!-- Riga 2: CAP, Indirizzo, Città -->
@@ -27107,11 +27210,111 @@ async function aziendeRagioneAutocomplete(term) {
   }, 200);
 }
 
-// Chiusura tendina quando si clicca fuori
+// ============================================================
+// Autocomplete su Partita IVA
+// ============================================================
+let _aziendePivaAcTimer = null;
+async function aziendePivaAutocomplete(term) {
+  const box = document.getElementById('aziende-piva-ac');
+  if (!box) return;
+  const t = (term || '').trim();
+  if (t.length < 2) { box.style.display = 'none'; box.innerHTML = ''; return; }
+
+  box.innerHTML = '<div class="az-ac-loading"><i class="fas fa-spinner fa-spin"></i> Cerco P.IVA…</div>';
+  box.style.display = 'block';
+
+  clearTimeout(_aziendePivaAcTimer);
+  _aziendePivaAcTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/aziende/search-piva?term=${encodeURIComponent(t)}`, { headers: authHeaders() });
+      if (!res.ok) {
+        box.innerHTML = '<div class="az-ac-err">Errore (' + res.status + ')</div>';
+        return;
+      }
+      const data = await res.json();
+      const rows = data.risultati || [];
+      if (!rows.length) {
+        box.innerHTML = '<div class="az-ac-empty">Nessuna P.IVA trovata per "' + esc(t) + '"</div>';
+        return;
+      }
+      box.innerHTML = rows.slice(0, 12).map(a => `
+        <div class="az-ac-item"
+             data-piva="${esc(a.partita_iva || '')}"
+             data-nome="${esc(a.ragione_sociale || '')}">
+          <strong>${esc(a.partita_iva || '-')}</strong>
+          <span class="az-ac-sub">${esc(a.ragione_sociale || '-')}${a.citta ? ' · ' + esc(a.citta) : ''}</span>
+        </div>
+      `).join('');
+      box.querySelectorAll('.az-ac-item').forEach(it => {
+        it.addEventListener('click', () => {
+          document.getElementById('aziende-piva').value = it.dataset.piva;
+          box.style.display = 'none';
+          if (typeof searchAziende === 'function') searchAziende();
+        });
+      });
+    } catch (e) {
+      box.innerHTML = '<div class="az-ac-err">Errore: ' + esc(e.message) + '</div>';
+    }
+  }, 200);
+}
+
+// ============================================================
+// Autocomplete su Codice Fiscale
+// ============================================================
+let _aziendeCfAcTimer = null;
+async function aziendeCfAutocomplete(term) {
+  const box = document.getElementById('aziende-cf-ac');
+  if (!box) return;
+  const t = (term || '').trim();
+  if (t.length < 2) { box.style.display = 'none'; box.innerHTML = ''; return; }
+
+  box.innerHTML = '<div class="az-ac-loading"><i class="fas fa-spinner fa-spin"></i> Cerco codice fiscale…</div>';
+  box.style.display = 'block';
+
+  clearTimeout(_aziendeCfAcTimer);
+  _aziendeCfAcTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/aziende/search-cf?term=${encodeURIComponent(t)}`, { headers: authHeaders() });
+      if (!res.ok) {
+        box.innerHTML = '<div class="az-ac-err">Errore (' + res.status + ')</div>';
+        return;
+      }
+      const data = await res.json();
+      const rows = data.risultati || [];
+      if (!rows.length) {
+        box.innerHTML = '<div class="az-ac-empty">Nessun CF trovato per "' + esc(t) + '"</div>';
+        return;
+      }
+      box.innerHTML = rows.slice(0, 12).map(a => `
+        <div class="az-ac-item"
+             data-cf="${esc(a.codice_fiscale || '')}"
+             data-nome="${esc(a.ragione_sociale || '')}">
+          <strong>${esc(a.codice_fiscale || '-')}</strong>
+          <span class="az-ac-sub">${esc(a.ragione_sociale || '-')}${a.citta ? ' · ' + esc(a.citta) : ''}</span>
+        </div>
+      `).join('');
+      box.querySelectorAll('.az-ac-item').forEach(it => {
+        it.addEventListener('click', () => {
+          document.getElementById('aziende-cf').value = it.dataset.cf;
+          box.style.display = 'none';
+          if (typeof searchAziende === 'function') searchAziende();
+        });
+      });
+    } catch (e) {
+      box.innerHTML = '<div class="az-ac-err">Errore: ' + esc(e.message) + '</div>';
+    }
+  }, 200);
+}
+
+// Chiusura tendine quando si clicca fuori (per tutte le 3 ac di Aziende)
 document.addEventListener('click', (e) => {
-  const box = document.getElementById('aziende-ragione-ac');
-  const inp = document.getElementById('aziende-ragione');
-  if (box && inp && !box.contains(e.target) && e.target !== inp) box.style.display = 'none';
+  [['aziende-ragione-ac','aziende-ragione'],
+   ['aziende-piva-ac','aziende-piva'],
+   ['aziende-cf-ac','aziende-cf']].forEach(([boxId, inpId]) => {
+    const box = document.getElementById(boxId);
+    const inp = document.getElementById(inpId);
+    if (box && inp && !box.contains(e.target) && e.target !== inp) box.style.display = 'none';
+  });
 });
 
 async function albiRaccAziendaAutocomplete(term) {
