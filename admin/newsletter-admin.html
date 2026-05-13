@@ -253,28 +253,35 @@
     .chip.orange { background: #FFEDD5; color: #9A3412; }
     .chip.yellow { background: #FEF3C7; color: #92400E; }
 
-    /* ════════ Log table ════════ */
+    /* ════════ Log table (brand styled) ════════ */
     table.log-table {
       width: 100%;
       border-collapse: collapse;
+      font-family: 'Comfortaa', sans-serif;
       font-size: 12.5px;
+      background: #FFFFFF;
+    }
+    table.log-table thead {
+      background: linear-gradient(135deg, #FFFAF0 0%, #FEF9C3 100%);
     }
     table.log-table th {
-      background: #F8FAFC;
-      color: #64748B;
+      color: #78350F;
       font-size: 10.5px;
+      font-weight: 700;
       text-transform: uppercase;
       text-align: left;
-      padding: 11px 12px;
-      letter-spacing: 0.3px;
-      border-bottom: 2px solid #E2E8F0;
+      padding: 14px 14px;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #FCD34D;
     }
     table.log-table td {
-      padding: 10px 12px;
+      padding: 12px 14px;
       border-top: 1px solid #F1F5F9;
       color: #1A1A1A;
+      font-size: 13px;
     }
     table.log-table tr:hover td { background: #FFFAF0; }
+    table.log-table tbody tr:last-child td { border-bottom: none; }
     .pag-btn {
       margin: 0 2px;
       padding: 5px 12px;
@@ -709,126 +716,403 @@
     }
   </style>
 
-  <!-- ════════ TAB 2: INVIO MANUALE (parity legacy InviaNewsletter) ════════ -->
+  <!-- ════════ TAB 2: INVIO MANUALE ════════ -->
   <div id="tab-invio" class="tab-content">
-    <div class="bp-card">
+    <div class="bp-card sched-card">
       <h2><i class="fas fa-paper-plane"></i> Invio Manuale Newsletter</h2>
-      <p style="font-size:13px;color:#64748B;margin:0 0 18px">
+
+      <p class="nl-intro">
         Parity con legacy easywin.it: scegli tipo, data di riferimento, opzionalmente
         l'utente iniziale (riprende un invio interrotto) e un filtro utenti CSV.
-        La modalita' <b>dryRun</b> simula l'invio senza mandare email.
+        La modalità <b>dryRun</b> simula l'invio senza mandare email.
       </p>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label>Tipo</label>
-          <select id="inv-tipo">
-            <option value="bandi">Bandi</option>
-            <option value="esiti">Esiti</option>
-            <option value="both">Entrambi</option>
+      <!-- Riga 1: opzioni principali -->
+      <div class="nl-grid nl-grid-4">
+        <div class="nl-field">
+          <label class="nl-label">Tipo invio</label>
+          <select id="inv-tipo" class="nl-input">
+            <option value="bandi">📄 Bandi</option>
+            <option value="esiti">🏆 Esiti</option>
+            <option value="both">📦 Entrambi</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Data riferimento</label>
-          <input type="date" id="inv-data">
+        <div class="nl-field">
+          <label class="nl-label">Data riferimento</label>
+          <input type="date" id="inv-data" class="nl-input">
         </div>
-        <div class="form-group">
-          <label>Utente iniziale</label>
-          <input type="text" id="inv-utente-iniziale" placeholder="username (opzionale)">
-          <span class="helper">Invio agli utenti con username &ge; questo (riprendi invio interrotto)</span>
+        <div class="nl-field">
+          <label class="nl-label">Utente iniziale</label>
+          <input type="text" id="inv-utente-iniziale" class="nl-input" placeholder="username (opzionale)">
+          <span class="nl-helper">Invio agli utenti con username ≥ questo</span>
         </div>
-        <div class="form-group" style="align-self:end">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none">
-            <input type="checkbox" id="inv-dryrun" checked> Modalita test (dryRun)
+        <div class="nl-field nl-field-checkbox">
+          <label class="nl-toggle">
+            <input type="checkbox" id="inv-dryrun" checked>
+            <span class="nl-toggle-slider"></span>
+            <span class="nl-toggle-text">Modalità test (dryRun)</span>
           </label>
+          <span class="nl-helper">Simula l'invio, no email reali</span>
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group full">
-          <label>Filtro utenti (CSV o spazi)</label>
-          <textarea id="inv-filtro-utenti" placeholder="Inserire pochi utenti per volta (es: mario.rossi, gino.bianchi). Lascia vuoto per inviare a tutti."></textarea>
-          <span class="helper">Parity legacy &laquo;Utenti&raquo;: separa con virgola, punto e virgola, newline o spazio.</span>
+      <!-- Riga 2: filtro utenti (full width) -->
+      <div class="nl-grid nl-grid-1" style="margin-top:18px">
+        <div class="nl-field">
+          <label class="nl-label">Filtro utenti (lista CSV)</label>
+          <textarea id="inv-filtro-utenti" class="nl-input nl-textarea"
+            placeholder="Lascia vuoto per inviare a tutti. Es: mario.rossi, gino.bianchi"></textarea>
+          <span class="nl-helper">Parity legacy «Utenti»: separa con virgola, punto e virgola, newline o spazio.</span>
         </div>
       </div>
 
-      <div style="margin-top:8px">
-        <button class="big-btn gradient" id="inv-send-btn" onclick="inviaManuale()">
-          <i class="fas fa-paper-plane"></i> Invia Ora
+      <!-- Pulsante CTA grosso -->
+      <div class="nl-actions" style="margin-top:22px">
+        <button class="nl-cta-btn" id="inv-send-btn" onclick="inviaManuale()">
+          <i class="fas fa-paper-plane"></i> Invia Newsletter
         </button>
       </div>
-      <div id="inv-output" class="output-box"></div>
+
+      <div id="inv-output" class="nl-output"></div>
     </div>
   </div>
 
   <!-- ════════ TAB 3: LOG INVII ════════ -->
   <div id="tab-log" class="tab-content">
-    <div class="bp-card">
+    <div class="bp-card sched-card">
       <h2><i class="fas fa-history"></i> Log Invii Recenti</h2>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Tipo</label>
-          <select id="log-tipo" onchange="loadLog()">
+
+      <!-- Filtri come stat-card -->
+      <div class="nl-grid nl-grid-3">
+        <div class="nl-field">
+          <label class="nl-label">Filtra per tipo</label>
+          <select id="log-tipo" class="nl-input" onchange="loadLog()">
             <option value="">Tutti</option>
-            <option value="bandi_auto">Bandi Auto</option>
-            <option value="esiti_auto">Esiti Auto</option>
-            <option value="bandi">Bandi Manuale</option>
-            <option value="esiti">Esiti Manuale</option>
+            <option value="bandi_auto">📄 Bandi Auto</option>
+            <option value="esiti_auto">🏆 Esiti Auto</option>
+            <option value="bandi">✉ Bandi Manuale</option>
+            <option value="esiti">✉ Esiti Manuale</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Esito</label>
-          <select id="log-esito" onchange="loadLog()">
+        <div class="nl-field">
+          <label class="nl-label">Filtra per esito</label>
+          <select id="log-esito" class="nl-input" onchange="loadLog()">
             <option value="">Tutti</option>
-            <option value="ok">Solo OK</option>
-            <option value="err">Solo Errori</option>
+            <option value="ok">✓ Solo OK</option>
+            <option value="err">✗ Solo Errori</option>
           </select>
         </div>
-        <button class="bp-btn primary" onclick="loadLog()"><i class="fas fa-sync"></i> Aggiorna</button>
+        <div class="nl-field nl-field-action">
+          <button class="nl-cta-btn nl-cta-btn-sm" onclick="loadLog()">
+            <i class="fas fa-sync"></i> Aggiorna
+          </button>
+        </div>
       </div>
-      <div id="log-table" style="margin-top:14px">Caricamento...</div>
-      <div id="log-pag" style="margin-top:14px;text-align:center"></div>
+
+      <div id="log-table" class="nl-table-wrap" style="margin-top:18px">
+        <div class="nl-loading"><i class="fas fa-spinner fa-spin"></i> Caricamento...</div>
+      </div>
+      <div id="log-pag" class="nl-pag"></div>
     </div>
   </div>
 
   <!-- ════════ TAB 4: ANTEPRIMA ════════ -->
   <div id="tab-anteprima" class="tab-content">
-    <div class="bp-card">
+    <div class="bp-card sched-card">
       <h2><i class="fas fa-eye"></i> Anteprima Newsletter per Utente</h2>
-      <div class="form-row">
-        <div class="form-group" style="position:relative">
-          <label>Utente</label>
-          <input type="text" id="ant-user" placeholder="Cerca utente..." oninput="searchUser(this.value)" autocomplete="off">
+
+      <p class="nl-intro">
+        Genera l'anteprima esatta della newsletter che riceverà un utente specifico,
+        applicando i suoi filtri personalizzati. Puoi anche inviarla via mail per test.
+      </p>
+
+      <div class="nl-grid nl-grid-4">
+        <div class="nl-field" style="position:relative">
+          <label class="nl-label">Utente</label>
+          <input type="text" id="ant-user" class="nl-input"
+            placeholder="Cerca utente..." oninput="searchUser(this.value)" autocomplete="off">
           <div id="ant-user-results" class="search-results" style="display:none"></div>
         </div>
-        <div class="form-group">
-          <label>Tipo</label>
-          <select id="ant-tipo">
-            <option value="bandi">Bandi</option>
-            <option value="esiti">Esiti</option>
+        <div class="nl-field">
+          <label class="nl-label">Tipo</label>
+          <select id="ant-tipo" class="nl-input">
+            <option value="bandi">📄 Bandi</option>
+            <option value="esiti">🏆 Esiti</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Data</label>
-          <input type="date" id="ant-data">
+        <div class="nl-field">
+          <label class="nl-label">Data</label>
+          <input type="date" id="ant-data" class="nl-input">
         </div>
-        <button class="big-btn gradient" onclick="generaAnteprima()"><i class="fas fa-magic"></i> Genera Anteprima</button>
+        <div class="nl-field nl-field-action">
+          <button class="nl-cta-btn nl-cta-btn-sm" onclick="generaAnteprima()">
+            <i class="fas fa-magic"></i> Genera
+          </button>
+        </div>
       </div>
-      <div id="ant-info" style="margin-top:10px;font-size:12.5px;color:#64748B"></div>
-      <div style="margin-top:16px">
+
+      <div id="ant-info" class="nl-info-bar"></div>
+
+      <div class="nl-preview-wrap">
         <iframe id="ant-frame" class="preview-frame" style="display:none"></iframe>
       </div>
-      <div class="form-row" style="margin-top:14px">
-        <div class="form-group">
-          <label>Invia anteprima a email</label>
-          <input type="email" id="ant-email" placeholder="admin@easywin.it">
+
+      <!-- Invia a email custom -->
+      <div class="nl-test-mail">
+        <div class="nl-test-mail-title">
+          <i class="fas fa-paper-plane"></i> Invia anteprima via mail
         </div>
-        <button class="bp-btn success" onclick="inviaAnteprima()"><i class="fas fa-envelope"></i> Invia a me stesso</button>
+        <div class="nl-grid nl-grid-3">
+          <div class="nl-field" style="grid-column:span 2">
+            <label class="nl-label">Indirizzo email</label>
+            <input type="email" id="ant-email" class="nl-input" placeholder="admin@easywin.it">
+          </div>
+          <div class="nl-field nl-field-action">
+            <button class="nl-cta-btn-success" onclick="inviaAnteprima()">
+              <i class="fas fa-envelope"></i> Invia a me
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
 </div>
+
+<style>
+  /* ═══════════ TABS 2-4 REDESIGN (stesso stile Scheduler) ═══════════ */
+
+  .nl-intro {
+    font-family: 'Comfortaa', sans-serif;
+    font-size: 13.5px;
+    color: #64748B;
+    line-height: 1.6;
+    margin: 0 0 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #F1F5F9;
+  }
+  .nl-intro b { color: #1A1A1A; font-weight: 700; }
+
+  /* Grid layout uniforme */
+  .nl-grid {
+    display: grid;
+    gap: 16px;
+    align-items: stretch;
+  }
+  .nl-grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .nl-grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .nl-grid-1 { grid-template-columns: 1fr; }
+
+  .nl-field { display: flex; flex-direction: column; gap: 6px; }
+  .nl-field-action { justify-content: flex-end; }
+  .nl-field-checkbox {
+    background: linear-gradient(135deg, #FFFAF0 0%, #FEF9C3 100%);
+    border: 1.5px solid #FCD34D;
+    border-radius: 12px;
+    padding: 12px 16px;
+    justify-content: center;
+  }
+
+  .nl-label {
+    font-family: 'Comfortaa', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #64748B;
+    text-transform: uppercase;
+  }
+
+  .nl-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 14px;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 10px;
+    background: #FFFFFF;
+    font-family: 'Comfortaa', sans-serif;
+    font-size: 13.5px;
+    color: #1A1A1A;
+    transition: all 0.15s;
+  }
+  .nl-input:hover { border-color: #FCD34D; }
+  .nl-input:focus {
+    outline: none;
+    border-color: #EA580C;
+    box-shadow: 0 0 0 3px rgba(234,88,12,0.15);
+  }
+  .nl-textarea { min-height: 80px; resize: vertical; font-family: 'Comfortaa', sans-serif; }
+
+  .nl-helper {
+    font-size: 11px;
+    color: #94A3B8;
+    font-family: 'Inter', sans-serif;
+    margin-top: 2px;
+    font-style: italic;
+  }
+
+  /* Toggle modalità test */
+  .nl-toggle {
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 600;
+    color: #78350F;
+    user-select: none;
+  }
+  .nl-toggle input { display: none; }
+  .nl-toggle-slider {
+    width: 42px; height: 24px;
+    background: #CBD5E1;
+    border-radius: 12px;
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .nl-toggle-slider::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 20px; height: 20px;
+    background: #FFFFFF;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    transition: transform 0.2s;
+  }
+  .nl-toggle input:checked + .nl-toggle-slider {
+    background: linear-gradient(90deg, #F5C518, #EA580C);
+  }
+  .nl-toggle input:checked + .nl-toggle-slider::after { transform: translateX(18px); }
+  .nl-toggle-text { font-size: 13px; }
+
+  /* CTA buttons (gradient brand) */
+  .nl-actions { display: flex; gap: 10px; align-items: center; }
+  .nl-cta-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 14px 32px;
+    background: linear-gradient(90deg, #F5C518 0%, #EA580C 100%);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 9999px;
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(234,88,12,0.30);
+    transition: all 0.15s;
+  }
+  .nl-cta-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px rgba(234,88,12,0.45);
+    filter: brightness(1.05) saturate(1.05);
+  }
+  .nl-cta-btn:active { transform: translateY(0); filter: brightness(0.96); }
+  .nl-cta-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .nl-cta-btn-sm {
+    padding: 11px 22px;
+    font-size: 13px;
+  }
+  .nl-cta-btn-success {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 11px 22px;
+    background: linear-gradient(90deg, #16A34A 0%, #22C55E 100%);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 9999px;
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(22,163,74,0.30);
+    transition: all 0.15s;
+  }
+  .nl-cta-btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(22,163,74,0.42);
+  }
+
+  /* Output box log */
+  .nl-output {
+    background: #1A1A1A;
+    color: #FBC42A;
+    padding: 18px 22px;
+    border-radius: 12px;
+    border: 1px solid #2D2D2D;
+    font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    max-height: 360px;
+    overflow-y: auto;
+    display: none;
+    margin-top: 18px;
+  }
+  .nl-output::-webkit-scrollbar { width: 6px; }
+  .nl-output::-webkit-scrollbar-thumb { background: #EA580C; border-radius: 3px; }
+
+  /* Log table */
+  .nl-table-wrap {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .nl-loading {
+    padding: 40px 20px;
+    text-align: center;
+    font-family: 'Comfortaa', sans-serif;
+    color: #94A3B8;
+    font-size: 14px;
+  }
+  .nl-loading i { font-size: 24px; color: #EA580C; margin-right: 10px; }
+  .nl-pag { margin-top: 16px; text-align: center; }
+
+  /* Info bar anteprima */
+  .nl-info-bar {
+    margin-top: 18px;
+    padding: 14px 18px;
+    background: #FFFAF0;
+    border: 1px solid #FED7AA;
+    border-radius: 12px;
+    font-family: 'Comfortaa', sans-serif;
+    font-size: 13px;
+    color: #1A1A1A;
+    min-height: 22px;
+    display: none;
+  }
+  .nl-info-bar:not(:empty) { display: block; }
+
+  .nl-preview-wrap { margin-top: 18px; }
+
+  /* Test mail box (anteprima) */
+  .nl-test-mail {
+    margin-top: 24px;
+    padding: 18px 22px;
+    background: linear-gradient(135deg, #FFFAF0 0%, #FEF9C3 100%);
+    border: 1.5px dashed #FCD34D;
+    border-radius: 14px;
+  }
+  .nl-test-mail-title {
+    font-family: 'Comfortaa', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #78350F;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .nl-test-mail-title i { color: #EA580C; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .nl-grid-4 { grid-template-columns: 1fr 1fr; }
+    .nl-grid-3 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .nl-grid-4 { grid-template-columns: 1fr; }
+  }
+</style>
 
 <div id="bp-toast" class="bp-toast"></div>
 
