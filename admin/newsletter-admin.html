@@ -185,7 +185,7 @@
     .bp-toast.err { background: linear-gradient(90deg, #DC2626, #EF4444); }
 
     /* ════════ Form ════════ */
-    .form-row { display: flex; gap: 16px; align-items: end; flex-wrap: wrap; margin-bottom: 14px; }
+    .form-row { display: flex; gap: 20px; align-items: end; flex-wrap: wrap; margin-bottom: 14px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group.full { width: 100%; }
     .form-group label {
@@ -499,20 +499,214 @@
 
   <!-- ════════ TAB 1: SCHEDULER ════════ -->
   <div id="tab-scheduler" class="tab-content active">
-    <div class="bp-card">
+    <div class="bp-card sched-card">
       <h2><i class="fas fa-cog"></i> Stato Scheduler Newsletter</h2>
-      <div id="scheduler-status" style="color:#64748B">Caricamento...</div>
-      <div class="form-row" style="margin-top:18px">
-        <div class="form-group">
-          <label>Orario invio (HH:MM)</label>
-          <input type="time" id="sched-ora" value="04:00">
+
+      <!-- Status grid: ATTIVO/DISATTIVO + 4 info cards -->
+      <div id="scheduler-status" class="sched-status-grid">Caricamento...</div>
+
+      <!-- Time picker custom + 3 azioni -->
+      <div class="sched-controls">
+        <div class="sched-time-wrap">
+          <label class="sched-time-label">Orario invio</label>
+          <div class="sched-time-display" id="sched-time-display" onclick="toggleTimePicker()">
+            <span class="sched-time-h" id="sched-time-h">04</span>
+            <span class="sched-time-sep">:</span>
+            <span class="sched-time-m" id="sched-time-m">00</span>
+            <i class="fas fa-clock sched-time-icon"></i>
+          </div>
+          <input type="hidden" id="sched-ora" value="04:00">
+
+          <!-- Custom popup picker -->
+          <div class="sched-picker" id="sched-picker">
+            <div class="sched-picker-col">
+              <div class="sched-picker-head">HH</div>
+              <div class="sched-picker-list" id="sched-hours"></div>
+            </div>
+            <div class="sched-picker-col">
+              <div class="sched-picker-head">MM</div>
+              <div class="sched-picker-list" id="sched-minutes"></div>
+            </div>
+          </div>
         </div>
-        <button class="bp-btn success" onclick="toggleScheduler(true)"><i class="fas fa-play"></i> Attiva</button>
-        <button class="bp-btn danger" onclick="toggleScheduler(false)"><i class="fas fa-stop"></i> Disattiva</button>
-        <button class="bp-btn primary" onclick="saveSchedulerTime()"><i class="fas fa-save"></i> Salva Orario</button>
+
+        <div class="sched-actions">
+          <button class="bp-btn success" onclick="toggleScheduler(true)"><i class="fas fa-play"></i> Attiva</button>
+          <button class="bp-btn danger" onclick="toggleScheduler(false)"><i class="fas fa-stop"></i> Disattiva</button>
+          <button class="bp-btn primary" onclick="saveSchedulerTime()"><i class="fas fa-save"></i> Salva Orario</button>
+        </div>
       </div>
     </div>
   </div>
+
+  <style>
+    /* ───────── Scheduler card redesign (Comfortaa + brand) ───────── */
+    .sched-card { background: #ffffff; }
+    .sched-status-grid {
+      display: grid;
+      grid-template-columns: 220px repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .sched-stat {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: 'Comfortaa', sans-serif;
+    }
+    .sched-stat-lbl {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748B;
+      font-weight: 700;
+    }
+    .sched-stat-val {
+      font-size: 14px;
+      color: #1A1A1A;
+      font-weight: 600;
+    }
+    .sched-status-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 9999px;
+      font-family: 'Comfortaa', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      width: fit-content;
+    }
+    .sched-status-badge.attivo {
+      background: linear-gradient(90deg, #DCFCE7 0%, #BBF7D0 100%);
+      color: #15803D;
+      border: 1.5px solid #86EFAC;
+    }
+    .sched-status-badge.disattivo {
+      background: linear-gradient(90deg, #FEE2E2 0%, #FECACA 100%);
+      color: #991B1B;
+      border: 1.5px solid #FCA5A5;
+    }
+
+    .sched-controls {
+      display: flex; align-items: end; gap: 22px;
+      padding-top: 18px;
+      border-top: 1px solid #F1F5F9;
+      flex-wrap: wrap;
+    }
+    .sched-time-wrap { position: relative; }
+    .sched-time-label {
+      display: block;
+      font-family: 'Comfortaa', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #64748B;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .sched-time-display {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: linear-gradient(135deg, #FFFAF0 0%, #FEF9C3 100%);
+      border: 2px solid #FCD34D;
+      border-radius: 14px;
+      padding: 14px 20px;
+      font-family: 'Comfortaa', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      color: #1A1A1A;
+      cursor: pointer;
+      transition: all 0.15s;
+      min-width: 160px;
+    }
+    .sched-time-display:hover {
+      border-color: #EA580C;
+      box-shadow: 0 4px 14px rgba(234,88,12,0.20);
+    }
+    .sched-time-display.open {
+      border-color: #EA580C;
+      box-shadow: 0 0 0 4px rgba(234,88,12,0.12);
+    }
+    .sched-time-sep { opacity: 0.5; margin: 0 4px; }
+    .sched-time-icon {
+      margin-left: auto;
+      font-size: 18px;
+      color: #C2410C;
+    }
+
+    .sched-picker {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      background: #ffffff;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 14px;
+      box-shadow: 0 12px 32px rgba(15,23,42,0.18);
+      padding: 12px;
+      z-index: 100;
+      gap: 4px;
+      font-family: 'Comfortaa', sans-serif;
+    }
+    .sched-picker.open { display: flex; }
+    .sched-picker-col { display: flex; flex-direction: column; align-items: stretch; }
+    .sched-picker-head {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #94A3B8;
+      font-weight: 700;
+      text-align: center;
+      padding: 4px 0 8px;
+    }
+    .sched-picker-list {
+      max-height: 220px;
+      overflow-y: auto;
+      width: 56px;
+      scrollbar-width: thin;
+    }
+    .sched-picker-list::-webkit-scrollbar { width: 6px; }
+    .sched-picker-list::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #F5C518, #EA580C);
+      border-radius: 3px;
+    }
+    .sched-picker-item {
+      text-align: center;
+      padding: 8px 0;
+      font-family: 'Comfortaa', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1A1A1A;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.1s;
+    }
+    .sched-picker-item:hover { background: #FFFAF0; color: #EA580C; }
+    .sched-picker-item.selected {
+      background: linear-gradient(90deg, #F5C518, #EA580C);
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .sched-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .sched-actions .bp-btn {
+      padding: 12px 22px;
+      font-size: 13.5px;
+      font-family: 'Comfortaa', sans-serif;
+      letter-spacing: 0.3px;
+    }
+
+    /* Responsive: stack su schermi piccoli */
+    @media (max-width: 900px) {
+      .sched-status-grid { grid-template-columns: 1fr 1fr; }
+      .sched-controls { flex-direction: column; align-items: stretch; }
+      .sched-time-display { width: 100%; }
+    }
+  </style>
 
   <!-- ════════ TAB 2: INVIO MANUALE (parity legacy InviaNewsletter) ════════ -->
   <div id="tab-invio" class="tab-content">
@@ -679,7 +873,8 @@ async function loadSchedulerStatus() {
     const task = await r.json();
     if (task.error) {
       document.getElementById('scheduler-status').innerHTML =
-        '<span class="chip red">Non configurato</span> &mdash; Il task newsletter_auto non esiste ancora.';
+        '<div class="sched-status-badge disattivo"><i class="fas fa-times-circle"></i> Non configurato</div>'
+       +'<div class="sched-stat" style="grid-column:span 4"><div class="sched-stat-val">Il task newsletter_auto non esiste ancora.</div></div>';
       return;
     }
     const attivo = task.attivo;
@@ -690,21 +885,125 @@ async function loadSchedulerStatus() {
     const prossima = task.prossima_esecuzione ? new Date(task.prossima_esecuzione).toLocaleString('it-IT') : '—';
 
     document.getElementById('scheduler-status').innerHTML = `
-      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
-        <div class="stat-box"><span class="chip ${attivo ? 'green' : 'red'}">${attivo ? 'ATTIVO' : 'DISATTIVATO'}</span></div>
-        <div class="stat-box"><div><div class="lbl">Orario</div><div class="num">${esc(ora)}</div></div></div>
-        <div class="stat-box"><div><div class="lbl">Ultima esecuzione</div><div class="num" style="font-size:13px">${esc(ultima)}</div></div></div>
-        <div class="stat-box"><div><div class="lbl">Stato</div><div class="num" style="font-size:13px">${esc(stato)}</div></div></div>
-        <div class="stat-box"><div><div class="lbl">Prossima</div><div class="num" style="font-size:13px">${esc(prossima)}</div></div></div>
+      <div class="sched-status-badge ${attivo ? 'attivo' : 'disattivo'}">
+        <i class="fas fa-${attivo ? 'check-circle' : 'times-circle'}"></i> ${attivo ? 'ATTIVO' : 'DISATTIVATO'}
       </div>
-      ${msg ? '<div style="margin-top:10px;font-size:12px;color:#64748B">' + esc(msg) + '</div>' : ''}
+      <div class="sched-stat">
+        <div class="sched-stat-lbl">Orario</div>
+        <div class="sched-stat-val">${esc(ora)}</div>
+      </div>
+      <div class="sched-stat">
+        <div class="sched-stat-lbl">Ultima esecuzione</div>
+        <div class="sched-stat-val">${esc(ultima)}</div>
+      </div>
+      <div class="sched-stat">
+        <div class="sched-stat-lbl">Stato</div>
+        <div class="sched-stat-val">${esc(stato)}</div>
+      </div>
+      <div class="sched-stat">
+        <div class="sched-stat-lbl">Prossima</div>
+        <div class="sched-stat-val">${esc(prossima)}</div>
+      </div>
     `;
-    document.getElementById('sched-ora').value = ora;
+
+    if (msg) {
+      const note = document.createElement('div');
+      note.style.cssText = 'grid-column:1/-1;margin-top:6px;font-size:12px;color:#64748B;font-family:Comfortaa,sans-serif';
+      note.textContent = msg;
+      document.getElementById('scheduler-status').appendChild(note);
+    }
+
+    // Sincronizza time picker custom
+    setSchedTime(ora);
   } catch (e) {
     document.getElementById('scheduler-status').innerHTML =
-      '<span class="chip red">Errore</span> ' + esc(e.message);
+      '<div class="sched-status-badge disattivo"><i class="fas fa-exclamation-triangle"></i> Errore</div>'
+     +'<div class="sched-stat" style="grid-column:span 4"><div class="sched-stat-val">' + esc(e.message) + '</div></div>';
   }
 }
+
+// === Time picker custom ===
+function setSchedTime(hhmm) {
+  const [h, m] = (hhmm || '04:00').split(':');
+  document.getElementById('sched-time-h').textContent = (h || '04').padStart(2, '0');
+  document.getElementById('sched-time-m').textContent = (m || '00').padStart(2, '0');
+  document.getElementById('sched-ora').value = (h || '04').padStart(2, '0') + ':' + (m || '00').padStart(2, '0');
+}
+
+function getSchedTime() {
+  return document.getElementById('sched-ora').value || '04:00';
+}
+
+function toggleTimePicker() {
+  const picker = document.getElementById('sched-picker');
+  const display = document.getElementById('sched-time-display');
+  const open = picker.classList.toggle('open');
+  display.classList.toggle('open', open);
+  if (open) populateTimePicker();
+}
+
+function populateTimePicker() {
+  const hoursEl = document.getElementById('sched-hours');
+  const minutesEl = document.getElementById('sched-minutes');
+  if (hoursEl.children.length > 0) {
+    // già popolato, aggiorno solo il "selected"
+    updateTimePickerSelection();
+    return;
+  }
+  // Genera ore 00-23
+  for (let h = 0; h < 24; h++) {
+    const div = document.createElement('div');
+    div.className = 'sched-picker-item';
+    div.textContent = String(h).padStart(2, '0');
+    div.onclick = () => {
+      setSchedTime(div.textContent + ':' + document.getElementById('sched-time-m').textContent);
+      updateTimePickerSelection();
+    };
+    hoursEl.appendChild(div);
+  }
+  // Genera minuti ogni 5 (00, 05, 10, ..., 55) — granularità tipica per scheduler
+  for (let m = 0; m < 60; m += 5) {
+    const div = document.createElement('div');
+    div.className = 'sched-picker-item';
+    div.textContent = String(m).padStart(2, '0');
+    div.onclick = () => {
+      setSchedTime(document.getElementById('sched-time-h').textContent + ':' + div.textContent);
+      updateTimePickerSelection();
+    };
+    minutesEl.appendChild(div);
+  }
+  updateTimePickerSelection();
+  scrollSelectedIntoView();
+}
+
+function updateTimePickerSelection() {
+  const [h, m] = getSchedTime().split(':');
+  document.querySelectorAll('#sched-hours .sched-picker-item').forEach(it => {
+    it.classList.toggle('selected', it.textContent === h);
+  });
+  document.querySelectorAll('#sched-minutes .sched-picker-item').forEach(it => {
+    it.classList.toggle('selected', it.textContent === m);
+  });
+}
+
+function scrollSelectedIntoView() {
+  setTimeout(() => {
+    document.querySelectorAll('.sched-picker-list .selected').forEach(el => {
+      el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    });
+  }, 50);
+}
+
+// Chiudi picker al click fuori
+document.addEventListener('click', (e) => {
+  const picker = document.getElementById('sched-picker');
+  const display = document.getElementById('sched-time-display');
+  if (!picker || !display) return;
+  if (picker.classList.contains('open') && !picker.contains(e.target) && !display.contains(e.target)) {
+    picker.classList.remove('open');
+    display.classList.remove('open');
+  }
+});
 
 async function toggleScheduler(attivo) {
   // Conferma: parity legacy "Conferma sistemazione..."

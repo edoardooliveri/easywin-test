@@ -9305,9 +9305,13 @@ function getSubNavItems(section) {
       { label: 'Fatturazione', action: () => selectSubPage('utenti', 'fatturazione') }
     ];
     case 'amministrazione': return [
-      { label: 'Generale', action: () => selectSubPage('amministrazione', 'generale') },
-      { label: 'Newsletter', action: () => selectSubPage('amministrazione', 'newsletter') },
-      { label: 'Stato Servizi', action: () => selectSubPage('amministrazione', 'stato-servizi') }
+      // Le 3 tab corrispondono ai 3 tab interni di pageAmministrazione.
+      // NON usiamo selectSubPage (manca mapping in pageMap), chiamiamo
+      // direttamente switchAdminTab — stessa funzione delle tab inferiori,
+      // così navigation top e tab interne restano sincronizzate.
+      { label: 'Generale',     action: () => { if(typeof switchAdminTab==='function') switchAdminTab('generale'); } },
+      { label: 'Newsletter',   action: () => { if(typeof switchAdminTab==='function') switchAdminTab('newsletter-admin'); } },
+      { label: 'Stato Servizi',action: () => { if(typeof switchAdminTab==='function') switchAdminTab('stato-servizi'); } }
     ];
     case 'ricerca-doppia': return [
       { label: 'Ricerca Doppia', action: () => selectSubPage('ricerca-doppia', 'ricerca-doppia') },
