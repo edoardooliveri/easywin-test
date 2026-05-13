@@ -2543,10 +2543,8 @@ button:not(.bn-act):not(.bix-act-btn):not(.ute-iconbtn):not(.ew-btn):not(.flatpi
       </div>
     </div>
     <nav class="sidebar-nav">
-      <button class="nav-item" data-section="utenti" onclick="Router.navigate('/utenti')" title="Gestione utenti del sito">
-        <i class="fas fa-users"></i>
-        <span>HOME UTENTI</span>
-      </button>
+      <!-- 1. Area Clienti = portale clienti (SaaS frontend in /clienti).
+           Apre in nuova scheda. PRIMA voce della sidebar. -->
       <button class="nav-item" onclick="window.open('../clienti/index.html', '_blank')" title="Apri l'area clienti in una nuova scheda">
         <i class="fas fa-external-link-alt"></i>
         <span>Area Clienti</span>
@@ -2571,10 +2569,16 @@ button:not(.bn-act):not(.bix-act-btn):not(.ute-iconbtn):not(.ew-btn):not(.flatpi
         <i class="fas fa-list-check"></i>
         <span>Esiti</span>
       </button>
-      <!-- Voce "Utenti" rimossa: ora si accede alla sezione dal pulsante HOME UTENTI in cima alla sidebar. -->
       <button class="nav-item" data-section="ricerca-doppia" onclick="Router.navigate('/ricerca-doppia')">
         <i class="fas fa-search"></i>
         <span>Ricerca Doppia</span>
+      </button>
+      <!-- 8. Utenti = sezione admin di gestione utenti (anagrafica, abbonamenti,
+           fatturazione, ecc.). Era "HOME UTENTI" in cima alla sidebar,
+           ora rinominata "Utenti" e spostata in posizione 8 come nel legacy. -->
+      <button class="nav-item" data-section="utenti" onclick="Router.navigate('/utenti')" title="Gestione utenti del sito (anagrafica, abbonamenti, fatturazione)">
+        <i class="fas fa-users"></i>
+        <span>Utenti</span>
       </button>
       <div style="border-left:1px solid rgba(255,255,255,0.1);margin:12px 4px;align-self:stretch;"></div>
       <button class="nav-item" data-section="albi-fornitori" onclick="Router.navigate('/albi-fornitori')" style="position:relative">
@@ -16219,21 +16223,61 @@ async function searchFatturazione() {
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Ricerca in corso...</p></div>';
   try {
     const params = new URLSearchParams();
-    const search = document.getElementById('fatturazione-search')?.value;
+    const search = document.getElementById('fatturazione-search')?.value?.trim();
     if (search) params.set('search', search);
+    const agente = document.getElementById('fatturazione-agente')?.value;
+    if (agente) params.set('agente', agente);
+    const da = document.getElementById('fatturazione-da')?.value;
+    if (da) params.set('data_da', da);
+    const a = document.getElementById('fatturazione-a')?.value;
+    if (a) params.set('data_a', a);
     const stato = document.getElementById('fatturazione-stato')?.value;
     if (stato) params.set('stato', stato);
-    const username = document.getElementById('fatturazione-search')?.value;
-    const res = await fetch(`${API_BASE}/admin/utenti/${username || 'all'}/fatture?${params}`, { headers: authHeaders() });
+
+    const res = await fetch(`${API_BASE}/admin/fatturazione?${params}`, { headers: authHeaders() });
     if (!res.ok) throw new Error('API non disponibile');
     const data = await res.json();
-    const rows = data.data || data;
-    if (!rows.length) { container.innerHTML = '<div class="empty-state"><i class="fas fa-file-invoice-dollar"></i><p>Nessun risultato di fatturazione trovato</p></div>'; return; }
-    let html = '<table class="admin-table"><thead><tr><th>Utente</th><th>Azienda</th><th>Importo</th><th>Stato</th><th>Data</th></tr></thead><tbody>';
-    rows.forEach(r => { html += `<tr><td>${esc(r.utente || '-')}</td><td>${esc(r.azienda || '-')}</td><td>${fmtImporto(r.importo)}</td><td><span class="status-badge ${r.stato === 'pagato' ? 'active' : 'expired'}">${esc(r.stato || '-')}</span></td><td>${fmtDate(r.data)}</td></tr>`; });
+    const rows = data.data || [];
+    if (!rows.length) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-file-invoice-dollar"></i><p>Nessuna fattura trovata</p></div>';
+      return;
+    }
+    const totalLabel = (data.total != null && data.total !== rows.length)
+      ? ` <span style="color:var(--text-muted);font-weight:400">(prime ${rows.length} di ${data.total})</span>`
+      : '';
+    const today = new Date(); today.setHours(0,0,0,0);
+    let html = `<div style="margin:8px 0 12px;font-size:13px;color:var(--text)"><strong>${rows.length}</strong> risultat${rows.length === 1 ? 'o' : 'i'}${totalLabel}</div>`;
+    html += '<table class="admin-table"><thead><tr><th>Numero</th><th>Tipo</th><th>Utente</th><th>Azienda</th><th>Data</th><th style="text-align:right">Importo</th><th style="text-align:right">Totale</th><th>Stato</th></tr></thead><tbody>';
+    rows.forEach(r => {
+      const totale = (r.totale != null) ? r.totale : ((parseFloat(r.importo) || 0) * (1 + (parseFloat(r.iva) || 0) / 100));
+      let statoLabel = 'Non pagato', statoCls = 'expired';
+      if (r.pagata) { statoLabel = 'Pagato'; statoCls = 'active'; }
+      else if (r.data) {
+        const d = new Date(r.data);
+        const diff = (today - d) / 86400000;
+        if (diff > 30) { statoLabel = 'Scaduto'; statoCls = 'expired'; }
+        else { statoLabel = 'In scadenza'; statoCls = 'pending'; }
+      }
+      const utente = r.utente_nome
+        ? `${esc(r.utente_nome)} <span style="color:var(--text-muted);font-size:11px">(${esc(r.username)})</span>`
+        : esc(r.username || '-');
+      html += `<tr>
+        <td>${esc(r.numero || '-')}</td>
+        <td>${esc(r.tipo || 'fattura')}</td>
+        <td>${utente}</td>
+        <td>${esc(r.azienda || '-')}</td>
+        <td>${fmtDate(r.data)}</td>
+        <td style="text-align:right">${fmtImporto(r.importo)}</td>
+        <td style="text-align:right">${fmtImporto(totale)}</td>
+        <td><span class="status-badge ${statoCls}">${statoLabel}</span></td>
+      </tr>`;
+    });
     html += '</tbody></table>';
     container.innerHTML = html;
-  } catch (err) { container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>API non ancora disponibile</p></div>'; }
+  } catch (err) {
+    console.error('Fatturazione search error:', err);
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Errore nel caricamento delle fatture</p></div>';
+  }
 }
 
 function resetFatturazioneSearch() {
