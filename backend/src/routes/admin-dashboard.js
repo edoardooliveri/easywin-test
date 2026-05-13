@@ -414,13 +414,27 @@ export default async function adminDashboardRoutes(fastify, opts) {
   });
 
   // GET /api/admin/dashboard/attivita-recente - Recent activity log
+  // NB: migration 036 ha eliminato bandi_modifiche → usiamo bandimodifiche.
+  // Schema reale (post-036):
+  //   bandimodifiche: id, id_bando TEXT, user_name, modifiche, data
+  //   gare_modifiche: id, id_gara INT, campo, valore_precedente, valore_nuovo,
+  //                    username, data_modifica
+  // Le colonne sono diverse → alias-iamo per uniformare il payload al frontend.
   fastify.get('/dashboard/attivita-recente', async (request, reply) => {
     try {
       const result = await query(`
-        SELECT 'bando' AS tipo, id, data_modifica AS data_modifica, modified_by AS modified_by, codice_cig AS riferimento
-        FROM bandi_modifiche
+        SELECT 'bando'::text AS tipo,
+               id,
+               data AS data_modifica,
+               user_name AS modified_by,
+               id_bando AS riferimento
+        FROM bandimodifiche
         UNION ALL
-        SELECT 'esito' AS tipo, id, data_modifica AS data_modifica, modified_by AS modified_by, codice_cig AS riferimento
+        SELECT 'esito'::text AS tipo,
+               id,
+               data_modifica,
+               username AS modified_by,
+               id_gara::text AS riferimento
         FROM gare_modifiche
         ORDER BY data_modifica DESC
         LIMIT 50
