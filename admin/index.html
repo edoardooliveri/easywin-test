@@ -141,12 +141,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/it.js"></script>
 <style>
 :root {
-  --primary: #1E2D3D;
-  --primary-light: #2A3F55;
-  --primary-gradient: linear-gradient(135deg, #1E2D3D 0%, #2A3F55 100%);
-  --sidebar-dark: #1E2D3D;
-  --sidebar-light: #2A3F55;
-  --sidebar-hover: #34506B;
+  /* ── Topbar/sidebar: nero brand (era blu scuro #1E2D3D) ───────
+     Cambio voluto 2026-05-13: usare il NERO BRAND (#1A1A1A, identico
+     al --text del logo easyWin) al posto del navy old. Le sfumature
+     restano scure per dare profondità al header sticky. */
+  --primary: #1A1A1A;
+  --primary-light: #2D2D2D;
+  --primary-gradient: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
+  --sidebar-dark: #1A1A1A;
+  --sidebar-light: #2D2D2D;
+  --sidebar-hover: #3F3F3F;
   --accent-yellow: #F5C518;
   --accent-orange: #EA580C;
   --orange: #EA580C;
@@ -320,7 +324,7 @@ a { text-decoration: none; color: inherit; }
 .sidebar {
   width: 100%;
   height: var(--topbar-height);
-  background: linear-gradient(90deg, #1E2D3D 0%, #162435 100%);
+  background: linear-gradient(90deg, #1A1A1A 0%, #0D0D0D 100%);
   color: rgba(255,255,255,0.5);
   display: flex;
   flex-direction: row;
@@ -3107,12 +3111,43 @@ button:not(.bn-act):not(.bix-act-btn):not(.ute-iconbtn):not(.ew-btn):not(.flatpi
           }
         </style>
 
-        <div class="page-header">
-          <h1 class="page-title" style="font-family:var(--font-head);font-size:var(--text-xl);color:var(--text);text-transform:uppercase;letter-spacing:1px;margin:0 0 var(--sp-2) 0">Amministrazione</h1>
-          <p class="page-subtitle" style="color:var(--text-muted);font-size:var(--text-sm);margin:0 0 var(--sp-6) 0">Pannello di controllo: contatori operativi, abbonamenti, scadenze e stato servizi.</p>
+        <!-- Header pagina Amministrazione — titolo centrato con underline brand
+             gradient + sottotitolo discreto. -->
+        <div class="page-header" style="text-align:center;padding:var(--sp-6) 0 var(--sp-4);position:relative">
+          <h1 class="page-title" style="
+            font-family:var(--font-head);
+            font-size:1.85rem;
+            font-weight:700;
+            color:#1A1A1A;
+            text-transform:uppercase;
+            letter-spacing:2px;
+            margin:0 0 var(--sp-3) 0;
+            text-align:center;
+            display:inline-block;
+            position:relative">
+            Amministrazione
+            <span style="
+              position:absolute;
+              bottom:-8px;
+              left:50%;
+              transform:translateX(-50%);
+              width:80px;
+              height:4px;
+              background:linear-gradient(90deg, #F5C518 0%, #EA580C 100%);
+              border-radius:2px"></span>
+          </h1>
+          <p class="page-subtitle" style="
+            color:var(--text-muted);
+            font-size:var(--text-sm);
+            margin:var(--sp-4) auto 0;
+            max-width:640px;
+            text-align:center;
+            font-family:var(--font-body)">
+            Pannello di controllo: contatori operativi, abbonamenti, scadenze e stato servizi.
+          </p>
         </div>
 
-        <div class="admin-tabs">
+        <div class="admin-tabs" style="justify-content:center">
           <button class="admin-tab active" onclick="switchAdminTab('generale')" id="tabGenerale"><i class="fas fa-cog"></i> Generale</button>
           <button class="admin-tab" onclick="switchAdminTab('newsletter-admin')" id="tabNewsletterAdmin"><i class="fas fa-envelope"></i> Newsletter</button>
           <button class="admin-tab" onclick="switchAdminTab('stato-servizi')" id="tabStatoServizi"><i class="fas fa-server"></i> Stato Servizi</button>
