@@ -42,8 +42,10 @@ SAMPLE_SIZE=1000
 TMP_DIR="${TMPDIR:-/tmp}/easywin-sample"
 mkdir -p "$TMP_DIR"
 
-# Delimiter: TAB. Raro nei dati testuali italiani.
-DELIM=$'\t'
+# Delimiter: SOH (0x01) — Start Of Heading, non compare MAI nei dati testuali
+# (TAB era inutilizzabile: legacy.bandi.titolo e .note hanno tab embedded da
+# copia-incolla da PDF/Office, rompevano il parsing).
+DELIM=$'\x01'
 
 # Colori
 BLUE='\033[0;34m'; GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[1;33m'; NC='\033[0m'
@@ -183,7 +185,7 @@ step_export() {
         -S localhost -U "$MSSQL_USER" -P "$MSSQL_PASS" \
         -u \
         -c \
-        -t $'\t' \
+        -t $'\x01' \
         2>"${TMP_DIR}/${table_lower}.bcp.err" >/dev/null; then
       # Copia dal container al host
       docker cp "${MSSQL_CONTAINER}:${out_file}" "${TMP_DIR}/${table_lower}.tsv" 2>/dev/null
@@ -233,14 +235,22 @@ step_import() {
       continue
     fi
 
-    # TRUNCATE + COPY server-side (NON \copy: meta-comando psql non funziona
-    # dentro -c; COPY server-side legge dal filesystem del container PG,
-    # dove abbiamo appena copiato il file via docker cp).
-    # FORMAT text (no quoting CSV): BCP -c output non quota i campi.
+    # Pulisci file: rimuovi NULL bytes (Postgres rifiuta) e righe malformate
+    # (numero campi != header). Approccio: leggi numero colonne dalla prima
+    # riga, tieni solo righe con quel numero di campi.
+    local clean_file="${local_file}.clean"
+    local ncols
+    ncols=$(head -1 "$local_file" | awk -F"$DELIM" '{print NF}')
+    tr -d '\000' < "$local_file" | awk -F"$DELIM" -v n="$ncols" 'NF == n' > "$clean_file"
+    docker cp "$clean_file" "${PG_CONTAINER}:/tmp/${table_lower}.tsv" 2>/dev/null
+    rm -f "$clean_file"
+
+    # TRUNCATE + COPY server-side. FORMAT text + DELIMITER SOH (\x01).
+    # SOH non compare nei dati testuali → no parser conflicts.
     local copy_out
     copy_out=$(docker exec "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -v ON_ERROR_STOP=0 -c "
       TRUNCATE legacy.${table_lower} CASCADE;
-      COPY legacy.${table_lower} FROM '/tmp/${table_lower}.tsv' WITH (FORMAT text, DELIMITER E'\\t', NULL '');
+      COPY legacy.${table_lower} FROM '/tmp/${table_lower}.tsv' WITH (FORMAT text, DELIMITER E'\\x01', NULL '');
     " 2>&1)
 
     if echo "$copy_out" | grep -qE "COPY [0-9]+"; then
