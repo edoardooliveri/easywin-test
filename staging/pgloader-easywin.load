@@ -116,12 +116,11 @@ ALTER SCHEMA 'dbo' RENAME TO 'legacy'
 -- ============================================================================
 -- TABELLE DA ESCLUDERE
 -- ============================================================================
--- Escludo:
---  ~/_bk$/        — tabelle backup interne (aziendebk, attestazioniaziendebk, ...)
---                   sono backup intermedi del DBA, non utili per staging
---                   AND possono essere grandi (heap pressure)
---  ~/^sysdiagrams$/ — diagram metadata di SSMS, non dati reali
-EXCLUDING TABLE NAMES MATCHING ~/_bk$/, ~/^sysdiagrams$/
+-- pgloader MSSQL source usa LIKE (SQL pattern), non MATCHING ~/regex/.
+-- Le tabelle *_bk e sysdiagrams sono backup interni / metadata SSMS.
+-- Con batch=1000 il loro overhead di memory è minimo, quindi le INCLUDO
+-- tutte per semplicità. Se in futuro servisse escludere:
+--   EXCLUDING TABLE NAMES LIKE '%_bk', 'sysdiagrams'
 
 -- ============================================================================
 -- TABELLE DA INCLUDERE (se vuoi partire "solo con il core")
