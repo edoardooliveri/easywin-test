@@ -120,22 +120,25 @@
       transition: all 0.15s;
     }
     .bp-btn:hover { background: #F8FAFC; border-color: #1A1A1A; transform: translateY(-1px); }
+    /* Pulsanti success/danger/primary: shadow neutra discreta (le shadow
+       colorate creavano un cerchio rosso/verde "che esce" dal pulsante,
+       fastidioso vicino al pulsante adiacente). */
     .bp-btn.success {
       background: linear-gradient(90deg, #16A34A 0%, #22C55E 100%);
       color: #ffffff; border-color: transparent;
-      box-shadow: 0 4px 12px rgba(22,163,74,0.30);
+      box-shadow: 0 2px 6px rgba(15,23,42,0.10);
     }
-    .bp-btn.success:hover { filter: brightness(1.05); box-shadow: 0 6px 16px rgba(22,163,74,0.40); }
+    .bp-btn.success:hover { filter: brightness(1.05); }
     .bp-btn.danger {
       background: linear-gradient(90deg, #DC2626 0%, #EF4444 100%);
       color: #ffffff; border-color: transparent;
-      box-shadow: 0 4px 12px rgba(220,38,38,0.30);
+      box-shadow: 0 2px 6px rgba(15,23,42,0.10);
     }
     .bp-btn.danger:hover { filter: brightness(1.05); }
     .bp-btn.primary {
       background: linear-gradient(90deg, #F5C518 0%, #EA580C 100%);
       color: #ffffff; border-color: transparent;
-      box-shadow: 0 4px 12px rgba(234,88,12,0.30);
+      box-shadow: 0 2px 6px rgba(15,23,42,0.10);
     }
     .bp-btn.primary:hover { filter: brightness(1.05) saturate(1.05); }
 
@@ -732,9 +735,9 @@
         <div class="nl-field">
           <label class="nl-label">Tipo invio</label>
           <select id="inv-tipo" class="nl-input">
-            <option value="bandi">📄 Bandi</option>
-            <option value="esiti">🏆 Esiti</option>
-            <option value="both">📦 Entrambi</option>
+            <option value="bandi">Bandi</option>
+            <option value="esiti">Esiti</option>
+            <option value="both">Entrambi</option>
           </select>
         </div>
         <div class="nl-field">
@@ -788,18 +791,18 @@
           <label class="nl-label">Filtra per tipo</label>
           <select id="log-tipo" class="nl-input" onchange="loadLog()">
             <option value="">Tutti</option>
-            <option value="bandi_auto">📄 Bandi Auto</option>
-            <option value="esiti_auto">🏆 Esiti Auto</option>
-            <option value="bandi">✉ Bandi Manuale</option>
-            <option value="esiti">✉ Esiti Manuale</option>
+            <option value="bandi_auto">Bandi Auto</option>
+            <option value="esiti_auto">Esiti Auto</option>
+            <option value="bandi">Bandi Manuale</option>
+            <option value="esiti">Esiti Manuale</option>
           </select>
         </div>
         <div class="nl-field">
           <label class="nl-label">Filtra per esito</label>
           <select id="log-esito" class="nl-input" onchange="loadLog()">
             <option value="">Tutti</option>
-            <option value="ok">✓ Solo OK</option>
-            <option value="err">✗ Solo Errori</option>
+            <option value="ok">Solo OK</option>
+            <option value="err">Solo Errori</option>
           </select>
         </div>
         <div class="nl-field nl-field-action">
@@ -836,8 +839,8 @@
         <div class="nl-field">
           <label class="nl-label">Tipo</label>
           <select id="ant-tipo" class="nl-input">
-            <option value="bandi">📄 Bandi</option>
-            <option value="esiti">🏆 Esiti</option>
+            <option value="bandi">Bandi</option>
+            <option value="esiti">Esiti</option>
           </select>
         </div>
         <div class="nl-field">
@@ -1112,6 +1115,92 @@
   @media (max-width: 600px) {
     .nl-grid-4 { grid-template-columns: 1fr; }
   }
+
+  /* ═══════════ FONT COMFORTAA OVUNQUE NEI POPUP/FINESTRELLE ═══════════
+     I select option e dropdown nativi del browser usano font di sistema
+     di default. Forzo Comfortaa su tutto ciò che si apre come overlay/popup. */
+  select,
+  select option,
+  optgroup,
+  input,
+  textarea,
+  button {
+    font-family: 'Comfortaa', sans-serif !important;
+  }
+  /* Search results dropdown (anteprima utenti autocomplete) */
+  .search-results,
+  .search-results div {
+    font-family: 'Comfortaa', sans-serif !important;
+  }
+  /* Time picker custom */
+  .sched-picker,
+  .sched-picker-item,
+  .sched-picker-head {
+    font-family: 'Comfortaa', sans-serif !important;
+  }
+  /* Toast notifiche */
+  .bp-toast {
+    font-family: 'Comfortaa', sans-serif !important;
+  }
+  /* Modal shim alert/confirm/prompt (caricato da script in head) */
+  .ew-shim-backdrop,
+  .ew-shim-dialog,
+  .ew-shim-header,
+  .ew-shim-body,
+  .ew-shim-body input,
+  .ew-shim-footer,
+  .ew-shim-footer button,
+  .ew-btn {
+    font-family: 'Comfortaa', sans-serif !important;
+  }
+</style>
+
+<!-- Modal shim styling (era inline in admin/index.html, ora qui pure per
+     newsletter-admin standalone). Brand palette + Comfortaa. -->
+<style>
+  .ew-shim-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(26,26,26,0.55);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 99999;
+    backdrop-filter: blur(3px);
+  }
+  .ew-shim-dialog {
+    background: #ffffff;
+    border-radius: 18px;
+    min-width: 320px; max-width: 90vw; width: 460px;
+    box-shadow: 0 20px 60px rgba(26,26,26,0.30);
+    overflow: hidden;
+  }
+  .ew-shim-header {
+    background: linear-gradient(90deg, #F5C518 0%, #EA580C 100%);
+    color: #ffffff; padding: 16px 24px;
+    font-weight: 700; font-size: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .ew-shim-body { padding: 24px; font-size: 14.5px; color: #1A1A1A; line-height: 1.55; }
+  .ew-shim-body input {
+    width: 100%; margin-top: 14px; padding: 10px 14px;
+    border: 2px solid #E2E8F0; border-radius: 10px;
+  }
+  .ew-shim-body input:focus { outline: none; border-color: #EA580C; }
+  .ew-shim-footer {
+    display: flex; justify-content: flex-end; gap: 10px;
+    padding: 16px 24px 20px; background: #FFFAF0;
+    border-top: 1px solid rgba(234,88,12,0.10);
+  }
+  .ew-btn {
+    font-weight: 700; font-size: 14px;
+    padding: 9px 22px; border-radius: 9999px; border: none; cursor: pointer;
+    background: linear-gradient(90deg, #F5C518, #EA580C);
+    color: #ffffff;
+  }
+  .ew-btn:hover { filter: brightness(1.05); }
+  .ew-btn-ghost {
+    background: transparent; color: #1A1A1A;
+    border: 2px solid #E2E8F0;
+  }
+  .ew-btn-ghost:hover { background: #F8FAFC; border-color: #1A1A1A; filter: none; }
 </style>
 
 <div id="bp-toast" class="bp-toast"></div>
