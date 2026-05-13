@@ -245,12 +245,16 @@ step_import() {
     docker cp "$clean_file" "${PG_CONTAINER}:/tmp/${table_lower}.tsv" 2>/dev/null
     rm -f "$clean_file"
 
-    # TRUNCATE + COPY server-side. FORMAT text + DELIMITER SOH (\x01).
-    # SOH non compare nei dati testuali → no parser conflicts.
+    # TRUNCATE (no CASCADE: troppi side-effects) + COPY server-side.
+    # session_replication_role = 'replica' disabilita FK trigger checks
+    # durante l'import (alcune righe sample possono avere FK orphani).
+    # FORMAT text + DELIMITER SOH (\x01) — non compare nei dati testuali.
     local copy_out
     copy_out=$(docker exec "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -v ON_ERROR_STOP=0 -c "
-      TRUNCATE legacy.${table_lower} CASCADE;
+      SET session_replication_role = 'replica';
+      TRUNCATE legacy.${table_lower};
       COPY legacy.${table_lower} FROM '/tmp/${table_lower}.tsv' WITH (FORMAT text, DELIMITER E'\\x01', NULL '');
+      SET session_replication_role = 'origin';
     " 2>&1)
 
     if echo "$copy_out" | grep -qE "COPY [0-9]+"; then

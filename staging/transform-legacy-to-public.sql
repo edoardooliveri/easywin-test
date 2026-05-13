@@ -37,8 +37,12 @@ ON CONFLICT (name) DO NOTHING;
 -- ============================================================================
 -- 1. MAPPING bandi.id  legacy INT → nuovo UUID
 -- ============================================================================
-CREATE TABLE IF NOT EXISTS migration_maps.bandi_id_map (
-    legacy_id BIGINT PRIMARY KEY,
+-- NB: legacy_id è TEXT, non BIGINT — pgloader ha creato legacy.bandi.id_bando
+-- come TEXT (con default uuid_generate_v4(), conversione automatica di
+-- uniqueidentifier o int identity). Manteniamo TEXT per compatibilità.
+DROP TABLE IF EXISTS migration_maps.bandi_id_map CASCADE;
+CREATE TABLE migration_maps.bandi_id_map (
+    legacy_id TEXT PRIMARY KEY,
     new_id    UUID NOT NULL UNIQUE
 );
 
@@ -48,12 +52,13 @@ DO $bandi_map$
 BEGIN
     INSERT INTO migration_maps.bandi_id_map (legacy_id, new_id)
     SELECT
-        b.id_bando,
+        b.id_bando::text,
         uuid_generate_v5(
             (SELECT uuid_ns FROM migration_maps.namespace WHERE name='easywin-bandi'),
             'bando:' || b.id_bando::text
         )
     FROM legacy.bandi b
+    WHERE b.id_bando IS NOT NULL
     ON CONFLICT (legacy_id) DO NOTHING;
 
     RAISE NOTICE '  mapping bandi: % righe', (SELECT COUNT(*) FROM migration_maps.bandi_id_map);
@@ -96,7 +101,7 @@ BEGIN
         b.id_soa,
         COALESCE(b.annullato, false)
     FROM legacy.bandi b
-    JOIN migration_maps.bandi_id_map m ON m.legacy_id = b.id_bando
+    JOIN migration_maps.bandi_id_map m ON m.legacy_id = b.id_bando::text
     ON CONFLICT (id) DO NOTHING;
 
     RAISE NOTICE '  public.bandi: % righe (legacy.bandi: %)',
@@ -117,7 +122,7 @@ BEGIN
     INSERT INTO public.bandi_province (id_bando, id_provincia)
     SELECT m.new_id, bp.id_provincia
     FROM legacy.bandiprovince bp
-    JOIN migration_maps.bandi_id_map m ON m.legacy_id = bp.id_bando
+    JOIN migration_maps.bandi_id_map m ON m.legacy_id = bp.id_bando::text
     ON CONFLICT DO NOTHING;
     RAISE NOTICE '  public.bandi_province: % righe', (SELECT COUNT(*) FROM public.bandi_province);
 EXCEPTION WHEN OTHERS THEN
@@ -147,7 +152,7 @@ BEGIN
                 'INSERT INTO %s (id_bando, id_soa, classifica)
                  SELECT m.new_id, x.id_soa, x.classifica
                  FROM %s x
-                 JOIN migration_maps.bandi_id_map m ON m.legacy_id = x.id_bando
+                 JOIN migration_maps.bandi_id_map m ON m.legacy_id = x.id_bando::text
                  ON CONFLICT DO NOTHING',
                 dst, src
             );
@@ -181,7 +186,7 @@ BEGIN
         g.regione,
         COALESCE(g.annullato, false)
     FROM legacy.gare g
-    LEFT JOIN migration_maps.bandi_id_map m ON m.legacy_id = g.id_bando
+    LEFT JOIN migration_maps.bandi_id_map m ON m.legacy_id = g.id_bando::text
     ON CONFLICT (id) DO NOTHING;
 
     PERFORM setval(
@@ -209,7 +214,7 @@ BEGIN
         INSERT INTO public.aperture (id_bando, data, username, stato)
         SELECT m.new_id, a.data::date, a.username, COALESCE(a.stato, 'in_sospeso')
         FROM legacy.aperturabandi a
-        JOIN migration_maps.bandi_id_map m ON m.legacy_id = a.id_bando
+        JOIN migration_maps.bandi_id_map m ON m.legacy_id = a.id_bando::text
         ON CONFLICT DO NOTHING;
     EXCEPTION WHEN OTHERS THEN RAISE WARNING '    aperture skip: %', SQLERRM; END;
 
@@ -218,7 +223,7 @@ BEGIN
         INSERT INTO public.scritture (id_bando, data, username, stato)
         SELECT m.new_id, s.data::date, s.username, COALESCE(s.stato, 'in_sospeso')
         FROM legacy.scritturabandi s
-        JOIN migration_maps.bandi_id_map m ON m.legacy_id = s.id_bando
+        JOIN migration_maps.bandi_id_map m ON m.legacy_id = s.id_bando::text
         ON CONFLICT DO NOTHING;
     EXCEPTION WHEN OTHERS THEN RAISE WARNING '    scritture skip: %', SQLERRM; END;
 
@@ -227,7 +232,7 @@ BEGIN
         INSERT INTO public.elaborati (id_bando, username, stato)
         SELECT m.new_id, e.username, COALESCE(e.stato, 'in_sospeso')
         FROM legacy.elaboratiprogettuali e
-        JOIN migration_maps.bandi_id_map m ON m.legacy_id = e.id_bando
+        JOIN migration_maps.bandi_id_map m ON m.legacy_id = e.id_bando::text
         ON CONFLICT DO NOTHING;
     EXCEPTION WHEN OTHERS THEN RAISE WARNING '    elaborati skip: %', SQLERRM; END;
 
@@ -236,7 +241,7 @@ BEGIN
         INSERT INTO public.sopralluoghi (id_bando, data, username, stato)
         SELECT m.new_id, s.data::date, s.username, COALESCE(s.stato, 'in_sospeso')
         FROM legacy.sopralluoghi s
-        JOIN migration_maps.bandi_id_map m ON m.legacy_id = s.id_bando
+        JOIN migration_maps.bandi_id_map m ON m.legacy_id = s.id_bando::text
         ON CONFLICT DO NOTHING;
     EXCEPTION WHEN OTHERS THEN RAISE WARNING '    sopralluoghi skip: %', SQLERRM; END;
 END $serv$;
