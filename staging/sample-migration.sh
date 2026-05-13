@@ -173,19 +173,18 @@ step_export() {
 
     echo -ne "  [${i}/${n_total}] ${table} ... "
 
-    # BCP queryout con character format, TAB delimiter, LF row terminator
-    # -c   = character (no native binary)
-    # -t   = field terminator
-    # -r   = row terminator
-    # -C 65001 = UTF-8 codepage
-    # -e   = error file (se serve debug)
+    # BCP queryout con character format, TAB delimiter
+    # -c = character output (no native binary)
+    # -t = field terminator (TAB)
+    # -u = trust server certificate (mssql-tools18 BCP 18.6+ requires this
+    #      for SQL Server 2022 self-signed cert; NOT -C which is code page!)
     if docker exec "$MSSQL_CONTAINER" /opt/mssql-tools18/bin/bcp \
         "${query}" queryout "${out_file}" \
-        -S localhost -U "$MSSQL_USER" -P "$MSSQL_PASS" -C \
-        -c -C 65001 \
+        -S localhost -U "$MSSQL_USER" -P "$MSSQL_PASS" \
+        -u \
+        -c \
         -t $'\t' \
-        -r '\n' \
-        -e "/tmp/${table_lower}.err" >/dev/null 2>&1; then
+        2>"${TMP_DIR}/${table_lower}.bcp.err" >/dev/null; then
       # Copia dal container al host
       docker cp "${MSSQL_CONTAINER}:${out_file}" "${TMP_DIR}/${table_lower}.tsv" 2>/dev/null
       local rows
@@ -194,7 +193,7 @@ step_export() {
     else
       echo -e "${RED}✗${NC} export fallito"
       # Mostra errore
-      docker exec "$MSSQL_CONTAINER" cat "/tmp/${table_lower}.err" 2>/dev/null | head -3 | sed 's/^/      /'
+      cat "${TMP_DIR}/${table_lower}.bcp.err" 2>/dev/null | head -5 | sed 's/^/      /'
     fi
   done
 }
