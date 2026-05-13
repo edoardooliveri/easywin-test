@@ -45,6 +45,23 @@ ALTER TABLE users
     -- azzerate). Utile per audit.
     ADD COLUMN IF NOT EXISTS legacy_password_migrated_at TIMESTAMPTZ;
 
+-- Rendi password_hash NULLABLE: gli utenti migrati da legacy aspnet_Membership
+-- hanno solo legacy_password (SHA1+salt) finché non fanno il primo login.
+-- Senza questo, l'INSERT della migrazione anagrafica esplode con NOT NULL violation.
+DO $$
+BEGIN
+    -- Solo se la colonna è ancora NOT NULL
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'users'
+          AND column_name = 'password_hash'
+          AND is_nullable = 'NO'
+    ) THEN
+        ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
+        RAISE NOTICE 'Migration 037: users.password_hash ora NULLABLE (per utenti legacy)';
+    END IF;
+END $$;
+
 COMMENT ON COLUMN users.legacy_password IS
     'Hash legacy aspnet_Membership.Password (Base64 SHA1 o cleartext). NULL dopo primo login con password corretta.';
 COMMENT ON COLUMN users.legacy_salt IS

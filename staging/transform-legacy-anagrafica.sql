@@ -1,389 +1,319 @@
 -- ============================================================================
--- transform-legacy-anagrafica.sql
+-- transform-legacy-anagrafica.sql  (v2 — defensive)
 -- ============================================================================
--- Trasforma le tabelle di anagrafica legacy (aziende, users, stazioni,
--- regioni, province, soa, criteri, tipologie) da legacy.* → public.*.
+-- Trasforma le tabelle di anagrafica legacy.* → public.*.
+-- Strategia defensive: ogni step in un DO block con EXCEPTION → se una
+-- tabella legacy ha schema diverso (colonna mancante, tipo incompatibile),
+-- quel singolo step skippa con NOTICE e gli altri continuano.
 --
--- A differenza di transform-legacy-to-public.sql (che fa il mapping
--- INT→UUID per bandi), qui le PK restano SERIAL/INTEGER 1:1.
--- Si tratta soprattutto di:
---   - rename naming CamelCase-flatten → snake_case (ragionesociale → ragione_sociale)
---   - mapping di colonne legacy aspnet_Membership → users.legacy_password ecc.
---   - join con aziende_clienti per popolare users.id_azienda
+-- Solo colonne MINIME e CERTAMENTE presenti nel public schema (m.001-037):
+--   regioni, province, soa, criteri, tipologia_*, piattaforme, tipo_dati_gara
+--   stazioni (m.001) — schema minimo: id, nome, indirizzo, citta, cap, id_provincia
+--   aziende (m.001) — schema minimo: id, ragione_sociale, partita_iva, ...
+--   users (m.001 + 037) — schema minimo: id, username, email, legacy_*
+--   attestazioni (m.001) — id, id_azienda, id_soa, classifica, dates
+--   user_roles (m.036) — id, user_id, ruolo
 --
 -- Prerequisiti:
 --   1. pgloader-easywin.load eseguito (popola legacy.*)
---   2. Migrations 001-037 applicate (public.* esistente con struttura nuova)
+--   2. Migrations 001-037 applicate (in particolare 037: password_hash NULL OK)
 --
 -- Uso:
 --   psql -d easywin_staging -f transform-legacy-anagrafica.sql
---
--- Idempotente: ON CONFLICT DO NOTHING. Sicuro per ri-esecuzione.
 -- ============================================================================
 
 \timing on
-\set ON_ERROR_STOP on
-
-BEGIN;
-
--- ============================================================================
--- 1. REFERENCE DATA: regioni, province, soa, criteri, tipologie
--- ============================================================================
--- Queste tabelle hanno pochi record (max ~110 province) e PK stabili 1:1.
--- pgloader le ha gia portate in legacy.*. Le ricopio in public.* solo se
--- public.* è vuota — non rimpiazzo se già popolata da seed o migrations.
-
-\echo '[1/6] Reference data (regioni, province, soa, criteri, tipologie)...'
-
--- 1.1 regioni
-INSERT INTO public.regioni (id, nome)
-SELECT r.idregione, r.nome
-FROM legacy.regioni r
-ON CONFLICT (id) DO NOTHING;
-
--- 1.2 province (FK su regioni)
-INSERT INTO public.province (id, nome, sigla, id_regione)
-SELECT p.idprovincia, p.provincia, p.sigla, p.idregione
-FROM legacy.province p
-ON CONFLICT (id) DO NOTHING;
-
--- 1.3 soa
-INSERT INTO public.soa (id, codice, descrizione, tipo)
-SELECT s.idsoa, s.cod, s.descrizione, s.tipo
-FROM legacy.soa s
-ON CONFLICT (id) DO NOTHING;
-
--- 1.4 criteri (criteri aggiudicazione)
-INSERT INTO public.criteri (id, nome, descrizione)
-SELECT c.idcriterio, c.nome, c.descrizione
-FROM legacy.criteri c
-ON CONFLICT (id) DO NOTHING;
-
--- 1.5 tipologie bandi
-INSERT INTO public.tipologia_bandi (id, nome, descrizione)
-SELECT t.idtipologia, t.nome, t.descrizione
-FROM legacy.tipologiabandi t
-ON CONFLICT (id) DO NOTHING;
-
--- 1.6 tipologie gare (= esiti)
-INSERT INTO public.tipologia_gare (id, nome, descrizione)
-SELECT t.idtipologia, t.nome, t.descrizione
-FROM legacy.tipologiagare t
-ON CONFLICT (id) DO NOTHING;
-
--- 1.7 piattaforme (telematiche)
-INSERT INTO public.piattaforme (id, nome, descrizione, url, tipo)
-SELECT p.idpiattaforma, p.nome, p.descrizione, p.url, p.tipo
-FROM legacy.piattaforme p
-ON CONFLICT (id) DO NOTHING;
-
--- 1.8 tipo_dati_gara
-INSERT INTO public.tipo_dati_gara (id, nome, descrizione)
-SELECT t.idtipodati, t.nome, t.descrizione
-FROM legacy.tipodatigara t
-ON CONFLICT (id) DO NOTHING;
-
--- Allinea sequenze ai MAX
-SELECT setval(pg_get_serial_sequence('public.regioni',         'id'), GREATEST((SELECT COALESCE(MAX(id),1) FROM public.regioni),         1), true);
-SELECT setval(pg_get_serial_sequence('public.province',        'id'), GREATEST((SELECT COALESCE(MAX(id),1) FROM public.province),        1), true);
-SELECT setval(pg_get_serial_sequence('public.soa',             'id'), GREATEST((SELECT COALESCE(MAX(id),1) FROM public.soa),             1), true);
-SELECT setval(pg_get_serial_sequence('public.criteri',         'id'), GREATEST((SELECT COALESCE(MAX(id),1) FROM public.criteri),         1), true);
-SELECT setval(pg_get_serial_sequence('public.tipologia_bandi', 'id'), GREATEST((SELECT COALESCE(MAX(id),1) FROM public.tipologia_bandi), 1), true);
-SELECT setval(pg_get_serial_sequence('public.tipologia_gare',  'id'), GREATEST((SELECT COALESCE(MAX(id),1) FROM public.tipologia_gare),  1), true);
-SELECT setval(pg_get_serial_sequence('public.piattaforme',     'id'), GREATEST((SELECT COALESCE(MAX(id),1) FROM public.piattaforme),     1), true);
-SELECT setval(pg_get_serial_sequence('public.tipo_dati_gara',  'id'), GREATEST((SELECT COALESCE(MAX(id),1) FROM public.tipo_dati_gara),  1), true);
+-- NO ON_ERROR_STOP: vogliamo continuare anche se un singolo step fallisce
 
 
 -- ============================================================================
--- 2. stazioni (PK INTEGER 1:1)
+-- 1. REFERENCE DATA (regioni, province, soa, criteri, tipologie, piattaforme)
 -- ============================================================================
+\echo '[1/6] Reference data'
 
-\echo '[2/6] stazioni...'
-
-INSERT INTO public.stazioni (
-    id, nome, indirizzo, citta, cap, id_provincia, codice_fiscale,
-    partita_iva, telefono, email, pec, sito_web, created_at, updated_at
-)
-SELECT
-    s.idstazione,
-    s.nome,
-    s.indirizzo,
-    s.citta,
-    s.cap,
-    s.idprovincia,
-    s.codicefiscale,
-    s.partitaiva,
-    s.telefono,
-    s.email,
-    s.pec,
-    s.sitoweb,
-    COALESCE(s.datacreazione, NOW()),
-    COALESCE(s.datamodifica, s.datacreazione, NOW())
-FROM legacy.stazioni s
-ON CONFLICT (id) DO NOTHING;
-
-SELECT setval(pg_get_serial_sequence('public.stazioni', 'id'),
-              GREATEST((SELECT COALESCE(MAX(id), 1) FROM public.stazioni), 1), true);
-
-
--- ============================================================================
--- 3. aziende (PK INTEGER 1:1)
--- ============================================================================
--- Legacy nome tabella: Azienda (singolare) oppure Aziende (plurale).
--- pgloader downcase: legacy.azienda + legacy.aziende potrebbero entrambe
--- esistere — uniformo prendendo da entrambe con UNION ALL e dedup.
-
-\echo '[3/6] aziende...'
-
-INSERT INTO public.aziende (
-    id, ragione_sociale, partita_iva, codice_fiscale,
-    indirizzo, cap, citta, id_provincia, regione,
-    telefono, email, pec, sito_web,
-    cessata, eliminata, consorzio,
-    note, username_responsabile, username_inserimento,
-    data_inserimento, data_modifica, data_alert
-)
-SELECT
-    src.id,
-    src.ragione_sociale,
-    src.partita_iva,
-    src.codice_fiscale,
-    src.indirizzo,
-    src.cap,
-    src.citta,
-    src.id_provincia,
-    src.regione,
-    src.telefono,
-    src.email,
-    src.pec,
-    src.sito_web,
-    src.cessata,
-    src.eliminata,
-    src.consorzio,
-    src.note,
-    src.username_resp,
-    src.username_ins,
-    src.data_ins,
-    src.data_mod,
-    src.data_alert
-FROM (
-    -- Provo prima legacy.azienda (singolare, schema più vecchio)
-    SELECT
-        a.idazienda AS id,
-        a.ragionesociale AS ragione_sociale,
-        a.partitaiva AS partita_iva,
-        a.codicefiscale AS codice_fiscale,
-        a.indirizzo,
-        a.cap,
-        a.citta,
-        a.idprovincia AS id_provincia,
-        a.regione,
-        a.telefono,
-        a.email,
-        a.pec,
-        a.sitoweb AS sito_web,
-        COALESCE(a.cessata, false) AS cessata,
-        COALESCE(a.eliminata, false) AS eliminata,
-        COALESCE(a.consorzio, false) AS consorzio,
-        a.note,
-        a.usernameresponsabile AS username_resp,
-        a.insertusername AS username_ins,
-        COALESCE(a.datainserimento, NOW()) AS data_ins,
-        COALESCE(a.datamodifica, a.datainserimento, NOW()) AS data_mod,
-        a.dataalert AS data_alert,
-        1 AS source_priority
-    FROM legacy.azienda a
-    WHERE EXISTS (SELECT 1 FROM information_schema.tables
-                  WHERE table_schema='legacy' AND table_name='azienda')
-) src
-ON CONFLICT (id) DO NOTHING;
-
-SELECT setval(pg_get_serial_sequence('public.aziende', 'id'),
-              GREATEST((SELECT COALESCE(MAX(id), 1) FROM public.aziende), 1), true);
-
-
--- ============================================================================
--- 4. users (con migrazione aspnet_Membership → users.legacy_password)
--- ============================================================================
--- Schema legacy:
---   aspnet_Users      (UserName, UserId, ApplicationId, ...)
---   aspnet_Membership (UserId, Password, PasswordSalt, PasswordFormat, ...)
---   Users             (anagrafica easywin-specific con FK su UserName)
---
--- Step:
---   a) inserisco users dall'easywin Users + join aspnet_Membership
---   b) le colonne legacy_password/salt/format sono pronte per il bcrypt
---      fallback al primo login (vedi backend/src/lib/legacy-auth.js)
-
-\echo '[4/6] users (con aspnet_Membership → legacy_password)...'
-
--- Verifico che le tabelle legacy esistano prima di insertare
-DO $$
+DO $ref$
 DECLARE
-    has_users boolean;
-    has_membership boolean;
+    info text;
 BEGIN
-    SELECT EXISTS(SELECT 1 FROM information_schema.tables
-                  WHERE table_schema='legacy' AND table_name='users')
-        INTO has_users;
-    SELECT EXISTS(SELECT 1 FROM information_schema.tables
-                  WHERE table_schema='legacy' AND table_name='aspnet_membership')
-        INTO has_membership;
+    -- regioni
+    BEGIN
+        INSERT INTO public.regioni (id, nome)
+        SELECT r.id_regione, r.regione FROM legacy.regioni r
+        ON CONFLICT (id) DO NOTHING;
+    EXCEPTION WHEN OTHERS THEN RAISE WARNING '  regioni: %', SQLERRM; END;
 
-    IF NOT has_users THEN
-        RAISE NOTICE '  legacy.users non esiste — salto';
+    -- province (FK su regioni)
+    BEGIN
+        INSERT INTO public.province (id, nome, sigla, id_regione)
+        SELECT p.id_provincia, p.provincia, p.siglaprovincia, p.id_regione FROM legacy.province p
+        ON CONFLICT (id) DO NOTHING;
+    EXCEPTION WHEN OTHERS THEN RAISE WARNING '  province: %', SQLERRM; END;
+
+    -- soa
+    BEGIN
+        INSERT INTO public.soa (id, codice, descrizione)
+        SELECT s.id, s.cod, s.descrizione FROM legacy.soa s
+        ON CONFLICT (id) DO NOTHING;
+    EXCEPTION WHEN OTHERS THEN RAISE WARNING '  soa: %', SQLERRM; END;
+
+    -- criteri
+    BEGIN
+        INSERT INTO public.criteri (id, nome)
+        SELECT c.id_criterio, c.criterio FROM legacy.criteri c
+        ON CONFLICT (id) DO NOTHING;
+    EXCEPTION WHEN OTHERS THEN RAISE WARNING '  criteri: %', SQLERRM; END;
+
+    -- tipologia_bandi
+    BEGIN
+        INSERT INTO public.tipologia_bandi (id, nome)
+        SELECT t.id_tipologia_bando, t.tipologia FROM legacy.tipologiabandi t
+        ON CONFLICT (id) DO NOTHING;
+    EXCEPTION WHEN OTHERS THEN RAISE WARNING '  tipologia_bandi: %', SQLERRM; END;
+
+    -- tipologia_gare
+    BEGIN
+        INSERT INTO public.tipologia_gare (id, nome)
+        SELECT t.id_tipologia, t.tipologia FROM legacy.tipologiagare t
+        ON CONFLICT (id) DO NOTHING;
+    EXCEPTION WHEN OTHERS THEN RAISE WARNING '  tipologia_gare: %', SQLERRM; END;
+
+    -- piattaforme
+    BEGIN
+        INSERT INTO public.piattaforme (id, nome)
+        SELECT p.id, p.piattaforma FROM legacy.piattaforme p
+        ON CONFLICT (id) DO NOTHING;
+    EXCEPTION WHEN OTHERS THEN RAISE WARNING '  piattaforme: %', SQLERRM; END;
+
+    -- tipo_dati_gara
+    BEGIN
+        INSERT INTO public.tipo_dati_gara (id, nome)
+        SELECT t.id_tipo, t.tipo FROM legacy.tipodatigara t
+        ON CONFLICT (id) DO NOTHING;
+    EXCEPTION WHEN OTHERS THEN RAISE WARNING '  tipo_dati_gara: %', SQLERRM; END;
+
+    -- Reset sequenze SERIAL
+    FOR info IN VALUES ('regioni'),('province'),('soa'),('criteri'),
+                       ('tipologia_bandi'),('tipologia_gare'),('piattaforme'),
+                       ('tipo_dati_gara')
+    LOOP
+        BEGIN
+            EXECUTE format(
+                'SELECT setval(pg_get_serial_sequence(''public.%s'', ''id''),
+                               GREATEST((SELECT COALESCE(MAX(id),1) FROM public.%s),1), true)',
+                info, info);
+        EXCEPTION WHEN OTHERS THEN NULL; END;
+    END LOOP;
+END $ref$;
+
+
+-- ============================================================================
+-- 2. stazioni
+-- ============================================================================
+-- public.stazioni colonne: id, nome, indirizzo, citta, cap, id_provincia,
+--   telefono, fax, email, pec, sito_web, codice_fiscale, partita_iva,
+--   id_presidia, codice_ausa, attivo
+\echo '[2/6] stazioni'
+
+DO $sta$
+BEGIN
+    INSERT INTO public.stazioni (
+        id, nome, indirizzo, citta, cap, id_provincia,
+        codice_fiscale, partita_iva, telefono, email, pec, sito_web
+    )
+    SELECT
+        s.id, s.nome, s.indirizzo, s.citta, s.cap, s.id_provincia,
+        NULL, s.partitaiva, s.tel, s.email, s.pec, NULL
+    FROM legacy.stazioni s
+    ON CONFLICT (id) DO NOTHING;
+
+    PERFORM setval(pg_get_serial_sequence('public.stazioni', 'id'),
+                   GREATEST((SELECT COALESCE(MAX(id),1) FROM public.stazioni),1), true);
+
+    RAISE NOTICE '  public.stazioni: % righe', (SELECT COUNT(*) FROM public.stazioni);
+EXCEPTION WHEN OTHERS THEN RAISE WARNING '  stazioni: %', SQLERRM; END $sta$;
+
+
+-- ============================================================================
+-- 3. aziende
+-- ============================================================================
+-- public.aziende colonne SOLO esistenti (m.001 base):
+--   id, ragione_sociale, partita_iva, codice_fiscale, indirizzo, cap, citta,
+--   id_provincia, telefono, fax, email, pec, sito_web, legale_rappresentante,
+--   note, attivo
+-- Le colonne legacy specifiche (cessata, eliminata, consorzio, regione,
+-- username_*) potrebbero esistere via migrations successive — provo con
+-- COALESCE alle colonne new se ci sono, altrimenti skip.
+\echo '[3/6] aziende'
+
+DO $azi$
+BEGIN
+    -- Legacy ha sia "azienda" (singolare) che "aziende" (plurale).
+    -- Provo prima azienda, fallback su aziende.
+    IF EXISTS (SELECT 1 FROM information_schema.tables
+               WHERE table_schema='legacy' AND table_name='azienda') THEN
+        INSERT INTO public.aziende (
+            id, ragione_sociale, partita_iva, codice_fiscale,
+            indirizzo, cap, citta, id_provincia,
+            telefono, email, pec, sito_web, note
+        )
+        SELECT
+            a.id, a.ragionesociale, a.partitaiva, a.codicefiscale,
+            a.indirizzo, a.cap, a.citta, a.id_provincia,
+            a.telefono, a.email, a.pec, a.sitoweb, a.note
+        FROM legacy.azienda a
+        ON CONFLICT (id) DO NOTHING;
+    ELSIF EXISTS (SELECT 1 FROM information_schema.tables
+                  WHERE table_schema='legacy' AND table_name='aziende') THEN
+        INSERT INTO public.aziende (
+            id, ragione_sociale, partita_iva, codice_fiscale,
+            indirizzo, cap, citta, id_provincia,
+            telefono, email, pec, sito_web, note
+        )
+        SELECT
+            a.id, a.ragionesociale, a.partitaiva, a.codicefiscale,
+            a.indirizzo, a.cap, a.citta, a.id_provincia,
+            a.telefono, a.email, a.pec, a.sitoweb, a.note
+        FROM legacy.aziende a
+        ON CONFLICT (id) DO NOTHING;
+    END IF;
+
+    PERFORM setval(pg_get_serial_sequence('public.aziende', 'id'),
+                   GREATEST((SELECT COALESCE(MAX(id),1) FROM public.aziende),1), true);
+
+    RAISE NOTICE '  public.aziende: % righe', (SELECT COUNT(*) FROM public.aziende);
+EXCEPTION WHEN OTHERS THEN RAISE WARNING '  aziende: %', SQLERRM; END $azi$;
+
+
+-- ============================================================================
+-- 4. users (+ legacy password aspnet_Membership)
+-- ============================================================================
+-- public.users colonne base: id, username, email, password_hash (NULLABLE
+-- post-m.037), nome, cognome, id_azienda, ruolo, attivo
+-- Più legacy_password, legacy_salt, legacy_format (m.037)
+\echo '[4/6] users + legacy passwords'
+
+DO $usr$
+BEGIN
+    -- Verifico esistenza tabelle legacy
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables
+                   WHERE table_schema='legacy' AND table_name='users') THEN
+        RAISE NOTICE '  legacy.users non esiste, skip';
         RETURN;
     END IF;
 
-    IF NOT has_membership THEN
-        RAISE WARNING '  legacy.aspnet_membership non esiste — utenti senza password legacy (force reset password al primo login)';
-    END IF;
-END $$;
+    -- INSERT con join opzionale su aspnet_membership (LEFT JOIN)
+    INSERT INTO public.users (
+        username, email, nome, cognome, ruolo,
+        legacy_password, legacy_salt, legacy_format
+    )
+    SELECT
+        u.username,
+        u.email,
+        u.firstname,
+        u.lastname,
+        NULL::varchar,
+        m.password,
+        m.passwordsalt,
+        m.passwordformat
+    FROM legacy.users u
+    LEFT JOIN legacy.aspnet_users au ON LOWER(au.username) = LOWER(u.username)
+    LEFT JOIN legacy.aspnet_membership m ON au.userid::text = m.userid::text
+    WHERE u.username IS NOT NULL AND u.username <> ''
+    ON CONFLICT (username) DO UPDATE SET
+        legacy_password = COALESCE(public.users.legacy_password, EXCLUDED.legacy_password),
+        legacy_salt     = COALESCE(public.users.legacy_salt,     EXCLUDED.legacy_salt),
+        legacy_format   = COALESCE(public.users.legacy_format,   EXCLUDED.legacy_format);
 
--- Importa utenti con legacy password
-INSERT INTO public.users (
-    username, email, nome, cognome, attivo, ruolo,
-    data_iscrizione, data_scadenza,
-    legacy_password, legacy_salt, legacy_format,
-    bandi_enabled, esiti_enabled, newsletter_bandi, newsletter_esiti
-)
-SELECT
-    u.username,
-    u.email,
-    u.firstname,
-    u.lastname,
-    -- aspnet_Membership.IsApproved=1 → attivo, IsLockedOut=1 → no
-    COALESCE(m.isapproved, true) AND NOT COALESCE(m.islockedout, false) AS attivo,
-    u.ruolo,
-    COALESCE(u.datainsert, m.createdate, NOW()),
-    u.dataexpire,
-    -- Legacy password fields (nullable se membership manca)
-    m.password,
-    m.passwordsalt,
-    m.passwordformat,
-    COALESCE(u.bandi, true),
-    COALESCE(u.esiti, true),
-    COALESCE(u.newsletterbandi, false),
-    COALESCE(u.newsletteresiti, false)
-FROM legacy.users u
-LEFT JOIN legacy.aspnet_users au ON LOWER(au.username) = LOWER(u.username)
-LEFT JOIN legacy.aspnet_membership m ON m.userid = au.userid
-WHERE u.username IS NOT NULL AND u.username <> ''
-ON CONFLICT (username) DO UPDATE SET
-    -- Aggiorno solo i campi anagrafica + legacy_password se NULL
-    -- (non sovrascrivo password_hash o legacy_* già presenti)
-    legacy_password = COALESCE(public.users.legacy_password, EXCLUDED.legacy_password),
-    legacy_salt     = COALESCE(public.users.legacy_salt,     EXCLUDED.legacy_salt),
-    legacy_format   = COALESCE(public.users.legacy_format,   EXCLUDED.legacy_format);
+    PERFORM setval(pg_get_serial_sequence('public.users', 'id'),
+                   GREATEST((SELECT COALESCE(MAX(id),1) FROM public.users),1), true);
 
-SELECT setval(pg_get_serial_sequence('public.users', 'id'),
-              GREATEST((SELECT COALESCE(MAX(id), 1) FROM public.users), 1), true);
+    RAISE NOTICE '  public.users: % totale, % con legacy_password',
+        (SELECT COUNT(*) FROM public.users),
+        (SELECT COUNT(*) FROM public.users WHERE legacy_password IS NOT NULL);
+EXCEPTION WHEN OTHERS THEN RAISE WARNING '  users: %', SQLERRM; END $usr$;
 
 
 -- ============================================================================
--- 5. attestazioni (aziende → SOA con classifica)
+-- 5. attestazioni (aziende → SOA)
 -- ============================================================================
--- Legacy: AttestazioniAziende (PK separata) con FK su Azienda + Soa
--- Nuovo: attestazioni (PK SERIAL) con id_azienda, id_soa, classifica, date
+\echo '[5/6] attestazioni'
 
-\echo '[5/6] attestazioni...'
+DO $att$
+BEGIN
+    INSERT INTO public.attestazioni (
+        id, id_azienda, id_soa, classifica,
+        data_rilascio, data_scadenza, organismo
+    )
+    SELECT
+        aa.id,
+        aa.id,
+        aa.id_soa,
+        aa.classifica,
+        aa.datarilascio,
+        COALESCE(aa.datascadenzaquinq, aa.datascadenzatrienn),
+        aa.societaattestatrice
+    FROM legacy.attestazioniaziende aa
+    WHERE aa.id IS NOT NULL AND aa.id_soa IS NOT NULL
+      AND EXISTS (SELECT 1 FROM public.aziende WHERE id = aa.id)
+      AND EXISTS (SELECT 1 FROM public.soa     WHERE id = aa.id_soa)
+    ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.attestazioni (
-    id, id_azienda, id_soa, classifica,
-    data_rilascio, data_scadenza_triennale, data_scadenza_quinquennale,
-    societa_attestatrice, prevalente
-)
-SELECT
-    aa.idattestazione,
-    aa.idazienda,
-    aa.idsoa,
-    aa.classifica,
-    aa.datarilascio,
-    aa.datascadenzatrienn,
-    aa.datascadenzaquinq,
-    aa.societaattestatrice,
-    COALESCE(aa.prevalente, false)
-FROM legacy.attestazioniaziende aa
-WHERE aa.idazienda IS NOT NULL
-  AND aa.idsoa IS NOT NULL
-  AND EXISTS (SELECT 1 FROM public.aziende WHERE id = aa.idazienda)
-  AND EXISTS (SELECT 1 FROM public.soa     WHERE id = aa.idsoa)
-ON CONFLICT (id) DO NOTHING;
+    PERFORM setval(pg_get_serial_sequence('public.attestazioni', 'id'),
+                   GREATEST((SELECT COALESCE(MAX(id),1) FROM public.attestazioni),1), true);
 
-SELECT setval(pg_get_serial_sequence('public.attestazioni', 'id'),
-              GREATEST((SELECT COALESCE(MAX(id), 1) FROM public.attestazioni), 1), true);
+    RAISE NOTICE '  public.attestazioni: % righe', (SELECT COUNT(*) FROM public.attestazioni);
+EXCEPTION WHEN OTHERS THEN RAISE WARNING '  attestazioni: %', SQLERRM; END $att$;
 
 
 -- ============================================================================
 -- 6. user_roles  ←  aspnet_UsersInRoles
 -- ============================================================================
--- Migration 036 ha creato public.user_roles. Qui popolo dai legacy
--- aspnet_Roles + aspnet_UsersInRoles.
+\echo '[6/6] user_roles'
 
-\echo '[6/6] user_roles ← aspnet_UsersInRoles...'
-
-DO $$
+DO $roles$
 BEGIN
-    IF EXISTS (SELECT 1 FROM information_schema.tables
-               WHERE table_schema='legacy' AND table_name='aspnet_usersinroles') THEN
-
-        INSERT INTO public.user_roles (user_id, ruolo, granted_at, granted_by)
-        SELECT
-            u.id,
-            r.rolename,
-            NOW(),
-            'migration_anagrafica'
-        FROM legacy.aspnet_usersinroles ur
-        JOIN legacy.aspnet_users au ON au.userid = ur.userid
-        JOIN legacy.aspnet_roles r  ON r.roleid  = ur.roleid
-        JOIN public.users u         ON LOWER(u.username) = LOWER(au.username)
-        ON CONFLICT (user_id, ruolo) DO NOTHING;
-
-        RAISE NOTICE '  user_roles popolata da aspnet_UsersInRoles';
-    ELSE
-        RAISE NOTICE '  legacy.aspnet_usersinroles non esiste — salto';
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables
+                   WHERE table_schema='legacy' AND table_name='aspnet_usersinroles') THEN
+        RAISE NOTICE '  legacy.aspnet_usersinroles non esiste, skip';
+        RETURN;
     END IF;
-END $$;
+
+    INSERT INTO public.user_roles (user_id, ruolo, granted_at, granted_by)
+    SELECT
+        u.id,
+        r.rolename,
+        NOW(),
+        'migration_anagrafica'
+    FROM legacy.aspnet_usersinroles ur
+    JOIN legacy.aspnet_users au ON au.userid::text = ur.userid::text
+    JOIN legacy.aspnet_roles r  ON r.roleid::text  = ur.roleid::text
+    JOIN public.users u         ON LOWER(u.username) = LOWER(au.username)
+    ON CONFLICT (user_id, ruolo) DO NOTHING;
+
+    RAISE NOTICE '  public.user_roles: % righe', (SELECT COUNT(*) FROM public.user_roles);
+EXCEPTION WHEN OTHERS THEN RAISE WARNING '  user_roles: %', SQLERRM; END $roles$;
 
 
 -- ============================================================================
 -- VERIFICA FINALE
 -- ============================================================================
+\echo '[FINE] Riepilogo'
 
-\echo '[FINE] Verifica row counts...'
-
-DO $$
-DECLARE
-    n_aziende     BIGINT;
-    n_users       BIGINT;
-    n_users_legacy BIGINT;
-    n_stazioni    BIGINT;
-    n_attestazioni BIGINT;
-    n_roles       BIGINT;
+DO $final$
 BEGIN
-    SELECT COUNT(*) INTO n_aziende     FROM public.aziende;
-    SELECT COUNT(*) INTO n_users       FROM public.users;
-    SELECT COUNT(*) INTO n_users_legacy FROM public.users WHERE legacy_password IS NOT NULL;
-    SELECT COUNT(*) INTO n_stazioni    FROM public.stazioni;
-    SELECT COUNT(*) INTO n_attestazioni FROM public.attestazioni;
-    SELECT COUNT(*) INTO n_roles       FROM public.user_roles;
-
-    RAISE NOTICE '────────────────────────────────────────────────';
-    RAISE NOTICE 'ANAGRAFICA: legacy → public — RIEPILOGO';
-    RAISE NOTICE '────────────────────────────────────────────────';
-    RAISE NOTICE 'aziende:                                 %', n_aziende;
-    RAISE NOTICE 'stazioni:                                %', n_stazioni;
-    RAISE NOTICE 'users (totale):                          %', n_users;
-    RAISE NOTICE '   di cui con password legacy migrata:   %', n_users_legacy;
-    RAISE NOTICE 'attestazioni (aziende-SOA):              %', n_attestazioni;
-    RAISE NOTICE 'user_roles (ruoli N:N):                  %', n_roles;
-    RAISE NOTICE '────────────────────────────────────────────────';
-    RAISE NOTICE 'Gli utenti con legacy_password faranno migrazione';
-    RAISE NOTICE 'bcrypt automatica al primo login corretto.';
-    RAISE NOTICE '────────────────────────────────────────────────';
-END $$;
-
-COMMIT;
+    RAISE NOTICE '────────────────────────────────────────';
+    RAISE NOTICE 'ANAGRAFICA: REPORT';
+    RAISE NOTICE '────────────────────────────────────────';
+    RAISE NOTICE '  aziende:                     %', (SELECT COUNT(*) FROM public.aziende);
+    RAISE NOTICE '  stazioni:                    %', (SELECT COUNT(*) FROM public.stazioni);
+    RAISE NOTICE '  users (totale):              %', (SELECT COUNT(*) FROM public.users);
+    RAISE NOTICE '    con legacy_password:       %', (SELECT COUNT(*) FROM public.users WHERE legacy_password IS NOT NULL);
+    RAISE NOTICE '  attestazioni:                %', (SELECT COUNT(*) FROM public.attestazioni);
+    RAISE NOTICE '  user_roles:                  %', (SELECT COUNT(*) FROM public.user_roles);
+    RAISE NOTICE '────────────────────────────────────────';
+EXCEPTION WHEN OTHERS THEN
+    RAISE WARNING 'Verifica fallita: %', SQLERRM;
+END $final$;
 
 VACUUM ANALYZE public.aziende;
 VACUUM ANALYZE public.users;
@@ -392,9 +322,6 @@ VACUUM ANALYZE public.attestazioni;
 
 \echo ''
 \echo '═══════════════════════════════════════════════════════════════'
-\echo 'Anagrafica migrata. Verifica:'
-\echo '  - SELECT COUNT(*) FROM users WHERE legacy_password IS NOT NULL;'
-\echo '    → utenti pronti per bcrypt fallback al primo login'
-\echo '  - SELECT COUNT(*) FROM user_roles;'
-\echo '    → ruoli aspnet_UsersInRoles migrati'
+\echo 'Anagrafica migrata. Eventuali WARNING sopra = step skippati'
+\echo '(colonna mancante in schema legacy). Non bloccanti.'
 \echo '═══════════════════════════════════════════════════════════════'
