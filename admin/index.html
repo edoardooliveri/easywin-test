@@ -3415,9 +3415,206 @@ button:not(.bn-act):not(.bix-act-btn):not(.ute-iconbtn):not(.ew-btn):not(.flatpi
 
       <!-- AZIENDE PAGE -->
       <div id="pageAziende" class="page">
+
+        <!-- ================================================================
+             SEZIONE AZIENDE — redesign 2026-05-12 (brand light theme)
+             Allineata a Areas/Gestione/Views/Aziende/Index.cshtml +
+             _AziendeFilters.cshtml del legacy easywin.it.
+
+             Palette: bianco + arancio brand (#EA580C) + giallo brand (#F5C518)
+             + nero brand (#1A1A1A). Override scoped a #pageAziende.
+
+             Tutti gli id (aziende-*, searchAziende, resetAziendeSearch,
+             aziendeResults, aziendeCount, ms-aziende-*) sono PRESERVATI.
+             ================================================================ -->
+        <style>
+          /* ── Override tokens brand scoped (parity #pageAmministrazione) ── */
+          #pageAziende {
+            --accent:        #EA580C;
+            --accent-hover:  #C2410C;
+            --accent-soft:   #FFEDD5;
+            --accent-text:   #FFFFFF;
+            --secondary:     #F5C518;
+            --secondary-hover: #EAB308;
+            --secondary-soft:  #FEF9C3;
+            --secondary-text:  #1A1A1A;
+            --text:          #1A1A1A;
+          }
+
+          /* Pulsante CERCA: sfumatura brand identica ai btn-primary di Amministrazione */
+          #pageAziende .search-actions .btn-search-primary,
+          #pageAziende .btn-search-icon {
+            background: linear-gradient(90deg, #F5C518 0%, #EA580C 100%) !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 4px 14px rgba(234, 88, 12, 0.28), 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: filter 0.15s, transform 0.1s, box-shadow 0.15s;
+          }
+          #pageAziende .search-actions .btn-search-primary:hover,
+          #pageAziende .btn-search-icon:hover {
+            filter: brightness(1.05) saturate(1.05);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(234, 88, 12, 0.38), 0 1px 2px rgba(0, 0, 0, 0.06);
+          }
+          #pageAziende .search-actions .btn-search-primary:active,
+          #pageAziende .btn-search-icon:active { transform: translateY(0); filter: brightness(0.96); }
+
+          /* Pulsante ANNULLA: ghost ma con hover brand */
+          #pageAziende .search-actions .btn-search-secondary {
+            background: #FFFFFF;
+            color: #1A1A1A;
+            border: 1.5px solid #E2E8F0;
+          }
+          #pageAziende .search-actions .btn-search-secondary:hover {
+            border-color: #1A1A1A;
+            background: #F8FAFC;
+          }
+
+          /* Box "Sostituisci azienda" admin (parity legacy Index.cshtml) */
+          #pageAziende .azi-admin-tool {
+            background: linear-gradient(135deg, #FFFAF0 0%, #FEF9C3 100%);
+            border: 1px solid #FED7AA;
+            border-radius: 14px;
+            padding: 18px 22px;
+            margin-bottom: 22px;
+            display: flex; align-items: end; gap: 14px; flex-wrap: wrap;
+          }
+          #pageAziende .azi-admin-tool .azi-admin-title {
+            font-family: 'Comfortaa', cursive;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #9A3412;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex; align-items: center; gap: 8px;
+            width: 100%;
+          }
+          #pageAziende .azi-admin-tool .azi-admin-title i { color: #EA580C; }
+          #pageAziende .azi-admin-tool label {
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #78350F;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            display: block;
+            margin-bottom: 4px;
+          }
+          #pageAziende .azi-admin-tool input[type="number"],
+          #pageAziende .azi-admin-tool input[type="text"] {
+            padding: 9px 13px;
+            border: 1.5px solid #FED7AA;
+            border-radius: 9px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            min-width: 140px;
+            background: #FFFFFF;
+            color: #1A1A1A;
+          }
+          #pageAziende .azi-admin-tool input:focus {
+            outline: none;
+            border-color: #EA580C;
+            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
+          }
+          #pageAziende .azi-admin-tool .azi-admin-btn {
+            background: linear-gradient(90deg, #F5C518 0%, #EA580C 100%);
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 9999px;
+            font-family: 'Comfortaa', cursive;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: inline-flex; align-items: center; gap: 6px;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.28);
+            transition: filter 0.15s, transform 0.1s;
+          }
+          #pageAziende .azi-admin-tool .azi-admin-btn:hover {
+            filter: brightness(1.05) saturate(1.05);
+            transform: translateY(-1px);
+          }
+          #pageAziende .azi-admin-tool .azi-admin-result {
+            width: 100%;
+            margin-top: 4px;
+            font-size: 0.85rem;
+            color: #B91C1C;
+            font-weight: 600;
+            min-height: 1.2em;
+          }
+
+          /* Test mail block (parity legacy: IsTest + MailTest, admin only) */
+          #pageAziende .azi-test-block {
+            display: flex; align-items: center; gap: 14px;
+            padding: 10px 14px;
+            background: var(--secondary-soft);
+            border: 1px dashed var(--secondary);
+            border-radius: 10px;
+            margin-left: auto;
+          }
+          #pageAziende .azi-test-block label {
+            font-family: 'Comfortaa', cursive;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #78350F;
+            display: flex; align-items: center; gap: 6px;
+            cursor: pointer;
+            text-transform: none;
+            letter-spacing: 0;
+          }
+          #pageAziende .azi-test-block input[type="email"] {
+            padding: 7px 12px;
+            border: 1.5px solid #FCD34D;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            min-width: 200px;
+            background: #FFFFFF;
+            color: #1A1A1A;
+          }
+          #pageAziende .azi-test-block input[type="email"]:focus {
+            outline: none;
+            border-color: #EA580C;
+            box-shadow: 0 0 0 3px rgba(234,88,12,0.15);
+          }
+
+          /* Pulsante "Invia Mail" admin */
+          #pageAziende .search-actions .btn-invia-mail {
+            background: linear-gradient(90deg, #16A34A 0%, #22C55E 100%);
+            color: #FFFFFF;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 50px;
+            font-family: 'Comfortaa', cursive;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 12px rgba(22,163,74,0.28);
+            transition: filter 0.15s, transform 0.1s;
+            letter-spacing: 0.5px;
+          }
+          #pageAziende .search-actions .btn-invia-mail:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(22,163,74,0.38);
+          }
+
+          /* Conteggio risultati */
+          #pageAziende #aziendeCount {
+            color: #1A1A1A !important;
+            font-family: 'Comfortaa', cursive;
+          }
+          #pageAziende #aziendeCount strong {
+            background: linear-gradient(90deg, #F5C518, #EA580C);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+          }
+        </style>
+
         <div class="page-header">
           <h1 class="page-title">AZIENDE</h1>
-          <p class="page-subtitle" style="color:#94a3b8;font-size:0.88rem;margin-top:4px;margin-bottom:24px">Gestisci l'anagrafica delle aziende clienti. Cerca, modifica, crea nuove aziende e monitora abbonamenti e scadenze.</p>
         </div>
 
         <div class="search-section compact">
@@ -3600,15 +3797,55 @@ button:not(.bn-act):not(.bix-act-btn):not(.ute-iconbtn):not(.ew-btn):not(.flatpi
             </div>
           </div>
 
-          <!-- Bottoni -->
+          <!-- ── Test mail (admin only, parity legacy IsTest + MailTest) ──
+               Si attiva con il checkbox: quando Invia Mail viene cliccato,
+               se IsTest=true la mail va a MailTest invece che alle aziende.
+               Visibile solo per role Administrator (toggle via JS). -->
+          <div id="aziende-test-mail" class="azi-test-block" style="display:none;margin-top:14px;width:fit-content;">
+            <label>
+              <input type="checkbox" id="aziende-is-test"> Modalita' test
+            </label>
+            <input type="email" id="aziende-mail-test" placeholder="Mail di test (es. admin@easywin.it)">
+          </div>
+
+          <!-- ── Bottoni: CERCA + ANNULLA + (admin) INVIA MAIL ── -->
           <div class="search-actions">
             <button class="btn-search btn-search-primary" onclick="searchAziende()"><i class="fas fa-search"></i> CERCA AZIENDE</button>
             <button class="btn-search btn-search-secondary" onclick="resetAziendeSearch()"><i class="fas fa-times"></i> ANNULLA</button>
+            <button id="aziende-btn-invia-mail" class="btn-invia-mail" onclick="inviaMailAziende()" style="display:none">
+              <i class="fas fa-envelope"></i> INVIA MAIL
+            </button>
           </div>
         </div>
 
+        <!-- ── Blocco admin "Sostituisci azienda" (parity legacy Index.cshtml) ──
+             Sostituisce un'azienda obsoleta con una valida in tutti i bandi,
+             esiti, ATI, avvalimenti. Visibile solo per Administrator. -->
+        <div id="aziende-sostituisci-tool" class="azi-admin-tool" style="display:none">
+          <div class="azi-admin-title">
+            <i class="fas fa-exchange-alt"></i>
+            Sostituisci Azienda (Admin)
+          </div>
+          <div>
+            <label>ID Azienda valida</label>
+            <input type="number" id="id-azienda-valida" placeholder="Es. 12345" min="1">
+          </div>
+          <div>
+            <label>ID Azienda obsoleta</label>
+            <input type="number" id="id-azienda-obsoleta" placeholder="Es. 67890" min="1">
+          </div>
+          <div>
+            <button class="azi-admin-btn"
+                    title="Sostituisce l'azienda obsoleta con quella valida in tutti i bandi, esiti, ATI, avvalimenti, registri."
+                    onclick="sostituisciAzienda()">
+              <i class="fas fa-check"></i> Esegui sostituzione
+            </button>
+          </div>
+          <div id="aziende-sostituisci-risultato" class="azi-admin-result"></div>
+        </div>
+
         <div class="table-container">
-          <div id="aziendeCount" style="padding:12px 0;font-weight:600;color:var(--orange);text-align:center;font-family:'Comfortaa',cursive;font-size:0.95rem;"></div>
+          <div id="aziendeCount" style="padding:14px 0;font-weight:600;text-align:center;font-family:'Comfortaa',cursive;font-size:0.95rem;"></div>
           <div id="aziendeResults"></div>
         </div>
       </div>
@@ -9184,6 +9421,11 @@ function selectSubPage(section, subpage) {
   if (subpage === 'tipologia-dati') loadTipologiaDati();
   if (subpage === 'tipologia-gara') loadTipologieGare();
   if (subpage === 'create-azienda') { setTimeout(() => { if (typeof initFlatpickrAll === 'function') initFlatpickrAll(); }, 50); }
+  // Mostra/nasconde blocchi admin (Sostituisci + Invia Mail + IsTest) ad ogni
+  // ingresso in pageAziende — copre il caso login post-render della pagina
+  if (subpage === 'aziende' && section === 'aziende') {
+    try { if (typeof showAziendeAdminBlocks === 'function') showAziendeAdminBlocks(); } catch(e) {}
+  }
   if (subpage === 'tutti' && section === 'albi-fornitori') loadAlbiTuttiGliAlbi(1);
   if (subpage === 'dashboard' && section === 'albi-fornitori') loadAlbiDashboard();
   // UTENTI section
@@ -12423,6 +12665,163 @@ async function searchAziende(page = 1) {
     container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Errore: ${e.message}</p></div>`;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   AZIENDE — Funzioni admin parity con legacy easywin.it
+     - sostituisciAzienda():  fonde un'azienda obsoleta nella valida
+                              (legacy SostituisciAzienda)
+     - inviaMailAziende():    invio massivo email alle aziende filtrate
+                              (legacy "Invia Mail" button + IsTest/MailTest)
+     - showAziendeAdminBlocks(): mostra blocchi admin solo se Administrator
+   ════════════════════════════════════════════════════════════════════════ */
+
+async function sostituisciAzienda() {
+  const valida = document.getElementById('id-azienda-valida').value.trim();
+  const obsoleta = document.getElementById('id-azienda-obsoleta').value.trim();
+  const resultEl = document.getElementById('aziende-sostituisci-risultato');
+
+  if (!valida || !obsoleta || isNaN(Number(valida)) || isNaN(Number(obsoleta))) {
+    resultEl.style.color = '#B91C1C';
+    resultEl.textContent = 'Inserire entrambi gli ID (numerici).';
+    return;
+  }
+  if (valida === obsoleta) {
+    resultEl.style.color = '#B91C1C';
+    resultEl.textContent = 'Gli ID devono essere diversi.';
+    return;
+  }
+  if (!(await ewConfirm(
+    "Vuoi sostituire l'azienda obsoleta (ID " + obsoleta + ") con quella valida (ID " +
+    valida + ") in TUTTI i bandi, esiti, ATI, avvalimenti?\n\n" +
+    "L'operazione è irreversibile."))) {
+    return;
+  }
+
+  resultEl.style.color = '#1A1A1A';
+  resultEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sostituzione in corso...';
+
+  try {
+    const res = await fetch(API_BASE + '/admin/aziende/sostituisci', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({
+        id_azienda_valida: parseInt(valida, 10),
+        id_azienda_obsoleta: parseInt(obsoleta, 10)
+      })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      resultEl.style.color = '#B91C1C';
+      resultEl.textContent = 'Errore: ' + (data.error || res.statusText);
+      return;
+    }
+    resultEl.style.color = '#166534';
+    const aggiornati = data.aggiornati || data.updated || {};
+    const totali = Object.values(aggiornati).reduce((sum, n) => sum + (Number(n) || 0), 0);
+    let dettaglio = '';
+    if (totali > 0) {
+      dettaglio = ' (' + Object.entries(aggiornati)
+        .filter(([_, n]) => Number(n) > 0)
+        .map(([k, n]) => k + ': ' + n)
+        .join(', ') + ')';
+    }
+    resultEl.innerHTML = '<i class="fas fa-check-circle"></i> Sostituzione completata: ' +
+                        totali + ' record aggiornati' + dettaglio + '.';
+  } catch (e) {
+    resultEl.style.color = '#B91C1C';
+    resultEl.textContent = 'Errore di rete: ' + e.message;
+  }
+}
+
+async function inviaMailAziende() {
+  const isTest = document.getElementById('aziende-is-test')?.checked;
+  const mailTest = document.getElementById('aziende-mail-test')?.value.trim();
+
+  if (isTest && !mailTest) {
+    await ewAlert('Modalità test attiva: inserisci una mail di destinazione.');
+    return;
+  }
+  if (isTest && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mailTest)) {
+    await ewAlert('Mail di test non valida.');
+    return;
+  }
+
+  const conferma = isTest
+    ? 'Inviare mail di TEST a ' + mailTest + ' usando i filtri correnti?'
+    : 'Inviare mail a TUTTE le aziende che corrispondono ai filtri correnti?';
+  if (!(await ewConfirm(conferma))) return;
+
+  try {
+    // Riusa i filtri correnti raccolti dal form (stessi del search)
+    const filtri = _collectAziendeFilters();
+    const res = await fetch(API_BASE + '/admin/aziende/invia-mail', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ ...filtri, isTest, mailTest })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      await ewAlert('Errore: ' + (data.error || res.statusText));
+      return;
+    }
+    await ewAlert('Mail inviate: ' + (data.inviate || 0) +
+                  ' (fallite: ' + (data.fallite || 0) + ')');
+  } catch (e) {
+    await ewAlert('Errore di rete: ' + e.message);
+  }
+}
+
+// Helper: raccoglie i filtri correnti del form per /invia-mail (riusa la
+// stessa logica di searchAziende)
+function _collectAziendeFilters() {
+  const get = id => (document.getElementById(id)?.value || '').trim();
+  const sel = name => (document.querySelector('input[name="' + name + '"]:checked')?.value) || '';
+  const province = Array.from(document.querySelectorAll('#aziende-provincia option:checked'))
+    .map(o => o.value).filter(Boolean);
+  return {
+    ragione_sociale: get('aziende-ragione'),
+    partita_iva: get('aziende-piva'),
+    codice_fiscale: get('aziende-cf'),
+    cap: get('aziende-cap'),
+    indirizzo: get('aziende-indirizzo'),
+    citta: get('aziende-citta'),
+    province,
+    soa: get('aziende-soa'),
+    soa_legame: get('aziende-soa-legame'),
+    soa_classifica: get('aziende-soa-classifica'),
+    email_filtro: get('aziende-email-filtro'),
+    inserita_da: get('aziende-inserita-da'),
+    fornitrice: get('aziende-fornitrice'),
+    agente: get('aziende-agente'),
+    responsabile: get('aziende-responsabile'),
+    stato: sel('aziende-stato'),
+    logica: sel('aziende-logica'),
+    stato_contatto: sel('aziende-stato-contatto'),
+    senza_attestazioni: document.getElementById('aziende-senza-attestazioni')?.checked || false
+  };
+}
+
+// Toggle blocchi admin (sostituisci + invia mail + test) in base al ruolo
+function showAziendeAdminBlocks() {
+  let isAdmin = false;
+  try {
+    const userStr = localStorage.getItem('easywin_user') || localStorage.getItem('user');
+    if (userStr) {
+      const u = JSON.parse(userStr);
+      const ruolo = (u.ruolo || u.role || '').toLowerCase();
+      isAdmin = ruolo === 'administrator' || ruolo === 'admin' || u.is_admin === true;
+    }
+  } catch (e) { /* fallback: non admin */ }
+
+  ['aziende-sostituisci-tool', 'aziende-test-mail', 'aziende-btn-invia-mail'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isAdmin ? '' : 'none';
+  });
+}
+// Esegui al load (sicurezza: se la pagina è già navigata, il container c'è)
+document.addEventListener('DOMContentLoaded', showAziendeAdminBlocks);
+// Esegui anche quando la SPA naviga a pageAziende (gancio nel routing)
+window.__refreshAziendeAdmin = showAziendeAdminBlocks;
 
 function resetAziendeSearch() {
   // Reset text inputs

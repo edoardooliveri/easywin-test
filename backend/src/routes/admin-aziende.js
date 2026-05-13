@@ -587,6 +587,140 @@ export default async function adminAziendeRoutes(fastify, opts) {
   });
 
   // ============================================================
+  // ADMIN TOOLS: Sostituisci azienda + Invia mail massiva
+  // (parity legacy Areas/Gestione/Views/Aziende/Index.cshtml)
+  // ============================================================
+
+  /**
+   * POST /api/admin/aziende/sostituisci
+   *
+   * Legacy parity: SostituisciAzienda in Index.cshtml.
+   * Sostituisce un'azienda obsoleta con una valida in tutte le tabelle
+   * dove può essere referenziata (bandi.id_azienda, esiti, ATI, avvalimenti,
+   * dettaglio_gara). L'azienda obsoleta NON viene eliminata: viene marcata
+   * come `cessata = true` (così resta in DB per audit) ma tutti i record
+   * collegati passano alla valida.
+   *
+   * Body:
+   *   { id_azienda_valida: int, id_azienda_obsoleta: int }
+   *
+   * Response:
+   *   {
+   *     success: true,
+   *     aggiornati: {
+   *       bandi: N, esiti: N, dettaglio_gara: N,
+   *       ati_componenti: N, avvalimenti: N, eventi_azienda: N
+   *     }
+   *   }
+   *
+   * Schema-tolerant: ogni UPDATE è wrapped in try/catch (alcune tabelle
+   * possono non esistere su DB più vecchi).
+   */
+  fastify.post('/sostituisci', async (request, reply) => {
+    try {
+      const { id_azienda_valida, id_azienda_obsoleta } = request.body || {};
+      const valida = parseInt(id_azienda_valida, 10);
+      const obsoleta = parseInt(id_azienda_obsoleta, 10);
+
+      if (!valida || !obsoleta || valida === obsoleta) {
+        return reply.status(400).send({ error: 'ID aziende mancanti o uguali' });
+      }
+
+      // Verifica che entrambe esistano
+      const checkRes = await query(
+        `SELECT id FROM aziende WHERE id IN ($1, $2)`,
+        [valida, obsoleta]
+      );
+      if (checkRes.rows.length < 2) {
+        return reply.status(404).send({ error: 'Una delle due aziende non esiste' });
+      }
+
+      const aggiornati = {};
+
+      // Helper: tenta UPDATE su una tabella/colonna; se la tabella non esiste,
+      // ritorna 0 senza errore (DB legacy potrebbe non avere tutte le tabelle).
+      async function aggiornaTabella(tab, colonna) {
+        try {
+          const r = await query(
+            `UPDATE ${tab} SET ${colonna} = $1 WHERE ${colonna} = $2`,
+            [valida, obsoleta]
+          );
+          aggiornati[tab] = r.rowCount || 0;
+        } catch (e) {
+          aggiornati[tab] = 0;
+          fastify.log.warn({ tab, err: e.message }, 'sostituisciAzienda: tabella saltata');
+        }
+      }
+
+      // Tabelle che potrebbero referenziare id_azienda
+      await aggiornaTabella('bandi', 'id_azienda');
+      await aggiornaTabella('esiti', 'id_azienda');
+      await aggiornaTabella('dettaglio_gara', 'id_azienda');
+      await aggiornaTabella('ati_componenti', 'id_azienda');
+      await aggiornaTabella('avvalimenti_imprese', 'id_azienda');
+      await aggiornaTabella('eventi_azienda', 'id_azienda');
+      await aggiornaTabella('preferiti_esiti', 'id_azienda');
+      await aggiornaTabella('registro_gare_clienti', 'id_azienda');
+
+      // Marca l'azienda obsoleta come cessata (audit trail)
+      try {
+        await query(`UPDATE aziende SET cessata = true WHERE id = $1`, [obsoleta]);
+      } catch (e) {
+        // colonna `cessata` non esiste in qualche DB legacy → ignora
+        fastify.log.warn({ err: e.message }, 'sostituisciAzienda: cessata not marked');
+      }
+
+      return { success: true, aggiornati, id_azienda_valida: valida, id_azienda_obsoleta: obsoleta };
+    } catch (err) {
+      fastify.log.error({ err: err.message }, 'sostituisciAzienda error');
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  /**
+   * POST /api/admin/aziende/invia-mail
+   *
+   * Legacy parity: bottone "Invia Mail" in _AziendeFilters.cshtml.
+   * Invia una mail (a tutte le aziende che corrispondono ai filtri correnti
+   * oppure a una mail di test se isTest=true).
+   *
+   * Body: tutti i filtri di /admin/aziende GET + isTest + mailTest.
+   *
+   * NB: l'implementazione corrente è un STUB sicuro che ritorna 200 con
+   * inviate=0, fallite=0 e un messaggio: il vero invio massivo richiede
+   * un job in background (nodemailer + queue) — è già parzialmente
+   * disponibile via newsletter-scheduler. Quando il modulo SMTP sarà
+   * configurato a livello di sistema, qui basta sostituire lo stub con
+   * la chiamata al transporter.
+   */
+  fastify.post('/invia-mail', async (request, reply) => {
+    try {
+      const { isTest = false, mailTest } = request.body || {};
+
+      if (isTest && !mailTest) {
+        return reply.status(400).send({ error: 'Mail di test richiesta in modalita test' });
+      }
+
+      // Stub: marca l'invio richiesto e ritorna ok.
+      // TODO: integrare con SMTP/nodemailer + queue (es. background_jobs).
+      fastify.log.info({ isTest, mailTest }, 'aziende/invia-mail: stub (SMTP non ancora collegato)');
+
+      return {
+        success: true,
+        inviate: 0,
+        fallite: 0,
+        isTest: !!isTest,
+        mailTest: isTest ? mailTest : null,
+        _warning: 'Invio mail massivo non ancora collegato al transporter SMTP. ' +
+                  'Operazione registrata, nessuna mail inviata.'
+      };
+    } catch (err) {
+      fastify.log.error({ err: err.message }, 'aziende/invia-mail error');
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  // ============================================================
   // ATTESTAZIONI (SOA Certifications)
   // ============================================================
 
