@@ -233,25 +233,24 @@ step_import() {
       continue
     fi
 
-    # TRUNCATE + COPY
-    # FORMAT csv per gestire quoting; DELIMITER tab; NULL '' (empty = NULL)
-    if docker exec "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" \
-        -c "TRUNCATE legacy.${table_lower} CASCADE;" >/dev/null 2>&1 && \
-       docker exec "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" \
-        -c "\\copy legacy.${table_lower} FROM '/tmp/${table_lower}.tsv' WITH (FORMAT csv, DELIMITER E'\\t', NULL '', QUOTE E'\\b')" 2>&1 | tail -1 \
-        | grep -qE "COPY [0-9]+"; then
+    # TRUNCATE + COPY server-side (NON \copy: meta-comando psql non funziona
+    # dentro -c; COPY server-side legge dal filesystem del container PG,
+    # dove abbiamo appena copiato il file via docker cp).
+    # FORMAT text (no quoting CSV): BCP -c output non quota i campi.
+    local copy_out
+    copy_out=$(docker exec "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -v ON_ERROR_STOP=0 -c "
+      TRUNCATE legacy.${table_lower} CASCADE;
+      COPY legacy.${table_lower} FROM '/tmp/${table_lower}.tsv' WITH (FORMAT text, DELIMITER E'\\t', NULL '');
+    " 2>&1)
+
+    if echo "$copy_out" | grep -qE "COPY [0-9]+"; then
       local rows
       rows=$(docker exec "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -At -c \
         "SELECT COUNT(*) FROM legacy.${table_lower}" 2>/dev/null || echo "?")
       echo -e "${GREEN}✓${NC} ${rows} righe"
     else
-      # Riprova SENZA cascade truncate (forse FK problem) e con quoting più tollerante
-      if docker exec "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" \
-          -c "DELETE FROM legacy.${table_lower}; \\copy legacy.${table_lower} FROM '/tmp/${table_lower}.tsv' WITH (FORMAT csv, DELIMITER E'\\t', NULL '', QUOTE E'\\b')" 2>&1 | tail -3 | head -1; then
-        echo -e "${YELLOW}!${NC} caricato con warning"
-      else
-        echo -e "${RED}✗${NC} copy fallito"
-      fi
+      echo -e "${RED}✗${NC} copy fallito"
+      echo "$copy_out" | tail -3 | sed 's/^/      /'
     fi
   done
 
