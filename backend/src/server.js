@@ -287,10 +287,13 @@ const AUTO_MIGRATIONS = [
   '028_bandi_id_azienda_dedicata.sql',
   '029_bandi_sped_to_boolean.sql',
   '030_bandi_soa_sec_scorporabili.sql',
+  '031_aziende_align_legacy.sql',
   '032_consolidate_clienti_preferiti_registro.sql',
   '033_cleanup_province_criteri_regioni.sql',
   '034_albi_discovery_runs.sql',
   '035_pg_trgm_fuzzy_search.sql',
+  '036_fix_schema_duplicates.sql',   // user_roles + drop bandi_modifiche/fatture_pro_forma
+  '037_legacy_auth_columns.sql',     // legacy_password/salt/format + password_hash NULLABLE
 ];
 
 async function runAutoMigrations() {

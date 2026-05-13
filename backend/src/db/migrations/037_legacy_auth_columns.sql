@@ -24,8 +24,10 @@
 --      - se NO match: 401 (no più "accetta tutto")
 -- ============================================================================
 
-\timing on
-\set ON_ERROR_STOP on
+-- NB: rimossi \timing on e \set ON_ERROR_STOP on perché sono meta-comandi
+-- psql client-side. Quando server.js auto-migra via pool.query() li interpreta
+-- come SQL pure, generando syntax error. Li lasciamo come commento per chi
+-- esegue manualmente: psql -f 037_legacy_auth_columns.sql --set ON_ERROR_STOP=on
 
 BEGIN;
 
