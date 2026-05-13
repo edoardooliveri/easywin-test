@@ -18,8 +18,17 @@ WITH include drop,              -- drop tabelle esistenti su Postgres prima di c
      create indexes,            -- ricrea indici (secondari; PK vengono sempre)
      reset sequences,           -- allinea sequenze al MAX(id) dopo il load
      foreign keys,              -- ricrea FK alla fine del load
-     downcase identifiers       -- TUTTI i nomi di tabelle/colonne in lowercase
+     downcase identifiers,      -- TUTTI i nomi di tabelle/colonne in lowercase
                                 -- (es. dbo.Bandi → public.bandi, IdBando → idbando)
+     -- MEMORY TUNING: l'immagine dimitri/pgloader:latest ha SBCL heap fisso 1 GB.
+     -- Ridotti batch + parallelismo per stare sotto il limite anche sulle
+     -- tabelle grandi (legacy.bandi ~5 GB su disco). Trade-off: più lento ma
+     -- non KABOOM.
+     prefetch rows = 1000,      -- righe lette dal sorgente per batch (default 25000)
+     batch rows = 1000,         -- righe scritte su Postgres per batch
+     batch size = '20 MB',      -- limite hard sul singolo batch
+     workers = 1,               -- 1 worker per tabella (default = #core)
+     concurrency = 1            -- 1 tabella alla volta (default 2)
 
 -- ============================================================================
 -- TUNING MEMORIA
@@ -105,12 +114,14 @@ CAST
 ALTER SCHEMA 'dbo' RENAME TO 'legacy'
 
 -- ============================================================================
--- TABELLE DA ESCLUDERE (opzionale)
+-- TABELLE DA ESCLUDERE
 -- ============================================================================
--- Se il .bak "Ridotto" contiene ancora tabelle di log/audit pesanti che non
--- servono allo staging, escludile qui. Esempio:
--- EXCLUDING TABLE NAMES MATCHING ~/^sys/, ~/Log$/, ~/Audit$/
--- Per ora include tutto, rivaluta dopo la prima run guardando le dimensioni.
+-- Escludo:
+--  ~/_bk$/        — tabelle backup interne (aziendebk, attestazioniaziendebk, ...)
+--                   sono backup intermedi del DBA, non utili per staging
+--                   AND possono essere grandi (heap pressure)
+--  ~/^sysdiagrams$/ — diagram metadata di SSMS, non dati reali
+EXCLUDING TABLE NAMES MATCHING ~/_bk$/, ~/^sysdiagrams$/
 
 -- ============================================================================
 -- TABELLE DA INCLUDERE (se vuoi partire "solo con il core")

@@ -298,16 +298,15 @@ step_run_pgloader() {
   warn "ATTENZIONE: questo step è LUNGO. Apri un'altra shell e monitora con:"
   warn "  docker exec $PG_CONTAINER psql -U $PG_USER -d $PG_DB -c \"\\\\dt legacy.*\""
 
-  # NB: --dynamic-space-size è il flag SBCL (il runtime Lisp di pgloader).
-  # Default 1 GB → KABOOM "Heap exhausted" sulle tabelle grandi (bandi 5 GB).
-  # 6144 MB = 6 GB heap Lisp, dentro container --memory 6g. Più che sufficiente
-  # per migrare anche tabelle da 10 GB se non più.
+  # Memory management: pgloader (SBCL Lisp) ha heap fisso compilato a 1 GB
+  # nell'immagine dimitri/pgloader:latest. NON si può aumentare runtime.
+  # Per stare entro 1 GB: ridurre batch size + workers (vedi WITH options
+  # nel pgloader-easywin.load: batch rows=1000, prefetch rows=1000, workers=1).
   docker run --rm -i \
     --network easywin-net \
     -v "$tmp_load:/data/pgloader.load:ro" \
-    --memory 6g \
+    --memory 4g \
     dimitri/pgloader:latest pgloader \
-      --dynamic-space-size 6144 \
       --verbose /data/pgloader.load 2>&1 | tee "$REPO_ROOT/staging/pgloader.log"
 
   ok "pgloader completato (vedi staging/pgloader.log per dettagli)"
