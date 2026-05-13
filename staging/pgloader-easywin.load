@@ -1,0 +1,123 @@
+-- ============================================================================
+-- pgloader config per migrazione EasyWin: SQL Server (Gare) → Postgres (easywin_staging)
+-- ============================================================================
+-- Uso: pgloader --verbose pgloader-easywin.load
+-- Prerequisiti: SQL Server "Gare" in Docker su localhost:1433
+--                Postgres "easywin_staging" su localhost:5432
+-- ============================================================================
+
+LOAD DATABASE
+     FROM      mssql://sa:EasyWin2026!@localhost:1433/Gare
+     INTO      postgresql://easywin:CAMBIAMI_PASSWORD@localhost:5432/easywin_staging
+
+-- ============================================================================
+-- OPZIONI GENERALI
+-- ============================================================================
+WITH include drop,              -- drop tabelle esistenti su Postgres prima di creare
+     create tables,             -- crea tabelle partendo dallo schema SQL Server
+     create indexes,            -- ricrea indici (secondari; PK vengono sempre)
+     reset sequences,           -- allinea sequenze al MAX(id) dopo il load
+     foreign keys,              -- ricrea FK alla fine del load
+     downcase identifiers       -- TUTTI i nomi di tabelle/colonne in lowercase
+                                -- (es. dbo.Bandi → public.bandi, IdBando → idbando)
+
+-- ============================================================================
+-- TUNING MEMORIA
+-- ============================================================================
+SET work_mem TO '128MB',
+    maintenance_work_mem TO '1GB',
+    max_wal_size TO '2GB'
+
+-- ============================================================================
+-- CAST: mappatura tipi SQL Server → Postgres
+-- ============================================================================
+-- Tipi nativi che pgloader gestisce automaticamente: int, bigint, smallint,
+-- tinyint, decimal, numeric, float, real, varchar, nvarchar, char, nchar,
+-- text, ntext, date, time, datetime, datetime2, bit, uniqueidentifier, varbinary
+-- Qui sovrascriviamo i casi che vogliamo forzare diversamente.
+CAST
+    -- BIT → boolean esplicito (pgloader fa "smallint" di default, ma noi
+    -- vogliamo boolean pieno Postgres)
+    type bit to boolean drop typemod using bit-to-boolean,
+
+    -- datetime/datetime2/smalldatetime → timestamptz (timezone Europe/Rome)
+    type datetime to "timestamp with time zone" drop default drop not null,
+    type datetime2 to "timestamp with time zone" drop default drop not null,
+    type smalldatetime to "timestamp with time zone" drop default drop not null,
+    type datetimeoffset to "timestamp with time zone" drop default drop not null,
+
+    -- uniqueidentifier → uuid
+    type uniqueidentifier to uuid drop typemod,
+
+    -- nvarchar senza limite → text (meno problemi con TOAST)
+    type nvarchar when (= precision 0) to text drop typemod,
+    type varchar when (= precision 0) to text drop typemod,
+    type nvarchar when (> precision 4000) to text drop typemod,
+    type varchar when (> precision 8000) to text drop typemod,
+
+    -- ntext/text → text
+    type ntext to text,
+    type "ntext" to text,
+
+    -- money/smallmoney → numeric(19,4)
+    type money to "numeric(19,4)" drop typemod,
+    type smallmoney to "numeric(10,4)" drop typemod,
+
+    -- image/varbinary → bytea
+    type image to bytea drop typemod,
+    type varbinary to bytea drop typemod,
+
+    -- xml → xml (Postgres ha supporto nativo)
+    type xml to xml drop typemod,
+
+    -- sql_variant: non supportato bene, dump a text
+    type sql_variant to text drop typemod
+
+-- ============================================================================
+-- SCHEMA RENAMING — IMPORTANTE
+-- ============================================================================
+-- Lo schema legacy SQL Server "dbo" finisce in Postgres come "legacy" (NON
+-- "public") per due motivi:
+--
+--   1. Lo schema "public" del nuovo sito è già stato creato a mano via
+--      backend/src/db/migrations/001-036 (struttura modernizzata: bandi.id
+--      UUID, snake_case, FK migliorate, ecc.). pgloader importerebbe in
+--      public e sovrascriverebbe TUTTO con lo schema legacy CamelCase-INT.
+--
+--   2. La trasformazione legacy → public richiede un mapping INT→UUID
+--      per la PK di bandi (legacy: IdBando INT; nuovo: id UUID). Lo fa
+--      lo script staging/transform-legacy-to-public.sql dopo pgloader.
+--
+-- Pipeline migrazione (2 step):
+--     pgloader  →  legacy.* (CamelCase-flatten, tipi tradotti)
+--     transform-legacy-to-public.sql  →  public.* (snake_case, UUID, FK)
+ALTER SCHEMA 'dbo' RENAME TO 'legacy'
+
+-- ============================================================================
+-- TABELLE DA ESCLUDERE (opzionale)
+-- ============================================================================
+-- Se il .bak "Ridotto" contiene ancora tabelle di log/audit pesanti che non
+-- servono allo staging, escludile qui. Esempio:
+-- EXCLUDING TABLE NAMES MATCHING ~/^sys/, ~/Log$/, ~/Audit$/
+-- Per ora include tutto, rivaluta dopo la prima run guardando le dimensioni.
+
+-- ============================================================================
+-- TABELLE DA INCLUDERE (se vuoi partire "solo con il core")
+-- ============================================================================
+-- Commenta le opzioni EXCLUDING sopra e decommenta questa per fare una
+-- migrazione parziale:
+-- INCLUDING ONLY TABLE NAMES MATCHING
+--     ~/^Bandi/, ~/^Gare/, ~/^Azienda/, ~/^Stazioni/, ~/^Province/,
+--     ~/^Soa/, ~/^Users/, ~/^Dettaglio/, ~/^Concorrenti/, ~/^Apertura/,
+--     ~/^AllegatiBando/, ~/^Punteggi/, ~/^GareRicorsi/
+
+-- ============================================================================
+-- BEFORE/AFTER LOAD (SQL custom)
+-- ============================================================================
+BEFORE LOAD DO
+$$ CREATE EXTENSION IF NOT EXISTS "uuid-ossp"; $$,
+$$ CREATE EXTENSION IF NOT EXISTS citext; $$,
+$$ CREATE EXTENSION IF NOT EXISTS pg_trgm; $$
+
+AFTER LOAD DO
+$$ ANALYZE; $$;
