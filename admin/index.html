@@ -12704,7 +12704,11 @@ async function sostituisciAzienda() {
     const res = await fetch(API_BASE + '/admin/aziende/sostituisci', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      // Backend accetta entrambi i naming: mando i due set per compat con
+      // qualsiasi versione del handler
       body: JSON.stringify({
+        id_valida: parseInt(valida, 10),
+        id_errata: parseInt(obsoleta, 10),
         id_azienda_valida: parseInt(valida, 10),
         id_azienda_obsoleta: parseInt(obsoleta, 10)
       })
@@ -12746,59 +12750,49 @@ async function inviaMailAziende() {
     return;
   }
 
+  // Chiedi oggetto e corpo (il backend richiede entrambi obbligatori)
+  const oggetto = await ewPrompt('Oggetto della mail:', 'EasyWin — Comunicazione');
+  if (!oggetto) return;
+  const corpo = await ewPrompt(
+    'Corpo della mail (puoi usare {ragione_sociale} come placeholder):',
+    'Gentile {ragione_sociale},\n\n...'
+  );
+  if (!corpo) return;
+
   const conferma = isTest
-    ? 'Inviare mail di TEST a ' + mailTest + ' usando i filtri correnti?'
-    : 'Inviare mail a TUTTE le aziende che corrispondono ai filtri correnti?';
+    ? 'Inviare mail di TEST a ' + mailTest + ' con oggetto "' + oggetto + '"?'
+    : 'Inviare mail a TUTTE le aziende attive con email valida?\n\nOggetto: "' + oggetto + '"';
   if (!(await ewConfirm(conferma))) return;
 
   try {
-    // Riusa i filtri correnti raccolti dal form (stessi del search)
-    const filtri = _collectAziendeFilters();
+    // Backend si aspetta {oggetto, corpo, tipo_filtro?, destinatari_ids?, isTest?, mailTest?}
+    const body = {
+      oggetto,
+      corpo,
+      tipo_filtro: 'tutti_clienti'   // fallback: tutte le aziende attive con email
+    };
+    if (isTest) {
+      body.isTest = true;
+      body.mailTest = mailTest;
+    }
     const res = await fetch(API_BASE + '/admin/aziende/invia-mail', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify({ ...filtri, isTest, mailTest })
+      body: JSON.stringify(body)
     });
     const data = await res.json();
     if (!res.ok || data.error) {
       await ewAlert('Errore: ' + (data.error || res.statusText));
       return;
     }
-    await ewAlert('Mail inviate: ' + (data.inviate || 0) +
-                  ' (fallite: ' + (data.fallite || 0) + ')');
+    await ewAlert(
+      (data.isTest ? '[TEST] ' : '') +
+      'Mail inviate: ' + (data.inviate || 0) +
+      ' (fallite: ' + (data.fallite || 0) + ', totale: ' + (data.totale || 0) + ')'
+    );
   } catch (e) {
     await ewAlert('Errore di rete: ' + e.message);
   }
-}
-
-// Helper: raccoglie i filtri correnti del form per /invia-mail (riusa la
-// stessa logica di searchAziende)
-function _collectAziendeFilters() {
-  const get = id => (document.getElementById(id)?.value || '').trim();
-  const sel = name => (document.querySelector('input[name="' + name + '"]:checked')?.value) || '';
-  const province = Array.from(document.querySelectorAll('#aziende-provincia option:checked'))
-    .map(o => o.value).filter(Boolean);
-  return {
-    ragione_sociale: get('aziende-ragione'),
-    partita_iva: get('aziende-piva'),
-    codice_fiscale: get('aziende-cf'),
-    cap: get('aziende-cap'),
-    indirizzo: get('aziende-indirizzo'),
-    citta: get('aziende-citta'),
-    province,
-    soa: get('aziende-soa'),
-    soa_legame: get('aziende-soa-legame'),
-    soa_classifica: get('aziende-soa-classifica'),
-    email_filtro: get('aziende-email-filtro'),
-    inserita_da: get('aziende-inserita-da'),
-    fornitrice: get('aziende-fornitrice'),
-    agente: get('aziende-agente'),
-    responsabile: get('aziende-responsabile'),
-    stato: sel('aziende-stato'),
-    logica: sel('aziende-logica'),
-    stato_contatto: sel('aziende-stato-contatto'),
-    senza_attestazioni: document.getElementById('aziende-senza-attestazioni')?.checked || false
-  };
 }
 
 // Toggle blocchi admin (sostituisci + invia mail + test) in base al ruolo
