@@ -524,6 +524,171 @@ export default async function adminUtentiRoutes(fastify, opts) {
   });
 
   // ============================================
+  // PASSWORD MANAGEMENT (Admin-side)
+  // ============================================
+
+  /**
+   * POST /api/admin/utenti/:username/change-password
+   *
+   * Parity legacy: Areas/Gestione/Views/Utenti/ChangePassword.cshtml.
+   * L'admin imposta una nuova password per un utente (es. dopo
+   * reset, dopo cambio anagrafico, dopo richiesta da help-desk).
+   *
+   * Body: { new_password: string }
+   *
+   * Genera bcrypt hash + azzera eventuali colonne legacy_* (utente
+   * non deve più tornare al fallback SHA1). Logga in modifiche_utente.
+   */
+  fastify.post('/utenti/:username/change-password',
+    { preHandler: [fastify.authenticate, adminOnly] },
+    async (request, reply) => {
+      try {
+        const { username } = request.params;
+        const { new_password } = request.body || {};
+
+        if (!new_password || typeof new_password !== 'string') {
+          return reply.status(400).send({ error: 'new_password richiesta (string)' });
+        }
+        if (new_password.length < 6) {
+          return reply.status(400).send({ error: 'Password troppo corta (min 6 char)' });
+        }
+
+        const userRes = await query(
+          'SELECT id, username FROM users WHERE username = $1 LIMIT 1',
+          [username]
+        );
+        if (userRes.rows.length === 0) {
+          return reply.status(404).send({ error: 'Utente non trovato' });
+        }
+
+        // bcrypt-ifica con cost 10
+        const bcrypt = (await import('bcryptjs')).default;
+        const hash = await bcrypt.hash(new_password, 10);
+
+        // Aggiorna + azzera legacy auth (utente non torna al fallback SHA1)
+        await query(
+          `UPDATE users
+              SET password_hash = $1,
+                  legacy_password = NULL,
+                  legacy_salt = NULL,
+                  legacy_format = NULL,
+                  legacy_password_migrated_at = COALESCE(legacy_password_migrated_at, NOW())
+            WHERE username = $2`,
+          [hash, username]
+        );
+
+        // Audit log (best-effort)
+        try {
+          await query(
+            `INSERT INTO modifiche_utente (username, campo, valore_precedente, valore_nuovo, modificato_da, data)
+             VALUES ($1, 'password', '[REDACTED]', '[REDACTED]', $2, NOW())`,
+            [username, request.user?.username || 'admin']
+          );
+        } catch (e) { /* tabella modifiche_utente potrebbe non esistere */ }
+
+        return {
+          success: true,
+          message: `Password aggiornata per ${username}`,
+          migrated_from_legacy: !!userRes.rows[0].legacy_password
+        };
+      } catch (err) {
+        fastify.log.error({ err: err.message }, 'change-password error');
+        return reply.status(500).send({ error: err.message });
+      }
+    }
+  );
+
+  /**
+   * GET /api/admin/utenti/:username/controllo-accessi
+   *
+   * Parity legacy: Areas/Gestione/Views/Utenti/ControlloAccessi.cshtml.
+   * Storico degli accessi dell'utente: data, IP, esito (success/fail),
+   * user-agent. Dati aggregati dalla tabella access_log se esiste,
+   * altrimenti da auth_log o sessioni.
+   *
+   * Query params:
+   *   limit   default 50, max 500
+   *   from    YYYY-MM-DD (opzionale)
+   *   to      YYYY-MM-DD (opzionale)
+   *
+   * Schema-tolerant: prova access_log / auth_log / sessioni in cascata,
+   * ritorna 200 con array vuoto + _warning se nessuna tabella disponibile.
+   */
+  fastify.get('/utenti/:username/controllo-accessi',
+    { preHandler: [fastify.authenticate, adminOnly] },
+    async (request, reply) => {
+      try {
+        const { username } = request.params;
+        const limit = Math.min(parseInt(request.query?.limit || '50', 10), 500);
+        const { from, to } = request.query || {};
+
+        // Detect quale tabella di log esiste
+        const tablesRes = await query(`
+          SELECT table_name FROM information_schema.tables
+          WHERE table_schema = 'public'
+            AND table_name IN ('access_log', 'auth_log', 'sessioni', 'login_log')
+        `);
+        const available = new Set(tablesRes.rows.map(r => r.table_name));
+
+        let sourceTable = null;
+        let columns = '';
+
+        if (available.has('access_log')) {
+          sourceTable = 'access_log';
+          columns = 'data_accesso AS data, ip, user_agent, esito';
+        } else if (available.has('auth_log')) {
+          sourceTable = 'auth_log';
+          columns = 'created_at AS data, ip_address AS ip, user_agent, success AS esito';
+        } else if (available.has('login_log')) {
+          sourceTable = 'login_log';
+          columns = 'data, ip, user_agent, esito';
+        } else if (available.has('sessioni')) {
+          sourceTable = 'sessioni';
+          columns = 'data_inizio AS data, ip, user_agent, ' +
+                    "CASE WHEN data_inizio IS NOT NULL THEN 'success' ELSE 'fail' END AS esito";
+        }
+
+        if (!sourceTable) {
+          return {
+            data: [],
+            totale: 0,
+            _warning: 'Nessuna tabella di log accessi disponibile (cercati: access_log, auth_log, login_log, sessioni)'
+          };
+        }
+
+        // Costruisci WHERE
+        const where = ['username = $1'];
+        const params = [username];
+        if (from) { params.push(from); where.push(`data >= $${params.length}::timestamptz`); }
+        if (to)   { params.push(to);   where.push(`data <= $${params.length}::timestamptz`); }
+        params.push(limit);
+
+        const result = await query(
+          `SELECT ${columns}
+             FROM ${sourceTable}
+            WHERE ${where.join(' AND ')}
+            ORDER BY data DESC
+            LIMIT $${params.length}`,
+          params
+        );
+
+        return {
+          data: result.rows,
+          totale: result.rows.length,
+          source_table: sourceTable
+        };
+      } catch (err) {
+        fastify.log.error({ err: err.message }, 'controllo-accessi error');
+        return {
+          data: [],
+          totale: 0,
+          _error: err.message
+        };
+      }
+    }
+  );
+
+  // ============================================
   // SUBSCRIPTION MANAGEMENT
   // ============================================
 
