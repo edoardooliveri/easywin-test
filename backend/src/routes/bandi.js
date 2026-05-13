@@ -643,6 +643,43 @@ export default async function bandiRoutes(fastify, opts) {
   });
 
   // ============================================================
+  // GET /api/bandi/:id/clienti-registro
+  // ============================================================
+  // Parity legacy: dashboard "quali clienti hanno questo bando nel registro".
+  // Utile lato admin per vedere chi segue un bando specifico.
+  //
+  // Response: { clienti: [{ username, note_registro, data_inserimento }], totale }
+  fastify.get('/:id/clienti-registro', async (request, reply) => {
+    try {
+      const { id } = request.params;
+
+      // Verifica che bando esista
+      const bandoRes = await query('SELECT 1 FROM bandi WHERE id = $1 LIMIT 1', [id]);
+      if (bandoRes.rows.length === 0) {
+        return reply.status(404).send({ error: 'Bando non trovato' });
+      }
+
+      const result = await query(
+        `SELECT r.username, r.note_registro, r.data_inserimento,
+                u.email, u.nome, u.cognome
+           FROM registro_gare_clienti r
+           LEFT JOIN users u ON u.username = r.username
+          WHERE r.id_bando = $1
+          ORDER BY r.data_inserimento DESC`,
+        [id]
+      );
+
+      return {
+        clienti: result.rows,
+        totale: result.rows.length
+      };
+    } catch (err) {
+      fastify.log.error({ err: err.message }, 'bandi clienti-registro error');
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  // ============================================================
   // GET /api/bandi/stats/overview - Statistiche bandi
   // ============================================================
   fastify.get('/stats/overview', async (request, reply) => {

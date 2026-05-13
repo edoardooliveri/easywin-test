@@ -689,6 +689,176 @@ export default async function adminUtentiRoutes(fastify, opts) {
   );
 
   // ============================================
+  // REGISTRO GARE (admin-side per conto del cliente)
+  // ============================================
+  // Parity legacy:
+  //   Areas/Abbonamenti/Views/Bandi/RegistroBandiAdd.cshtml
+  //   Areas/Abbonamenti/Views/Bandi/RegistroBandiRemove.cshtml
+  //   Areas/Abbonamenti/Views/Bandi/RegistroGare.cshtml
+  //   Areas/Abbonamenti/Views/Bandi/SchedeRegistroGare.cshtml
+  //
+  // Il "registro gare" è la lista personale di bandi salvati dal cliente
+  // (preferiti). L'admin può gestirla per conto del cliente (help-desk).
+  //
+  // Tabella canonica: public.registro_gare_clienti (m.005, UNIQUE username+id_bando)
+
+  /**
+   * GET /api/admin/utenti/:username/registro-gare
+   *
+   * Lista bandi nel registro del cliente. Include i dati base del bando
+   * per la "scheda registro" (parity legacy SchedeRegistroGare).
+   *
+   * Query params:
+   *   limit / offset    paginazione (default 50 / 0)
+   *   q                 ricerca su titolo bando (ILIKE)
+   */
+  fastify.get('/utenti/:username/registro-gare',
+    { preHandler: [fastify.authenticate, adminOnly] },
+    async (request, reply) => {
+      try {
+        const { username } = request.params;
+        const limit = Math.min(parseInt(request.query?.limit || '50', 10), 500);
+        const offset = parseInt(request.query?.offset || '0', 10);
+        const q = (request.query?.q || '').trim();
+
+        const where = ['r.username = $1'];
+        const params = [username];
+        if (q) {
+          params.push(`%${q}%`);
+          where.push(`b.titolo ILIKE $${params.length}`);
+        }
+        const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+        // Count totale
+        const countRes = await query(
+          `SELECT COUNT(*) AS total
+             FROM registro_gare_clienti r
+             LEFT JOIN bandi b ON b.id = r.id_bando
+            ${whereSql}`,
+          params
+        );
+
+        params.push(limit, offset);
+        const result = await query(
+          `SELECT r.id, r.id_bando, r.note_registro, r.data_inserimento,
+                  b.titolo, b.codice_cig, b.codice_cup,
+                  b.importo_so, b.data_pubblicazione, b.data_offerta,
+                  b.id_stazione, b.stazione_nome, b.regione,
+                  b.annullato
+             FROM registro_gare_clienti r
+             LEFT JOIN bandi b ON b.id = r.id_bando
+            ${whereSql}
+            ORDER BY r.data_inserimento DESC
+            LIMIT $${params.length - 1} OFFSET $${params.length}`,
+          params
+        );
+
+        return {
+          data: result.rows,
+          totale: parseInt(countRes.rows[0].total, 10),
+          limit,
+          offset
+        };
+      } catch (err) {
+        fastify.log.error({ err: err.message }, 'admin registro-gare GET error');
+        return reply.status(500).send({ error: err.message });
+      }
+    }
+  );
+
+  /**
+   * POST /api/admin/utenti/:username/registro-gare
+   *
+   * Aggiunge un bando al registro del cliente (parity legacy
+   * RegistroBandiAdd).
+   *
+   * Body: { id_bando: UUID, note?: string }
+   */
+  fastify.post('/utenti/:username/registro-gare',
+    { preHandler: [fastify.authenticate, adminOnly] },
+    async (request, reply) => {
+      try {
+        const { username } = request.params;
+        const { id_bando, note } = request.body || {};
+
+        if (!id_bando) {
+          return reply.status(400).send({ error: 'id_bando richiesto (UUID)' });
+        }
+
+        // Verifica che user esista
+        const userRes = await query(
+          'SELECT 1 FROM users WHERE username = $1 LIMIT 1', [username]
+        );
+        if (userRes.rows.length === 0) {
+          return reply.status(404).send({ error: `Utente ${username} non trovato` });
+        }
+
+        // Verifica che bando esista
+        const bandoRes = await query(
+          'SELECT 1 FROM bandi WHERE id = $1 LIMIT 1', [id_bando]
+        );
+        if (bandoRes.rows.length === 0) {
+          return reply.status(404).send({ error: `Bando ${id_bando} non trovato` });
+        }
+
+        // INSERT con upsert su (username, id_bando) — UNIQUE constraint
+        const result = await query(
+          `INSERT INTO registro_gare_clienti (username, id_bando, note_registro, data_inserimento)
+           VALUES ($1, $2, $3, NOW())
+           ON CONFLICT (username, id_bando) DO UPDATE
+             SET note_registro = COALESCE(EXCLUDED.note_registro, registro_gare_clienti.note_registro)
+           RETURNING id, data_inserimento`,
+          [username, id_bando, note || null]
+        );
+
+        return {
+          success: true,
+          id: result.rows[0].id,
+          data_inserimento: result.rows[0].data_inserimento,
+          message: `Bando aggiunto al registro di ${username}`
+        };
+      } catch (err) {
+        fastify.log.error({ err: err.message }, 'admin registro-gare POST error');
+        return reply.status(500).send({ error: err.message });
+      }
+    }
+  );
+
+  /**
+   * DELETE /api/admin/utenti/:username/registro-gare/:id_bando
+   *
+   * Rimuove un bando dal registro del cliente (parity legacy
+   * RegistroBandiRemove).
+   */
+  fastify.delete('/utenti/:username/registro-gare/:id_bando',
+    { preHandler: [fastify.authenticate, adminOnly] },
+    async (request, reply) => {
+      try {
+        const { username, id_bando } = request.params;
+
+        const result = await query(
+          `DELETE FROM registro_gare_clienti
+            WHERE username = $1 AND id_bando = $2
+            RETURNING id`,
+          [username, id_bando]
+        );
+
+        if (result.rows.length === 0) {
+          return reply.status(404).send({ error: 'Voce non trovata nel registro' });
+        }
+
+        return {
+          success: true,
+          message: `Bando rimosso dal registro di ${username}`
+        };
+      } catch (err) {
+        fastify.log.error({ err: err.message }, 'admin registro-gare DELETE error');
+        return reply.status(500).send({ error: err.message });
+      }
+    }
+  );
+
+  // ============================================
   // SUBSCRIPTION MANAGEMENT
   // ============================================
 
