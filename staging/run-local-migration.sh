@@ -174,31 +174,43 @@ step_restore_bak() {
     fi
   fi
 
-  info "Estraggo logical names dal .bak..."
+  info "Mostro i logical names del .bak..."
   docker exec "$MSSQL_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
-    -S localhost -U sa -P "$MSSQL_PASS" -C \
-    -Q "RESTORE FILELISTONLY FROM DISK='/var/backups/$bak_name'" 2>&1 | head -20
+    -S localhost -U sa -P "$MSSQL_PASS" -C -h -1 -W -s "|" \
+    -Q "SET NOCOUNT ON; RESTORE FILELISTONLY FROM DISK='/var/backups/$bak_name'" 2>&1 \
+    | awk -F'|' 'NF>3 && $1!~/^-+$/ && $1!="LogicalName" {printf "    %-20s | %s\n", $1, $3}' \
+    | head -10
 
-  warn "Verifica i logical names sopra! Se sono diversi da 'Gare' e 'Gare_log', ferma e modifica lo script."
-
-  info "Avvio RESTORE (può durare 15-30 min per 19 GB)..."
-  docker exec "$MSSQL_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
-    -S localhost -U sa -P "$MSSQL_PASS" -C \
+  info "Avvio RESTORE (15-30 min per 19 GB)..."
+  # 4 file conosciuti nel backup Gare05_VEN.bak (verificati con FILELISTONLY):
+  #   Gare           (D, PRIMARY)        → Gare.mdf
+  #   BandiAllegati  (D, BANDI_ALLEGATI) → BandiAllegati.ndf
+  #   FontiWeb       (D, FONTI_WEB)      → FontiWeb.ndf
+  #   Gare_log       (L)                 → Gare_log.ldf
+  #
+  # NB: -b fa exit non-zero se RESTORE fallisce
+  if ! docker exec "$MSSQL_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
+    -S localhost -U sa -P "$MSSQL_PASS" -C -b \
     -Q "RESTORE DATABASE Gare FROM DISK='/var/backups/$bak_name'
-        WITH MOVE 'Gare' TO '/var/opt/mssql/data/Gare.mdf',
-             MOVE 'Gare_log' TO '/var/opt/mssql/data/Gare_log.ldf',
-             REPLACE, RECOVERY, STATS=10"
+        WITH MOVE 'Gare'          TO '/var/opt/mssql/data/Gare.mdf',
+             MOVE 'BandiAllegati' TO '/var/opt/mssql/data/BandiAllegati.ndf',
+             MOVE 'FontiWeb'      TO '/var/opt/mssql/data/FontiWeb.ndf',
+             MOVE 'Gare_log'      TO '/var/opt/mssql/data/Gare_log.ldf',
+             REPLACE, RECOVERY, STATS=10"; then
+    err "RESTORE FALLITO. Vedi output sopra."
+    exit 1
+  fi
 
   ok "RESTORE completato"
 
-  info "Verifica row count delle 5 tabelle principali..."
+  info "Verifica row count delle tabelle principali..."
   docker exec "$MSSQL_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
-    -S localhost -U sa -P "$MSSQL_PASS" -C -d Gare \
+    -S localhost -U sa -P "$MSSQL_PASS" -C -d Gare -b \
     -Q "SET NOCOUNT ON;
         SELECT t.name AS tabella, p.rows AS righe
         FROM sys.tables t
         JOIN sys.partitions p ON p.object_id = t.object_id AND p.index_id IN (0,1)
-        WHERE t.name IN ('Bandi','Gare','Azienda','Aziende','Users','Stazioni','DettaglioGara')
+        WHERE t.name IN ('Bandi','Gare','Azienda','Aziende','Users','Stazioni','DettaglioGara','AllegatiBando','FontiWeb')
         ORDER BY t.name"
 }
 
