@@ -1,5 +1,6 @@
 import { query } from '../db/pool.js';
 import bcrypt from 'bcryptjs';
+import { tryMigrateLegacyPassword } from '../lib/legacy-auth.js';
 
 export default async function authRoutes(fastify, opts) {
 
@@ -32,13 +33,15 @@ export default async function authRoutes(fastify, opts) {
       }
 
       const result = await query(
-        `SELECT u."id" AS user_id, u."username", u."email", u."nome", u."cognome",
+        `SELECT u."id" AS user_id, u."id", u."username", u."email", u."nome", u."cognome",
                 u."attivo", u."password_hash", u."ruolo",
                 u."ruolo_dettagliato", u."bandi_enabled", u."esiti_enabled",
                 u."esiti_light_enabled", u."simulazioni_enabled",
                 u."newsletter_bandi", u."newsletter_esiti",
                 u."data_scadenza", u."bloccato", u."motivo_blocco",
-                u."codice_agente", u."id_azienda"
+                u."codice_agente", u."id_azienda",
+                /* Legacy auth (migrazione aspnet_Membership, vedi lib/legacy-auth.js) */
+                u."legacy_password", u."legacy_salt", u."legacy_format"
          FROM users u
          WHERE u."username" = $1 OR u."email" = $1
          LIMIT 1`,
@@ -69,26 +72,40 @@ export default async function authRoutes(fastify, opts) {
         user._isExpired = true;
       }
 
-      // Password validation: handle legacy migration from ASP.NET Membership
+      // Password validation con 3 strategie in ordine di preferenza:
+      //   A. password_hash bcrypt presente → bcrypt.compare
+      //   B. legacy_password (aspnet_Membership) presente → verifica SHA1+salt
+      //      via lib/legacy-auth.js, e se OK bcrypt-ifico + azzero legacy_*
+      //   C. nessuno dei due → 401 (non più "accetta tutto"! quel bug
+      //      pre-fix permetteva login con qualsiasi password sull'1° accesso)
+      let authOK = false;
+
       if (user.password_hash) {
-        // User already has a password hash (migrated or first-login from new register endpoint)
-        const passwordMatch = await bcrypt.compare(password, user.password_hash);
-        if (!passwordMatch) {
-          return reply.status(401).send({ error: 'Credenziali non valide' });
-        }
-      } else {
-        // First login for user without password hash: hash the provided password and store it
-        // This handles users migrated from legacy ASP.NET Membership system
+        // Strategy A — bcrypt nativo
+        authOK = await bcrypt.compare(password, user.password_hash);
+      } else if (user.legacy_password) {
+        // Strategy B — fallback aspnet_Membership
         try {
-          const hashedPassword = await bcrypt.hash(password, 10);
-          await query(
-            `UPDATE users SET "password_hash" = $1 WHERE "username" = $2`,
-            [hashedPassword, user.username]
+          const r = await tryMigrateLegacyPassword(query, bcrypt, user, password);
+          authOK = r.migrated;
+          if (r.migrated) {
+            fastify.log.info(
+              { userId: user.id, username: user.username },
+              'legacy password migrata a bcrypt al login'
+            );
+          }
+        } catch (legacyErr) {
+          fastify.log.error(
+            { err: legacyErr.message, userId: user.id },
+            'Errore migrazione legacy password'
           );
-        } catch (hashErr) {
-          fastify.log.error({ err: hashErr.message }, 'Password hash error on first login');
-          return reply.status(500).send({ error: 'Errore nel salvataggio della password' });
+          // Non-fatal: cade in 401 sotto
         }
+      }
+      // Strategy C — nessun hash disponibile → mai autorizzare
+
+      if (!authOK) {
+        return reply.status(401).send({ error: 'Credenziali non valide' });
       }
 
       // Build permissions object
