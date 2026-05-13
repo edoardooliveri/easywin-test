@@ -2067,6 +2067,105 @@ tbody tr:hover td {
 .ms-dropdown .ms-tag {
   font-family: 'Comfortaa', cursive;
 }
+
+/* ═══════════ SINGLE-SELECT SEARCHABLE (ss-dropdown) ═══════════
+   Variante single-select del ms-dropdown. Stesso look ma con
+   radio (1 sola opzione attiva alla volta). Generata dinamicamente
+   da wrapSelectAsSearchable() che prende un <select> esistente,
+   lo nasconde e ci sovrappone questo widget elegante. */
+.ss-dropdown { position: relative; }
+.ss-dropdown .ss-trigger {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  font-family: 'Comfortaa', cursive;
+  color: var(--text);
+  background: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 38px;
+  transition: var(--transition);
+}
+.ss-dropdown .ss-trigger:hover,
+.ss-dropdown.open .ss-trigger { border-color: var(--accent-orange); }
+.ss-dropdown.open .ss-trigger { box-shadow: 0 0 0 3px rgba(234,88,12,0.12); }
+.ss-dropdown .ss-trigger::after {
+  content: '\f078'; font-family: 'Font Awesome 5 Free'; font-weight: 900;
+  font-size: 10px; color: var(--text-muted); margin-left: 8px; flex-shrink: 0;
+}
+.ss-dropdown.open .ss-trigger::after { content: '\f077'; color: var(--accent-orange); }
+.ss-dropdown .ss-label {
+  flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: 'Comfortaa', cursive;
+}
+.ss-dropdown .ss-label.placeholder { color: var(--text-muted); }
+.ss-dropdown .ss-panel {
+  display: none;
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 999;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  margin-top: 4px;
+  max-height: 280px;
+  overflow: hidden;
+  flex-direction: column;
+}
+.ss-dropdown.open .ss-panel { display: flex; }
+.ss-dropdown .ss-search {
+  padding: 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.10);
+}
+.ss-dropdown .ss-search input {
+  width: 100%; padding: 8px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  background: #ffffff; color: var(--text);
+  font-size: 0.85rem; font-family: 'Comfortaa', cursive;
+  outline: none;
+  box-sizing: border-box;
+}
+.ss-dropdown .ss-search input:focus {
+  border-color: var(--accent-orange);
+  box-shadow: 0 0 0 3px rgba(234,88,12,0.12);
+}
+.ss-dropdown .ss-options {
+  overflow-y: auto; padding: 4px 0; flex: 1; font-family: 'Comfortaa', cursive;
+}
+.ss-dropdown .ss-options::-webkit-scrollbar { width: 6px; }
+.ss-dropdown .ss-options::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #F5C518, #EA580C);
+  border-radius: 3px;
+}
+.ss-dropdown .ss-opt {
+  padding: 9px 14px; cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  transition: all 0.1s;
+  border-left: 3px solid transparent;
+}
+.ss-dropdown .ss-opt:hover {
+  background: linear-gradient(90deg, #FFFAF0, #FEF9C3);
+  color: #1A1A1A;
+  border-left-color: var(--accent-orange);
+}
+.ss-dropdown .ss-opt.selected {
+  background: linear-gradient(90deg, rgba(245,197,24,0.15), rgba(234,88,12,0.10));
+  color: #1A1A1A; font-weight: 700;
+  border-left-color: var(--accent-orange);
+}
+.ss-dropdown .ss-opt.selected::after {
+  content: '\f00c'; font-family: 'Font Awesome 5 Free'; font-weight: 900;
+  margin-left: 6px; color: var(--accent-orange); font-size: 11px; float: right;
+}
+.ss-dropdown .ss-empty {
+  padding: 18px; text-align: center;
+  color: var(--text-dim); font-size: 0.82rem; font-style: italic;
+  font-family: 'Comfortaa', cursive;
+}
+
 /* Uniform form style — same as Crea Bando */
 .search-section.compact .form-row { grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; overflow: visible; position: relative; }
 .search-section.compact .form-col { min-width: 0; }
@@ -8676,6 +8775,152 @@ function toggleMsDropdown(id) {
 document.addEventListener('click', e => {
   if (!e.target.closest('.ms-dropdown')) document.querySelectorAll('.ms-dropdown.open').forEach(d => d.classList.remove('open'));
 });
+
+// === Single-Select Searchable Dropdown (ss-dropdown) ===
+// Wrappa un <select> nativo come dropdown elegante con search.
+// Il <select> resta nel DOM (display:none) per compatibilità form/JS esistente.
+// Quando l'utente clicca un'opzione: aggiorna il <select>, fire 'change',
+// chiude il pannello.
+function wrapSelectAsSearchable(selectId, opts = {}) {
+  const sel = document.getElementById(selectId);
+  if (!sel || sel.dataset.ssWrapped === '1') return;
+  sel.dataset.ssWrapped = '1';
+  sel.style.display = 'none';
+
+  const placeholder = opts.placeholder || sel.options[0]?.text || 'Seleziona...';
+
+  // Crea wrapper
+  const wrap = document.createElement('div');
+  wrap.className = 'ss-dropdown';
+  wrap.id = 'ss-' + selectId;
+  wrap.innerHTML = `
+    <div class="ss-trigger" onclick="toggleSsDropdown('${wrap.id}')">
+      <span class="ss-label placeholder">${esc(placeholder)}</span>
+    </div>
+    <div class="ss-panel">
+      <div class="ss-search"><input type="text" placeholder="Cerca..." oninput="filterSsOptions(this)"></div>
+      <div class="ss-options"></div>
+    </div>
+  `;
+  sel.parentNode.insertBefore(wrap, sel.nextSibling);
+
+  // Popola opzioni iniziali dal <select>
+  refreshSsOptions(selectId);
+
+  // Mantieni in sync se il select cambia da JS esterno
+  sel.addEventListener('change', () => refreshSsLabel(selectId));
+  // Re-popola quando JS esterno aggiunge option (es. loadAgenti, loadResponsabili)
+  new MutationObserver(() => refreshSsOptions(selectId))
+    .observe(sel, { childList: true });
+}
+
+function refreshSsOptions(selectId) {
+  const sel = document.getElementById(selectId);
+  const wrap = document.getElementById('ss-' + selectId);
+  if (!sel || !wrap) return;
+  const optsBox = wrap.querySelector('.ss-options');
+  const current = sel.value;
+  optsBox.innerHTML = '';
+  Array.from(sel.options).forEach(opt => {
+    const div = document.createElement('div');
+    div.className = 'ss-opt' + (opt.value === current ? ' selected' : '');
+    div.dataset.value = opt.value;
+    div.dataset.label = opt.text;
+    div.textContent = opt.text;
+    div.onclick = () => selectSsOption(selectId, opt.value);
+    optsBox.appendChild(div);
+  });
+  refreshSsLabel(selectId);
+}
+
+function refreshSsLabel(selectId) {
+  const sel = document.getElementById(selectId);
+  const wrap = document.getElementById('ss-' + selectId);
+  if (!sel || !wrap) return;
+  const label = wrap.querySelector('.ss-label');
+  const selOpt = sel.options[sel.selectedIndex];
+  if (!selOpt || !selOpt.value || selOpt.value === '') {
+    label.textContent = sel.options[0]?.text || 'Seleziona...';
+    label.classList.add('placeholder');
+  } else {
+    label.textContent = selOpt.text;
+    label.classList.remove('placeholder');
+  }
+  // Marca selected nella lista
+  wrap.querySelectorAll('.ss-opt').forEach(o => {
+    o.classList.toggle('selected', o.dataset.value === sel.value);
+  });
+}
+
+function selectSsOption(selectId, value) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.value = value;
+  sel.dispatchEvent(new Event('change', { bubbles: true }));
+  refreshSsLabel(selectId);
+  document.getElementById('ss-' + selectId)?.classList.remove('open');
+}
+
+function toggleSsDropdown(wrapId) {
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  const isOpen = wrap.classList.contains('open');
+  // chiudi altri ss-dropdown
+  document.querySelectorAll('.ss-dropdown.open').forEach(d => { if(d.id !== wrapId) d.classList.remove('open'); });
+  wrap.classList.toggle('open');
+  if (!isOpen) {
+    const inp = wrap.querySelector('.ss-search input');
+    if (inp) { setTimeout(() => inp.focus(), 50); }
+    // reset filtro
+    if (inp) { inp.value = ''; filterSsOptions(inp); }
+  }
+}
+
+function filterSsOptions(input) {
+  const q = input.value.trim().toLowerCase();
+  const panel = input.closest('.ss-panel');
+  const opts = panel.querySelectorAll('.ss-opt');
+  let visibleCount = 0;
+  opts.forEach(opt => {
+    const match = opt.textContent.toLowerCase().includes(q);
+    opt.style.display = match ? '' : 'none';
+    if (match) visibleCount++;
+  });
+  // Mostra "nessun risultato" se serve
+  const existingEmpty = panel.querySelector('.ss-empty');
+  if (visibleCount === 0 && q) {
+    if (!existingEmpty) {
+      const empty = document.createElement('div');
+      empty.className = 'ss-empty';
+      empty.textContent = `Nessun risultato per "${q}"`;
+      panel.querySelector('.ss-options').appendChild(empty);
+    }
+  } else if (existingEmpty) {
+    existingEmpty.remove();
+  }
+}
+
+// Click outside chiude tutti ss-dropdown
+document.addEventListener('click', e => {
+  if (!e.target.closest('.ss-dropdown')) {
+    document.querySelectorAll('.ss-dropdown.open').forEach(d => d.classList.remove('open'));
+  }
+});
+
+// Auto-wrap dei select Aziende all'init (al primo ingresso in pageAziende)
+function initAziendeSearchableSelects() {
+  ['aziende-soa',
+   'aziende-soa-legame',
+   'aziende-soa-classifica',
+   'aziende-email-filtro',
+   'aziende-inserita-da',
+   'aziende-fornitrice',
+   'aziende-agente',
+   'aziende-responsabile'].forEach(id => wrapSelectAsSearchable(id));
+}
+document.addEventListener('DOMContentLoaded', initAziendeSearchableSelects);
+// In caso DOMContentLoaded sia già avvenuto al momento di parse di questo script:
+if (document.readyState !== 'loading') initAziendeSearchableSelects();
 function filterMsOptions(input) {
   const q = input.value.toLowerCase();
   const panel = input.closest('.ms-panel');
