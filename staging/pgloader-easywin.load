@@ -24,9 +24,12 @@ WITH include drop,              -- drop tabelle esistenti su Postgres prima di c
 -- ============================================================================
 -- TUNING MEMORIA
 -- ============================================================================
+-- NB: max_wal_size NON va qui (è PGC_SIGHUP, server-level: richiede ALTER
+-- SYSTEM o postgresql.conf). pgloader lo SET via SET LOCAL e Postgres
+-- rifiuta con "55P02: parameter cannot be changed now". Per WAL pulito
+-- in staging non serve comunque: il default 1 GB su Postgres 16 va bene.
 SET work_mem TO '128MB',
-    maintenance_work_mem TO '1GB',
-    max_wal_size TO '2GB'
+    maintenance_work_mem TO '1GB'
 
 -- ============================================================================
 -- CAST: mappatura tipi SQL Server → Postgres
