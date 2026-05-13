@@ -39,9 +39,10 @@ SET work_mem TO '128MB',
 -- text, ntext, date, time, datetime, datetime2, bit, uniqueidentifier, varbinary
 -- Qui sovrascriviamo i casi che vogliamo forzare diversamente.
 CAST
-    -- BIT → boolean esplicito (pgloader fa "smallint" di default, ma noi
-    -- vogliamo boolean pieno Postgres)
-    type bit to boolean drop typemod using bit-to-boolean,
+    -- BIT → boolean (pgloader 3.6.x ha già il cast nativo, no transform custom).
+    -- ATTENZIONE: NON usare "using bit-to-boolean": quella funzione esiste
+    -- solo in pgloader >= 3.7 e fa KABOOM su versioni precedenti.
+    type bit to boolean drop typemod,
 
     -- datetime/datetime2/smalldatetime → timestamptz (timezone Europe/Rome)
     type datetime to "timestamp with time zone" drop default drop not null,
@@ -49,8 +50,15 @@ CAST
     type smalldatetime to "timestamp with time zone" drop default drop not null,
     type datetimeoffset to "timestamp with time zone" drop default drop not null,
 
-    -- uniqueidentifier → uuid
-    type uniqueidentifier to uuid drop typemod,
+    -- uniqueidentifier → TEXT (NON uuid).
+    -- Motivo: pgloader 3.6.x trasforma uniqueidentifier in byte-array raw
+    -- "#(195 119 ...)" che Postgres rifiuta come UUID ("invalid input
+    -- syntax"). Le tabelle che usano uniqueidentifier sono prevalentemente
+    -- aspnet_* (skip nel nostro target) e alcune *_bk (backup interni).
+    -- Le tabelle reali del business (bandi/gare/aziende) usano INT non UUID,
+    -- quindi non ne sono interessate. Se in futuro servono UUID puri, si
+    -- castano TEXT → UUID in post-migration.
+    type uniqueidentifier to text drop typemod,
 
     -- nvarchar senza limite → text (meno problemi con TOAST)
     type nvarchar when (= precision 0) to text drop typemod,
